@@ -4,11 +4,11 @@
 
 | Item | Description |
 |---|---|
-| Course |  |
-| Class |  |
+| Course | SWP391 |
+| Class | SE20A11 |
 | Semester | SU26 |
-| Group |  |
-| Topic |  |
+| Group | 2 |
+| Topic | Integrated Coding Education & Competitive Programming Infrastructure |
 | Repository |  |
 
 ---
@@ -17,11 +17,11 @@
 
 | No | Student ID | Full Name | GitHub Username | Role | Main Responsibility |
 |---:|---|---|---|---|---|
-| 1 |  |  |  | Leader |  |
-| 2 |  |  |  | Member |  |
-| 3 |  |  |  | Member |  |
-| 4 |  |  |  | Member |  |
-| 5 |  |  |  | Member |  |
+| 1 | DE190293 | Võ Ngọc Thanh | ThanhMila | Leader |  |
+| 2 | DE190023 | Trịnh Hoàng Thiên Bảo | Bazero06 | Member |  |
+| 3 | DE190416 | Nguyễn Duy Phương | duyphuong24 | Member |  |
+| 4 | DE190094 | Nguyễn Văn Quang | nguyenvanquangfptu | Member |  |
+| 5 | DE190307 | Hồ Sĩ Tấn | Hositan26 | Member |  |
 
 ---
 
