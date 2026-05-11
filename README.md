@@ -9,7 +9,7 @@
 | Semester | SU26 |
 | Group | 2 |
 | Topic | Integrated Coding Education & Competitive Programming Infrastructure |
-| Repository |  |
+| Repository | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02.git |
 
 ---
 
