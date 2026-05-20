@@ -285,6 +285,272 @@ Tôi đã chủ động thiết lập thêm bộ quy tắc đặt tên commit (C
 Quy trình làm việc nhóm rõ ràng giúp các thành viên cộng tác mượt mà, giảm thiểu tối đa conflict và dễ dàng theo dõi lịch sử code.
 ```
 
+---
+
+### Lần sử dụng AI số 5
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-05-16 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Tạo giao diện trang danh sách khóa học (Course List) và chi tiết khóa học (Course Detail) với React và Tailwind CSS |
+| Phân việc liên quan | Frontend / UI Design |
+| Mức độ sử dụng | Sinh code mẫu |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tôi đang xây dựng Frontend cho nền tảng học lập trình trực tuyến bằng React và Tailwind CSS. Hãy viết code cho một trang danh sách khóa học (Course List) có chứa các card hiển thị thông tin khóa học (tên, hình ảnh, mô tả ngắn, số lượng học viên). Sau đó, viết code cho một trang chi tiết khóa học (Course Detail) hiển thị lộ trình học tập, danh sách các bài học (lessons) và có nút "Bắt đầu học" nổi bật. Hãy thiết kế giao diện theo phong cách hiện đại, sử dụng shadow và border-radius phù hợp.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Gemini cung cấp 2 component React hoàn chỉnh:
+- CourseList: Sử dụng CSS Grid tạo layout dạng thẻ (cards) responsive. Card có hiệu ứng hover mượt mà.
+- CourseDetail: Có Hero section tổng quan, danh sách bài học dạng Accordion, Sidebar chứa thông tin giảng viên và nút đăng ký.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Tôi đã sử dụng các cấu trúc HTML/Tailwind CSS này để làm bộ khung giao diện cho trang Course. Layout hiển thị rất tốt trên cả màn hình desktop và mobile.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tôi đã kết nối component với Redux Store và API Backend để lấy danh sách khóa học thật từ DB, thay vì dùng dữ liệu tĩnh, đồng thời tinh chỉnh màu sắc theo nhận diện thương hiệu nhóm.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | `CourseList.jsx`, `CourseDetail.jsx` |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Việc dùng AI sinh sẵn layout Tailwind giúp tiết kiệm đáng kể thời gian viết CSS, đặc biệt là responsive trên các thiết bị.
+```
+
+---
+
+### Lần sử dụng AI số 6
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-05-16 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Xây dựng giao diện Coding Workspace giống LeetCode |
+| Phân việc liên quan | Frontend / UI Design |
+| Mức độ sử dụng | Hỗ trợ ý tưởng / Sinh code mẫu |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Hãy thiết kế giúp tôi giao diện một không gian làm việc (Coding Workspace) cho trang nộp bài tập lập trình bằng React và Tailwind CSS. Giao diện này cần giống với LeetCode: màn hình chia làm 2 phần chính (trái và phải). Bên trái hiển thị Đề bài, ví dụ (input/output) và các gợi ý. Bên phải chia làm 2 phần trên dưới: phần trên là Code Editor (chọn ngôn ngữ, vùng soạn thảo), phần dưới là Terminal/Console để hiển thị kết quả chạy testcase. Hãy hướng dẫn cách dùng thư viện "react-split" hoặc tương tự để người dùng có thể kéo thả thay đổi kích thước các vùng.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Gemini hướng dẫn dùng thư viện `allotment` để chia và kéo thả cửa sổ. Đề xuất dùng `@monaco-editor/react` cho trình code editor để có highlight syntax xịn như VSCode, đồng thời gợi ý cấu trúc layout 3 phần rõ ràng.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Tôi đã cài đặt thư viện `allotment` và `@monaco-editor/react` để dựng layout, tính năng kéo thả thanh phân chia màn hình hoạt động trơn tru đúng theo gợi ý.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tôi đã cấu hình lại Monaco Editor để tự động theo theme hệ thống (Light/Dark mode) và gắn state code editor vào logic nộp bài Judge0 API ở backend.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | `CodingWorkspace.jsx` |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Tích hợp Monaco Editor nâng cao trải nghiệm nộp bài lên mức chuyên nghiệp, ngang ngửa các nền tảng e-learning lớn.
+```
+
+---
+
+### Lần sử dụng AI số 7
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-05-17 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Thiết kế giao diện danh sách thi đấu (Contest) và Leaderboard |
+| Phân việc liên quan | Frontend / UI Design |
+| Mức độ sử dụng | Sinh code mẫu |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Viết code cho giao diện trang Danh sách cuộc thi (Contests) và Bảng xếp hạng (Leaderboard) bằng React và Tailwind CSS. Trang Contests cần có các tab: "Sắp diễn ra", "Đang diễn ra", và "Đã kết thúc", mỗi cuộc thi hiển thị dưới dạng card có đếm ngược thời gian (countdown timer). Bảng xếp hạng Leaderboard cần hiển thị dạng bảng (table) gồm Hạng, Tên User, Điểm số, Thời gian giải, hiển thị top 3 có icon huy chương (Vàng, Bạc, Đồng).
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI cung cấp giao diện tab cho Contest và layout table đẹp mắt cho Leaderboard, làm nổi bật top 3 người đứng đầu với màu sắc riêng và icon huy chương. Gợi ý sử dụng `setInterval` để đếm ngược.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng gần như toàn bộ thiết kế giao diện UI cho cả Contest và Leaderboard vì nó trực quan và phân tách thông tin rất tốt.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Logic đếm ngược do AI viết bị lỗi gây giật lag do re-render. Tôi đã tự viết lại custom hook `useCountdown` và tách component đếm ngược để tối ưu hiệu năng React.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | `ContestList.jsx`, `Leaderboard.jsx` |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Khi sử dụng code mẫu từ AI liên quan đến hook hay effect trong React, cần đặc biệt lưu ý kiểm tra các vấn đề về performance và re-render.
+```
+
+---
+
+### Lần sử dụng AI số 8
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-05-17 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Xây dựng UI trang Profile với biểu đồ thống kê tiến độ học tập |
+| Phân việc liên quan | Frontend / UI Design |
+| Mức độ sử dụng | Hỗ trợ ý tưởng / Sinh code mẫu |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tôi muốn thiết kế một trang Profile cá nhân cho người dùng trên hệ thống thi lập trình. Hãy gợi ý cách bố trí giao diện và viết code React + Tailwind. Phần bên trái hiển thị avatar, thông tin cá nhân và huy hiệu đạt được. Phần bên phải hiển thị thống kê học tập, bao gồm số lượng bài tập đã giải (Easy, Medium, Hard) hiển thị dưới dạng biểu đồ tròn (Pie Chart) hoặc thanh tiến độ (Progress bar). Hãy gợi ý thư viện vẽ biểu đồ phù hợp và dễ dùng với React.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Gemini gợi ý dùng thư viện `Recharts` hoặc `Chart.js`, đồng thời đưa ra layout chia 2 cột: Cột trái hiện profile card (avatar, info, badge), cột phải hiện thống kê giải bài tập với các thanh progress đa màu sắc và biểu đồ tròn.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Cấu trúc grid chia cột và bố cục chung của trang Profile được sử dụng để hiển thị hồ sơ cá nhân.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thay vì dùng biểu đồ tròn bằng Recharts theo mẫu AI, tôi tự xây dựng Circular Progress Bar bằng SVG và CSS để có giao diện giống LeetCode hơn mà không cần cài thêm thư viện.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | `UserProfile.jsx` |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI cung cấp ý tưởng rất phong phú, nhưng việc chọn lọc và điều chỉnh (VD: bỏ bớt thư viện bên ngoài) để phù hợp nhất với dự án là trách nhiệm của sinh viên.
+```
+
+---
+
+### Lần sử dụng AI số 9
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-05-18 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Tạo hiệu ứng Loading Skeleton và hiển thị testcase màu sắc khi chấm bài |
+| Phân việc liên quan | Frontend / UI/UX |
+| Mức độ sử dụng | Sinh code mẫu |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Khi người dùng bấm "Submit Code" sẽ mất khoảng 2-3 giây để server chấm bài. Trong lúc chờ, tôi muốn hiển thị hiệu ứng Loading Skeleton bằng Tailwind CSS thay cho icon loading xoay xoay truyền thống. Sau khi có kết quả trả về, hãy viết code render danh sách các testcase thành một list. Nếu testcase Pass thì chữ màu xanh lá và icon check, nếu Wrong Answer thì màu đỏ và icon X, nếu Time Limit Exceeded thì màu vàng. Dữ liệu mảng testcase có dạng: [{ id: 1, status: "AC" }, { id: 2, status: "WA" }, { id: 3, status: "TLE" }].
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI sử dụng class animate-pulse tạo loading skeleton mượt mà. Đưa ra hàm render testcase list dùng Tailwind text color dựa trên status code (AC, WA, TLE).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Bộ màu sắc chuẩn cho testcase (xanh cho Pass, đỏ cho Fail, vàng cho Time Limit) và cấu trúc HTML Loading Skeleton được tích hợp nguyên bản vào phần Console.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tôi đã tự thêm animation slide-in để từng testcase xuất hiện theo trình tự, tạo hiệu ứng thị giác như hệ thống đang chấm từng testcase một, làm tăng sự hồi hộp.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | `SubmissionResult.jsx` |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Đầu tư vào Micro-interactions (như skeleton loading, màu sắc feedback) từ AI giúp nền tảng thân thiện và mang lại trải nghiệm chuyên nghiệp.
+```
 
 ---
 
