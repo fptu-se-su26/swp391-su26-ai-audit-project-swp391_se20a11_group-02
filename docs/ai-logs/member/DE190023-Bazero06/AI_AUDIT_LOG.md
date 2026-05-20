@@ -4,15 +4,15 @@
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày bắt đầu |  |
+| Môn học | Software Development Project |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | SU26 |
+| Tên bài tập / Project |Integrated Coding Education & Competitive Programming Platform|
+| Tên sinh viên / Nhóm | Trịnh Hoàng Thiên Bảo |
+| MSSV / Danh sách MSSV | DE190023 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Ngày bắt đầu | 18/05/2026 |
 | Ngày hoàn thành |  |
 
 ---
@@ -21,15 +21,15 @@
 
 Đánh dấu các công cụ AI đã sử dụng trong quá trình thực hiện bài tập/project.
 
-- [ ] ChatGPT
-- [ ] Gemini
-- [ ] Claude
-- [ ] GitHub Copilot
-- [ ] Cursor
-- [ ] Antigravity
-- [ ] Perplexity
-- [ ] Microsoft Copilot
-- [ ] Công cụ khác: ....................................
+- [x] ChatGPT
+- [x] Gemini
+- [x] Claude
+- [x] GitHub Copilot
+- [x] Cursor
+- [x] Antigravity
+- [] Perplexity
+- [] Microsoft Copilot
+- [] Công cụ khác: ....................................
 
 ---
 
@@ -53,11 +53,10 @@ Ví dụ:
 - Tìm hiểu công nghệ mới
 
 ### Mô tả mục tiêu sử dụng AI
-
-```text
-Viết tại đây...
-```
-
+- Hỗ trợ lên ý tưởng giải pháp cho các chức năng phức tạp.
+- Tham khảo các best practice về kiến trúc hệ thống (ví dụ: cách thiết kế Repository, Dependency Injection trong Spring Boot).
+- Gợi ý cấu trúc code mẫu, hướng dẫn sử dụng các thư viện/framework mới.
+- Hỗ trợ viết các script xử lý logic, định dạng (format) lại code chuẩn xác.
 ## 4. Nhật ký sử dụng AI chi tiết
 
 > Mỗi lần sử dụng AI cho một phần quan trọng của bài tập/project, sinh viên cần ghi lại theo mẫu bên dưới.  
@@ -69,41 +68,53 @@ Viết tại đây...
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| Ngày sử dụng | 2026-05-18 |
+| Công cụ AI |  Claude |
+| Mục đích sử dụng | Xác định và đếm số lượng Use Case Specification cho chức năng Instructor |
+| Phần việc liên quan | Phân việc liên quan	Use Case Analysis / System Design |
+| Mức độ sử dụng | Phân việc liên quan	Use Case Analysis / System Design |
 
 #### 4.1. Prompt đã sử dụng
 
-```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
-```
+Chức năng dành cho Instructor (Giảng viên)
+Instructor là đối tác cung cấp nội dung, có quyền khởi tạo khóa học và tổ chức các kỳ thi thuật toán:
+• Tài chính & Kinh doanh: Bán khóa học, Rút tiền doanh thu.
+• Quản lý khóa học: Quản lý nội dung, Upload video, Tạo quiz, Cập nhật/chỉnh sửa, Ẩn/hiện,
+  Trả lời Q&A, Xem thống kê.
+• Quản lý Contest: Tạo Contest mới, Cấu hình, Thêm bài tập, Xem thống kê và kết quả.
+• Quản lý bài tập Code: Tạo đề bài, Tạo và quản lý Test Case, Cấu hình tài nguyên.
+dựa vào đây có bao nhiêu use case specification?"
+
 
 #### 4.2. Kết quả AI gợi ý
+Chức năng dành cho Instructor (Giảng viên)
+Instructor là đối tác cung cấp nội dung, có quyền khởi tạo khóa học và tổ chức các kỳ thi thuật toán:
+• Tài chính & Kinh doanh: Bán khóa học, Rút tiền doanh thu.
+• Quản lý khóa học: Quản lý nội dung, Upload video, Tạo quiz, Cập nhật/chỉnh sửa, Ẩn/hiện,
+  Trả lời Q&A, Xem thống kê.
+• Quản lý Contest: Tạo Contest mới, Cấu hình, Thêm bài tập, Xem thống kê và kết quả.
+• Quản lý bài tập Code: Tạo đề bài, Tạo và quản lý Test Case, Cấu hình tài nguyên.
+dựa vào đây có bao nhiêu use case specification?"
 
-Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
-
-```text
-Viết tại đây...
-```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
 
-```text
-Viết tại đây...
-```
+Chúng tôi đã sử dụng kết quả phân tích của Claude làm cơ sở để xác định chính xác danh sách
+19 Use Case cần đặc tả. Cách phân nhóm 4 nhóm chức năng (Tài chính, Khóa học, Contest,
+Bài tập Code) được giữ nguyên vì phản ánh đúng kiến trúc module của hệ thống.
+Sơ đồ use case trực quan do AI sinh ra cũng được dùng để tham khảo khi vẽ Use Case Diagram.
+
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
-Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+Nhóm đã rà soát lại và quyết định tách UC10 (Tạo Contest) và UC11 (Cấu hình Contest) thành
+2 use case riêng biệt thay vì gộp chung như gợi ý ban đầu của AI, vì hai hành động này có
+trigger, precondition và flow khác nhau rõ ràng trong thực tế sử dụng.
+Ngoài ra, nhóm bổ sung UC18 (Upload file Input/Output) tách riêng khỏi UC17 (Tạo Test Case)
+để phản ánh đúng luồng nghiệp vụ khi Instructor cần upload hàng loạt test case qua file ZIP.
 
-```text
-Viết tại đây...
-```
 
 #### 4.5. Minh chứng
 
@@ -121,7 +132,9 @@ Viết tại đây...
 Sinh viên/nhóm học được gì sau lần sử dụng AI này?
 
 ```text
-Viết tại đây...
+- Nhóm đã hiểu rõ hơn cách phân tích và phân rã các tính năng lớn thành các Use Case đơn lẻ, có nghiệp vụ rõ ràng để chuẩn bị cho việc thiết kế sơ đồ Use Case Diagram.
+- Nhận thức được tầm quan trọng của việc phân chia module hệ thống (Tài chính, Khóa học, Contest, Bài tập Code) giúp cấu trúc hệ thống mạch lạc và dễ phát triển.
+- Bài học rút ra: AI rất mạnh trong việc gợi ý nhanh một danh sách tổng quan ban đầu, nhưng không thể thay thế tư duy phản biện của con người. Nhóm cần tự phân tích kỹ lưỡng để tách/gộp các Use Case (như tách UC10 & UC11, hay bổ sung UC18) sao cho phù hợp với luồng nghiệp vụ thực tế của sản phẩm.
 ```
 
 ---
@@ -130,35 +143,54 @@ Viết tại đây...
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| Ngày sử dụng | 2026-05-19 |
+| Công cụ AI | Claude |
+| Mục đích sử dụng | Viết đầy đủ 19 Use Case Specification theo template chuẩn cho chức năng Instructor |
+| Phần việc liên quan | Viết đầy đủ 19 Use Case Specification theo template chuẩn cho chức năng Instructor |
+| Mức độ sử dụng | Tạo nội dung chính |
 
 #### 4.1. Prompt đã sử dụng
 
-```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
-```
+"UC SPECIFICATION TEMPLATE
+Use Case Name / Use Case ID / Created By / Actor(s) / Preconditions / Post conditions
+/ Main Flow (Basic Path) / Alternative Flow A / Alternative Flow B / Exception Flow
+/ Business Rules
+dựa vào đây làm mỗi usecase cho tôi, bằng tiếng việt nha"
 
 #### 4.2. Kết quả AI gợi ý
+Claude xuất ra file Word (.docx) chứa 19 bảng Use Case theo template 11 trường.
+Mỗi UC có đầy đủ: tên, ID (UC01–UC19), actor, preconditions, post conditions, main flow
+(6–7 bước), alternative flow A/B, exception flow và business rules. Nội dung được viết
+bằng tiếng Việt, trình bày dạng bảng 2 cột có màu sắc phân biệt label và value.
 
-```text
-Viết tại đây...
-```
+
+
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
-```text
-Viết tại đây...
-```
+Toàn bộ nội dung 19 Use Case Specification được sử dụng trực tiếp làm nền tảng của tài
+liệu đặc tả. Cụ thể các phần được sử dụng từ AI:
+
+• Cấu trúc Main Flow (các bước đánh số rõ ràng từ 1–7) cho tất cả 19 UC.
+• Nội dung Alternative Flow A/B và Exception đã phân loại theo mã lỗi (E1, E2,...).
+• Business Rules với mã hóa BR01, BR02,... giúp dễ tra cứu khi review tài liệu.
+• Phần Trigger giúp nhóm xác định rõ điểm khởi đầu của từng use case trong flow tổng thể.
+• Phân tách Primary Actor / Secondary Actor làm rõ trách nhiệm của từng bên trong hệ thống.
+
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
-```text
-Viết tại đây...
-```
+Nhóm đã rà soát và điều chỉnh lại nội dung ở một số điểm so với bản AI sinh ra ban đầu:
+
+• Phần Frequency Of Use: AI ban đầu để khá chung chung, nhóm đã chỉnh lại cho sát với
+  thực tế vận hành hơn (ví dụ: UC08 Q&A đổi thành 'Hàng ngày, tùy số lượng câu hỏi').
+• Phần Assumptions: bổ sung thêm các giả định liên quan đến cam kết của Instructor
+  (ví dụ: phản hồi Q&A trong 48 giờ, kiểm chứng Expected Output trước khi upload).
+• UC-INS-17 và UC-18: nhóm làm rõ mối liên kết giữa hai use case này bằng cách thêm
+  ghi chú cross-reference trong phần Alternative Flow và Other Information.
+• Kiểm tra lại toàn bộ Business Rules để đảm bảo tính nhất quán về con số giới hạn
+  (Time Limit, Memory Limit, dung lượng file) với tài liệu kỹ thuật hệ thống.
+
 
 #### 4.5. Minh chứng
 
@@ -174,7 +206,9 @@ Viết tại đây...
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-Viết tại đây...
+- Nắm vững cấu trúc chuẩn của một tài liệu đặc tả Use Case Specification (gồm 11 trường thông tin quan trọng như Main Flow, Alternative Flows, Exception Flows và Business Rules).
+- Học được cách quản lý, mã hóa các quy tắc nghiệp vụ (BR) và ngoại lệ (E) để dễ dàng tra cứu, kiểm chứng chéo và triển khai code sau này.
+- Bài học rút ra: Các thông tin định lượng (tần suất sử dụng, giới hạn kích thước file, thời gian chạy/bộ nhớ) do AI sinh ra thường chỉ mang tính chất giả định chung chung. Nhóm học được cách chủ động rà soát, đối chiếu kỹ lưỡng giữa tài liệu nghiệp vụ thực tế và tài liệu kỹ thuật để chuẩn hóa lại các con số này, đảm bảo tính khả thi khi phát triển hệ thống.
 ```
 
 ---
