@@ -84,7 +84,7 @@ Sinh viên/nhóm cần ghi lại:
 #### 5.1. Prompt nguyên văn
 
 ```text
-Chức năng dành cho Instructor (Giảng viên)
+Chức năng dành cho Instructor 
 Instructor là đối tác cung cấp nội dung, có quyền khởi tạo khóa học và tổ chức các kỳ thi thuật toán:
 • Tài chính & Kinh doanh: Bán khóa học, Rút tiền doanh thu.
 • Quản lý khóa học: Quản lý nội dung, Upload video, Tạo quiz, Cập nhật/chỉnh sửa, Ẩn/hiện, Trả lời Q&A, Xem thống kê.
