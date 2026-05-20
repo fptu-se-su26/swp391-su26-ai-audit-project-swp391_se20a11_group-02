@@ -4,16 +4,16 @@
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày bắt đầu |  |
-| Ngày cập nhật gần nhất |  |
+| Môn học | Software Development Project |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | Summer 2026 |
+| Tên bài tập / Project | Integrated Coding Education & Competitive Programming Platform |
+| Tên sinh viên / Nhóm | Trịnh Hoàng Thiên Bảo - Group 2|
+| MSSV / Danh sách MSSV | DE190023 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Ngày bắt đầu | 20/05/2026 |
+| Ngày cập nhật gần nhất | 20/05/2026 |
 
 ---
 
@@ -36,14 +36,14 @@ Sinh viên/nhóm cần ghi lại:
 
 Đánh dấu các công cụ AI đã sử dụng.
 
-- [ ] ChatGPT
-- [ ] Gemini
-- [ ] Claude
-- [ ] GitHub Copilot
-- [ ] Cursor
-- [ ] Antigravity
-- [ ] Microsoft Copilot
-- [ ] Perplexity
+- [x] ChatGPT
+- [x] Gemini
+- [x] Claude
+- [x] GitHub Copilot
+- [x] Cursor
+- [x] Antigravity
+- [x] Microsoft Copilot
+- [x] Perplexity
 - [ ] Công cụ khác: ....................................
 
 ---
