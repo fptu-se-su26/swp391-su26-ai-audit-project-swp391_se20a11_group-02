@@ -42,8 +42,8 @@ Sinh viên/nhóm cần ghi lại:
 - [x] GitHub Copilot
 - [x] Cursor
 - [x] Antigravity
-- [ ] Microsoft Copilot
-- [ ] Perplexity
+- [x] Microsoft Copilot
+- [x] Perplexity
 - [ ] Công cụ khác: ....................................
 
 ---
