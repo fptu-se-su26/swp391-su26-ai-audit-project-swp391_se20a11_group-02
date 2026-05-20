@@ -9,10 +9,10 @@
 | Lớp | SE20A11 |
 | Học kỳ | Summer 2026 |
 | Tên bài tập / Project | Integrated Coding Education & Competitive Programming Platform |
-| Tên sinh viên / Nhóm | Trịnh Hoàng Thiên Bảo - Group 2|
+| Tên sinh viên / Nhóm | Trịnh Hoàng Thiên Bảo - Group 2 |
 | MSSV / Danh sách MSSV | DE190023 |
 | Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
-| Ngày bắt đầu | 20/05/2026 |
+| Ngày bắt đầu | 18/05/2026 |
 | Ngày cập nhật gần nhất | 20/05/2026 |
 
 ---
@@ -52,8 +52,8 @@ Sinh viên/nhóm cần ghi lại:
 
 | STT | Ngày | Công cụ AI | Mục đích | Prompt tóm tắt | Kết quả chính | Có sử dụng vào bài không? | Minh chứng |
 |---:|---|---|---|---|---|---|---|
-| 1 |  |  |  |  |  | Có / Không |  |
-| 2 |  |  |  |  |  | Có / Không |  |
+| 1 | 2026-05-18 | Claude | Xác định & đếm số lượng Use Case Specification cho Instructor | "Chức năng Instructor... có bao nhiêu use case specification?" | Claude đề xuất danh sách 19 Use Case | Có | docs/member/DE190023-Bazero06/AI_AUDIT_LOG.md |
+| 2 | 2026-05-19 | Claude | Viết đầy đủ 19 Use Case Specification theo template chuẩn | "UC SPECIFICATION TEMPLATE... làm mỗi usecase cho tôi" | Claude xuất 19 Use Case theo template 11 trường | Có | docs/member/DE190023-Bazero06/AI_AUDIT_LOG.md |
 | 3 |  |  |  |  |  | Có / Không |  |
 | 4 |  |  |  |  |  | Có / Không |  |
 | 5 |  |  |  |  |  | Có / Không |  |
@@ -75,16 +75,22 @@ Sinh viên/nhóm cần ghi lại:
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích |  |
-| Phần việc liên quan | Requirement / Design / Database / Coding / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỏi ý tưởng / Hỏi giải thích / Hỏi review / Hỏi debug / Hỏi sinh code / Hỏi tối ưu |
+| Ngày sử dụng | 2026-05-18 |
+| Công cụ AI | Claude |
+| Mục đích | Xác định và đếm số lượng Use Case Specification cho chức năng Instructor |
+| Phần việc liên quan | Requirement / Design |
+| Mức độ sử dụng | Hỏi ý tưởng / Hỏi review |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+Chức năng dành cho Instructor 
+Instructor là đối tác cung cấp nội dung, có quyền khởi tạo khóa học và tổ chức các kỳ thi thuật toán:
+• Tài chính & Kinh doanh: Bán khóa học, Rút tiền doanh thu.
+• Quản lý khóa học: Quản lý nội dung, Upload video, Tạo quiz, Cập nhật/chỉnh sửa, Ẩn/hiện, Trả lời Q&A, Xem thống kê.
+• Quản lý Contest: Tạo Contest mới, Cấu hình, Thêm bài tập, Xem thống kê và kết quả.
+• Quản lý bài tập Code: Tạo đề bài, Tạo và quản lý Test Case, Cấu hình tài nguyên.
+dựa vào đây có bao nhiêu use case specification?
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
@@ -92,7 +98,7 @@ Dán nguyên văn prompt đã hỏi AI tại đây.
 Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
 
 ```text
-Viết tại đây...
+Nhóm cần xác định số lượng và phân nhóm cụ thể các Use Case cần viết đặc tả (specification) cho vai trò Instructor để chuẩn bị tài liệu SRS và phân chia công việc trong nhóm.
 ```
 
 #### 5.3. Kết quả AI trả về
@@ -100,7 +106,7 @@ Viết tại đây...
 Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
 
 ```text
-Viết tại đây...
+Claude gợi ý danh sách gồm 19 Use Case được chia thành 4 nhóm chính: Tài chính & Kinh doanh (2 UC), Quản lý khóa học (7 UC), Quản lý Contest (4 UC), Quản lý bài tập Code (3 UC). Đồng thời cung cấp bối cảnh và ý nghĩa của từng Use Case trong hệ thống.
 ```
 
 #### 5.4. Kết quả đã áp dụng vào bài
@@ -108,7 +114,7 @@ Viết tại đây...
 Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
 
 ```text
-Viết tại đây...
+Nhóm sử dụng danh sách 19 Use Case này làm nền tảng cốt lõi để phân chia công việc viết đặc tả chi tiết và làm cơ sở thiết kế sơ đồ Use Case Diagram cho hệ thống.
 ```
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
@@ -116,20 +122,20 @@ Viết tại đây...
 Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
 
 ```text
-Viết tại đây...
+Nhóm đã phân tích nghiệp vụ thực tế và quyết định tách UC10 (Tạo Contest) và UC11 (Cấu hình Contest) thành 2 use case riêng biệt (thay vì gộp chung). Đồng thời, nhóm bổ sung thêm UC18 (Upload file Input/Output) tách biệt khỏi UC17 (Tạo Test Case) để tối ưu việc upload test case qua file zip.
 ```
 
 #### 5.6. Đánh giá chất lượng prompt
 
 Đánh dấu các nhận xét phù hợp.
 
-- [ ] Prompt rõ ràng
-- [ ] Prompt có đủ bối cảnh
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [ ] Prompt tạo ra kết quả tốt
+- [x] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
 - [ ] Kết quả AI có lỗi hoặc chưa chính xác
 
 #### 5.7. Minh chứng liên quan
@@ -137,7 +143,7 @@ Viết tại đây...
 | Loại minh chứng | Nội dung |
 |---|---|
 | Link commit |  |
-| File liên quan |  |
+| File liên quan | docs/member/DE190023-Bazero06/AI_AUDIT_LOG.md |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link tài liệu/báo cáo |  |
@@ -146,7 +152,7 @@ Viết tại đây...
 #### 5.8. Ghi chú thêm
 
 ```text
-Viết tại đây...
+Prompt đã cung cấp đủ thông tin nghiệp vụ và bối cảnh các chức năng của hệ thống để AI có thể phân tích chính xác.
 ```
 
 ---
@@ -155,51 +161,55 @@ Viết tại đây...
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích |  |
-| Phần việc liên quan | Requirement / Design / Database / Coding / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỏi ý tưởng / Hỏi giải thích / Hỏi review / Hỏi debug / Hỏi sinh code / Hỏi tối ưu |
+| Ngày sử dụng | 2026-05-19 |
+| Công cụ AI | Claude |
+| Mục đích | Viết đầy đủ 19 Use Case Specification theo template chuẩn cho chức năng Instructor |
+| Phần việc liên quan | Requirement / Design |
+| Mức độ sử dụng | Hỏi sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+UC SPECIFICATION TEMPLATE
+Use Case Name / Use Case ID / Created By / Actor(s) / Preconditions / Post conditions
+/ Main Flow (Basic Path) / Alternative Flow A / Alternative Flow B / Exception Flow
+/ Business Rules
+dựa vào đây làm mỗi usecase cho tôi, bằng tiếng việt nha
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
 ```text
-Viết tại đây...
+Nhóm cần đặc tả chi tiết (Use Case Specification) cho toàn bộ 19 Use Case đã xác định của Instructor theo đúng định dạng mẫu 11 trường thông tin chuẩn để hoàn thiện tài liệu SRS.
 ```
 
 #### 5.3. Kết quả AI trả về
 
 ```text
-Viết tại đây...
+Claude xuất ra đầy đủ 19 bảng Use Case Specification bằng tiếng Việt theo đúng template được yêu cầu (gồm Main Flow từ 6-7 bước, Alternative Flows, Exception Flows và các Business Rules tương ứng).
 ```
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
 ```text
-Viết tại đây...
+Toàn bộ cấu trúc Main Flow và phân chia mã lỗi Exception, mã hóa Business Rules (BR01, BR02...) của 19 Use Case được áp dụng trực tiếp làm khung sườn cho tài liệu đặc tả của nhóm.
 ```
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
 ```text
-Viết tại đây...
+Nhóm đã tinh chỉnh lại tần suất sử dụng (Frequency Of Use) cho sát thực tế, bổ sung thêm các giả định (Assumptions) về cam kết phản hồi Q&A và kiểm chứng Output, thêm cross-reference giữa UC17 và UC18, và đối chiếu các con số giới hạn (Time Limit, Memory Limit) với tài liệu kỹ thuật của hệ thống.
 ```
 
 #### 5.6. Đánh giá chất lượng prompt
 
-- [ ] Prompt rõ ràng
-- [ ] Prompt có đủ bối cảnh
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [ ] Prompt tạo ra kết quả tốt
+- [x] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
 - [ ] Kết quả AI có lỗi hoặc chưa chính xác
 
 #### 5.7. Minh chứng liên quan
@@ -207,7 +217,7 @@ Viết tại đây...
 | Loại minh chứng | Nội dung |
 |---|---|
 | Link commit |  |
-| File liên quan |  |
+| File liên quan | docs/member/DE190023-Bazero06/AI_AUDIT_LOG.md |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link tài liệu/báo cáo |  |
@@ -216,7 +226,7 @@ Viết tại đây...
 #### 5.8. Ghi chú thêm
 
 ```text
-Viết tại đây...
+AI sinh nội dung rất tốt và có cấu trúc rõ ràng, tuy nhiên các số liệu định lượng (như dung lượng file, time limit, memory limit) cần được người dùng rà soát lại để khớp với thực tế.
 ```
 
 ---
@@ -298,31 +308,35 @@ Chọn một prompt có ảnh hưởng lớn nhất đến bài tập/project.
 ### 6.1. Prompt được chọn
 
 ```text
-Dán prompt quan trọng nhất tại đây.
+UC SPECIFICATION TEMPLATE
+Use Case Name / Use Case ID / Created By / Actor(s) / Preconditions / Post conditions
+/ Main Flow (Basic Path) / Alternative Flow A / Alternative Flow B / Exception Flow
+/ Business Rules
+dựa vào đây làm mỗi usecase cho tôi, bằng tiếng việt nha
 ```
 
 ### 6.2. Vì sao prompt này quan trọng?
 
 ```text
-Viết tại đây...
+Prompt này giúp tự động hóa và tăng tốc quá trình soạn thảo tài liệu đặc tả chi tiết cho 19 Use Case vốn tốn rất nhiều thời gian và công sức để gõ khung sườn bằng tay, đảm bảo tính nhất quán của cấu trúc tài liệu.
 ```
 
 ### 6.3. Kết quả prompt này mang lại
 
 ```text
-Viết tại đây...
+Tạo ra khung sườn chi tiết và các gợi ý quy trình nghiệp vụ đầy đủ cho 19 Use Case Specification bằng tiếng Việt theo định dạng chuẩn.
 ```
 
 ### 6.4. Sinh viên/nhóm đã kiểm tra kết quả như thế nào?
 
 ```text
-Viết tại đây...
+Nhóm tiến hành đọc duyệt lại toàn bộ các bước trong Main Flow để đảm bảo tính logic, rà soát lại Alternative Flow và Business Rules để kiểm tra tính khả thi kỹ thuật.
 ```
 
 ### 6.5. Sinh viên/nhóm đã cải tiến gì từ kết quả AI?
 
 ```text
-Viết tại đây...
+Chuẩn hóa các con số định lượng cụ thể của hệ thống (dung lượng file upload, Time Limit, Memory Limit), bổ sung thêm các ràng buộc nghiệp vụ (Business Rules) thực tế và chỉnh sửa tần suất sử dụng của các tính năng.
 ```
 
 ---
@@ -334,13 +348,13 @@ Ghi lại ít nhất một prompt chưa tạo ra kết quả tốt hoặc chưa 
 ### 7.1. Prompt chưa hiệu quả
 
 ```text
-Dán prompt chưa hiệu quả tại đây.
+Không có prompt nào hoàn toàn chưa hiệu quả. Các prompt đều mang lại kết quả hữu ích làm khung sườn tham khảo tốt sau khi tinh chỉnh bối cảnh.
 ```
 
 ### 7.2. Vì sao prompt này chưa hiệu quả?
 
 ```text
-Viết tại đây...
+Không áp dụng.
 ```
 
 Gợi ý nguyên nhân:
@@ -357,19 +371,19 @@ Gợi ý nguyên nhân:
 ### 7.3. Cách cải thiện prompt
 
 ```text
-Viết tại đây...
+Không áp dụng.
 ```
 
 ### 7.4. Prompt sau khi cải tiến
 
 ```text
-Dán prompt đã được cải tiến tại đây.
+Không áp dụng.
 ```
 
 ### 7.5. Kết quả sau khi cải tiến prompt
 
 ```text
-Viết tại đây...
+Không áp dụng.
 ```
 
 ---
@@ -379,7 +393,7 @@ Viết tại đây...
 ### 8.1. Khi viết prompt, em/nhóm cần cung cấp thông tin gì để AI trả lời tốt hơn?
 
 ```text
-Viết tại đây...
+Cần cung cấp rõ ràng bối cảnh của hệ thống, các vai trò của tác nhân (actors), các quy tắc nghiệp vụ dự kiến, và đặc biệt là một template (khung mẫu) cụ thể để AI xuất ra đúng định dạng mong muốn.
 ```
 
 Gợi ý:
@@ -396,13 +410,13 @@ Gợi ý:
 ### 8.2. Em/nhóm đã học được gì về cách đặt câu hỏi cho AI?
 
 ```text
-Viết tại đây...
+Đặt câu hỏi có cấu trúc, chia nhỏ vấn đề (ví dụ: xác định danh sách Use Case trước, sau đó mới đi vào đặc tả chi tiết từng Use Case) mang lại kết quả chính xác và ít bị lỗi thiếu sót hơn so với việc yêu cầu AI làm toàn bộ cùng một lúc.
 ```
 
 ### 8.3. Lần sau em/nhóm sẽ cải thiện prompt như thế nào?
 
 ```text
-Viết tại đây...
+Sẽ chuẩn bị trước các tài liệu input sạch và có cấu trúc tốt hơn, đồng thời bổ sung thêm các ví dụ minh họa (few-shot prompting) về đầu ra mong muốn để AI sinh nội dung chuẩn xác hơn nữa.
 ```
 
 ---
@@ -413,7 +427,7 @@ Viết tại đây...
 
 | Loại prompt | Số lượng | Ví dụ prompt tiêu biểu |
 |---|---:|---|
-| Prompt phân tích yêu cầu |  |  |
+| Prompt phân tích yêu cầu | 1 | "dựa vào đây có bao nhiêu use case specification?" |
 | Prompt giải thích kiến thức |  |  |
 | Prompt thiết kế giải pháp |  |  |
 | Prompt thiết kế database |  |  |
@@ -422,7 +436,7 @@ Viết tại đây...
 | Prompt viết test case |  |  |
 | Prompt review code |  |  |
 | Prompt tối ưu code |  |  |
-| Prompt viết báo cáo |  |  |
+| Prompt viết báo cáo | 1 | "UC SPECIFICATION TEMPLATE... làm mỗi usecase cho tôi" |
 | Prompt chuẩn bị thuyết trình |  |  |
 | Prompt khác |  |  |
 
@@ -434,16 +448,16 @@ Sinh viên/nhóm tự kiểm tra chất lượng prompt đã dùng.
 
 | Tiêu chí | Đã đạt? | Ghi chú |
 |---|:---:|---|
-| Prompt có mục tiêu rõ ràng |  |  |
-| Prompt có đủ bối cảnh |  |  |
-| Prompt có nêu công nghệ/ngôn ngữ sử dụng |  |  |
-| Prompt có nêu yêu cầu đầu ra |  |  |
-| Prompt không yêu cầu AI làm toàn bộ bài một cách máy móc |  |  |
-| Prompt có yêu cầu AI giải thích hoặc phân tích |  |  |
-| Kết quả AI được kiểm tra lại |  |  |
-| Kết quả AI được chỉnh sửa trước khi sử dụng |  |  |
-| Prompt quan trọng được ghi lại đầy đủ |  |  |
-| Prompt sai/chưa hiệu quả được rút kinh nghiệm |  |  |
+| Prompt có mục tiêu rõ ràng | [x] | Xác định rõ mục tiêu cần AI giải quyết. |
+| Prompt có đủ bối cảnh | [x] | Cung cấp thông tin nghiệp vụ/mô tả chức năng. |
+| Prompt có nêu công nghệ/ngôn ngữ sử dụng | [x] | Yêu cầu rõ tiếng Việt và cấu trúc template. |
+| Prompt có nêu yêu cầu đầu ra | [x] | Định nghĩa cấu trúc template 11 trường. |
+| Prompt không yêu cầu AI làm toàn bộ bài một cách máy móc | [x] | AI chỉ làm khung sườn đặc tả, nhóm tự rà soát tinh chỉnh số liệu. |
+| Prompt có yêu cầu AI giải thích hoặc phân tích | [x] | AI phân tích số lượng Use Case và phân nhóm. |
+| Kết quả AI được kiểm tra lại | [x] | Nhóm đã duyệt lại từng Use Case. |
+| Kết quả AI được chỉnh sửa trước khi sử dụng | [x] | Tinh chỉnh số liệu thực tế, bổ sung giả định. |
+| Prompt quan trọng được ghi lại đầy đủ | [x] | Được lưu vết trong tài liệu này. |
+| Prompt sai/chưa hiệu quả được rút kinh nghiệm | [x] | Được rút kinh nghiệm trong quá trình sử dụng. |
 
 ---
 
@@ -459,4 +473,4 @@ Sinh viên/nhóm cam kết rằng:
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Trịnh Hoàng Thiên Bảo | 20/05/2026 |
