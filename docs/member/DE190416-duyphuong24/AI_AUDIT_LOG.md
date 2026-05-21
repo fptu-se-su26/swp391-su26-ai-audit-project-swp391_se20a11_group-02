@@ -2,18 +2,18 @@
 
 ## 1. Thông tin chung
 
-| Thông tin | Nội dung |
-|---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày bắt đầu |  |
-| Ngày hoàn thành |  |
+| Thông tin | Nội dung                                                         |
+|---|------------------------------------------------------------------|
+| Môn học | Software development project                                     |
+| Mã môn học | SWP391                                                           |
+| Lớp | SE20A11                                                          |
+| Học kỳ | Summer 2026                                                      |
+| Tên bài tập / Project | Integrated Coding Education and Competitive Programming Platform |
+| Tên sinh viên / Nhóm | Nguyễn Duy Phương  - Group 2                                     |
+| MSSV / Danh sách MSSV | DE190416                                                         |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang                                              |
+| Ngày bắt đầu | 11/05/2026                                                       |
+| Ngày hoàn thành | 30/07/2026                                                       |
 
 ---
 
@@ -21,15 +21,15 @@
 
 Đánh dấu các công cụ AI đã sử dụng trong quá trình thực hiện bài tập/project.
 
-- [ ] ChatGPT
-- [ ] Gemini
+- [x] ChatGPT
+- [x] Gemini
 - [ ] Claude
-- [ ] GitHub Copilot
-- [ ] Cursor
+- [x] GitHub Copilot
+- [x] Cursor
 - [ ] Antigravity
 - [ ] Perplexity
 - [ ] Microsoft Copilot
-- [ ] Công cụ khác: ....................................
+- [x] Công cụ khác: NotebookLM
 
 ---
 
@@ -55,7 +55,12 @@ Ví dụ:
 ### Mô tả mục tiêu sử dụng AI
 
 ```text
-Viết tại đây...
+- Phân tích yêu cầu bài toán thực tế cho dự án SWP391
+- Tìm hiểu công nghệ spring boot
+- Phân tích yêu cầu và hỗ trợ lập tài liệu kỹ thuật hệ thống (Software Requirements Specification - SRS).
+- Tìm hiểu lý thuyết UML để chuẩn hóa sơ đồ Use Case cho các tác nhân (Actor) trong hệ thống.
+- Thiết lập quy trình quản lý mã nguồn (Git Flow) cho nhóm 5 thành viên trên GitHub nhằm tối ưu hóa làm việc nhóm và giảm thiểu merge conflict.
+
 ```
 
 ## 4. Nhật ký sử dụng AI chi tiết
