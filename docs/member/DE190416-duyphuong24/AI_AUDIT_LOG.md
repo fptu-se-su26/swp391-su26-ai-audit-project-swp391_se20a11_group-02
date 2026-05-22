@@ -121,7 +121,7 @@ lượng Use Case của Admin từ 25 xuống còn 7, tối ưu hóa sự mạch
 
 | Loại minh chứng | Nội dung                                      |
 |---|-----------------------------------------------|
-| Link commit |                                               |
+| Link commit |    https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/tree/docs/DE190416-update-audit-log                                           |
 | File liên quan |                                               |
 | Screenshot | ![evidence1.png](evidences/img_evidence1.png) |
 | Kết quả chạy/test |                                               |
