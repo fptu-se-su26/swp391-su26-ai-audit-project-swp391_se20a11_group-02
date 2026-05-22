@@ -61,6 +61,9 @@ Sinh viên/nhóm cần ghi lại:
 | 7 | 2026-05-17 | Gemini | Thiết kế giao diện danh sách thi đấu (Contest) và Leaderboard | Code mẫu UI cho danh sách cuộc thi và bảng xếp hạng | Xây dựng UI cho tính năng Contest | Có | Source code giao diện Contest |
 | 8 | 2026-05-17 | Gemini | Xây dựng UI trang Profile với biểu đồ thống kê tiến độ học tập | Gợi ý dùng Recharts kết hợp Tailwind cho trang Profile | Trang cá nhân đẹp mắt với biểu đồ trực quan | Có | Source code giao diện Profile |
 | 9 | 2026-05-18 | Gemini | Tạo hiệu ứng Loading Skeleton và hiển thị testcase màu sắc khi chấm bài | Code mẫu loading skeleton và render list testcase theo status | Trải nghiệm nộp bài mượt mà, phản hồi rõ ràng | Có | UI cải thiện ở phần Submit |
+| 10 | 2026-05-19 | Gemini | Tìm hiểu cách tích hợp thanh toán bằng VietQR với payOS | Hướng dẫn cách thức hoạt động và luồng tích hợp cổng thanh toán payOS | Hiểu rõ quy trình tạo link thanh toán, xử lý webhook từ payOS | Có | Tài liệu thiết kế hệ thống thanh toán |
+| 11 | 2026-05-20 | Gemini | Hướng dẫn code setup tích hợp payOS | Code mẫu Java Spring Boot và React để tạo link thanh toán payOS | Tạo thành công module thanh toán cơ bản | Có | Source code Backend và Frontend phần Checkout |
+| 12 | 2026-05-21 | Gemini | Dùng ngrok để test webhook của payOS ở local | Cách cài đặt và sử dụng ngrok để expose port local cho webhook payOS | Test thành công webhook cập nhật trạng thái đơn hàng khi thanh toán | Có | File cấu hình webhook và log chạy ngrok |
 
 
 
@@ -663,6 +666,203 @@ Giao diện Loading Skeleton làm cho ứng dụng trông "xịn" như các nề
 
 ```text
 Các hiệu ứng nhỏ như Skeleton Loading giúp UX tăng lên đáng kể.
+```
+
+---
+
+### Prompt số 10
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-05-19 |
+| Công cụ AI | Gemini |
+| Mục đích | Tìm hiểu cách tích hợp thanh toán bằng VietQR với payOS |
+| Phần việc liên quan | Backend / Payment |
+| Mức độ sử dụng | Hỏi ý tưởng / Hỏi giải thích |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tôi đang xây dựng một dự án hệ thống giáo dục có tính năng thanh toán khóa học. Tôi muốn tích hợp cổng thanh toán VietQR qua payOS. Hãy giải thích cho tôi luồng hoạt động (workflow) cơ bản của việc tích hợp này, từ lúc user bấm mua hàng trên Frontend (React) đến lúc Backend (Spring Boot) xử lý và nhận được thông báo thanh toán thành công (webhook).
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Nhóm muốn thêm tính năng mua khóa học hoặc nâng cấp tài khoản VIP. Việc tích hợp thanh toán ngân hàng truyền thống khá phức tạp, nên nhóm quyết định dùng payOS để hỗ trợ quét mã VietQR cho tiện lợi. Tuy nhiên, tôi chưa hiểu rõ luồng giao tiếp giữa Frontend, Backend và server của payOS diễn ra như thế nào.
+
+#### 5.3. Kết quả AI trả về
+
+Gemini giải thích luồng tích hợp rất rõ ràng gồm 4 bước chính:
+1. Client (React) gửi request tạo đơn hàng lên Server (Spring Boot).
+2. Server gọi API của payOS để tạo Payment Link, payOS trả về link checkout chứa mã VietQR. Server gửi link này lại cho Client.
+3. Client chuyển hướng người dùng sang trang checkout của payOS để quét mã thanh toán.
+4. Khi người dùng chuyển khoản thành công, payOS gửi một request (Webhook) về Server của mình để cập nhật trạng thái đơn hàng thành "Đã thanh toán".
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Từ luồng hoạt động AI cung cấp, tôi đã hiểu cách thiết kế API, viết logic tạo đơn hàng ở Backend và xử lý điều hướng trang ở Frontend.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Tôi đã vẽ lại luồng này thành một Sequence Diagram để bổ sung vào tài liệu phân tích thiết kế hệ thống, giúp cả nhóm cùng hiểu cách hoạt động của tính năng thanh toán.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Sơ đồ Sequence Diagram |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Việc hiểu rõ workflow trước khi code giúp quá trình code sau đó ít xảy ra lỗi logic hơn.
+```
+
+---
+
+### Prompt số 11
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-05-20 |
+| Công cụ AI | Gemini |
+| Mục đích | Hướng dẫn code setup tích hợp payOS bằng Spring Boot và React |
+| Phần việc liên quan | Backend / Frontend / Payment |
+| Mức độ sử dụng | Sinh code mẫu |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Dựa vào luồng tích hợp payOS ở trên, hãy hướng dẫn tôi cách code setup chi tiết. Ở Backend dùng Java Spring Boot, hãy chỉ tôi cách dùng thư viện payos-java để tạo ra một Payment Link. Ở Frontend dùng React, hãy viết đoạn code gọi API tạo đơn hàng và chuyển hướng người dùng sang trang thanh toán của payOS. Hãy đưa ra ví dụ cụ thể nhé.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Sau khi nắm được luồng lý thuyết, tôi cần bắt tay vào code thực tế. Do là lần đầu tích hợp payOS, tôi muốn có một bộ khung code chuẩn để khởi tạo config (clientId, apiKey, checksumKey) và cách gọi hàm tạo link thanh toán đúng chuẩn thư viện Java của họ.
+
+#### 5.3. Kết quả AI trả về
+
+Gemini cung cấp các đoạn code chi tiết:
+- **Backend (Spring Boot):** Hướng dẫn thêm dependency `payos-java` vào pom.xml. Viết class config khởi tạo đối tượng `PayOS`. Viết một Controller có endpoint `/create-payment-link` nhận vào số tiền, mô tả đơn hàng, sau đó gọi `payOS.createPaymentLink()` và trả về url thanh toán.
+- **Frontend (React):** Một hàm `handleCheckout` dùng `fetch` gọi lên API Backend, lấy url và dùng `window.location.href = url` để redirect.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Tôi đã copy cấu trúc config và API endpoint vào project Spring Boot. Ở Frontend, tôi gắn logic vào nút "Thanh toán ngay" ở giỏ hàng. Chạy thử và đã tạo thành công trang thanh toán chứa mã VietQR.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Thay vì lưu các key (apiKey, clientId) thẳng trong file Java như AI ví dụ, tôi đã chuyển hết vào file cấu hình `application.properties` để bảo mật. Ngoài ra, tôi xử lý thêm lưu thông tin đơn hàng trạng thái "PENDING" vào database trước khi gọi payOS.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | `PaymentController.java`, `PayOSConfig.java` |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Luôn nhớ bảo mật các khóa API, không được commit thẳng lên GitHub.
+```
+
+---
+
+### Prompt số 12
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-05-21 |
+| Công cụ AI | Gemini |
+| Mục đích | Dùng ngrok để test webhook của payOS ở local lúc đang xây dựng |
+| Phần việc liên quan | Backend / Testing |
+| Mức độ sử dụng | Hỏi công cụ / Hướng dẫn |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tôi đã code xong API nhận Webhook từ payOS trên Spring Boot ở localhost:8080. Nhưng server của payOS không thể gửi webhook đến địa chỉ localhost của tôi được. Nghe nói có thể dùng ngrok để giải quyết vấn đề này trong lúc đang dev. Hãy hướng dẫn tôi cách cài đặt ngrok, expose port 8080 và cách cấu hình url đó lên trang quản trị của payOS để test thử giao dịch thành công.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Để biết giao dịch đã thanh toán hay chưa, payOS gửi một request tới URL server của nhóm. Tuy nhiên, server nhóm vẫn đang chạy trên máy cá nhân (localhost) chưa deploy lên mạng, nên payOS không thể ping tới được. Cần một công cụ để public localhost ra internet tạm thời để test webhook.
+
+#### 5.3. Kết quả AI trả về
+
+Gemini hướng dẫn rất chi tiết từng bước:
+1. Tải và cài đặt ngrok từ trang chủ.
+2. Xác thực tài khoản ngrok bằng lệnh `ngrok config add-authtoken <token>`.
+3. Chạy lệnh `ngrok http 8080` để tạo một URL public (vd: `https://abcd.ngrok-free.app`).
+4. Copy URL đó thêm hậu tố API webhook (vd: `https://abcd.ngrok-free.app/payos/webhook`) vào mục cài đặt Webhook trên trang quản trị payOS.
+5. Khi có giao dịch thanh toán, payOS sẽ gọi đến ngrok, và ngrok sẽ forward về `localhost:8080` trên máy mình.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Tôi làm theo từng bước và đã thành công. Khi tôi quét mã QR thanh toán thử, terminal Spring Boot của tôi hiện ra log báo đã nhận được payload của webhook và cập nhật đơn hàng thành "PAID".
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+AI chỉ hướng dẫn chạy ngrok cơ bản. Tôi đã viết thêm một script nhỏ `.bat` trên máy để chỉ cần click đúp là tự chạy `ngrok http 8080` nhanh chóng cho các lần code sau đỡ phải gõ lại lệnh. Tôi cũng tìm hiểu thêm cách verify webhook signature (mã hóa HMAC) để đảm bảo an toàn cho endpoint webhook.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Log chạy ngrok |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+ngrok là một công cụ cực kỳ tuyệt vời và bắt buộc phải biết khi làm các tính năng liên quan đến Webhook.
 ```
 
 ---
