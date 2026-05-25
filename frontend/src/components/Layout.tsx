@@ -8,6 +8,8 @@ export const Layout: React.FC = () => {
   const location = useLocation();
 
   const isInstructorRoute = location.pathname.startsWith('/instructor');
+  const isProblemSolvePage = location.pathname.startsWith('/problems/');
+  const isContestDetailPage = location.pathname.startsWith('/contests/');
 
   const handleLogout = () => {
     logout();
@@ -93,7 +95,7 @@ export const Layout: React.FC = () => {
       </main>
 
       {/* Master Footer */}
-      {!isInstructorRoute && (
+      {!isInstructorRoute && !isProblemSolvePage && !isContestDetailPage && (
         <footer className="bg-brand-blue text-white mt-auto shrink-0 w-full z-40 relative">
           <div className="max-w-[1440px] mx-auto px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
