@@ -519,8 +519,8 @@ export const InstructorDashboard: React.FC = () => {
 
   const [contestNameInput, setContestNameInput] = useState('');
   const [contestStartInput, setContestStartInput] = useState('');
+  const [contestEndInput, setContestEndInput] = useState('');
   const [contestDurationInput, setContestDurationInput] = useState('');
-  const [contestRulesInput, setContestRulesInput] = useState('');
 
   const [contestSearchTerm, setContestSearchTerm] = useState('');
   const [contestStatusTab, setContestStatusTab] = useState<'all' | 'Ongoing' | 'Upcoming' | 'Ended'>('all');
@@ -542,12 +542,65 @@ export const InstructorDashboard: React.FC = () => {
     return result;
   }, [contestsList, contestStatusTab, contestSearchTerm]);
 
+  const handleStartDateChange = (val: string) => {
+    setContestStartInput(val);
+    if (val && contestDurationInput) {
+      const startObj = new Date(val);
+      const durationMin = Number(contestDurationInput);
+      if (!isNaN(startObj.getTime()) && !isNaN(durationMin)) {
+        const endObj = new Date(startObj.getTime() + durationMin * 60 * 1000);
+        const timezoneOffset = endObj.getTimezoneOffset() * 60 * 1000;
+        const localEnd = new Date(endObj.getTime() - timezoneOffset);
+        setContestEndInput(localEnd.toISOString().slice(0, 16));
+      }
+    } else if (val && contestEndInput) {
+      const startObj = new Date(val);
+      const endObj = new Date(contestEndInput);
+      if (!isNaN(startObj.getTime()) && !isNaN(endObj.getTime())) {
+        const diffMs = endObj.getTime() - startObj.getTime();
+        const diffMin = Math.round(diffMs / 60000);
+        if (diffMin >= 0) {
+          setContestDurationInput(String(diffMin));
+        }
+      }
+    }
+  };
+
+  const handleEndDateChange = (val: string) => {
+    setContestEndInput(val);
+    if (contestStartInput && val) {
+      const startObj = new Date(contestStartInput);
+      const endObj = new Date(val);
+      if (!isNaN(startObj.getTime()) && !isNaN(endObj.getTime())) {
+        const diffMs = endObj.getTime() - startObj.getTime();
+        const diffMin = Math.round(diffMs / 60000);
+        if (diffMin >= 0) {
+          setContestDurationInput(String(diffMin));
+        }
+      }
+    }
+  };
+
+  const handleDurationChange = (val: string) => {
+    setContestDurationInput(val);
+    if (contestStartInput && val) {
+      const startObj = new Date(contestStartInput);
+      const durationMin = Number(val);
+      if (!isNaN(startObj.getTime()) && !isNaN(durationMin)) {
+        const endObj = new Date(startObj.getTime() + durationMin * 60 * 1000);
+        const timezoneOffset = endObj.getTimezoneOffset() * 60 * 1000;
+        const localEnd = new Date(endObj.getTime() - timezoneOffset);
+        setContestEndInput(localEnd.toISOString().slice(0, 16));
+      }
+    }
+  };
+
   const handleCreateContest = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contestNameInput || !contestStartInput || !contestDurationInput) return;
+    if (!contestNameInput || !contestStartInput || !contestEndInput || !contestDurationInput) return;
 
     const startObj = new Date(contestStartInput);
-    const endObj = new Date(startObj.getTime() + Number(contestDurationInput) * 60 * 1000);
+    const endObj = new Date(contestEndInput);
 
     const startDateStr = startObj.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
     const endDateStr = endObj.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -578,8 +631,8 @@ export const InstructorDashboard: React.FC = () => {
     // Reset Form
     setContestNameInput('');
     setContestStartInput('');
+    setContestEndInput('');
     setContestDurationInput('');
-    setContestRulesInput('');
 
     alert(`Contest "${contestNameInput}" has been successfully scheduled!`);
   };
@@ -3061,72 +3114,73 @@ export const InstructorDashboard: React.FC = () => {
       {/* ================= MODAL: CREATE CONTEST ================= */}
       {isCreateContestOpen && (
         <div id="modal-create-contest" className="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl max-w-lg w-full overflow-hidden border border-slate-200/50 ambient-shadow flex flex-col transition-all duration-300 animate-fade-in">
+          <div className="bg-surface rounded-2xl max-w-4xl w-full overflow-hidden border border-slate-200/50 ambient-shadow flex flex-col transition-all duration-300 animate-fade-in">
             {/* Modal Header */}
-            <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div className="px-8 py-5.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-brand-green">add_task</span>
-                <h3 className="font-display font-bold text-base text-brand-blue">Create New Coding Contest</h3>
+                <span className="material-symbols-outlined text-brand-green text-xl">add_task</span>
+                <h3 className="font-display font-bold text-lg text-brand-blue">Create New Coding Contest</h3>
               </div>
-              <button onClick={() => setIsCreateContestOpen(false)} className="p-1 rounded-lg text-text-muted hover:bg-slate-200/80 transition-colors">
-                <span className="material-symbols-outlined text-lg">close</span>
+              <button onClick={() => setIsCreateContestOpen(false)} className="p-1.5 rounded-lg text-text-muted hover:bg-slate-200/80 transition-colors">
+                <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
 
             {/* Modal Form Content */}
-            <form onSubmit={handleCreateContest} className="p-6 flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Contest Name</label>
+            <form onSubmit={handleCreateContest} className="p-8 flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Title</label>
                 <input
                   type="text"
                   required
                   value={contestNameInput}
                   onChange={(e) => setContestNameInput(e.target.value)}
                   placeholder="e.g. Weekly Algorithmic Challenge #13"
-                  className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5"
+                  className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Start Date & Time</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Start Date</label>
                   <input
                     type="datetime-local"
                     required
                     value={contestStartInput}
-                    onChange={(e) => setContestStartInput(e.target.value)}
-                    className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 cursor-pointer"
+                    onChange={(e) => handleStartDateChange(e.target.value)}
+                    className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 cursor-pointer"
                   />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Duration (Minutes)</label>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">End Date</label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={contestEndInput}
+                    onChange={(e) => handleEndDateChange(e.target.value)}
+                    className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Duration (Minutes)</label>
                   <input
                     type="number"
                     required
                     value={contestDurationInput}
-                    onChange={(e) => setContestDurationInput(e.target.value)}
+                    onChange={(e) => handleDurationChange(e.target.value)}
                     placeholder="e.g. 120"
-                    className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5"
+                    className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Rules & Guidelines</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={contestRulesInput}
-                  onChange={(e) => setContestRulesInput(e.target.value)}
-                  placeholder="Define penalty score rates, access restrictions, or editor configs..."
-                  className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5"
-                />
-              </div>
-
               {/* Submit buttons */}
-              <div className="flex items-center justify-end gap-3.5 pt-4 border-t border-slate-100">
-                <button type="button" onClick={() => setIsCreateContestOpen(false)} className="px-4.5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors">Cancel</button>
-                <button type="submit" className="px-4.5 py-2.5 rounded-xl bg-brand-green hover:bg-brand-green-hover text-white text-xs font-bold transition-all shadow-md shadow-brand-green/20">Publish Contest</button>
+              <div className="flex items-center justify-end gap-4 pt-6 border-t border-slate-100 mt-2">
+                <button type="button" onClick={() => setIsCreateContestOpen(false)} className="px-6 py-3 rounded-xl border border-slate-200 text-slate-700 text-xs md:text-sm font-bold hover:bg-slate-50 transition-colors">Cancel</button>
+                <button type="submit" className="px-6 py-3 rounded-xl bg-brand-green hover:bg-brand-green-hover text-white text-xs md:text-sm font-bold transition-all shadow-md shadow-brand-green/20">Publish Contest</button>
               </div>
             </form>
           </div>
