@@ -1011,7 +1011,7 @@ export const InstructorDashboard: React.FC = () => {
         <div className="flex items-center justify-center px-4 h-20 border-b border-brand-blue-light/30 shrink-0" id="sidebar-header">
           <Link to="/" className="flex items-center justify-center logo-link w-full">
             <img
-              src={isSidebarCollapsed ? "/LOGO_SINGLE.png" : "/LOGO.png"}
+              src={isSidebarCollapsed ? `${import.meta.env.BASE_URL}LOGO_SINGLE.png` : `${import.meta.env.BASE_URL}LOGO.png`}
               alt="Logo"
               className="h-12 w-[300px] object-contain transition-all duration-300"
               id="sidebar-logo"

@@ -112,7 +112,7 @@ export const Home: React.FC = () => {
         {/* Hero Intro */}
         <div className="lg:col-span-6 flex flex-col items-start text-left">
           {/* Brand Logo in Hero */}
-          <img src="/LOGO.png" alt="Nonstop Coding Brand Logo" className="h-[110px] w-auto mb-4 animate-float-medium" />
+          <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding Brand Logo" className="h-[110px] w-auto mb-4 animate-float-medium" />
 
           {/* Promotion Tag */}
           <div className="inline-flex items-center gap-1.5 bg-brand-green-light border border-brand-green/20 px-3 py-1 rounded-full text-brand-green font-bold text-xs uppercase tracking-wider mb-4 shadow-sm">

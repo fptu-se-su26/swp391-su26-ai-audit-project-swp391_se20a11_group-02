@@ -32,7 +32,7 @@ export const Layout: React.FC = () => {
           <div className="flex justify-between items-center w-full px-8 h-16 max-w-[1440px] mx-auto relative">
           {/* Brand */}
           <Link to="/" className="shrink-0 flex items-center cursor-pointer">
-            <img src="/LOGO.png" alt="Nonstop Coding Logo" className="h-16 w-auto" />
+            <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding Logo" className="h-16 w-auto" />
           </Link>
           <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2 h-full">
             <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Learning</NavLink>
