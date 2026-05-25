@@ -1,122 +1,74 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AppProvider } from './context/AppContext';
+import { Layout } from './components/Layout';
+import { Home } from './pages/Home';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { StudentDashboard } from './pages/StudentDashboard';
+import { InstructorDashboard } from './pages/InstructorDashboard';
+import { Courses } from './pages/Courses';
+import { CourseDetail } from './pages/CourseDetail';
+import { Problems } from './pages/Problems';
+import { SolveProblem } from './pages/SolveProblem';
+import { GlobalRanking } from './pages/GlobalRanking';
+import { Contests } from './pages/Contests';
+import { ContestOverview } from './pages/ContestOverview';
+import { ContestProblems } from './pages/ContestProblems';
+import { ContestProblemSolve } from './pages/ContestProblemSolve';
+import { ContestSubmissions } from './pages/ContestSubmissions';
+import { ContestRanking } from './pages/ContestRanking';
+import { ShoppingCart } from './pages/ShoppingCart';
+import { Withdraw } from './pages/Withdraw';
+import { WalletTransaction } from './pages/WalletTransaction';
+import { PaymentTransaction } from './pages/PaymentTransaction';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <AppProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Auth routes without shared Navbar/Footer */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-      <div className="ticks"></div>
+          {/* Platform SPA routes wrapped inside responsive Layout shell */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="instructor" element={<InstructorDashboard />} />
+            
+            {/* Courses Catalog & Details */}
+            <Route path="courses" element={<Courses />} />
+            <Route path="courses/:id" element={<CourseDetail />} />
+            
+            {/* Coding Arena problems set */}
+            <Route path="problems" element={<Problems />} />
+            <Route path="problems/:id" element={<SolveProblem />} />
+            
+            {/* Global ranks */}
+            <Route path="rankings" element={<GlobalRanking />} />
+            
+            {/* Competitions */}
+            <Route path="contests" element={<Contests />} />
+            <Route path="contests/:id" element={<ContestOverview />} />
+            <Route path="contests/:id/problems" element={<ContestProblems />} />
+            <Route path="contests/:id/problems/:problemId" element={<ContestProblemSolve />} />
+            <Route path="contests/:id/submissions" element={<ContestSubmissions />} />
+            <Route path="contests/:id/ranking" element={<ContestRanking />} />
+            
+            {/* Shopping cart & wallet */}
+            <Route path="shopping-cart" element={<ShoppingCart />} />
+            <Route path="withdraw" element={<Withdraw />} />
+            <Route path="wallet-transaction" element={<WalletTransaction />} />
+            <Route path="payment-transaction" element={<PaymentTransaction />} />
+          </Route>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {/* Fallback redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AppProvider>
+  );
 }
 
-export default App
+export default App;
