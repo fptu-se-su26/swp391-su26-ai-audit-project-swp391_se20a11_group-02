@@ -40,13 +40,17 @@ interface CourseSyllabus {
 interface Contest {
   id: number;
   name: string;
-  status: 'Ongoing' | 'Ended' | 'Upcoming';
+  status: 'Ongoing' | 'Ended' | 'Upcoming' | 'Draft' | 'Review';
   startDate: string;
   endDate: string;
   banner: string; // Gradient class
   problems: number;
   coders: number; // Participants count
   topWinners?: { rank: 1 | 2 | 3; name: string; avatar: string }[];
+  languages?: string[];
+  description?: string;
+  scoring?: string;
+  rules?: string;
 }
 
 interface InstructorCourse {
@@ -521,9 +525,15 @@ export const InstructorDashboard: React.FC = () => {
   const [contestStartInput, setContestStartInput] = useState('');
   const [contestEndInput, setContestEndInput] = useState('');
   const [contestDurationInput, setContestDurationInput] = useState('');
+  const [contestBannerInput, setContestBannerInput] = useState('from-indigo-500 to-purple-600');
+  const [contestLanguagesInput, setContestLanguagesInput] = useState<string[]>(['cpp', 'java', 'python']);
+  const [contestDescriptionInput, setContestDescriptionInput] = useState('');
+  const [contestScoringInput, setContestScoringInput] = useState('Standard ACM-ICPC');
+  const [contestRulesInput, setContestRulesInput] = useState('');
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
 
   const [contestSearchTerm, setContestSearchTerm] = useState('');
-  const [contestStatusTab, setContestStatusTab] = useState<'all' | 'Ongoing' | 'Upcoming' | 'Ended'>('all');
+  const [contestStatusTab, setContestStatusTab] = useState<'all' | 'Ongoing' | 'Upcoming' | 'Ended' | 'Draft' | 'Review'>('all');
 
   const filteredContests = useMemo(() => {
     let result = [...contestsList];
@@ -605,24 +615,19 @@ export const InstructorDashboard: React.FC = () => {
     const startDateStr = startObj.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
     const endDateStr = endObj.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
 
-    // Determine status (Upcoming, Ongoing, Ended) based on current time
-    const now = new Date();
-    let status: 'Ongoing' | 'Ended' | 'Upcoming' = 'Upcoming';
-    if (now >= startObj && now <= endObj) {
-      status = 'Ongoing';
-    } else if (now > endObj) {
-      status = 'Ended';
-    }
-
     const newContest: Contest = {
       id: Date.now(),
       name: contestNameInput,
-      status,
+      status: 'Draft',
       startDate: startDateStr,
       endDate: endDateStr,
-      banner: 'from-indigo-500 to-purple-600', // Default gorgeous gradient
+      banner: contestBannerInput || 'from-indigo-500 to-purple-600',
       problems: 3,
-      coders: 0
+      coders: 0,
+      languages: contestLanguagesInput,
+      description: contestDescriptionInput,
+      scoring: contestScoringInput,
+      rules: contestRulesInput
     };
 
     setContestsList(prev => [newContest, ...prev]);
@@ -633,8 +638,13 @@ export const InstructorDashboard: React.FC = () => {
     setContestStartInput('');
     setContestEndInput('');
     setContestDurationInput('');
+    setContestBannerInput('from-indigo-500 to-purple-600');
+    setContestLanguagesInput(['cpp', 'java', 'python']);
+    setContestDescriptionInput('');
+    setContestScoringInput('Standard ACM-ICPC');
+    setContestRulesInput('');
 
-    alert(`Contest "${contestNameInput}" has been successfully scheduled!`);
+    alert(`Contest "${contestNameInput}" has been successfully created as a draft!`);
   };
 
   const [instructorCourses, setInstructorCourses] = useState<InstructorCourse[]>([
@@ -1697,50 +1707,97 @@ export const InstructorDashboard: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Contests Stats Overview */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
-                  {/* Total Contests Stat */}
-                  <div className="bg-surface rounded-2xl p-5 border border-slate-200/50 ambient-shadow flex items-center justify-between gap-4 hover:shadow-lg transition-all duration-300">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Contests</span>
-                      <span className="text-3xl font-display font-black text-brand-blue mt-1">
-                        {contestsList.length}
-                      </span>
-                      <span className="text-[11px] font-medium text-slate-500 mt-1.5 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> {contestsList.filter(c => c.status === 'Upcoming').length} upcoming
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-350"></span> {contestsList.filter(c => c.status === 'Ended').length} ended
-                      </span>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-primary-light/50 text-primary flex items-center justify-center">
-                      <span className="material-symbols-outlined text-2xl icon-fill">emoji_events</span>
-                    </div>
-                  </div>
+                {/* Sub-tabs for Contest Categories */}
+                <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/40 pb-4">
+                  <button
+                    onClick={() => setContestStatusTab('all')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
+                      contestStatusTab === 'all'
+                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/10'
+                        : 'bg-white hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">menu</span>
+                    <span>All Contests</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                      contestStatusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}>{contestsList.length}</span>
+                  </button>
 
-                  {/* Ongoing Contests Stat */}
-                  <div className="bg-surface rounded-2xl p-5 border border-slate-200/50 ambient-shadow flex items-center justify-between gap-4 hover:shadow-lg transition-all duration-300">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ongoing Contests</span>
-                      <span className="text-3xl font-display font-black text-brand-blue mt-1">
-                        {contestsList.filter(c => c.status === 'Ongoing').length}
-                      </span>
-                      <span className="text-[11px] font-semibold text-brand-green mt-1.5 flex items-center gap-1.5">
-                        {contestsList.filter(c => c.status === 'Ongoing').length > 0 ? (
-                          <>
-                            <span className="w-2 h-2 rounded-full bg-brand-green inline-block animate-ping"></span>
-                            <span>Currently live tournaments</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                            <span className="text-slate-400">No ongoing contests</span>
-                          </>
-                        )}
-                      </span>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-brand-green-light text-brand-green flex items-center justify-center">
-                      <span className="material-symbols-outlined text-2xl icon-fill">sports_esports</span>
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => setContestStatusTab('Ongoing')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
+                      contestStatusTab === 'Ongoing'
+                        ? 'bg-brand-green text-white border-brand-green shadow-md shadow-brand-green/10'
+                        : 'bg-white hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">play_circle</span>
+                    <span>Ongoing</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                      contestStatusTab === 'Ongoing' ? 'bg-white/20 text-white' : 'bg-green-50 text-brand-green'
+                    }`}>{contestsList.filter(c => c.status === 'Ongoing').length}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setContestStatusTab('Upcoming')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
+                      contestStatusTab === 'Upcoming'
+                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/10'
+                        : 'bg-white hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">schedule</span>
+                    <span>Upcoming</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                      contestStatusTab === 'Upcoming' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'
+                    }`}>{contestsList.filter(c => c.status === 'Upcoming').length}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setContestStatusTab('Ended')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
+                      contestStatusTab === 'Ended'
+                        ? 'bg-slate-800 text-white border-slate-800 shadow-md shadow-slate-800/10'
+                        : 'bg-white hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">trophy</span>
+                    <span>Ended</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                      contestStatusTab === 'Ended' ? 'bg-white/20 text-white' : 'bg-slate-200/65 text-slate-500'
+                    }`}>{contestsList.filter(c => c.status === 'Ended').length}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setContestStatusTab('Draft')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
+                      contestStatusTab === 'Draft'
+                        ? 'bg-slate-500 text-white border-slate-500 shadow-md shadow-slate-500/10'
+                        : 'bg-white hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                    <span>Drafts</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                      contestStatusTab === 'Draft' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}>{contestsList.filter(c => c.status === 'Draft').length}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setContestStatusTab('Review')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
+                      contestStatusTab === 'Review'
+                        ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/10'
+                        : 'bg-white hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">pending</span>
+                    <span>Under Review</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                      contestStatusTab === 'Review' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-600'
+                    }`}>{contestsList.filter(c => c.status === 'Review').length}</span>
+                  </button>
                 </div>
 
                 {/* Contests Search and Filters */}
@@ -1758,47 +1815,19 @@ export const InstructorDashboard: React.FC = () => {
                     />
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-                    <button
-                      onClick={() => setContestStatusTab('all')}
-                      className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
-                        contestStatusTab === 'all'
-                          ? 'bg-primary text-white shadow-md shadow-primary/10'
-                          : 'text-text-muted bg-slate-50 hover:bg-slate-100'
-                      }`}
+                  <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                    <select
+                      value={contestStatusTab}
+                      onChange={(e) => setContestStatusTab(e.target.value as any)}
+                      className="border-slate-200/60 rounded-xl text-xs font-semibold text-text-main py-2 focus:ring-primary focus:ring-1 focus:border-primary cursor-pointer bg-white"
                     >
-                      All
-                    </button>
-                    <button
-                      onClick={() => setContestStatusTab('Ongoing')}
-                      className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
-                        contestStatusTab === 'Ongoing'
-                          ? 'bg-primary text-white shadow-md shadow-primary/10'
-                          : 'text-text-muted bg-slate-50 hover:bg-slate-100'
-                      }`}
-                    >
-                      Ongoing
-                    </button>
-                    <button
-                      onClick={() => setContestStatusTab('Upcoming')}
-                      className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
-                        contestStatusTab === 'Upcoming'
-                          ? 'bg-primary text-white shadow-md shadow-primary/10'
-                          : 'text-text-muted bg-slate-50 hover:bg-slate-100'
-                      }`}
-                    >
-                      Upcoming
-                    </button>
-                    <button
-                      onClick={() => setContestStatusTab('Ended')}
-                      className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
-                        contestStatusTab === 'Ended'
-                          ? 'bg-primary text-white shadow-md shadow-primary/10'
-                          : 'text-text-muted bg-slate-50 hover:bg-slate-100'
-                      }`}
-                    >
-                      Ended
-                    </button>
+                      <option value="all">All States</option>
+                      <option value="Ongoing">Ongoing (Live Now)</option>
+                      <option value="Upcoming">Upcoming (Scheduled)</option>
+                      <option value="Ended">Ended (Completed)</option>
+                      <option value="Draft">Draft (Completion)</option>
+                      <option value="Review">Under Review (Approval)</option>
+                    </select>
                   </div>
                 </div>
 
@@ -1858,6 +1887,18 @@ export const InstructorDashboard: React.FC = () => {
                                 <span className="px-2 py-0.5 text-[9px] rounded-full bg-slate-100 text-slate-500 border border-slate-200/50 font-bold uppercase tracking-wider flex items-center gap-1 select-none">
                                   <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                   Ended
+                                </span>
+                              )}
+                              {contest.status === 'Draft' && (
+                                <span className="px-2 py-0.5 text-[9px] rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-bold uppercase tracking-wider flex items-center gap-1 select-none">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                  Draft
+                                </span>
+                              )}
+                              {contest.status === 'Review' && (
+                                <span className="px-2 py-0.5 text-[9px] rounded-full bg-amber-100 text-amber-700 border border-amber-200 font-bold uppercase tracking-wider flex items-center gap-1 select-none">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                  Under Review
                                 </span>
                               )}
                             </div>
@@ -1946,32 +1987,99 @@ export const InstructorDashboard: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                              <button className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue border border-slate-200/30 transition-all" title="Contest Settings">
-                                <span className="material-symbols-outlined text-[18px]">settings</span>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (contest.status === 'Ended') {
-                                    alert(`Reviewing scoreboard for ${contest.name}`);
-                                  } else {
-                                    alert(`Managing instructions for ${contest.name}`);
-                                  }
-                                }}
-                                className={`px-4.5 py-2 text-xs font-bold rounded-xl transition-all shadow-sm ${
-                                  contest.status === 'Ongoing'
-                                    ? 'bg-brand-green hover:bg-brand-green-hover text-white'
-                                    : contest.status === 'Upcoming'
-                                    ? 'bg-brand-blue hover:bg-brand-blue-light text-white'
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                                }`}
-                              >
-                                {contest.status === 'Ongoing'
-                                  ? 'Live Leaderboard'
-                                  : contest.status === 'Upcoming'
-                                  ? 'Manage Rules'
-                                  : 'Review Standings'}
-                              </button>
+                            <div className="flex items-center gap-2.5">
+                              {contest.status === 'Ongoing' && (
+                                <button
+                                  onClick={() => alert(`Reviewing live leaderboard for ${contest.name}`)}
+                                  className="flex items-center gap-2 bg-brand-green hover:bg-brand-green-hover text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-brand-green/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                >
+                                  <span className="material-symbols-outlined text-[18px] animate-pulse">analytics</span>
+                                  <span>Live Leaderboard</span>
+                                </button>
+                              )}
+
+                              {contest.status === 'Upcoming' && (
+                                <button
+                                  onClick={() => alert(`Editing contest ${contest.name}`)}
+                                  className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">edit</span>
+                                  <span>Edit</span>
+                                </button>
+                              )}
+
+                              {contest.status === 'Ended' && (
+                                <button
+                                  onClick={() => alert(`Reviewing scoreboard/standings for ${contest.name}`)}
+                                  className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-slate-800/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">leaderboard</span>
+                                  <span>Ranking</span>
+                                </button>
+                              )}
+
+                              {contest.status === 'Draft' && (
+                                <>
+                                  <button
+                                    onClick={() => alert(`Resuming edit for contest ${contest.name}`)}
+                                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-brand-blue px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold border border-slate-200/60 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                                    <span>Resume Edit</span>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setContestsList((prev) =>
+                                        prev.map((c) =>
+                                          c.id === contest.id ? { ...c, status: 'Review' } : c
+                                        )
+                                      );
+                                      alert(`Submitted successfully! Contest "${contest.name}" has been sent for admin review.`);
+                                    }}
+                                    className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">publish</span>
+                                    <span>Submit for Review</span>
+                                  </button>
+                                </>
+                              )}
+
+                              {contest.status === 'Review' && (
+                                <>
+                                  <button
+                                    onClick={() => alert(`Contest "${contest.name}" is pending admin review.`)}
+                                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold border border-slate-200/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                  >
+                                    <span className="material-symbols-outlined text-[18px] text-amber-500">info</span>
+                                    <span>Under Admin Review</span>
+                                  </button>
+                                  {/* Mock Approval Action */}
+                                  <button
+                                    onClick={() => {
+                                      const startObj = new Date(contest.startDate);
+                                      const endObj = new Date(contest.endDate);
+                                      const now = new Date();
+                                      let approvedStatus: 'Ongoing' | 'Ended' | 'Upcoming' = 'Upcoming';
+                                      if (now >= startObj && now <= endObj) {
+                                        approvedStatus = 'Ongoing';
+                                      } else if (now > endObj) {
+                                        approvedStatus = 'Ended';
+                                      }
+
+                                      setContestsList((prev) =>
+                                        prev.map((c) =>
+                                          c.id === contest.id ? { ...c, status: approvedStatus } : c
+                                        )
+                                      );
+                                      alert(`Contest "${contest.name}" has been approved by admin and is now "${approvedStatus}"!`);
+                                    }}
+                                    className="flex items-center gap-2 bg-brand-green hover:bg-brand-green-hover text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-brand-green/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                                    <span>Approve (Admin Mock)</span>
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -3114,7 +3222,7 @@ export const InstructorDashboard: React.FC = () => {
       {/* ================= MODAL: CREATE CONTEST ================= */}
       {isCreateContestOpen && (
         <div id="modal-create-contest" className="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl max-w-4xl w-full overflow-hidden border border-slate-200/50 ambient-shadow flex flex-col transition-all duration-300 animate-fade-in">
+          <div className="bg-surface rounded-2xl max-w-6xl w-full overflow-hidden border border-slate-200/50 ambient-shadow flex flex-col transition-all duration-300 animate-fade-in">
             {/* Modal Header */}
             <div className="px-8 py-5.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
@@ -3127,7 +3235,8 @@ export const InstructorDashboard: React.FC = () => {
             </div>
 
             {/* Modal Form Content */}
-            <form onSubmit={handleCreateContest} className="p-8 flex flex-col gap-6">
+            <form onSubmit={handleCreateContest} className="p-8 flex flex-col gap-6 max-h-[80vh] overflow-y-auto">
+              {/* Title */}
               <div className="flex flex-col gap-2">
                 <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Title</label>
                 <input
@@ -3135,12 +3244,60 @@ export const InstructorDashboard: React.FC = () => {
                   required
                   value={contestNameInput}
                   onChange={(e) => setContestNameInput(e.target.value)}
-                  placeholder="e.g. Weekly Algorithmic Challenge #13"
+                  placeholder="e.g. FPT Tech Cup 2026"
                   className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Thumbnail / Banner */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Thumbnail Banner</label>
+                <div className="flex flex-col gap-3">
+                  {/* Presets */}
+                  <div className="flex items-center gap-3">
+                    {[
+                      { name: 'Indigo to Purple', value: 'from-indigo-500 to-purple-600' },
+                      { name: 'Blue to Teal', value: 'from-blue-500 to-teal-600' },
+                      { name: 'Orange to Red', value: 'from-orange-500 to-red-600' },
+                      { name: 'Pink to Rose', value: 'from-pink-500 to-rose-600' }
+                    ].map((gradient) => {
+                      const isSelected = contestBannerInput === gradient.value;
+                      return (
+                        <button
+                          key={gradient.value}
+                          type="button"
+                          onClick={() => setContestBannerInput(gradient.value)}
+                          className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradient.value} border-2 transition-all flex items-center justify-center cursor-pointer hover:scale-105 ${
+                            isSelected ? 'border-brand-blue scale-110 shadow-md' : 'border-transparent opacity-80'
+                          }`}
+                          title={gradient.name}
+                        >
+                          {isSelected && (
+                            <span className="material-symbols-outlined text-white text-[18px] font-bold">check</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Custom URL */}
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="material-symbols-outlined text-[18px] text-text-muted">link</span>
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Or paste custom image URL..."
+                      value={contestBannerInput.startsWith('from-') ? '' : contestBannerInput}
+                      onChange={(e) => setContestBannerInput(e.target.value || 'from-indigo-500 to-purple-600')}
+                      className="w-full pl-9 pr-4 py-2.5 text-xs md:text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Timeline (Start Date, End Date, Duration) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* Start Date */}
                 <div className="flex flex-col gap-2">
                   <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Start Date</label>
                   <input
@@ -3151,6 +3308,8 @@ export const InstructorDashboard: React.FC = () => {
                     className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 cursor-pointer"
                   />
                 </div>
+
+                {/* End Date */}
                 <div className="flex flex-col gap-2">
                   <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">End Date</label>
                   <input
@@ -3161,9 +3320,8 @@ export const InstructorDashboard: React.FC = () => {
                     className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 cursor-pointer"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Duration (Minutes) */}
                 <div className="flex flex-col gap-2">
                   <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Duration (Minutes)</label>
                   <input
@@ -3177,8 +3335,116 @@ export const InstructorDashboard: React.FC = () => {
                 </div>
               </div>
 
+              {/* Supported Languages */}
+              <div className="flex flex-col gap-2 relative">
+                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Supported Languages</label>
+                <button
+                  type="button"
+                  onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                  className="w-full flex items-center justify-between border border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 bg-white text-sm md:text-base text-left font-semibold text-slate-700 cursor-pointer"
+                >
+                  <span className="truncate">
+                    {contestLanguagesInput.length === 0
+                      ? 'Select Languages...'
+                      : contestLanguagesInput
+                          .map(l => {
+                            const matched = [
+                              { id: 'cpp', name: 'C++' },
+                              { id: 'java', name: 'Java' },
+                              { id: 'python', name: 'Python' },
+                              { id: 'javascript', name: 'JavaScript' },
+                              { id: 'go', name: 'Go' }
+                            ].find(item => item.id === l);
+                            return matched ? matched.name : l;
+                          })
+                          .join(', ')}
+                  </span>
+                  <span className="material-symbols-outlined text-[18px] text-slate-400">
+                    {isLangDropdownOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+                  </span>
+                </button>
+
+                {isLangDropdownOpen && (
+                  <div className="absolute top-[100%] left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 p-2 flex flex-col gap-1 max-h-48 overflow-y-auto">
+                    {[
+                      { id: 'cpp', name: 'C++' },
+                      { id: 'java', name: 'Java' },
+                      { id: 'python', name: 'Python' },
+                      { id: 'javascript', name: 'JavaScript' },
+                      { id: 'go', name: 'Go' }
+                    ].map((lang) => {
+                      const isSelected = contestLanguagesInput.includes(lang.id);
+                      return (
+                        <button
+                          key={lang.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setContestLanguagesInput(prev => prev.filter(l => l !== lang.id));
+                            } else {
+                              setContestLanguagesInput(prev => [...prev, lang.id]);
+                            }
+                          }}
+                          className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs md:text-sm font-semibold rounded-lg text-left cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-primary-light/35 text-primary'
+                              : 'hover:bg-slate-50 text-slate-700'
+                          }`}
+                        >
+                          <span>{lang.name}</span>
+                          {isSelected && (
+                            <span className="material-symbols-outlined text-primary text-[16px] font-bold">check</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Scoring System */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Scoring System</label>
+                <select
+                  value={contestScoringInput}
+                  onChange={(e) => setContestScoringInput(e.target.value)}
+                  className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 cursor-pointer bg-white"
+                >
+                  <option value="Standard ACM-ICPC">Standard ACM-ICPC (Time Penalty per WR/WA)</option>
+                  <option value="IOI Scoring">IOI Style (Points per test case, no penalty)</option>
+                  <option value="Ranked Penalty">Ranked Penalty (Points based on execution time)</option>
+                  <option value="Custom Pass Rate">Custom Pass Rate (Min 80% test cases passed)</option>
+                </select>
+              </div>
+
+              {/* Contest Description */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Contest Description</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={contestDescriptionInput}
+                  onChange={(e) => setContestDescriptionInput(e.target.value)}
+                  placeholder="Give a brief summary of the contest goals, difficulty level, and topics..."
+                  className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
+                />
+              </div>
+
+              {/* Rules & Prohibitions */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Rules & Prohibitions</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={contestRulesInput}
+                  onChange={(e) => setContestRulesInput(e.target.value)}
+                  placeholder="e.g. Plagiarism check will be executed. No third party libraries allowed..."
+                  className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
+                />
+              </div>
+
               {/* Submit buttons */}
-              <div className="flex items-center justify-end gap-4 pt-6 border-t border-slate-100 mt-2">
+              <div className="flex items-center justify-end gap-4 pt-6 border-t border-slate-100 mt-2 shrink-0">
                 <button type="button" onClick={() => setIsCreateContestOpen(false)} className="px-6 py-3 rounded-xl border border-slate-200 text-slate-700 text-xs md:text-sm font-bold hover:bg-slate-50 transition-colors">Cancel</button>
                 <button type="submit" className="px-6 py-3 rounded-xl bg-brand-green hover:bg-brand-green-hover text-white text-xs md:text-sm font-bold transition-all shadow-md shadow-brand-green/20">Publish Contest</button>
               </div>

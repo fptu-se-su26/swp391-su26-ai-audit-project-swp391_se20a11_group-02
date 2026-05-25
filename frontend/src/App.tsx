@@ -25,7 +25,7 @@ import { PaymentTransaction } from './pages/PaymentTransaction';
 function App() {
   return (
     <AppProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           {/* Public Auth routes without shared Navbar/Footer */}
           <Route path="/login" element={<Login />} />
