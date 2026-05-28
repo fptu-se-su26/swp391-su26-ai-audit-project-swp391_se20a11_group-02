@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
 const JAVA_TEMPLATE = `class Solution {
@@ -33,36 +33,11 @@ export const ContestProblemSolve: React.FC = () => {
   const [codeText, setCodeText] = useState<string>(JAVA_TEMPLATE);
   const [editorStatus, setEditorStatus] = useState<'Accepted' | 'Running' | 'Success'>('Accepted');
   
-  // Timer State (01:24:55 in seconds is 5095)
-  const [secondsLeft, setSecondsLeft] = useState<number>(5095);
-  
   // Floating Toast Alert
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   
   // Success Overlay
   const [showSuccessOverlay, setShowSuccessOverlay] = useState<boolean>(false);
-
-  // Tick countdown timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (totalSeconds: number) => {
-    const hrs = Math.floor(totalSeconds / 3600);
-    const mins = Math.floor((totalSeconds % 3600) / 60);
-    const secs = totalSeconds % 60;
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
-  };
 
   const handleLangChange = (lang: string) => {
     setSelectedLang(lang);
@@ -111,7 +86,7 @@ export const ContestProblemSolve: React.FC = () => {
   const lineCount = Math.max(codeText.split('\n').length, 6);
 
   return (
-    <div className="relative z-10 flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto mt-4 px-4 text-left">
+    <>
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed bottom-20 right-6 z-50 bg-brand-blue text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-brand-blue-light animate-fade-in">
@@ -156,7 +131,7 @@ export const ContestProblemSolve: React.FC = () => {
       )}
 
       {/* Main Content (Left 85%) */}
-      <main className="w-full md:w-[85%] bg-surface-gray flex flex-col gap-8 pr-0 md:pr-6 pb-8">
+      <main className="w-full bg-surface-gray flex flex-col gap-8 pr-0 md:pr-6 pb-8">
         {/* Left Column: Description */}
         <div className="w-full flex flex-col bg-surface border border-gray-200 rounded-lg">
           <div className="p-6 md:p-8 space-y-8">
@@ -324,54 +299,6 @@ export const ContestProblemSolve: React.FC = () => {
           </div>
         </div>
       </main>
-      
-      {/* Right Sidebar (15%) */}
-      <aside className="w-full md:w-[15%] min-w-[280px] bg-surface border-l border-gray-200 flex flex-col relative sticky top-16 h-[calc(100vh-64px)] pb-12">
-        {/* Sidebar Content */}
-        <div className="flex-grow overflow-y-auto py-8 px-6">
-          {/* Contest Header / Timer */}
-          <div className="mb-10 text-center">
-            <h2 className="text-xl font-black text-text-main mb-2 tracking-tight">Contest #42</h2>
-            <div className="bg-surface-gray rounded-lg p-4 shadow-sm border border-gray-200">
-              <p className="text-xs font-label text-text-muted uppercase tracking-wider mb-1">Ends In</p>
-              <div className="font-display text-2xl font-bold text-primary tabular-nums tracking-tight">
-                {formatTime(secondsLeft)}
-              </div>
-            </div>
-          </div>
-          {/* Navigation Links */}
-          <nav className="space-y-2 font-label text-label-md">
-            <Link
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-main font-medium hover:bg-surface-gray transition-all"
-              to={`/contests/${contestId}`}
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              Overview
-            </Link>
-            <Link
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-primary font-bold border-l-4 border-primary bg-primary-light/20 shadow-sm translate-x-1 transition-all"
-              to={`/contests/${contestId}/problems`}
-            >
-              <span className="material-symbols-outlined icon-fill">extension</span>
-              Problems
-            </Link>
-            <Link
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-main font-medium hover:bg-surface-gray transition-all"
-              to={`/contests/${contestId}/submissions`}
-            >
-              <span className="material-symbols-outlined">list_alt</span>
-              Submissions
-            </Link>
-            <Link
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-main font-medium hover:bg-surface-gray transition-all"
-              to={`/contests/${contestId}/ranking`}
-            >
-              <span className="material-symbols-outlined">leaderboard</span>
-              Rankings
-            </Link>
-          </nav>
-        </div>
-      </aside>
-    </div>
+    </>
   );
 };

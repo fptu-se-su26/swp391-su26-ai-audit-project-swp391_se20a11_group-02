@@ -37,21 +37,7 @@ interface CourseSyllabus {
   chapters: Chapter[];
 }
 
-interface Contest {
-  id: number;
-  name: string;
-  status: 'Ongoing' | 'Ended' | 'Upcoming' | 'Draft' | 'Review';
-  startDate: string;
-  endDate: string;
-  banner: string; // Gradient class
-  problems: number;
-  coders: number; // Participants count
-  topWinners?: { rank: 1 | 2 | 3; name: string; avatar: string }[];
-  languages?: string[];
-  description?: string;
-  scoring?: string;
-  rules?: string;
-}
+
 
 interface InstructorCourse {
   id: string;
@@ -71,8 +57,8 @@ interface InstructorCourse {
 export const InstructorDashboard: React.FC = () => {
   const { user } = useApp();
 
-  // Navigation active tab: 'dashboard' | 'my-courses' | 'my-contests' | 'revenue' | 'wallet' | 'edit-course'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'my-courses' | 'my-contests' | 'revenue' | 'wallet' | 'edit-course'>('dashboard');
+  // Navigation active tab: 'dashboard' | 'my-courses' | 'revenue' | 'wallet' | 'edit-course'
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'my-courses' | 'revenue' | 'wallet' | 'edit-course'>('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // Synchronize Tab State with Location Hash (just like in the HTML template)
@@ -83,8 +69,6 @@ export const InstructorDashboard: React.FC = () => {
         setActiveTab('edit-course');
       } else if (currentHash === '#my-courses') {
         setActiveTab('my-courses');
-      } else if (currentHash === '#my-contests') {
-        setActiveTab('my-contests');
       } else if (currentHash === '#revenue') {
         setActiveTab('revenue');
       } else if (currentHash === '#wallet') {
@@ -117,7 +101,6 @@ export const InstructorDashboard: React.FC = () => {
 
   // Modals Visibility
   const [isCreateCourseOpen, setIsCreateCourseOpen] = useState(false);
-  const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
 
   // Active course syllabus details for the WORKSPACE PANEL
   const [workspaceCourseTitle, setWorkspaceCourseTitle] = useState('Data Structures & Algorithms');
@@ -443,209 +426,7 @@ export const InstructorDashboard: React.FC = () => {
     window.location.hash = '#my-courses';
   };
 
-  // Contests State and dynamic scheduling
-  const [contestsList, setContestsList] = useState<Contest[]>([
-    {
-      id: 1001,
-      name: 'Nonstop Coding Tournament #1',
-      status: 'Upcoming',
-      startDate: 'May 25, 2026 19:00',
-      endDate: 'May 25, 2026 22:00',
-      banner: 'from-orange-500 to-red-600',
-      problems: 5,
-      coders: 148
-    },
-    {
-      id: 1002,
-      name: 'Weekly Algorithmic Challenge #12',
-      status: 'Ongoing',
-      startDate: 'May 24, 2026 14:00',
-      endDate: 'May 26, 2026 16:00',
-      banner: 'from-blue-500 to-indigo-600',
-      problems: 3,
-      coders: 215
-    },
-    {
-      id: 1003,
-      name: 'Spring Code Clash 2026',
-      status: 'Ended',
-      startDate: 'May 10, 2026 08:00',
-      endDate: 'May 10, 2026 12:00',
-      banner: 'from-emerald-500 to-teal-600',
-      problems: 6,
-      coders: 312,
-      topWinners: [
-        {
-          rank: 1,
-          name: 'AlexChen_99',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCp40daqj0h2umuKNNDeVOusREXNgw_12QV4qru-J_UuA4ZdCH-_duC1RsH1iBlluVAhCv_LX4hE1Tn_XF1TlBYCEPgN93KA_POfYKJnd5Ge9nO-7Itcx87rECEaQsnoCQEkKM9kmZCxKC1XEboRfAKWgdDMiYMeE_VSZvWolzI-cDOWC-9CsKWiSpExgxqf-WZmWUFwK3APjd9pwvw33_QyWVOzOIyUwSBPPRILirJJ-8WCBLfWEVlQv4EjnKXB8iJupr4PdSrNb4'
-        },
-        {
-          rank: 2,
-          name: 'SarahCodes',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDshCfUQ0QMSGGDqtuWcDFX_490qXob69K70L4NJIXvHDEJEkly5hmHpkJQE0VYJUOm0EEQ69gZ2dg60jKuWAoIKCJb2AFPciDf6D9Lo74JWBRjCxKMZwRGLkEE4MPzCAh6Jk8ALAxsanK7LWgMm4XlZRsnZdTNIdAHCQa0JQbR4HkQW9HGRQaeZF_N6xewqpVJTKVcdSEEqplIyAFUsrbwSI1cEmpkKdrF1rHrpfozZaHAncAw4DCxbCdRdUix9mXBCOW4GQ0HLuI'
-        },
-        {
-          rank: 3,
-          name: 'DevMaster',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBkHZSQqpXmDrQL_qKJPMdo5wb3oCBOUVxsVVnbnzufzk5gzwHETA-lt9WwTcAtywJ6U0aySuqOREpGq64S_9TRgVTVsq--Q0UM8V07CBBMP4iHOzmx4kiiL6WTbqZwH9-0TefB_jdkjq8YuEB0BwpTHStm6F6Kg4v-hhq8huMKSnePfsgPAjdw0BgBc6sjjREiET3WMLYghC9EvUmyLutnQpH9Khc3MEppZTiN2O4rMR_iCiHJhDR32g7srn3JC3brO2IvNvVFOsM'
-        }
-      ]
-    },
-    {
-      id: 1004,
-      name: 'Advanced Graph Theory Scrimmage',
-      status: 'Ended',
-      startDate: 'Sep 23, 2026 08:00',
-      endDate: 'Sep 30, 2026 18:00',
-      banner: 'from-purple-500 to-pink-600',
-      problems: 8,
-      coders: 2845,
-      topWinners: [
-        {
-          rank: 1,
-          name: 'GraphKing',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBkHZSQqpXmDrQL_qKJPMdo5wb3oCBOUVxsVVnbnzufzk5gzwHETA-lt9WwTcAtywJ6U0aySuqOREpGq64S_9TRgVTVsq--Q0UM8V07CBBMP4iHOzmx4kiiL6WTbqZwH9-0TefB_jdkjq8YuEB0BwpTHStm6F6Kg4v-hhq8huMKSnePfsgPAjdw0BgBc6sjjREiET3WMLYghC9EvUmyLutnQpH9Khc3MEppZTiN2O4rMR_iCiHJhDR32g7srn3JC3brO2IvNvVFOsM'
-        },
-        {
-          rank: 2,
-          name: 'NodeExplorer',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBJyORKWLp748TXseYyDhN53kvX6pZ4KFcscGLQ7cUxMIn7tMLeYeeOMPkwRBYN-DtN_I-uagbYLxNqiPVzeeRSHN_eEpbOKKCuipy6kriMB5t_3x17QVJWb9Vtud7BfdexPZ7C1Lr3hBjWiLj7uPb3xeWiSiWQVa9eSiawc4i9NDjvBttSrqSqFMZYnShy86b3VS-BDUs3zdMFUNviGGwyXK_YoQtPna6HDktIc31wWKH597aPjX_fAB2iQQLZ_dmqzevaMhf4YSA'
-        },
-        {
-          rank: 3,
-          name: 'PathFinder',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDprSKVqEq347pPqZ9M8ZWp_6T-Pvi_68sA90ExU-mSJXsImRMFa4q4dLHkArN6WOv5WFywpvaSZBRAHvu_Dx0r6w9yK_mlTECqCeq9Wg3oBbgZTv9n5f5XBS7cYcelKHCSqcutDcmpUqgS0-UThBEEYGjKVVlqjNkMD5LeFuWllGb4uhmZZ8l2nvSElcuet9dv6J2P59fo1VSbODozVKEkm5a4gpdTPT1T6CEHtGUDY7Lv6jRnLSmwUI2aNOpki1r5UtOOo4ccDQQ'
-        }
-      ]
-    }
-  ]);
 
-  const [contestNameInput, setContestNameInput] = useState('');
-  const [contestStartInput, setContestStartInput] = useState('');
-  const [contestEndInput, setContestEndInput] = useState('');
-  const [contestDurationInput, setContestDurationInput] = useState('');
-  const [contestBannerInput, setContestBannerInput] = useState('from-indigo-500 to-purple-600');
-  const [contestLanguagesInput, setContestLanguagesInput] = useState<string[]>(['cpp', 'java', 'python']);
-  const [contestDescriptionInput, setContestDescriptionInput] = useState('');
-  const [contestScoringInput, setContestScoringInput] = useState('Standard ACM-ICPC');
-  const [contestRulesInput, setContestRulesInput] = useState('');
-  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
-
-  const [contestSearchTerm, setContestSearchTerm] = useState('');
-  const [contestStatusTab, setContestStatusTab] = useState<'all' | 'Ongoing' | 'Upcoming' | 'Ended' | 'Draft' | 'Review'>('all');
-
-  const filteredContests = useMemo(() => {
-    let result = [...contestsList];
-
-    // 1. Status Filter
-    if (contestStatusTab !== 'all') {
-      result = result.filter(c => c.status === contestStatusTab);
-    }
-
-    // 2. Search query filter
-    if (contestSearchTerm.trim() !== '') {
-      const q = contestSearchTerm.toLowerCase().trim();
-      result = result.filter(c => c.name.toLowerCase().includes(q));
-    }
-
-    return result;
-  }, [contestsList, contestStatusTab, contestSearchTerm]);
-
-  const handleStartDateChange = (val: string) => {
-    setContestStartInput(val);
-    if (val && contestDurationInput) {
-      const startObj = new Date(val);
-      const durationMin = Number(contestDurationInput);
-      if (!isNaN(startObj.getTime()) && !isNaN(durationMin)) {
-        const endObj = new Date(startObj.getTime() + durationMin * 60 * 1000);
-        const timezoneOffset = endObj.getTimezoneOffset() * 60 * 1000;
-        const localEnd = new Date(endObj.getTime() - timezoneOffset);
-        setContestEndInput(localEnd.toISOString().slice(0, 16));
-      }
-    } else if (val && contestEndInput) {
-      const startObj = new Date(val);
-      const endObj = new Date(contestEndInput);
-      if (!isNaN(startObj.getTime()) && !isNaN(endObj.getTime())) {
-        const diffMs = endObj.getTime() - startObj.getTime();
-        const diffMin = Math.round(diffMs / 60000);
-        if (diffMin >= 0) {
-          setContestDurationInput(String(diffMin));
-        }
-      }
-    }
-  };
-
-  const handleEndDateChange = (val: string) => {
-    setContestEndInput(val);
-    if (contestStartInput && val) {
-      const startObj = new Date(contestStartInput);
-      const endObj = new Date(val);
-      if (!isNaN(startObj.getTime()) && !isNaN(endObj.getTime())) {
-        const diffMs = endObj.getTime() - startObj.getTime();
-        const diffMin = Math.round(diffMs / 60000);
-        if (diffMin >= 0) {
-          setContestDurationInput(String(diffMin));
-        }
-      }
-    }
-  };
-
-  const handleDurationChange = (val: string) => {
-    setContestDurationInput(val);
-    if (contestStartInput && val) {
-      const startObj = new Date(contestStartInput);
-      const durationMin = Number(val);
-      if (!isNaN(startObj.getTime()) && !isNaN(durationMin)) {
-        const endObj = new Date(startObj.getTime() + durationMin * 60 * 1000);
-        const timezoneOffset = endObj.getTimezoneOffset() * 60 * 1000;
-        const localEnd = new Date(endObj.getTime() - timezoneOffset);
-        setContestEndInput(localEnd.toISOString().slice(0, 16));
-      }
-    }
-  };
-
-  const handleCreateContest = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contestNameInput || !contestStartInput || !contestEndInput || !contestDurationInput) return;
-
-    const startObj = new Date(contestStartInput);
-    const endObj = new Date(contestEndInput);
-
-    const startDateStr = startObj.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
-    const endDateStr = endObj.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
-
-    const newContest: Contest = {
-      id: Date.now(),
-      name: contestNameInput,
-      status: 'Draft',
-      startDate: startDateStr,
-      endDate: endDateStr,
-      banner: contestBannerInput || 'from-indigo-500 to-purple-600',
-      problems: 3,
-      coders: 0,
-      languages: contestLanguagesInput,
-      description: contestDescriptionInput,
-      scoring: contestScoringInput,
-      rules: contestRulesInput
-    };
-
-    setContestsList(prev => [newContest, ...prev]);
-    setIsCreateContestOpen(false);
-
-    // Reset Form
-    setContestNameInput('');
-    setContestStartInput('');
-    setContestEndInput('');
-    setContestDurationInput('');
-    setContestBannerInput('from-indigo-500 to-purple-600');
-    setContestLanguagesInput(['cpp', 'java', 'python']);
-    setContestDescriptionInput('');
-    setContestScoringInput('Standard ACM-ICPC');
-    setContestRulesInput('');
-
-    alert(`Contest "${contestNameInput}" has been successfully created as a draft!`);
-  };
 
   const [instructorCourses, setInstructorCourses] = useState<InstructorCourse[]>([
     {
@@ -759,8 +540,30 @@ export const InstructorDashboard: React.FC = () => {
     return result;
   }, [instructorCourses, courseSubTab, courseSearchTerm, courseSortFilter]);
 
-  // Recent Registrations filtered views
-  const [registrationFilter, setRegistrationFilter] = useState<string | null>(null);
+
+
+  // Course stats timeframe period (1, 3, 6, 9, 12 months)
+  const [statsPeriod, setStatsPeriod] = useState<number>(3);
+
+  const courseStats = useMemo(() => {
+    return instructorCourses
+      .filter(c => c.status === 'published')
+      .map(c => {
+        const factor = statsPeriod / 12;
+        const hash = c.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const variation = 0.8 + (hash % 5) * 0.1;
+        const periodStudents = Math.round(c.studentsCount * factor * variation);
+        const priceNum = parseInt(c.price.replace(/[^\d]/g, '')) || 0;
+        const periodRevenue = periodStudents * priceNum;
+
+        return {
+          id: c.id,
+          title: c.title,
+          students: periodStudents,
+          revenue: periodRevenue.toLocaleString('vi-VN') + ' ₫'
+        };
+      });
+  }, [instructorCourses, statsPeriod]);
 
   const mockRegistrations = [
     { studentName: 'Nguyen Van A', avatar: 'https://ui-avatars.com/api/?name=Nguyen+Van+A&background=eef7ee&color=46A040&bold=true', course: 'Data Structures & Algorithms', time: 'May 24, 2026 16:12', amount: '499.000 ₫' },
@@ -775,14 +578,7 @@ export const InstructorDashboard: React.FC = () => {
     { studentName: 'Hoang Van J', avatar: 'https://ui-avatars.com/api/?name=Hoang+Van+J&background=fef2f2&color=ef4444&bold=true', course: 'Data Structures & Algorithms', time: 'May 18, 2026 15:35', amount: '499.000 ₫' },
   ];
 
-  const handleFilterRegistrations = (courseName: string) => {
-    setRegistrationFilter(courseName);
-    document.getElementById('course-stats-section')?.scrollIntoView({ behavior: 'smooth' });
-  };
 
-  const handleClearRegistrationsFilter = () => {
-    setRegistrationFilter(null);
-  };
 
   // Create Course Form Specification Builders (Highlights, learn metrics, tools, etc.)
   const [learnPoints, setLearnPoints] = useState<string[]>(['Architect scalable MERN applications']);
@@ -1051,20 +847,7 @@ export const InstructorDashboard: React.FC = () => {
             <span className="sidebar-text text-sm">My Courses</span>
           </a>
 
-          <a
-            href="#my-contests"
-            onClick={() => setActiveTab('my-contests')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'my-contests'
-                ? 'bg-white/10 text-white font-bold border-l-4 border-primary'
-                : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
-          >
-            <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${
-              activeTab === 'my-contests' ? 'text-primary icon-fill' : ''
-            }`}>emoji_events</span>
-            <span className="sidebar-text text-sm">My Contests</span>
-          </a>
+
 
           <a
             href="#revenue"
@@ -1160,7 +943,7 @@ export const InstructorDashboard: React.FC = () => {
                       <span className="bg-gradient-to-r from-brand-blue to-blue-600 bg-clip-text text-transparent">Hello, </span>
                       <span className="bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">Dr. Jenkins! 👋</span>
                     </h1>
-                    <p className="text-text-muted mt-1">Here is a high-level summary of your classes, contest events, and revenue statistics.</p>
+                    <p className="text-text-muted mt-1">Here is a high-level summary of your classes and revenue statistics.</p>
                   </div>
 
                   {/* Quick Time Filter */}
@@ -1175,7 +958,7 @@ export const InstructorDashboard: React.FC = () => {
                 </div>
 
                 {/* Stats Overview Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   {/* Stat Card 1 */}
                   <div className="bg-surface rounded-2xl p-5 border border-slate-200/50 ambient-shadow flex items-center justify-between gap-4 hover:shadow-lg transition-all duration-300">
                     <div className="flex flex-col gap-1">
@@ -1210,20 +993,6 @@ export const InstructorDashboard: React.FC = () => {
                   </div>
 
                   {/* Stat Card 3 */}
-                  <div className="bg-surface rounded-2xl p-5 border border-slate-200/50 ambient-shadow flex items-center justify-between gap-4 hover:shadow-lg transition-all duration-300">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Active Contests</span>
-                      <span className="text-3xl font-display font-black text-brand-blue mt-1">3</span>
-                      <span className="text-[11px] font-semibold text-primary mt-1.5 flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-primary inline-block animate-ping"></span> 1 contest currently live
-                      </span>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-2xl icon-fill">emoji_events</span>
-                    </div>
-                  </div>
-
-                  {/* Stat Card 4 */}
                   <div className="bg-surface rounded-2xl p-5 border border-slate-200/50 ambient-shadow flex items-center justify-between gap-4 hover:shadow-lg transition-all duration-300">
                     <div className="flex flex-col gap-1">
                       <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Revenue</span>
@@ -1316,19 +1085,7 @@ export const InstructorDashboard: React.FC = () => {
                           </div>
                         </button>
 
-                        {/* Create Contest CTA */}
-                        <button
-                          onClick={() => setIsCreateContestOpen(true)}
-                          className="group text-left p-3.5 rounded-xl border border-slate-200 hover:border-brand-green/30 bg-surface hover:bg-brand-green-light transition-all duration-300 flex items-center gap-3 w-full"
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-brand-green-light text-brand-green flex items-center justify-center group-hover:bg-brand-green group-hover:text-white transition-all">
-                            <span className="material-symbols-outlined text-[20px]">add_task</span>
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-bold text-brand-blue group-hover:text-brand-green transition-colors">Create Coding Contest</h4>
-                            <p className="text-[11px] text-text-muted mt-0.5">Set up challenges, timings, test cases.</p>
-                          </div>
-                        </button>
+
 
                         {/* View Sales CTA */}
                         <a
@@ -1369,8 +1126,7 @@ export const InstructorDashboard: React.FC = () => {
                         <tr className="text-xs uppercase tracking-wider text-text-muted border-b border-slate-100 font-semibold bg-slate-50/50 rounded-lg">
                           <th className="py-3 px-4 rounded-l-lg">Student</th>
                           <th className="py-3 px-4">Course Name</th>
-                          <th className="py-3 px-4">Registration Time</th>
-                          <th className="py-3 px-4 text-right rounded-r-lg font-bold text-primary">Amount Paid</th>
+                          <th className="py-3 px-4 rounded-r-lg">Registration Time</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -1382,7 +1138,63 @@ export const InstructorDashboard: React.FC = () => {
                             </td>
                             <td className="py-3.5 px-4 text-slate-700 font-medium">{reg.course}</td>
                             <td className="py-3.5 px-4 text-slate-500 font-medium">{reg.time}</td>
-                            <td className="py-3.5 px-4 text-right text-brand-green font-bold">{reg.amount}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Course Statistics Section */}
+                <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-brand-blue">Course Performance Statistics</h3>
+                      <p className="text-xs text-text-muted mt-0.5">Enrolled students and gross revenue by course for the selected period.</p>
+                    </div>
+                    {/* Timeframe selector (Pills style) */}
+                    <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200/40">
+                      {[
+                        { label: '1 Month', value: 1 },
+                        { label: '3 Months', value: 3 },
+                        { label: '6 Months', value: 6 },
+                        { label: '9 Months', value: 9 },
+                        { label: '1 Year', value: 12 },
+                      ].map((t) => {
+                        const isActive = statsPeriod === t.value;
+                        return (
+                          <button
+                            key={t.value}
+                            type="button"
+                            onClick={() => setStatsPeriod(t.value)}
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 select-none ${
+                              isActive
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-slate-600 hover:text-brand-blue hover:bg-white/50'
+                            }`}
+                          >
+                            {t.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                      <thead>
+                        <tr className="text-xs uppercase tracking-wider text-text-muted border-b border-slate-100 font-semibold bg-slate-50/50 rounded-lg">
+                          <th className="py-3 px-4 rounded-l-lg">Course Name</th>
+                          <th className="py-3 px-4 text-center">Total Students Enrolled</th>
+                          <th className="py-3 px-4 text-right rounded-r-lg">Total Revenue</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {courseStats.map((stat) => (
+                          <tr key={stat.id} className="hover:bg-slate-50/65 transition-colors">
+                            <td className="py-3.5 px-4 font-bold text-brand-blue">{stat.title}</td>
+                            <td className="py-3.5 px-4 text-center font-medium text-slate-700">{stat.students.toLocaleString()}</td>
+                            <td className="py-3.5 px-4 text-right font-bold text-brand-green">{stat.revenue}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1586,15 +1398,9 @@ export const InstructorDashboard: React.FC = () => {
                             <>
                               <button
                                 onClick={() => openSyllabusEditor(course.title)}
-                                className="flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold transition-all border border-slate-200/30"
+                                className="col-span-2 flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold transition-all border border-slate-200/30"
                               >
                                 <span className="material-symbols-outlined text-[16px]">edit</span> Edit Syllabus
-                              </button>
-                              <button
-                                onClick={() => handleFilterRegistrations(course.title)}
-                                className="flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-primary-light/40 hover:bg-primary-light/60 text-primary font-bold transition-all border border-primary/10"
-                              >
-                                <span className="material-symbols-outlined text-[16px]">monitoring</span> View Stats
                               </button>
                             </>
                           )}
@@ -1640,455 +1446,11 @@ export const InstructorDashboard: React.FC = () => {
                   )}
                 </div>
 
-                {/* Recent Registrations Filtered Feed */}
-                <div id="course-stats-section" className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow mt-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-                    <div>
-                      <h3 className="font-display font-bold text-lg text-brand-blue" id="stats-table-title">
-                        Recent Course Registrations ({registrationFilter ? registrationFilter : 'All Courses'})
-                      </h3>
-                      <p className="text-xs text-text-muted mt-0.5">Showing mock customer registrations distributed across your authored courses.</p>
-                    </div>
-                    {registrationFilter && (
-                      <button
-                        onClick={handleClearRegistrationsFilter}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue text-xs font-bold transition-all animate-fade-in"
-                      >
-                        <span className="material-symbols-outlined text-sm">clear_all</span> Show All Courses
-                      </button>
-                    )}
-                  </div>
 
-                  <div className="overflow-x-auto w-full">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
-                      <thead>
-                        <tr className="text-xs uppercase tracking-wider text-text-muted border-b border-slate-100 font-semibold bg-slate-50/50 rounded-lg">
-                          <th className="py-3 px-4 rounded-l-lg">Student</th>
-                          <th className="py-3 px-4">Course Name</th>
-                          <th className="py-3 px-4">Registration Time</th>
-                          <th className="py-3 px-4 text-right rounded-r-lg font-bold text-primary">Amount Paid</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {mockRegistrations
-                          .filter(reg => !registrationFilter || reg.course === registrationFilter)
-                          .map((reg, idx) => (
-                            <tr key={idx} className="registration-row">
-                              <td className="py-3.5 px-4 flex items-center gap-3">
-                                <img src={reg.avatar} className="w-8 h-8 rounded-full border border-slate-200 object-cover" alt="Student" />
-                                <span className="font-bold text-brand-blue">{reg.studentName}</span>
-                              </td>
-                              <td className="py-3.5 px-4 text-slate-700 font-medium">{reg.course}</td>
-                              <td className="py-3.5 px-4 text-slate-500 font-medium">{reg.time}</td>
-                              <td className="py-3.5 px-4 text-right text-brand-green font-bold">{reg.amount}</td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
               </div>
             )}
 
-            {/* ================= TAB: MY CONTESTS ================= */}
-            {activeTab === 'my-contests' && (
-              <div id="tab-my-contests" className="tab-content flex flex-col gap-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl md:text-3xl font-display font-black text-brand-blue">Authored Coding Contests</h2>
-                    <p className="text-xs text-text-muted mt-0.5">Edit tests, adjust start times, create question lists, and track rankings.</p>
-                  </div>
-                  <button
-                    onClick={() => setIsCreateContestOpen(true)}
-                    className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-xl font-semibold shadow-md shadow-primary/20 transition-all text-sm shrink-0 self-start sm:self-auto"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">add</span>
-                    <span>Create Contest</span>
-                  </button>
-                </div>
 
-                {/* Sub-tabs for Contest Categories */}
-                <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/40 pb-4">
-                  <button
-                    onClick={() => setContestStatusTab('all')}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
-                      contestStatusTab === 'all'
-                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/10'
-                        : 'bg-white hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">menu</span>
-                    <span>All Contests</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
-                      contestStatusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                    }`}>{contestsList.length}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setContestStatusTab('Ongoing')}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
-                      contestStatusTab === 'Ongoing'
-                        ? 'bg-brand-green text-white border-brand-green shadow-md shadow-brand-green/10'
-                        : 'bg-white hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">play_circle</span>
-                    <span>Ongoing</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
-                      contestStatusTab === 'Ongoing' ? 'bg-white/20 text-white' : 'bg-green-50 text-brand-green'
-                    }`}>{contestsList.filter(c => c.status === 'Ongoing').length}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setContestStatusTab('Upcoming')}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
-                      contestStatusTab === 'Upcoming'
-                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/10'
-                        : 'bg-white hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">schedule</span>
-                    <span>Upcoming</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
-                      contestStatusTab === 'Upcoming' ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'
-                    }`}>{contestsList.filter(c => c.status === 'Upcoming').length}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setContestStatusTab('Ended')}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
-                      contestStatusTab === 'Ended'
-                        ? 'bg-slate-800 text-white border-slate-800 shadow-md shadow-slate-800/10'
-                        : 'bg-white hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">trophy</span>
-                    <span>Ended</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
-                      contestStatusTab === 'Ended' ? 'bg-white/20 text-white' : 'bg-slate-200/65 text-slate-500'
-                    }`}>{contestsList.filter(c => c.status === 'Ended').length}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setContestStatusTab('Draft')}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
-                      contestStatusTab === 'Draft'
-                        ? 'bg-slate-500 text-white border-slate-500 shadow-md shadow-slate-500/10'
-                        : 'bg-white hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">edit_note</span>
-                    <span>Drafts</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
-                      contestStatusTab === 'Draft' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                    }`}>{contestsList.filter(c => c.status === 'Draft').length}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setContestStatusTab('Review')}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
-                      contestStatusTab === 'Review'
-                        ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/10'
-                        : 'bg-white hover:bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">pending</span>
-                    <span>Under Review</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
-                      contestStatusTab === 'Review' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-600'
-                    }`}>{contestsList.filter(c => c.status === 'Review').length}</span>
-                  </button>
-                </div>
-
-                {/* Contests Search and Filters */}
-                <div className="bg-surface p-4 rounded-xl border border-slate-200/50 ambient-shadow flex flex-col md:flex-row gap-4 items-center justify-between">
-                  <div className="relative w-full md:w-80">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="material-symbols-outlined text-[18px] text-text-muted">search</span>
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="Search contests..."
-                      value={contestSearchTerm}
-                      onChange={(e) => setContestSearchTerm(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 text-sm border-slate-200/60 rounded-xl focus:border-primary focus:ring-primary focus:ring-1 bg-[#f8fafc]/50 font-medium"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-                    <select
-                      value={contestStatusTab}
-                      onChange={(e) => setContestStatusTab(e.target.value as any)}
-                      className="border-slate-200/60 rounded-xl text-xs font-semibold text-text-main py-2 focus:ring-primary focus:ring-1 focus:border-primary cursor-pointer bg-white"
-                    >
-                      <option value="all">All States</option>
-                      <option value="Ongoing">Ongoing (Live Now)</option>
-                      <option value="Upcoming">Upcoming (Scheduled)</option>
-                      <option value="Ended">Ended (Completed)</option>
-                      <option value="Draft">Draft (Completion)</option>
-                      <option value="Review">Under Review (Approval)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Contests List */}
-                <div className="flex flex-col gap-6" id="contests-container">
-                  {filteredContests.length === 0 ? (
-                    <div className="py-12 text-center bg-surface border border-dashed border-slate-200 rounded-2xl">
-                      <span className="material-symbols-outlined text-slate-400 text-5xl mb-3">inbox</span>
-                      <p className="text-sm font-semibold text-slate-500">No contests found matching your criteria</p>
-                    </div>
-                  ) : (
-                    filteredContests.map((contest) => (
-                      <div
-                        key={contest.id}
-                        className={`bg-surface rounded-2xl border overflow-hidden ${
-                          contest.status === 'Ongoing'
-                            ? 'border-brand-green/30 shadow-[0_4px_25px_rgba(70,160,64,0.06)]'
-                            : 'border-slate-200/50 shadow-sm'
-                        } ambient-shadow flex flex-col md:flex-row hover:shadow-md transition-shadow duration-300`}
-                      >
-                        {/* Banner Block */}
-                        <div className={`h-40 md:h-auto md:w-52 bg-gradient-to-br ${contest.banner} p-6 flex flex-col justify-between text-white relative shrink-0`}>
-                          <span className={`px-2.5 py-0.5 rounded bg-white/20 text-white font-bold text-[9px] uppercase tracking-wider w-fit select-none`}>
-                            {contest.status === 'Ongoing' ? 'Live Now' : contest.status}
-                          </span>
-                          <div className="flex flex-col">
-                            <span className="text-[10px] uppercase font-bold tracking-widest text-white/70">Arena</span>
-                            <span className="text-sm font-display font-extrabold tracking-tight mt-0.5 leading-tight">
-                              ID: #{contest.id}
-                            </span>
-                          </div>
-                          <div className="absolute bottom-3 right-3 opacity-15">
-                            <span className="material-symbols-outlined text-[70px]">trophy</span>
-                          </div>
-                        </div>
-
-                        {/* Content Area */}
-                        <div className="flex-grow p-6 flex flex-col justify-between gap-5">
-                          <div className="flex flex-col gap-2.5">
-                            <div className="flex flex-wrap items-center gap-2.5">
-                              <h3 className="font-display font-black text-xl text-brand-blue leading-snug">
-                                {contest.name}
-                              </h3>
-                              {contest.status === 'Ongoing' && (
-                                <span className="px-2 py-0.5 text-[9px] rounded-full bg-brand-green-light text-brand-green border border-brand-green/20 font-bold uppercase tracking-wider flex items-center gap-1 select-none">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-ping"></span>
-                                  Ongoing
-                                </span>
-                              )}
-                              {contest.status === 'Upcoming' && (
-                                <span className="px-2 py-0.5 text-[9px] rounded-full bg-blue-50 text-blue-600 border border-blue-200 font-bold uppercase tracking-wider flex items-center gap-1 select-none">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                  Upcoming
-                                </span>
-                              )}
-                              {contest.status === 'Ended' && (
-                                <span className="px-2 py-0.5 text-[9px] rounded-full bg-slate-100 text-slate-500 border border-slate-200/50 font-bold uppercase tracking-wider flex items-center gap-1 select-none">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                  Ended
-                                </span>
-                              )}
-                              {contest.status === 'Draft' && (
-                                <span className="px-2 py-0.5 text-[9px] rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-bold uppercase tracking-wider flex items-center gap-1 select-none">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                  Draft
-                                </span>
-                              )}
-                              {contest.status === 'Review' && (
-                                <span className="px-2 py-0.5 text-[9px] rounded-full bg-amber-100 text-amber-700 border border-amber-200 font-bold uppercase tracking-wider flex items-center gap-1 select-none">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                  Under Review
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Dates & Timeline */}
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-slate-500 text-xs font-semibold">
-                              <div className="flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">calendar_today</span>
-                                <span>Start: {contest.startDate}</span>
-                              </div>
-                              <span className="text-slate-300 hidden sm:inline">•</span>
-                              <div className="flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">event_busy</span>
-                                <span>End: {contest.endDate}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Leaderboard Podium block for Ended contests */}
-                          {contest.status === 'Ended' && contest.topWinners && (
-                            <div className="flex flex-wrap items-center gap-3.5 bg-gradient-to-r from-gray-50 to-[#f8f9fa] rounded-2xl p-5 border border-gray-200/60 mt-1">
-                              {contest.topWinners.map((winner) => {
-                                const isRank1 = winner.rank === 1;
-                                const isRank2 = winner.rank === 2;
-                                return (
-                                  <div
-                                    key={winner.rank}
-                                    className={`flex items-center gap-2.5 rounded-full pl-2 pr-4 py-1.5 shadow-md hover:scale-105 transition-all ${
-                                      isRank1
-                                        ? 'bg-amber-50 border-2 border-amber-300'
-                                        : isRank2
-                                        ? 'bg-slate-50 border-2 border-slate-300'
-                                        : 'bg-orange-50 border-2 border-orange-300'
-                                    }`}
-                                  >
-                                    <span className={`w-7 h-7 rounded-full text-white font-black text-xs flex items-center justify-center border shadow-inner ${
-                                      isRank1
-                                        ? 'bg-amber-400 border-amber-200'
-                                        : isRank2
-                                        ? 'bg-slate-400 border-slate-200'
-                                        : 'bg-orange-400 border-orange-200'
-                                    }`}>
-                                      {isRank1 ? '👑' : isRank2 ? '🥈' : '🥉'}
-                                    </span>
-                                    <img
-                                      alt={winner.name}
-                                      className={`w-7 h-7 rounded-full object-cover border ${
-                                        isRank1
-                                          ? 'border-amber-300'
-                                          : isRank2
-                                          ? 'border-slate-300'
-                                          : 'border-orange-300'
-                                      }`}
-                                      onError={(e) => {
-                                        e.currentTarget.src = 'https://ui-avatars.com/api/?name=You&background=12284C&color=fff';
-                                      }}
-                                      src={winner.avatar}
-                                    />
-                                    <span className={`text-xs font-black ${
-                                      isRank1
-                                        ? 'text-amber-900'
-                                        : isRank2
-                                        ? 'text-slate-800'
-                                        : 'text-orange-900'
-                                    }`}>
-                                      {winner.name}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-
-                          {/* Contest Metrics & Action Buttons Row */}
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3.5 border-t border-slate-100/70 mt-1">
-                            <div className="flex gap-6 text-xs text-slate-500">
-                              <div className="flex flex-col">
-                                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Problems</span>
-                                <span className="font-extrabold text-brand-blue mt-0.5 text-sm">{contest.problems} Tasks</span>
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                                  {contest.status === 'Ended' ? 'Participants' : 'Registrations'}
-                                </span>
-                                <span className="font-extrabold text-brand-blue mt-0.5 text-sm">{contest.coders} Coders</span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2.5">
-                              {contest.status === 'Ongoing' && (
-                                <button
-                                  onClick={() => alert(`Reviewing live leaderboard for ${contest.name}`)}
-                                  className="flex items-center gap-2 bg-brand-green hover:bg-brand-green-hover text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-brand-green/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                >
-                                  <span className="material-symbols-outlined text-[18px] animate-pulse">analytics</span>
-                                  <span>Live Leaderboard</span>
-                                </button>
-                              )}
-
-                              {contest.status === 'Upcoming' && (
-                                <button
-                                  onClick={() => alert(`Editing contest ${contest.name}`)}
-                                  className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                >
-                                  <span className="material-symbols-outlined text-[18px]">edit</span>
-                                  <span>Edit</span>
-                                </button>
-                              )}
-
-                              {contest.status === 'Ended' && (
-                                <button
-                                  onClick={() => alert(`Reviewing scoreboard/standings for ${contest.name}`)}
-                                  className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-slate-800/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                >
-                                  <span className="material-symbols-outlined text-[18px]">leaderboard</span>
-                                  <span>Ranking</span>
-                                </button>
-                              )}
-
-                              {contest.status === 'Draft' && (
-                                <>
-                                  <button
-                                    onClick={() => alert(`Resuming edit for contest ${contest.name}`)}
-                                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-brand-blue px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold border border-slate-200/60 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                  >
-                                    <span className="material-symbols-outlined text-[18px]">edit</span>
-                                    <span>Resume Edit</span>
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setContestsList((prev) =>
-                                        prev.map((c) =>
-                                          c.id === contest.id ? { ...c, status: 'Review' } : c
-                                        )
-                                      );
-                                      alert(`Submitted successfully! Contest "${contest.name}" has been sent for admin review.`);
-                                    }}
-                                    className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                  >
-                                    <span className="material-symbols-outlined text-[18px]">publish</span>
-                                    <span>Submit for Review</span>
-                                  </button>
-                                </>
-                              )}
-
-                              {contest.status === 'Review' && (
-                                <>
-                                  <button
-                                    onClick={() => alert(`Contest "${contest.name}" is pending admin review.`)}
-                                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold border border-slate-200/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                  >
-                                    <span className="material-symbols-outlined text-[18px] text-amber-500">info</span>
-                                    <span>Under Admin Review</span>
-                                  </button>
-                                  {/* Mock Approval Action */}
-                                  <button
-                                    onClick={() => {
-                                      const startObj = new Date(contest.startDate);
-                                      const endObj = new Date(contest.endDate);
-                                      const now = new Date();
-                                      let approvedStatus: 'Ongoing' | 'Ended' | 'Upcoming' = 'Upcoming';
-                                      if (now >= startObj && now <= endObj) {
-                                        approvedStatus = 'Ongoing';
-                                      } else if (now > endObj) {
-                                        approvedStatus = 'Ended';
-                                      }
-
-                                      setContestsList((prev) =>
-                                        prev.map((c) =>
-                                          c.id === contest.id ? { ...c, status: approvedStatus } : c
-                                        )
-                                      );
-                                      alert(`Contest "${contest.name}" has been approved by admin and is now "${approvedStatus}"!`);
-                                    }}
-                                    className="flex items-center gap-2 bg-brand-green hover:bg-brand-green-hover text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md shadow-brand-green/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                  >
-                                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                                    <span>Approve (Admin Mock)</span>
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* ================= TAB: REVENUE ================= */}
             {activeTab === 'revenue' && (
@@ -2129,7 +1491,7 @@ export const InstructorDashboard: React.FC = () => {
                     <div className="flex justify-between items-center mb-6">
                       <div>
                         <h3 className="font-display font-bold text-lg text-brand-blue">Earnings Breakdown</h3>
-                        <p className="text-xs text-text-muted">Monthly earnings distributed between course sales and tournament sponsorships.</p>
+                        <p className="text-xs text-text-muted">Monthly earnings distributed between your courses.</p>
                       </div>
                     </div>
 
@@ -2172,7 +1534,7 @@ export const InstructorDashboard: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   {/* Left: Problem Pass Rates */}
                   <div className="lg:col-span-6 bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow">
-                    <h3 className="font-display font-bold text-lg text-brand-blue mb-5">Contest Problem Solver Ratios</h3>
+                    <h3 className="font-display font-bold text-lg text-brand-blue mb-5">Problem Solver Ratios</h3>
 
                     <div className="flex flex-col gap-5">
                       <div className="flex items-center justify-between gap-4">
@@ -3219,239 +2581,7 @@ export const InstructorDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* ================= MODAL: CREATE CONTEST ================= */}
-      {isCreateContestOpen && (
-        <div id="modal-create-contest" className="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl max-w-6xl w-full overflow-hidden border border-slate-200/50 ambient-shadow flex flex-col transition-all duration-300 animate-fade-in">
-            {/* Modal Header */}
-            <div className="px-8 py-5.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-brand-green text-xl">add_task</span>
-                <h3 className="font-display font-bold text-lg text-brand-blue">Create New Coding Contest</h3>
-              </div>
-              <button onClick={() => setIsCreateContestOpen(false)} className="p-1.5 rounded-lg text-text-muted hover:bg-slate-200/80 transition-colors">
-                <span className="material-symbols-outlined text-xl">close</span>
-              </button>
-            </div>
 
-            {/* Modal Form Content */}
-            <form onSubmit={handleCreateContest} className="p-8 flex flex-col gap-6 max-h-[80vh] overflow-y-auto">
-              {/* Title */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Title</label>
-                <input
-                  type="text"
-                  required
-                  value={contestNameInput}
-                  onChange={(e) => setContestNameInput(e.target.value)}
-                  placeholder="e.g. FPT Tech Cup 2026"
-                  className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
-                />
-              </div>
-
-              {/* Thumbnail / Banner */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Thumbnail Banner</label>
-                <div className="flex flex-col gap-3">
-                  {/* Presets */}
-                  <div className="flex items-center gap-3">
-                    {[
-                      { name: 'Indigo to Purple', value: 'from-indigo-500 to-purple-600' },
-                      { name: 'Blue to Teal', value: 'from-blue-500 to-teal-600' },
-                      { name: 'Orange to Red', value: 'from-orange-500 to-red-600' },
-                      { name: 'Pink to Rose', value: 'from-pink-500 to-rose-600' }
-                    ].map((gradient) => {
-                      const isSelected = contestBannerInput === gradient.value;
-                      return (
-                        <button
-                          key={gradient.value}
-                          type="button"
-                          onClick={() => setContestBannerInput(gradient.value)}
-                          className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradient.value} border-2 transition-all flex items-center justify-center cursor-pointer hover:scale-105 ${
-                            isSelected ? 'border-brand-blue scale-110 shadow-md' : 'border-transparent opacity-80'
-                          }`}
-                          title={gradient.name}
-                        >
-                          {isSelected && (
-                            <span className="material-symbols-outlined text-white text-[18px] font-bold">check</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {/* Custom URL */}
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="material-symbols-outlined text-[18px] text-text-muted">link</span>
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="Or paste custom image URL..."
-                      value={contestBannerInput.startsWith('from-') ? '' : contestBannerInput}
-                      onChange={(e) => setContestBannerInput(e.target.value || 'from-indigo-500 to-purple-600')}
-                      className="w-full pl-9 pr-4 py-2.5 text-xs md:text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Timeline (Start Date, End Date, Duration) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {/* Start Date */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Start Date</label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={contestStartInput}
-                    onChange={(e) => handleStartDateChange(e.target.value)}
-                    className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 cursor-pointer"
-                  />
-                </div>
-
-                {/* End Date */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">End Date</label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={contestEndInput}
-                    onChange={(e) => handleEndDateChange(e.target.value)}
-                    className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 cursor-pointer"
-                  />
-                </div>
-
-                {/* Duration (Minutes) */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Duration (Minutes)</label>
-                  <input
-                    type="number"
-                    required
-                    value={contestDurationInput}
-                    onChange={(e) => handleDurationChange(e.target.value)}
-                    placeholder="e.g. 120"
-                    className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
-                  />
-                </div>
-              </div>
-
-              {/* Supported Languages */}
-              <div className="flex flex-col gap-2 relative">
-                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Supported Languages</label>
-                <button
-                  type="button"
-                  onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                  className="w-full flex items-center justify-between border border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 bg-white text-sm md:text-base text-left font-semibold text-slate-700 cursor-pointer"
-                >
-                  <span className="truncate">
-                    {contestLanguagesInput.length === 0
-                      ? 'Select Languages...'
-                      : contestLanguagesInput
-                          .map(l => {
-                            const matched = [
-                              { id: 'cpp', name: 'C++' },
-                              { id: 'java', name: 'Java' },
-                              { id: 'python', name: 'Python' },
-                              { id: 'javascript', name: 'JavaScript' },
-                              { id: 'go', name: 'Go' }
-                            ].find(item => item.id === l);
-                            return matched ? matched.name : l;
-                          })
-                          .join(', ')}
-                  </span>
-                  <span className="material-symbols-outlined text-[18px] text-slate-400">
-                    {isLangDropdownOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
-                  </span>
-                </button>
-
-                {isLangDropdownOpen && (
-                  <div className="absolute top-[100%] left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 p-2 flex flex-col gap-1 max-h-48 overflow-y-auto">
-                    {[
-                      { id: 'cpp', name: 'C++' },
-                      { id: 'java', name: 'Java' },
-                      { id: 'python', name: 'Python' },
-                      { id: 'javascript', name: 'JavaScript' },
-                      { id: 'go', name: 'Go' }
-                    ].map((lang) => {
-                      const isSelected = contestLanguagesInput.includes(lang.id);
-                      return (
-                        <button
-                          key={lang.id}
-                          type="button"
-                          onClick={() => {
-                            if (isSelected) {
-                              setContestLanguagesInput(prev => prev.filter(l => l !== lang.id));
-                            } else {
-                              setContestLanguagesInput(prev => [...prev, lang.id]);
-                            }
-                          }}
-                          className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs md:text-sm font-semibold rounded-lg text-left cursor-pointer transition-colors ${
-                            isSelected
-                              ? 'bg-primary-light/35 text-primary'
-                              : 'hover:bg-slate-50 text-slate-700'
-                          }`}
-                        >
-                          <span>{lang.name}</span>
-                          {isSelected && (
-                            <span className="material-symbols-outlined text-primary text-[16px] font-bold">check</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Scoring System */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Scoring System</label>
-                <select
-                  value={contestScoringInput}
-                  onChange={(e) => setContestScoringInput(e.target.value)}
-                  className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5 cursor-pointer bg-white"
-                >
-                  <option value="Standard ACM-ICPC">Standard ACM-ICPC (Time Penalty per WR/WA)</option>
-                  <option value="IOI Scoring">IOI Style (Points per test case, no penalty)</option>
-                  <option value="Ranked Penalty">Ranked Penalty (Points based on execution time)</option>
-                  <option value="Custom Pass Rate">Custom Pass Rate (Min 80% test cases passed)</option>
-                </select>
-              </div>
-
-              {/* Contest Description */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Contest Description</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={contestDescriptionInput}
-                  onChange={(e) => setContestDescriptionInput(e.target.value)}
-                  placeholder="Give a brief summary of the contest goals, difficulty level, and topics..."
-                  className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
-                />
-              </div>
-
-              {/* Rules & Prohibitions */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs md:text-sm font-bold text-brand-blue uppercase tracking-wider">Rules & Prohibitions</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={contestRulesInput}
-                  onChange={(e) => setContestRulesInput(e.target.value)}
-                  placeholder="e.g. Plagiarism check will be executed. No third party libraries allowed..."
-                  className="text-sm md:text-base border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3.5"
-                />
-              </div>
-
-              {/* Submit buttons */}
-              <div className="flex items-center justify-end gap-4 pt-6 border-t border-slate-100 mt-2 shrink-0">
-                <button type="button" onClick={() => setIsCreateContestOpen(false)} className="px-6 py-3 rounded-xl border border-slate-200 text-slate-700 text-xs md:text-sm font-bold hover:bg-slate-50 transition-colors">Cancel</button>
-                <button type="submit" className="px-6 py-3 rounded-xl bg-brand-green hover:bg-brand-green-hover text-white text-xs md:text-sm font-bold transition-all shadow-md shadow-brand-green/20">Publish Contest</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

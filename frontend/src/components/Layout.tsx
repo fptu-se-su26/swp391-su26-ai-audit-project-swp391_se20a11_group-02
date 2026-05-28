@@ -90,7 +90,7 @@ export const Layout: React.FC = () => {
       )}
 
       {/* Main content body with Outlet */}
-      <main className={`relative z-10 flex-grow w-full ${isInstructorRoute ? '' : 'pt-16'}`}>
+      <main className={`relative z-10 flex-grow w-full min-w-0 ${isInstructorRoute ? '' : 'pt-16'}`}>
         <Outlet />
       </main>
 

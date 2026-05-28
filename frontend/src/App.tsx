@@ -17,6 +17,7 @@ import { ContestProblems } from './pages/ContestProblems';
 import { ContestProblemSolve } from './pages/ContestProblemSolve';
 import { ContestSubmissions } from './pages/ContestSubmissions';
 import { ContestRanking } from './pages/ContestRanking';
+import { ContestLayout } from './components/ContestLayout';
 import { ShoppingCart } from './pages/ShoppingCart';
 import { Withdraw } from './pages/Withdraw';
 import { WalletTransaction } from './pages/WalletTransaction';
@@ -50,11 +51,13 @@ function App() {
             
             {/* Competitions */}
             <Route path="contests" element={<Contests />} />
-            <Route path="contests/:id" element={<ContestOverview />} />
-            <Route path="contests/:id/problems" element={<ContestProblems />} />
-            <Route path="contests/:id/problems/:problemId" element={<ContestProblemSolve />} />
-            <Route path="contests/:id/submissions" element={<ContestSubmissions />} />
-            <Route path="contests/:id/ranking" element={<ContestRanking />} />
+            <Route path="contests/:id" element={<ContestLayout />}>
+              <Route index element={<ContestOverview />} />
+              <Route path="problems" element={<ContestProblems />} />
+              <Route path="problems/:problemId" element={<ContestProblemSolve />} />
+              <Route path="submissions" element={<ContestSubmissions />} />
+              <Route path="ranking" element={<ContestRanking />} />
+            </Route>
             
             {/* Shopping cart & wallet */}
             <Route path="shopping-cart" element={<ShoppingCart />} />
