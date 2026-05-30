@@ -386,25 +386,6 @@ export const InstructorDashboard: React.FC = () => {
     alert('Your reply has been posted successfully!');
   };
 
-  // Reviews reply states (Revenue Tab)
-  const [reviewReplyTextState, setReviewReplyTextState] = useState<{ [rId: string]: string }>({});
-  const [activeReviewReplyInputs, setActiveReviewReplyInputs] = useState<{ [rId: string]: boolean }>({});
-
-  const toggleReviewReplyInput = (rId: string) => {
-    setActiveReviewReplyInputs(prev => ({ ...prev, [rId]: !prev[rId] }));
-    setReviewReplyTextState(prev => ({ ...prev, [rId]: '' }));
-  };
-
-  const submitReviewReply = (rId: string) => {
-    const text = reviewReplyTextState[rId]?.trim();
-    if (!text) {
-      alert('Please type your reply before sending!');
-      return;
-    }
-    alert(`Your reply: "${text}" has been posted successfully!`);
-    setReviewReplyTextState(prev => ({ ...prev, [rId]: '' }));
-    setActiveReviewReplyInputs(prev => ({ ...prev, [rId]: false }));
-  };
 
   // Video and Source Code replacement in workspace builder
   const handleReplaceVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -823,10 +804,318 @@ export const InstructorDashboard: React.FC = () => {
     setBenefitPoints(['']);
   };
 
-  // Payout action
-  const handlePayoutRequest = () => {
-    alert("Withdrawal request submitted successfully! Funds will be credited to your bank account within 2 business days.");
+  // --- Start of Revenue Tab Specific Code ---
+  interface PayoutHistoryItem {
+    id: string;
+    payoutPeriod: string;
+    amount: number;
+    bankName: string;
+    bankAccountNumber: string;
+    status: 'SUCCESS' | 'PROCESSING' | 'PENDING' | 'FAILED';
+    transactionReference: string;
+    adminNote?: string;
+  }
+
+  const mockTransactions = useMemo(() => [
+    { id: 'TX-1001', studentName: 'Nguyễn Văn A', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-05-28T14:32:00' },
+    { id: 'TX-1002', studentName: 'Trần Thị B', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-05-27T10:15:00' },
+    { id: 'TX-1003', studentName: 'Lê Huy Cường', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-05-25T08:05:12' },
+    { id: 'TX-1004', studentName: 'Phạm Văn D', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-05-23T19:40:00' },
+    { id: 'TX-1005', studentName: 'Hoàng Thị E', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-05-20T11:20:00' },
+    { id: 'TX-1006', studentName: 'Bùi Văn Nam', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-05-15T15:10:00' },
+    { id: 'TX-1007', studentName: 'Ngô Mỹ Linh', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-05-02T09:20:50' },
+    { id: 'TX-1008', studentName: 'Vũ Huy Hùng', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-04-25T16:12:00' },
+    { id: 'TX-1009', studentName: 'Đỗ Minh Tuấn', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-04-18T10:45:00' },
+    { id: 'TX-1010', studentName: 'Đặng Quốc Bảo', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-03-28T17:55:00' },
+    { id: 'TX-1011', studentName: 'Lâm Mỹ Dung', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-03-12T11:30:00' },
+    { id: 'TX-1012', studentName: 'Trịnh Gia Bảo', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-02-20T14:15:00' },
+    { id: 'TX-1013', studentName: 'Phan Thanh Hà', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-02-05T09:10:00' },
+    { id: 'TX-1014', studentName: 'Nguyễn Tấn Tài', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-01-22T16:40:00' },
+    { id: 'TX-1015', studentName: 'Hoàng Kim Chi', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-01-10T13:20:00' },
+    { id: 'TX-1016', studentName: 'Phạm Đức Duy', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2025-12-15T15:20:00' },
+    { id: 'TX-1017', studentName: 'Võ Minh Trí', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2025-11-08T09:12:00' },
+    { id: 'TX-1018', studentName: 'Bùi Tuấn Anh', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2025-10-18T16:30:00' },
+    { id: 'TX-1019', studentName: 'Nguyễn Tấn Dũng', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2025-09-20T10:45:00' },
+    { id: 'TX-1020', studentName: 'Lê Thuỳ Trang', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2025-08-14T11:55:00' }
+  ], []);
+
+  const payoutHistory: PayoutHistoryItem[] = [
+    {
+      id: 'PO-101',
+      payoutPeriod: 'May 01, 2026',
+      amount: 4293000,
+      bankName: 'Vietcombank',
+      bankAccountNumber: '1023456789',
+      status: 'SUCCESS',
+      transactionReference: 'VCB-987654321-PO',
+    },
+    {
+      id: 'PO-102',
+      payoutPeriod: 'Apr 01, 2026',
+      amount: 3890000,
+      bankName: 'Vietcombank',
+      bankAccountNumber: '1023456789',
+      status: 'SUCCESS',
+      transactionReference: 'VCB-847291038-PO',
+    },
+    {
+      id: 'PO-103',
+      payoutPeriod: 'Mar 01, 2026',
+      amount: 2950000,
+      bankName: 'Vietcombank',
+      bankAccountNumber: '1023456789',
+      status: 'FAILED',
+      transactionReference: 'VCB-736201948-PO',
+      adminNote: 'Transfer failed due to incorrect routing branch configuration. System automatically scheduled for retry in the next batch.',
+    },
+    {
+      id: 'PO-104',
+      payoutPeriod: 'Feb 01, 2026',
+      amount: 4120000,
+      bankName: 'Vietcombank',
+      bankAccountNumber: '1023456789',
+      status: 'PROCESSING',
+      transactionReference: 'VCB-627192039-PO',
+    },
+  ];
+
+  const [revenueFilter, setRevenueFilter] = useState<'this-month' | 'last-month' | 'mar-2026' | 'feb-2026' | 'jan-2026' | 'all' | 'custom'>('this-month');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [appliedStartDate, setAppliedStartDate] = useState<string>('');
+  const [appliedEndDate, setAppliedEndDate] = useState<string>('');
+  
+  const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
+  const [selectedFailedPayout, setSelectedFailedPayout] = useState<PayoutHistoryItem | null>(null);
+  const [enrollmentPage, setEnrollmentPage] = useState<number>(1);
+  const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
+
+  const filteredTransactions = useMemo(() => {
+    return mockTransactions.filter(tx => {
+      const txDate = new Date(tx.timestamp);
+      
+      if (revenueFilter === 'this-month') {
+        return txDate.getFullYear() === 2026 && txDate.getMonth() === 4;
+      }
+      if (revenueFilter === 'last-month') {
+        return txDate.getFullYear() === 2026 && txDate.getMonth() === 3;
+      }
+      if (revenueFilter === 'mar-2026') {
+        return txDate.getFullYear() === 2026 && txDate.getMonth() === 2;
+      }
+      if (revenueFilter === 'feb-2026') {
+        return txDate.getFullYear() === 2026 && txDate.getMonth() === 1;
+      }
+      if (revenueFilter === 'jan-2026') {
+        return txDate.getFullYear() === 2026 && txDate.getMonth() === 0;
+      }
+      if (revenueFilter === 'custom') {
+        if (!appliedStartDate && !appliedEndDate) return true;
+        let startMatch = true;
+        let endMatch = true;
+        if (appliedStartDate) {
+          const start = new Date(appliedStartDate + 'T00:00:00');
+          startMatch = txDate >= start;
+        }
+        if (appliedEndDate) {
+          const end = new Date(appliedEndDate + 'T23:59:59');
+          endMatch = txDate <= end;
+        }
+        return startMatch && endMatch;
+      }
+      return true; // all
+    });
+  }, [mockTransactions, revenueFilter, appliedStartDate, appliedEndDate]);
+
+  const totalGrossRevenue = useMemo(() => {
+    return filteredTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+  }, [filteredTransactions]);
+
+  const earningsBreakdown = useMemo(() => {
+    const groups: { [key: string]: { courseTitle: string; amount: number } } = {};
+    const defaultCourses = [
+      { id: 'ic-1', title: 'Data Structures & Algorithms' },
+      { id: 'ic-2', title: 'Java Web Development' },
+      { id: 'ic-3', title: 'Python for Automation' }
+    ];
+    
+    defaultCourses.forEach(c => {
+      groups[c.id] = { courseTitle: c.title, amount: 0 };
+    });
+
+    filteredTransactions.forEach(tx => {
+      if (groups[tx.courseId]) {
+        groups[tx.courseId].amount += tx.amount;
+      } else {
+        groups[tx.courseId] = { courseTitle: tx.courseTitle, amount: tx.amount };
+      }
+    });
+
+    return Object.keys(groups).map(courseId => {
+      const courseAmount = groups[courseId].amount;
+      const percentage = totalGrossRevenue > 0 ? Math.round((courseAmount / totalGrossRevenue) * 100) : 0;
+      return {
+        courseId,
+        courseTitle: groups[courseId].courseTitle,
+        amount: courseAmount,
+        percentage
+      };
+    }).sort((a, b) => b.amount - a.amount);
+  }, [filteredTransactions, totalGrossRevenue]);
+
+  const monthlyChartData = useMemo(() => {
+    const months = [
+      { label: 'Jun 25', year: 2025, month: 5, amount: 0 },
+      { label: 'Jul 25', year: 2025, month: 6, amount: 0 },
+      { label: 'Aug 25', year: 2025, month: 7, amount: 0 },
+      { label: 'Sep 25', year: 2025, month: 8, amount: 0 },
+      { label: 'Oct 25', year: 2025, month: 9, amount: 0 },
+      { label: 'Nov 25', year: 2025, month: 10, amount: 0 },
+      { label: 'Dec 25', year: 2025, month: 11, amount: 0 },
+      { label: 'Jan 26', year: 2026, month: 0, amount: 0 },
+      { label: 'Feb 26', year: 2026, month: 1, amount: 0 },
+      { label: 'Mar 26', year: 2026, month: 2, amount: 0 },
+      { label: 'Apr 26', year: 2026, month: 3, amount: 0 },
+      { label: 'May 26', year: 2026, month: 4, amount: 0 }
+    ];
+
+    mockTransactions.forEach(tx => {
+      const d = new Date(tx.timestamp);
+      const txYear = d.getFullYear();
+      const txMonth = d.getMonth();
+      
+      const matched = months.find(m => m.year === txYear && m.month === txMonth);
+      if (matched) {
+        matched.amount += tx.amount;
+      }
+    });
+
+    return months;
+  }, [mockTransactions]);
+
+  const chartPoints = useMemo(() => {
+    const maxAmount = Math.max(...monthlyChartData.map(m => m.amount), 1000000);
+    const roundMax = Math.ceil(maxAmount / 1000000) * 1000000;
+    
+    const width = 720;
+    const height = 240;
+    const paddingLeft = 55;
+    const paddingRight = 15;
+    const paddingTop = 15;
+    const paddingBottom = 30;
+    
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+    
+    const points = monthlyChartData.map((m, idx) => {
+      const x = paddingLeft + (idx * (chartWidth / 11));
+      const y = paddingTop + chartHeight - (m.amount / roundMax) * chartHeight;
+      return {
+        x,
+        y,
+        amountFormatted: m.amount.toLocaleString('vi-VN') + ' ₫'
+      };
+    });
+    
+    return {
+      points,
+      paddingLeft,
+      paddingRight,
+      paddingTop,
+      paddingBottom,
+      width,
+      height,
+      chartWidth,
+      chartHeight,
+      roundMax
+    };
+  }, [monthlyChartData]);
+
+  const sortedMockTransactions = useMemo(() => {
+    return [...mockTransactions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [mockTransactions]);
+
+  const totalEnrollmentRecords = sortedMockTransactions.length;
+  const recordsPerPage = 10;
+  const totalEnrollmentPages = Math.ceil(totalEnrollmentRecords / recordsPerPage);
+  
+  const pagedEnrollmentTransactions = useMemo(() => {
+    const startIndex = (enrollmentPage - 1) * recordsPerPage;
+    return sortedMockTransactions.slice(startIndex, startIndex + recordsPerPage);
+  }, [sortedMockTransactions, enrollmentPage]);
+
+  const trendFilteredTransactions = useMemo(() => {
+    return mockTransactions.filter(tx => {
+      const txDate = new Date(tx.timestamp);
+      const systemDate = new Date('2026-05-30T23:59:59');
+      
+      let cutoffMonths = 12;
+      if (trendTimeframe === '1m') cutoffMonths = 1;
+      if (trendTimeframe === '3m') cutoffMonths = 3;
+      if (trendTimeframe === '9m') cutoffMonths = 9;
+      
+      const cutoffDate = new Date(systemDate);
+      cutoffDate.setMonth(cutoffDate.getMonth() - cutoffMonths);
+      
+      return txDate >= cutoffDate;
+    });
+  }, [mockTransactions, trendTimeframe]);
+
+  const courseRegistrations = useMemo(() => {
+    const counts: { [key: string]: { courseTitle: string; count: number } } = {
+      'ic-1': { courseTitle: 'Data Structures & Algorithms', count: 0 },
+      'ic-2': { courseTitle: 'Java Web Development', count: 0 },
+      'ic-3': { courseTitle: 'Python for Automation', count: 0 },
+    };
+
+    trendFilteredTransactions.forEach(tx => {
+      if (counts[tx.courseId]) {
+        counts[tx.courseId].count += 1;
+      }
+    });
+
+    return Object.keys(counts).map(id => ({
+      courseId: id,
+      courseTitle: counts[id].courseTitle,
+      count: counts[id].count
+    })).sort((a, b) => b.count - a.count);
+  }, [trendFilteredTransactions]);
+
+  const formatFullDateTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const monthsList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const day = pad(d.getDate());
+    const monthName = monthsList[d.getMonth()];
+    const year = d.getFullYear();
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    const seconds = pad(d.getSeconds());
+    return `${monthName} ${day}, ${year} ${hours}:${minutes}:${seconds}`;
   };
+
+  const maskAccountNumber = (accNum: string) => {
+    if (accNum.length <= 6) return accNum;
+    const start = accNum.slice(0, 3);
+    const end = accNum.slice(-3);
+    return `${start}****${end}`;
+  };
+
+  const handleApplyCustomDate = () => {
+    if (!customStartDate || !customEndDate) {
+      alert("Please select both a start date and an end date.");
+      return;
+    }
+    if (new Date(customStartDate) > new Date(customEndDate)) {
+      alert("The start date cannot be later than the end date.");
+      return;
+    }
+    setAppliedStartDate(customStartDate);
+    setAppliedEndDate(customEndDate);
+    setRevenueFilter('custom');
+  };
+  // --- End of Revenue Tab Specific Code ---
+
 
   // Check user logging context
   if (!user) {
@@ -1606,219 +1895,681 @@ export const InstructorDashboard: React.FC = () => {
 
             {/* ================= TAB: REVENUE ================= */}
             {activeTab === 'revenue' && (
-              <div id="tab-revenue" className="tab-content flex flex-col gap-8">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
-                    <span className="material-symbols-outlined text-xs icon-fill">insights</span> Revenue Analytics
+              <div id="tab-revenue" className="tab-content flex flex-col gap-8 animate-fade-in pb-12">
+                
+                {/* Header Section */}
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
+                      <span className="material-symbols-outlined text-xs icon-fill">insights</span> Revenue Analytics
+                    </div>
+                    <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10">
+                      <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">Instructor </span>
+                      <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">Revenue</span>
+                    </h1>
+                    <p className="text-text-muted mt-1 text-sm">Track gross revenue, net course distributions, and student registration volume.</p>
                   </div>
-                  <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10">
-                    <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">Revenue </span>
-                    <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">Analytics</span>
-                  </h1>
-                  <p className="text-xs text-text-muted mt-0.5">Gain critical insights into subscription revenues, pass rates, and client satisfaction metrics.</p>
+                  
+                  {/* Compact Interactive Filters Box */}
+                  <div className="flex flex-wrap items-center gap-3 bg-white border border-slate-200/60 p-3.5 rounded-2xl ambient-shadow xl:max-w-max">
+                    {/* Timeframe Dropdown */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[9px] font-extrabold text-brand-blue uppercase tracking-wider">Timeframe</span>
+                      <div className="relative min-w-[170px]">
+                        <select
+                          value={revenueFilter}
+                          onChange={(e) => {
+                            setRevenueFilter(e.target.value as any);
+                            setAppliedStartDate('');
+                            setAppliedEndDate('');
+                          }}
+                          style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
+                          className="w-full bg-slate-50 border border-slate-200 text-slate-700 hover:text-brand-blue rounded-xl py-1.5 pl-3 pr-8 text-[11px] font-extrabold cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:bg-slate-100/70"
+                        >
+                          <option value="this-month">This Month (May 2026)</option>
+                          <option value="last-month">Last Month (Apr 2026)</option>
+                          <option value="mar-2026">March 2026</option>
+                          <option value="feb-2026">February 2026</option>
+                          <option value="jan-2026">January 2026</option>
+                          <option value="all">All Time</option>
+                          {revenueFilter === 'custom' && (
+                            <option value="custom">Custom Date Range</option>
+                          )}
+                        </select>
+                        <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-base">
+                          keyboard_arrow_down
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Divider line */}
+                    <div className="hidden sm:block h-8 w-[1px] bg-slate-200 mx-1"></div>
+
+                    {/* Custom Date Inputs */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[9px] font-extrabold text-brand-blue uppercase tracking-wider">Custom Range</span>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="date"
+                          value={customStartDate}
+                          onChange={(e) => setCustomStartDate(e.target.value)}
+                          className="text-[11px] font-semibold border-slate-200 rounded-xl py-1 px-2.5 focus:ring-primary focus:border-primary text-brand-blue max-w-[110px]"
+                        />
+                        <span className="text-[10px] text-text-muted font-bold">to</span>
+                        <input
+                          type="date"
+                          value={customEndDate}
+                          onChange={(e) => setCustomEndDate(e.target.value)}
+                          className="text-[11px] font-semibold border-slate-200 rounded-xl py-1 px-2.5 focus:ring-primary focus:border-primary text-brand-blue max-w-[110px]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCustomDate}
+                          className="bg-brand-blue hover:bg-brand-blue-light text-white text-[10px] font-bold py-1.5 px-3 rounded-xl transition-all shadow-sm flex items-center gap-0.5 active:scale-95 shrink-0"
+                        >
+                          Apply
+                        </button>
+                        {revenueFilter === 'custom' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRevenueFilter('this-month');
+                              setCustomStartDate('');
+                              setCustomEndDate('');
+                              setAppliedStartDate('');
+                              setAppliedEndDate('');
+                            }}
+                            className="text-red-500 hover:text-red-700 font-bold flex items-center shrink-0"
+                            title="Clear Filter"
+                          >
+                            <span className="material-symbols-outlined text-base">close</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Earnings Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  {/* Left stats summary */}
-                  <div className="lg:col-span-4 bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <div className="flex flex-col gap-4">
-                      <h3 className="font-display font-bold text-lg text-brand-blue">Financial Overview</h3>
-
-                      <div className="bg-[#f8fafc] p-4.5 rounded-xl border border-slate-200/40">
-                        <span className="text-[10px] text-text-muted uppercase tracking-wider font-bold">Total Earnings (Gross)</span>
-                        <p className="text-2xl font-display font-black text-brand-blue mt-1">15.230.000 ₫</p>
-                      </div>
-
-                      <div className="bg-brand-green-light p-4.5 rounded-xl border border-brand-green/10">
-                        <span className="text-[10px] text-brand-green uppercase tracking-wider font-bold">Pending Withdrawal</span>
-                        <p className="text-2xl font-display font-black text-brand-green mt-1">4.500.000 ₫</p>
-                      </div>
+                {/* Earnings Overview Row: Financial Card & Course Breakdown */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                  {/* Left Column: Financial Card */}
+                  <div className="lg:col-span-4 bg-surface rounded-3xl p-5 border border-slate-200/50 ambient-shadow flex flex-col gap-3.5 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-6 -mt-6"></div>
+                    
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Earnings Overview</h3>
+                      <span className="material-symbols-outlined text-primary text-xl icon-fill">payments</span>
                     </div>
 
-                    <div className="flex flex-col gap-2.5 mt-6 pt-5 border-t border-slate-100">
-                      <button onClick={handlePayoutRequest} className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue-light text-white font-bold text-xs transition-colors shadow-md shadow-brand-blue/10">
-                        <span className="material-symbols-outlined text-[16px]">account_balance_wallet</span> Request Payout
-                      </button>
-                      <p className="text-[10px] text-text-muted text-center">Payouts processing might require up to 48 hours for local bank accounts.</p>
-                    </div>
-                  </div>
-
-                  {/* Right graphs */}
-                  <div className="lg:col-span-8 bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow">
-                    <div className="flex justify-between items-center mb-6">
-                      <div>
-                        <h3 className="font-display font-bold text-lg text-brand-blue">Earnings Breakdown</h3>
-                        <p className="text-xs text-text-muted">Monthly earnings distributed between your courses.</p>
-                      </div>
+                    {/* Gross Revenue Card */}
+                    <div className="bg-[#f0fdf4] border border-[#dcfce7] p-2.5 rounded-xl shadow-sm">
+                      <span className="text-[9px] text-green-700 uppercase tracking-wider font-extrabold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        Gross Revenue (Before Fees)
+                      </span>
+                      <p className="text-xl font-display font-black text-green-800 mt-0.5 tracking-tight">
+                        {totalGrossRevenue.toLocaleString('vi-VN')} ₫
+                      </p>
                     </div>
 
-                    {/* Bar chart simulation */}
-                    <div className="flex flex-col gap-5.5 py-2">
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-brand-blue mb-1.5">
-                          <span>Data Structures & Algorithms Course Sales</span>
-                          <span>8.400.000 ₫ (55%)</span>
-                        </div>
-                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-primary rounded-full" style={{ width: '55%' }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-brand-blue mb-1.5">
-                          <span>Java Web Development Course Sales</span>
-                          <span>4.100.000 ₫ (27%)</span>
-                        </div>
-                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-500 rounded-full" style={{ width: '27%' }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-brand-blue mb-1.5">
-                          <span>Python Automation Course Sales</span>
-                          <span>2.730.000 ₫ (18%)</span>
-                        </div>
-                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full" style={{ width: '18%' }}></div>
-                        </div>
-                      </div>
+                    {/* Net Revenue Card */}
+                    <div className="bg-[#e8f0fe] border border-blue-200 p-2.5 rounded-xl shadow-sm">
+                      <span className="text-[9px] text-blue-700 uppercase tracking-wider font-extrabold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        Net Revenue (70% - After App Fee)
+                      </span>
+                      <p className="text-xl font-display font-black text-blue-800 mt-0.5 tracking-tight">
+                        {(totalGrossRevenue * 0.7).toLocaleString('vi-VN')} ₫
+                      </p>
                     </div>
-                  </div>
-                </div>
 
-                {/* Problem Pass-rate Analytics and Student Reviews split */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  {/* Left: Problem Pass Rates */}
-                  <div className="lg:col-span-6 bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow">
-                    <h3 className="font-display font-bold text-lg text-brand-blue mb-5">Problem Solver Ratios</h3>
-
-                    <div className="flex flex-col gap-5">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="min-w-0 flex flex-col">
-                          <span className="text-xs font-bold text-brand-blue truncate">Two Sum</span>
-                          <span className="text-[10px] text-text-muted mt-0.5">Easy • 320 attempts</span>
-                        </div>
-                        <div className="flex items-center gap-3 w-48 shrink-0">
-                          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-brand-green rounded-full" style={{ width: '82%' }}></div>
-                          </div>
-                          <span className="text-xs font-bold text-brand-blue w-8 text-right">82%</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="min-w-0 flex flex-col">
-                          <span className="text-xs font-bold text-brand-blue truncate">Reverse Linked List</span>
-                          <span className="text-[10px] text-text-muted mt-0.5">Medium • 194 attempts</span>
-                        </div>
-                        <div className="flex items-center gap-3 w-48 shrink-0">
-                          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-amber-500 rounded-full" style={{ width: '68%' }}></div>
-                          </div>
-                          <span className="text-xs font-bold text-brand-blue w-8 text-right">68%</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="min-w-0 flex flex-col">
-                          <span className="text-xs font-bold text-brand-blue truncate">Spring Hierarchy Solver</span>
-                          <span className="text-[10px] text-text-muted mt-0.5">Hard • 85 attempts</span>
-                        </div>
-                        <div className="flex items-center gap-3 w-48 shrink-0">
-                          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-red-600 rounded-full" style={{ width: '35%' }}></div>
-                          </div>
-                          <span className="text-xs font-bold text-brand-blue w-8 text-right">35%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Reviews Feed */}
-                  <div className="lg:col-span-6 bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow">
-                    <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Student Reviews</h3>
-
-                    <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-1">
-                      {/* Review 1 */}
-                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-brand-blue">Nguyen Van A</span>
-                          <span className="text-amber-500 flex items-center text-xs">
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                          "This Data Structures course has amazing visualizations! I finally understood graph traversal algorithms properly."
+                    {/* Actual Take-Home Payout Card (Shown ONLY for past timeframes) */}
+                    {revenueFilter !== 'this-month' ? (
+                      <div className="bg-[#fff7ed] border border-[#ffedd5] p-2.5 rounded-xl shadow-sm animate-fade-in">
+                        <span className="text-[9px] text-orange-700 uppercase tracking-wider font-extrabold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                          Actual Take-Home Payout (After Tax)
+                        </span>
+                        <p className="text-xl font-display font-black text-orange-800 mt-0.5 tracking-tight">
+                          {(totalGrossRevenue * 0.7 * 0.9).toLocaleString('vi-VN')} ₫
                         </p>
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-[10px] text-text-muted font-medium">Course: DSA</span>
-                          <button onClick={() => toggleReviewReplyInput('rev1')} className="text-[10px] font-bold text-primary hover:text-primary-hover">Reply</button>
+                        <p className="text-[8.5px] text-orange-600 font-bold mt-1 leading-normal italic">
+                          * Deducted 10% standard withholding tax from Net Revenue.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl">
+                        <span className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                          Actual Take-Home Payout (After Tax)
+                        </span>
+                        <p className="text-xs text-slate-500 font-bold mt-1.5 leading-relaxed">
+                          Taxes will be calculated and finalized at the end of this month.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column: Earnings Breakdown */}
+                  <div className="lg:col-span-8 bg-surface rounded-3xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-center mb-5">
+                        <div>
+                          <h3 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Course Earnings Breakdown</h3>
+                          <p className="text-xs text-text-muted mt-0.5">Revenue distribution across your published courses.</p>
                         </div>
+                        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-brand-blue text-[10px] font-bold border border-slate-200/30">
+                          {earningsBreakdown.filter(x => x.amount > 0).length} courses with sales
+                        </span>
+                      </div>
+
+                      {/* Course shares mapping */}
+                      <div className="flex flex-col gap-5 py-2">
+                        {earningsBreakdown.map((item, idx) => {
+                          const colors = [
+                            { bar: 'bg-primary', light: 'bg-orange-50', text: 'text-primary' },
+                            { bar: 'bg-blue-500', light: 'bg-blue-50', text: 'text-blue-500' },
+                            { bar: 'bg-emerald-500', light: 'bg-emerald-50', text: 'text-emerald-500' },
+                          ];
+                          const c = colors[idx % colors.length];
+                          
+                          return (
+                            <div key={item.courseId} className="group">
+                              <div className="flex justify-between text-xs font-bold text-brand-blue mb-2.5">
+                                <span className="truncate max-w-[70%]">{item.courseTitle}</span>
+                                <span className="flex items-center gap-1.5 shrink-0">
+                                  <span>{item.amount.toLocaleString('vi-VN')} ₫</span>
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] ${c.light} ${c.text}`}>
+                                    {item.percentage}%
+                                  </span>
+                                </span>
+                              </div>
+                              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full ${c.bar} rounded-full transition-all duration-1000 ease-out`} 
+                                  style={{ width: `${item.percentage}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 pt-3 border-t border-slate-150/40 text-[11px] text-text-muted flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">stars</span>
+                      <span>Analytics system automatically normalizes proportions based on total revenue.</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 12-Month Revenue & Registrations Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-stretch">
+                  {/* Left 60%: 12-Month Revenue Trend SVG Line Chart Card */}
+                  <div className="lg:col-span-6 bg-surface rounded-3xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                      <div>
+                        <h3 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">12-Month Revenue Trend</h3>
+                        <p className="text-xs text-text-muted mt-0.5">Visual representation of monthly gross earnings variations over a year.</p>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-slate-50 border border-slate-200/40 p-2 rounded-xl">
+                        <span className="w-3 h-3 bg-primary rounded-full"></span>
+                        <span>Monthly Gross Revenue</span>
+                      </div>
+                    </div>
+
+                    {/* SVG Line Chart Wrapper */}
+                    <div className="relative w-full h-[260px] mt-2">
+                      <svg viewBox={`0 0 ${chartPoints.width} ${chartPoints.height}`} className="w-full h-full overflow-visible select-none">
+                        <defs>
+                          <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#F36F21" stopOpacity="0.25"/>
+                            <stop offset="100%" stopColor="#F36F21" stopOpacity="0"/>
+                          </linearGradient>
+                          <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.08"/>
+                          </filter>
+                        </defs>
                         
-                        {/* Collapsible Reply Container */}
-                        {activeReviewReplyInputs['rev1'] && (
-                          <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-slate-200/50 animate-fade-in">
-                            <input
-                              type="text"
-                              placeholder="Type your reply..."
-                              value={reviewReplyTextState['rev1'] || ''}
-                              onChange={(e) => setReviewReplyTextState(prev => ({ ...prev, rev1: e.target.value }))}
-                              className="w-full text-xs border-slate-200 rounded-lg p-1.5 focus:ring-primary focus:border-primary"
-                            />
-                            <div className="flex justify-end gap-2">
-                              <button onClick={() => toggleReviewReplyInput('rev1')} className="text-[10px] font-bold text-text-muted px-2 py-1">Cancel</button>
-                              <button onClick={() => submitReviewReply('rev1')} className="text-[10px] font-bold text-white bg-primary px-3 py-1 rounded-lg">Send</button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                        {/* Horizontal Gridlines */}
+                        {[0, 0.25, 0.5, 0.75, 1].map((ratio, gridIdx) => {
+                          const y = chartPoints.paddingTop + chartPoints.chartHeight - ratio * chartPoints.chartHeight;
+                          const gridVal = ratio * chartPoints.roundMax;
+                          return (
+                            <g key={gridIdx} className="opacity-40">
+                              <line 
+                                x1={chartPoints.paddingLeft} 
+                                y1={y} 
+                                x2={chartPoints.width - chartPoints.paddingRight} 
+                                y2={y} 
+                                stroke="#cbd5e1" 
+                                strokeWidth="1" 
+                                strokeDasharray="4 4" 
+                              />
+                              <text 
+                                x={chartPoints.paddingLeft - 10} 
+                                y={y + 4} 
+                                textAnchor="end" 
+                                className="text-[10px] fill-slate-500 font-extrabold"
+                              >
+                                {gridVal === 0 ? '0 ₫' : `${(gridVal / 1000000).toFixed(1)}M ₫`}
+                              </text>
+                            </g>
+                          );
+                        })}
 
-                      {/* Review 2 */}
-                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-brand-blue">Tran Minh B</span>
-                          <span className="text-amber-500 flex items-center text-xs">
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                            <span className="material-symbols-outlined text-sm icon-fill">star</span>
-                            <span className="material-symbols-outlined text-sm">star</span>
+                        {/* Smooth Area Under the Curve */}
+                        {chartPoints.points.length > 0 && (
+                          <path
+                            d={`M ${chartPoints.points[0].x} ${chartPoints.paddingTop + chartPoints.chartHeight} 
+                               L ${chartPoints.points.map(p => `${p.x} ${p.y}`).join(' L ')} 
+                               L ${chartPoints.points[chartPoints.points.length - 1].x} ${chartPoints.paddingTop + chartPoints.chartHeight} Z`}
+                            fill="url(#chart-area-grad)"
+                          />
+                        )}
+
+                        {/* Line Stroke */}
+                        {chartPoints.points.length > 0 && (
+                          <path
+                            d={`M ${chartPoints.points.map(p => `${p.x} ${p.y}`).join(' L ')}`}
+                            fill="none"
+                            stroke="#F36F21"
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        )}
+
+                        {/* Interactive Data Dots */}
+                        {chartPoints.points.map((p, idx) => {
+                          const isHovered = hoveredPointIdx === idx;
+                          return (
+                            <g key={idx}>
+                              {isHovered && (
+                                <circle 
+                                  cx={p.x} 
+                                  cy={p.y} 
+                                  r="8.5" 
+                                  fill="#F36F21" 
+                                  fillOpacity="0.2" 
+                                  className="transition-all duration-200"
+                                />
+                              )}
+                              <circle
+                                cx={p.x}
+                                cy={p.y}
+                                r={isHovered ? "6" : "4.5"}
+                                fill="#ffffff"
+                                stroke="#F36F21"
+                                strokeWidth={isHovered ? "4" : "2.5"}
+                                className="cursor-pointer transition-all duration-200"
+                                onMouseEnter={() => setHoveredPointIdx(idx)}
+                                onMouseLeave={() => setHoveredPointIdx(null)}
+                              />
+                            </g>
+                          );
+                        })}
+
+                        {/* X-Axis Month Ticks */}
+                        {monthlyChartData.map((m, idx) => {
+                          const p = chartPoints.points[idx];
+                          return (
+                            <text
+                              key={idx}
+                              x={p.x}
+                              y={chartPoints.height - 8}
+                              textAnchor="middle"
+                              className="text-[9px] fill-slate-400 font-extrabold tracking-tight"
+                            >
+                              {m.label}
+                            </text>
+                          );
+                        })}
+
+                        {/* Floating Custom SVG Tooltip Card */}
+                        {hoveredPointIdx !== null && (() => {
+                          const p = chartPoints.points[hoveredPointIdx];
+                          const tooltipWidth = 130;
+                          const tooltipHeight = 48;
+                          let tx = p.x - tooltipWidth / 2;
+                          let ty = p.y - tooltipHeight - 12;
+                          
+                          // Bound checks
+                          if (tx < chartPoints.paddingLeft) tx = chartPoints.paddingLeft;
+                          if (tx + tooltipWidth > chartPoints.width - chartPoints.paddingRight) {
+                            tx = chartPoints.width - chartPoints.paddingRight - tooltipWidth;
+                          }
+
+                          return (
+                            <g filter="url(#shadow)" className="pointer-events-none animate-fade-in">
+                              <rect 
+                                x={tx} 
+                                y={ty} 
+                                width={tooltipWidth} 
+                                height={tooltipHeight} 
+                                rx="10" 
+                                fill="#12284C" 
+                              />
+                              <text 
+                                x={tx + tooltipWidth / 2} 
+                                y={ty + 18} 
+                                textAnchor="middle" 
+                                fill="#94a3b8" 
+                                className="text-[9px] font-extrabold uppercase tracking-wider"
+                              >
+                                {monthlyChartData[hoveredPointIdx].label}
+                              </text>
+                              <text 
+                                x={tx + tooltipWidth / 2} 
+                                y={ty + 34} 
+                                textAnchor="middle" 
+                                fill="#ffffff" 
+                                className="text-[12px] font-black"
+                              >
+                                {p.amountFormatted}
+                              </text>
+                            </g>
+                          );
+                        })()}
+                      </svg>
+                    </div>
+                    <div className="text-center text-[10px] text-text-muted mt-3 font-semibold">
+                      <span>* Hover over data points to display precise monthly gross earnings details.</span>
+                    </div>
+                  </div>
+
+                  {/* Right 40%: Recent Course Registrations Card */}
+                  <div className="lg:col-span-4 bg-surface rounded-3xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between animate-fade-in">
+                    <div>
+                      <div className="flex justify-between items-center mb-5">
+                        <div>
+                          <h3 className="font-display font-black text-xs sm:text-sm text-brand-blue uppercase tracking-wider">Recent Course Registrations</h3>
+                          <p className="text-[10px] text-text-muted mt-0.5">Enrolled student volume per course.</p>
+                        </div>
+                        {/* Timeframe Dropdown */}
+                        <div className="relative shrink-0">
+                          <select
+                            value={trendTimeframe}
+                            onChange={(e) => setTrendTimeframe(e.target.value as any)}
+                            style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
+                            className="bg-slate-50 border border-slate-200 text-slate-700 hover:text-brand-blue rounded-xl py-1.5 px-3 pr-8 text-[11px] font-extrabold cursor-pointer transition-all focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary hover:bg-slate-100/70"
+                          >
+                            <option value="1m">1 Month</option>
+                            <option value="3m">3 Months</option>
+                            <option value="9m">9 Months</option>
+                            <option value="12m">12 Months</option>
+                          </select>
+                          <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-base">
+                            keyboard_arrow_down
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                          "Spring Boot modules are useful, but please add more lessons regarding security configurations next time."
-                        </p>
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-[10px] text-text-muted font-medium">Course: Java Dev</span>
-                          <button onClick={() => toggleReviewReplyInput('rev2')} className="text-[10px] font-bold text-primary hover:text-primary-hover">Reply</button>
-                        </div>
-
-                        {/* Collapsible Reply Container */}
-                        {activeReviewReplyInputs['rev2'] && (
-                          <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-slate-200/50 animate-fade-in">
-                            <input
-                              type="text"
-                              placeholder="Type your reply..."
-                              value={reviewReplyTextState['rev2'] || ''}
-                              onChange={(e) => setReviewReplyTextState(prev => ({ ...prev, rev2: e.target.value }))}
-                              className="w-full text-xs border-slate-200 rounded-lg p-1.5 focus:ring-primary focus:border-primary"
-                            />
-                            <div className="flex justify-end gap-2">
-                              <button onClick={() => toggleReviewReplyInput('rev2')} className="text-[10px] font-bold text-text-muted px-2 py-1">Cancel</button>
-                              <button onClick={() => submitReviewReply('rev2')} className="text-[10px] font-bold text-white bg-primary px-3 py-1 rounded-lg">Send</button>
-                            </div>
-                          </div>
-                        )}
                       </div>
+
+                      {/* Course Registration List */}
+                      <div className="flex flex-col gap-3 py-1">
+                        {courseRegistrations.map((item, idx) => {
+                          const colors = [
+                            { lightBg: 'bg-[#ffece0]', pill: 'bg-[#ffece0] text-primary border border-primary/10', iconColor: 'text-primary' },
+                            { lightBg: 'bg-[#e8f0fe]', pill: 'bg-[#e8f0fe] text-blue-600 border border-blue-100', iconColor: 'text-blue-600' },
+                            { lightBg: 'bg-[#f0fdf4]', pill: 'bg-[#f0fdf4] text-emerald-600 border border-emerald-100', iconColor: 'text-emerald-600' },
+                          ];
+                          const c = colors[idx % colors.length];
+                          
+                          return (
+                            <div key={item.courseId} className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/60 border border-slate-200/30 transition-all hover:bg-slate-100/40 hover:shadow-sm">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 ${c.lightBg}`}>
+                                  <span className={`material-symbols-outlined text-base ${c.iconColor}`}>school</span>
+                                </div>
+                                <div className="min-w-0">
+                                  <h4 className="text-xs font-black text-brand-blue truncate" title={item.courseTitle}>
+                                    {item.courseTitle}
+                                  </h4>
+                                </div>
+                              </div>
+                              <span className={`px-3 py-1 rounded-xl text-[11px] font-black shrink-0 shadow-sm ${c.pill}`}>
+                                {item.count} {item.count === 1 ? 'registrant' : 'registrants'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-150/40 text-[10px] text-text-muted flex items-center gap-1.5 font-semibold">
+                      <span className="material-symbols-outlined text-sm text-[#F36F21]">analytics</span>
+                      <span>Total: {trendFilteredTransactions.length} sign-ups in past period.</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Table: Course Registration Transactions */}
+                <div className="bg-surface rounded-3xl p-6 border border-slate-200/50 ambient-shadow">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                    <div>
+                      <h3 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Course Enrollment Sales History</h3>
+                      <p className="text-xs text-text-muted mt-0.5">Recent transaction records of students enrolling in your published courses.</p>
+                    </div>
+                    <span className="px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-brand-blue font-bold text-xs shrink-0">
+                      Showing {pagedEnrollmentTransactions.length} of {totalEnrollmentRecords} transactions
+                    </span>
+                  </div>
+
+                  {pagedEnrollmentTransactions.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                      <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">inbox</span>
+                      <p className="text-xs text-text-muted font-bold">No enrollment transactions recorded.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="overflow-x-auto w-full">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                          <thead>
+                            <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-100 font-extrabold bg-slate-50/70">
+                              <th className="py-3 px-4 rounded-l-xl text-center w-16">No.</th>
+                              <th className="py-3 px-4">Student Name</th>
+                              <th className="py-3 px-4">Enrolled Course</th>
+                              <th className="py-3 px-4 text-right">Amount Paid</th>
+                              <th className="py-3 px-4 rounded-r-xl text-center">Transaction Time</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                            {pagedEnrollmentTransactions.map((tx, idx) => {
+                              const seqNo = (enrollmentPage - 1) * recordsPerPage + idx + 1;
+                              return (
+                                <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
+                                  <td className="py-3.5 px-4 text-center text-text-muted font-bold">{seqNo}</td>
+                                  <td className="py-3.5 px-4">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="w-7 h-7 rounded-full bg-primary/10 text-primary font-black flex items-center justify-center text-[10px]">
+                                        {tx.studentName.split(' ').pop()?.charAt(0) || 'U'}
+                                      </div>
+                                      <span className="font-bold text-brand-blue">{tx.studentName}</span>
+                                    </div>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-slate-700">{tx.courseTitle}</td>
+                                  <td className="py-3.5 px-4 text-right text-brand-blue font-bold">
+                                    {tx.amount.toLocaleString('vi-VN')} ₫
+                                  </td>
+                                  <td className="py-3.5 px-4 text-center text-slate-500 font-medium">
+                                    {formatFullDateTime(tx.timestamp)}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {totalEnrollmentPages > 1 && (
+                        <div className="flex items-center justify-between border-t border-slate-100 pt-4.5 mt-5">
+                          <button
+                            type="button"
+                            onClick={() => setEnrollmentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={enrollmentPage === 1}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                              enrollmentPage === 1
+                                ? 'bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-blue active:scale-95 shadow-sm'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                            Previous
+                          </button>
+
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: totalEnrollmentPages }, (_, i) => i + 1).map(pageNo => {
+                              const isActive = enrollmentPage === pageNo;
+                              return (
+                                <button
+                                  key={pageNo}
+                                  type="button"
+                                  onClick={() => setEnrollmentPage(pageNo)}
+                                  className={`w-8 h-8 flex items-center justify-center text-xs font-extrabold rounded-xl transition-all ${
+                                    isActive
+                                      ? 'bg-primary text-white shadow-md shadow-primary/10 scale-105'
+                                      : 'bg-white border border-slate-200/50 text-slate-600 hover:bg-slate-50 hover:text-brand-blue'
+                                  }`}
+                                >
+                                  {pageNo}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setEnrollmentPage(prev => Math.min(prev + 1, totalEnrollmentPages))}
+                            disabled={enrollmentPage === totalEnrollmentPages}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                              enrollmentPage === totalEnrollmentPages
+                                ? 'bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-blue active:scale-95 shadow-sm'
+                            }`}
+                          >
+                            Next
+                            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Table: Withdrawal / Payout History */}
+                <div className="bg-surface rounded-3xl p-6 border border-slate-200/50 ambient-shadow">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                    <div>
+                      <h3 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Monthly Payout History Log</h3>
+                      <p className="text-xs text-text-muted mt-0.5">Automated monthly payout logs processed and credited to your registered bank account.</p>
+                    </div>
+                    {/* Quick System Payout Badge */}
+                    <div className="bg-[#e8f0fe] border border-blue-200 px-3.5 py-2.5 rounded-2xl flex items-center gap-2.5 shrink-0 shadow-sm">
+                      <span className="material-symbols-outlined text-blue-600 text-xl icon-fill animate-spin-slow">autorenew</span>
+                      <div>
+                        <h4 className="text-[10px] font-extrabold text-brand-blue uppercase tracking-wider">Automated Payouts</h4>
+                        <p className="text-[9px] text-slate-600 font-bold mt-0.5">Processed on the 1st of each month</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                      <thead>
+                        <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-100 font-extrabold bg-slate-50/70">
+                          <th className="py-3 px-4 rounded-l-xl">Payout Period</th>
+                          <th className="py-3 px-4 text-right">Amount Paid</th>
+                          <th className="py-3 px-4">Receiving Account</th>
+                          <th className="py-3 px-4 text-center">Status</th>
+                          <th className="py-3 px-4">Reference Code</th>
+                          <th className="py-3 px-4 rounded-r-xl text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                        {payoutHistory.map((item) => (
+                          <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-3.5 px-4 font-bold text-brand-blue">{item.payoutPeriod}</td>
+                            <td className="py-3.5 px-4 text-right text-slate-900 font-bold">
+                              {item.amount.toLocaleString('vi-VN')} ₫
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-500 font-medium">
+                              {item.bankName} - {maskAccountNumber(item.bankAccountNumber)}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black border tracking-wide uppercase select-none ${
+                                item.status === 'SUCCESS' ? 'bg-[#f0fdf4] text-green-700 border-green-200' :
+                                item.status === 'PROCESSING' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                                item.status === 'FAILED' ? 'bg-red-50 text-red-700 border-red-100' :
+                                'bg-slate-50 text-slate-700 border-slate-200'
+                              }`}>
+                                {item.status}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-500 font-mono tracking-tight">{item.transactionReference}</td>
+                            <td className="py-3.5 px-4 text-center">
+                              {item.status === 'FAILED' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedFailedPayout(item)}
+                                  className="px-3.5 py-1.5 text-[10px] font-extrabold rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all shadow-sm flex items-center gap-0.5 mx-auto active:scale-95"
+                                >
+                                  <span className="material-symbols-outlined text-xs">info</span> View Reason
+                                </button>
+                              ) : (
+                                <span className="text-[10px] text-text-muted font-bold italic">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Modal: Payout Failure Reason (admin_note) */}
+                {selectedFailedPayout && (
+                  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-surface border border-slate-200 shadow-2xl rounded-3xl p-6 max-w-md w-full relative z-50 animate-scale-in">
+                      <div className="flex items-center gap-2.5 text-red-600 mb-4">
+                        <span className="material-symbols-outlined text-3xl">error</span>
+                        <h3 className="font-display font-black text-lg text-brand-blue">Payout Request Failed</h3>
+                      </div>
+                      
+                      <div className="flex flex-col gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/40 text-xs font-semibold text-slate-700 mb-5">
+                        <div className="flex justify-between">
+                          <span className="text-text-muted">Payout Period:</span>
+                          <span className="font-bold text-brand-blue">{selectedFailedPayout.payoutPeriod}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-text-muted">Amount Paid:</span>
+                          <span className="font-bold text-red-600">{selectedFailedPayout.amount.toLocaleString('vi-VN')} ₫</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-text-muted">Receiving Account:</span>
+                          <span className="font-bold text-brand-blue">{selectedFailedPayout.bankName} - {maskAccountNumber(selectedFailedPayout.bankAccountNumber)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 mb-6">
+                        <span className="text-xs font-bold text-brand-blue uppercase tracking-wider">Administrator Note:</span>
+                        <div className="p-4 bg-red-50/50 border border-red-150/40 text-red-700 text-xs font-medium rounded-xl leading-relaxed">
+                          {selectedFailedPayout.adminNote}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button 
+                          type="button"
+                          onClick={() => setSelectedFailedPayout(null)} 
+                          className="bg-brand-blue hover:bg-brand-blue-light text-white font-bold text-xs py-2.5 px-6 rounded-xl transition-all shadow-md active:scale-95"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
