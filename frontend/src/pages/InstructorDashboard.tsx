@@ -498,13 +498,92 @@ export const InstructorDashboard: React.FC = () => {
     }
   };
 
-  const openSyllabusEditor = (courseTitle: string) => {
-    setWorkspaceCourseTitle(courseTitle);
+  const openSyllabusEditor = (course: InstructorCourse) => {
+    setWorkspaceCourseTitle(course.title);
+    setCourseTitleInput(course.title);
+    setCourseDescInput(course.description);
+    setCourseLevelInput(course.level || 'Intermediate');
+    setCourseTopicInput(course.topic || 'Theory & Practices');
+    
+    // Parse numeric price
+    const numericPrice = course.price ? course.price.replace(/[^\d]/g, '') : '499000';
+    setCoursePriceInput(numericPrice);
+    
+    // Set premium defaults for editing landing details
+    setCourseLongDescInput(`The "${course.title}" course is a transformative journey designed to take you from a beginner to an absolute master. We cover key industry practices, modern design patterns, and provide you with step-by-step guidance on real-world projects.`);
+    
+    setLearnPoints([
+      'Master core concepts of ' + course.title,
+      'Build industry-standard portfolio projects',
+      'Optimize applications for maximum performance',
+      'Understand advanced architectural patterns'
+    ]);
+    
+    setHighlightPoints([
+      '10+ Hands-on Labs',
+      'Professional Visualizations',
+      'Direct Instructor Support',
+      'Official Certificate of Completion'
+    ]);
+    
+    setTechPoints([
+      course.title.includes('Java') ? 'Spring Boot' : course.title.includes('Python') ? 'Python' : 'React.js',
+      'PostgreSQL',
+      'Docker',
+      'Git & GitHub'
+    ]);
+    
+    setPrereqPoints([
+      'Basic programming knowledge',
+      'A computer with at least 8GB RAM',
+      'Familiarity with command line/terminal basics'
+    ]);
+    
+    setAudiencePoints([
+      'Students and aspiring engineers',
+      'Backend/Frontend developers looking to upgrade their skills',
+      'Professionals preparing for coding interviews'
+    ]);
+    
+    setBenefitPoints([
+      'Comprehensive masterclass portfolio projects',
+      'In-depth lifetime access to course syllabus',
+      'Resume-boosting completion certificate'
+    ]);
+
+    // Force selection of the course overview workspace (type: null)
+    setSelectedItem({ type: null, chIdx: 0, lesIdx: null });
     window.location.hash = '#edit-course';
   };
 
   const closeSyllabusEditor = () => {
     window.location.hash = '#my-courses';
+  };
+
+  const handleSaveCourseOverview = () => {
+    if (!courseTitleInput.trim()) {
+      alert('Course Title cannot be empty!');
+      return;
+    }
+    // Update instructorCourses state to save it permanently
+    setInstructorCourses(prev =>
+      prev.map(c => {
+        if (c.title === workspaceCourseTitle) {
+          return {
+            ...c,
+            title: courseTitleInput.trim(),
+            description: courseDescInput.trim(),
+            level: courseLevelInput,
+            topic: courseTopicInput,
+            price: Number(coursePriceInput).toLocaleString('vi-VN') + ' ₫'
+          };
+        }
+        return c;
+      })
+    );
+    // Update the workspace title as well
+    setWorkspaceCourseTitle(courseTitleInput.trim());
+    alert('Course Landing Page & External Overview details saved successfully!');
   };
 
 
@@ -1470,10 +1549,10 @@ export const InstructorDashboard: React.FC = () => {
                           {course.status === 'published' && (
                             <>
                               <button
-                                onClick={() => openSyllabusEditor(course.title)}
+                                onClick={() => openSyllabusEditor(course)}
                                 className="col-span-2 flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold transition-all border border-slate-200/30"
                               >
-                                <span className="material-symbols-outlined text-[16px]">edit</span> Edit Syllabus
+                                <span className="material-symbols-outlined text-[16px]">edit</span> Edit Course Details
                               </button>
                             </>
                           )}
@@ -1493,7 +1572,7 @@ export const InstructorDashboard: React.FC = () => {
                           {course.status === 'draft' && (
                             <>
                               <button
-                                onClick={() => openSyllabusEditor(course.title)}
+                                onClick={() => openSyllabusEditor(course)}
                                 className="flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold transition-all border border-slate-200/30"
                               >
                                 <span className="material-symbols-outlined text-[16px]">edit</span> Resume Edit
@@ -1776,23 +1855,530 @@ export const InstructorDashboard: React.FC = () => {
               
               {/* Left Column: Dynamic Workspace States */}
               {selectedItem.type === null && (
-                <div className="lg:col-span-9 flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-gray-200 shadow-sm text-center gap-6 min-h-[500px]">
-                  <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-primary border border-primary/20 shadow-inner">
-                    <span className="material-symbols-outlined text-[48px]">auto_stories</span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-display font-black text-brand-blue leading-tight mb-2">Curriculum Builder Workspace</h3>
-                    <p className="text-xs text-text-muted max-w-[360px] mx-auto font-semibold">
-                      Select or create a chapter/lesson from the Course Syllabus outline on the right to start editing details individually.
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
+                <div className="lg:col-span-9 flex flex-col gap-6 w-full animate-fade-in pb-12">
+                  {/* Workspace Header */}
+                  <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-extrabold text-primary uppercase tracking-wider">Course Landing Details</span>
+                      </div>
+                      <h3 className="text-lg font-display font-black text-brand-blue leading-tight mt-1">Edit Course Landing Page & Overview</h3>
+                    </div>
                     <button
-                      onClick={handleAddChapterWorkspace}
-                      className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-md"
+                      type="button"
+                      onClick={handleSaveCourseOverview}
+                      className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5 shrink-0"
                     >
-                      <span className="material-symbols-outlined text-sm">create_new_folder</span>
-                      <span>Add First Chapter</span>
+                      <span className="material-symbols-outlined text-sm font-bold">save</span>
+                      <span>Save Course Details</span>
+                    </button>
+                  </div>
+
+                  {/* FORM SECTIONS */}
+                  
+                  {/* PANEL 1: BASIC MARKETING INFO */}
+                  <div className="bg-white rounded-3xl border border-gray-200 p-6 flex flex-col gap-6 shadow-sm">
+                    <h4 className="font-display font-black text-sm text-brand-blue border-b border-slate-100 pb-2.5 flex items-center gap-2 uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-primary text-[20px]">assignment</span> Basic Marketing Info
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Course Title */}
+                      <div className="flex flex-col gap-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Title</label>
+                        <input
+                          type="text"
+                          value={courseTitleInput}
+                          onChange={(e) => setCourseTitleInput(e.target.value)}
+                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
+                          placeholder="e.g. Full-Stack React & Node.js Masterclass"
+                        />
+                      </div>
+
+                      {/* Course Sub-topic */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Sub-topic / Category</label>
+                        <input
+                          type="text"
+                          value={courseTopicInput}
+                          onChange={(e) => setCourseTopicInput(e.target.value)}
+                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
+                          placeholder="e.g. Web Development"
+                        />
+                      </div>
+
+                      {/* Language of Instruction */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Language of Instruction</label>
+                        <input
+                          type="text"
+                          value={courseLanguageInput}
+                          onChange={(e) => setCourseLanguageInput(e.target.value)}
+                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
+                          placeholder="e.g. English, Vietnamese"
+                        />
+                      </div>
+
+                      {/* Target Skill Level */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Target Skill Level</label>
+                        <select
+                          value={courseLevelInput}
+                          onChange={(e) => setCourseLevelInput(e.target.value)}
+                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
+                        >
+                          <option value="Beginner">Beginner Level</option>
+                          <option value="Intermediate">Intermediate Level</option>
+                          <option value="Advanced">Advanced Level</option>
+                          <option value="All Levels">All Levels (Comprehensive)</option>
+                        </select>
+                      </div>
+
+                      {/* Purchase Price */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Purchase Price (₫)</label>
+                        <input
+                          type="number"
+                          value={coursePriceInput}
+                          onChange={(e) => setCoursePriceInput(e.target.value)}
+                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
+                          placeholder="e.g. 499000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PANEL 2: DESCRIPTIONS & MEDIA */}
+                  <div className="bg-white rounded-3xl border border-gray-200 p-6 flex flex-col gap-6 shadow-sm">
+                    <h4 className="font-display font-black text-sm text-brand-blue border-b border-slate-100 pb-2.5 flex items-center gap-2 uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-primary text-[20px]">description</span> Descriptions & Media
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Short Description */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Short Description</label>
+                        <textarea
+                          value={courseDescInput}
+                          onChange={(e) => setCourseDescInput(e.target.value)}
+                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue h-[155px] resize-none"
+                          placeholder="Build scalable, production-ready web applications from scratch..."
+                        />
+                      </div>
+
+                      {/* Long Description */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Description (Long Description)</label>
+                        <textarea
+                          value={courseLongDescInput}
+                          onChange={(e) => setCourseLongDescInput(e.target.value)}
+                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue h-[155px] resize-none"
+                          placeholder="The course is a transformative journey designed to take you from zero to a production-ready developer..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PANEL 3: COURSE SPECIFICATIONS */}
+                  <div className="bg-white rounded-3xl border border-gray-200 p-6 flex flex-col gap-6 shadow-sm">
+                    <h4 className="font-display font-black text-sm text-brand-blue border-b border-slate-100 pb-2.5 flex items-center gap-2 uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-primary text-[20px]">fact_check</span> Course Specifications
+                    </h4>
+
+                    <div className="flex flex-col gap-7">
+                      {/* 1. What You'll Learn */}
+                      <div className="flex flex-col gap-2.5 bg-slate-50/50 p-4.5 rounded-2xl border border-slate-200/40">
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">What you'll learn</label>
+                          <span className="text-[10px] text-text-muted font-bold">Each box is 1 key point</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {learnPoints.map((val, idx) => (
+                            <div key={idx} className="group relative bg-surface border border-slate-200/80 hover:border-primary rounded-xl p-3 flex flex-col justify-between min-h-[90px] shadow-sm hover:shadow-md transition-all">
+                              <textarea
+                                value={val}
+                                onChange={(e) => {
+                                  const arr = [...learnPoints];
+                                  arr[idx] = e.target.value;
+                                  setLearnPoints(arr);
+                                }}
+                                className="w-full bg-transparent border-0 focus:ring-0 text-xs font-medium p-0 resize-none text-brand-blue placeholder-slate-400 h-full"
+                                placeholder="e.g. Architect scalable MERN applications"
+                              />
+                              <div className="flex justify-end mt-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setLearnPoints(prev => prev.filter((_, i) => i !== idx || prev.length === 1))}
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all flex items-center justify-center"
+                                  title="Delete Point"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => setLearnPoints(prev => [...prev, ''])} className="border-2 border-dashed border-slate-200/80 hover:border-primary hover:bg-primary-light/10 rounded-xl p-3 flex flex-col items-center justify-center min-h-[90px] text-slate-400 hover:text-primary transition-all gap-1 bg-surface/50 group">
+                            <span className="material-symbols-outlined text-xl font-bold transition-transform group-hover:scale-110">add</span>
+                            <span className="text-[10px] font-extrabold">Add Point</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 2. Course Highlights */}
+                      <div className="flex flex-col gap-2.5 bg-slate-50/50 p-4.5 rounded-2xl border border-slate-200/40">
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Highlights</label>
+                          <span className="text-[10px] text-text-muted font-bold">Key highlights</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {highlightPoints.map((val, idx) => (
+                            <div key={idx} className="group relative bg-surface border border-slate-200/80 hover:border-primary rounded-xl p-3 flex flex-col justify-between min-h-[90px] shadow-sm hover:shadow-md transition-all">
+                              <textarea
+                                value={val}
+                                onChange={(e) => {
+                                  const arr = [...highlightPoints];
+                                  arr[idx] = e.target.value;
+                                  setHighlightPoints(arr);
+                                }}
+                                className="w-full bg-transparent border-0 focus:ring-0 text-xs font-medium p-0 resize-none text-brand-blue placeholder-slate-400 h-full"
+                                placeholder="e.g. 15+ Real-world Projects"
+                              />
+                              <div className="flex justify-end mt-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setHighlightPoints(prev => prev.filter((_, i) => i !== idx || prev.length === 1))}
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all flex items-center justify-center"
+                                  title="Delete Highlight"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => setHighlightPoints(prev => [...prev, ''])} className="border-2 border-dashed border-slate-200/80 hover:border-primary hover:bg-primary-light/10 rounded-xl p-3 flex flex-col items-center justify-center min-h-[90px] text-slate-400 hover:text-primary transition-all gap-1 bg-surface/50 group">
+                            <span className="material-symbols-outlined text-xl font-bold transition-transform group-hover:scale-110">add</span>
+                            <span className="text-[10px] font-extrabold">Add Highlight</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 3. Technologies & Tools */}
+                      <div className="flex flex-col gap-2.5 bg-slate-50/50 p-4.5 rounded-2xl border border-slate-200/40">
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Technologies & Tools</label>
+                          <span className="text-[10px] text-text-muted font-bold">Tech stack used</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {techPoints.map((val, idx) => (
+                            <div key={idx} className="group relative bg-surface border border-slate-200/80 hover:border-primary rounded-xl p-3 flex flex-col justify-between min-h-[90px] shadow-sm hover:shadow-md transition-all">
+                              <textarea
+                                value={val}
+                                onChange={(e) => {
+                                  const arr = [...techPoints];
+                                  arr[idx] = e.target.value;
+                                  setTechPoints(arr);
+                                }}
+                                className="w-full bg-transparent border-0 focus:ring-0 text-xs font-medium p-0 resize-none text-brand-blue placeholder-slate-400 h-full"
+                                placeholder="e.g. React"
+                              />
+                              <div className="flex justify-end mt-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setTechPoints(prev => prev.filter((_, i) => i !== idx || prev.length === 1))}
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all flex items-center justify-center"
+                                  title="Delete Tech"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => setTechPoints(prev => [...prev, ''])} className="border-2 border-dashed border-slate-200/80 hover:border-primary hover:bg-primary-light/10 rounded-xl p-3 flex flex-col items-center justify-center min-h-[90px] text-slate-400 hover:text-primary transition-all gap-1 bg-surface/50 group">
+                            <span className="material-symbols-outlined text-xl font-bold transition-transform group-hover:scale-110">add</span>
+                            <span className="text-[10px] font-extrabold">Add Tech</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 4. Prerequisites */}
+                      <div className="flex flex-col gap-2.5 bg-slate-50/50 p-4.5 rounded-2xl border border-slate-200/40">
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Prerequisites</label>
+                          <span className="text-[10px] text-text-muted font-bold">Requirements</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {prereqPoints.map((val, idx) => (
+                            <div key={idx} className="group relative bg-surface border border-slate-200/80 hover:border-primary rounded-xl p-3 flex flex-col justify-between min-h-[90px] shadow-sm hover:shadow-md transition-all">
+                              <textarea
+                                value={val}
+                                onChange={(e) => {
+                                  const arr = [...prereqPoints];
+                                  arr[idx] = e.target.value;
+                                  setPrereqPoints(arr);
+                                }}
+                                className="w-full bg-transparent border-0 focus:ring-0 text-xs font-medium p-0 resize-none text-brand-blue placeholder-slate-400 h-full"
+                                placeholder="e.g. Basic JavaScript knowledge"
+                              />
+                              <div className="flex justify-end mt-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setPrereqPoints(prev => prev.filter((_, i) => i !== idx || prev.length === 1))}
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all flex items-center justify-center"
+                                  title="Delete Prerequisite"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => setPrereqPoints(prev => [...prev, ''])} className="border-2 border-dashed border-slate-200/80 hover:border-primary hover:bg-primary-light/10 rounded-xl p-3 flex flex-col items-center justify-center min-h-[90px] text-slate-400 hover:text-primary transition-all gap-1 bg-surface/50 group">
+                            <span className="material-symbols-outlined text-xl font-bold transition-transform group-hover:scale-110">add</span>
+                            <span className="text-[10px] font-extrabold">Add Prereq</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 5. Target Audience */}
+                      <div className="flex flex-col gap-2.5 bg-slate-50/50 p-4.5 rounded-2xl border border-slate-200/40">
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Target Audience</label>
+                          <span className="text-[10px] text-text-muted font-bold">Intended coders</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {audiencePoints.map((val, idx) => (
+                            <div key={idx} className="group relative bg-surface border border-slate-200/80 hover:border-primary rounded-xl p-3 flex flex-col justify-between min-h-[90px] shadow-sm hover:shadow-md transition-all">
+                              <textarea
+                                value={val}
+                                onChange={(e) => {
+                                  const arr = [...audiencePoints];
+                                  arr[idx] = e.target.value;
+                                  setAudiencePoints(arr);
+                                }}
+                                className="w-full bg-transparent border-0 focus:ring-0 text-xs font-medium p-0 resize-none text-brand-blue placeholder-slate-400 h-full"
+                                placeholder="e.g. Aspiring Full-Stack Developers"
+                              />
+                              <div className="flex justify-end mt-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setAudiencePoints(prev => prev.filter((_, i) => i !== idx || prev.length === 1))}
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all flex items-center justify-center"
+                                  title="Delete Audience"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => setAudiencePoints(prev => [...prev, ''])} className="border-2 border-dashed border-slate-200/80 hover:border-primary hover:bg-primary-light/10 rounded-xl p-3 flex flex-col items-center justify-center min-h-[90px] text-slate-400 hover:text-primary transition-all gap-1 bg-surface/50 group">
+                            <span className="material-symbols-outlined text-xl font-bold transition-transform group-hover:scale-110">add</span>
+                            <span className="text-[10px] font-extrabold">Add Audience</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 6. Completion Benefits */}
+                      <div className="flex flex-col gap-2.5 bg-slate-50/50 p-4.5 rounded-2xl border border-slate-200/40">
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Completion Benefits</label>
+                          <span className="text-[10px] text-text-muted font-bold">What students get</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {benefitPoints.map((val, idx) => (
+                            <div key={idx} className="group relative bg-surface border border-slate-200/80 hover:border-primary rounded-xl p-3 flex flex-col justify-between min-h-[90px] shadow-sm hover:shadow-md transition-all">
+                              <textarea
+                                value={val}
+                                onChange={(e) => {
+                                  const arr = [...benefitPoints];
+                                  arr[idx] = e.target.value;
+                                  setBenefitPoints(arr);
+                                }}
+                                className="w-full bg-transparent border-0 focus:ring-0 text-xs font-medium p-0 resize-none text-brand-blue placeholder-slate-400 h-full"
+                                placeholder="e.g. Portfolio Projects"
+                              />
+                              <div className="flex justify-end mt-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setBenefitPoints(prev => prev.filter((_, i) => i !== idx || prev.length === 1))}
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all flex items-center justify-center"
+                                  title="Delete Benefit"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => setBenefitPoints(prev => [...prev, ''])} className="border-2 border-dashed border-slate-200/80 hover:border-primary hover:bg-primary-light/10 rounded-xl p-3 flex flex-col items-center justify-center min-h-[90px] text-slate-400 hover:text-primary transition-all gap-1 bg-surface/50 group">
+                            <span className="material-symbols-outlined text-xl font-bold transition-transform group-hover:scale-110">add</span>
+                            <span className="text-[10px] font-extrabold">Add Benefit</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PANEL 4: COURSE REVIEWS & STUDENT FEEDBACK */}
+                  <div className="bg-white rounded-3xl border border-gray-250/60 p-6 flex flex-col gap-6 shadow-sm">
+                    <h4 className="font-display font-black text-sm text-brand-blue border-b border-slate-100 pb-2.5 flex items-center gap-2 uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-primary text-[20px]">reviews</span> Student Feedback & Reviews
+                    </h4>
+
+                    <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center p-6 bg-slate-50/50 border border-slate-200/40 rounded-2xl">
+                      {/* Left: Overall score card */}
+                      <div className="flex flex-col items-center gap-2 shrink-0 bg-white border border-slate-200/60 p-5 rounded-2xl shadow-sm w-full lg:w-44 text-center">
+                        <span className="text-5xl font-extrabold text-primary">4.9</span>
+                        <div className="flex text-yellow-400">
+                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                        </div>
+                        <span className="text-xs font-bold text-brand-blue uppercase tracking-wider mt-1">Course Rating</span>
+                        <span className="text-[10px] text-text-muted font-semibold mt-0.5">Based on 2,451 reviews</span>
+                      </div>
+
+                      {/* Right: Star breakdown bars */}
+                      <div className="flex-grow w-full space-y-2.5">
+                        {/* 5 stars */}
+                        <div className="flex items-center gap-4 text-xs font-semibold">
+                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          </div>
+                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
+                            <div className="bg-primary h-full rounded-full" style={{ width: '85%' }}></div>
+                          </div>
+                          <span className="w-12 text-slate-500 text-left shrink-0">2,083</span>
+                        </div>
+                        {/* 4 stars */}
+                        <div className="flex items-center gap-4 text-xs font-semibold">
+                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                          </div>
+                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
+                            <div className="bg-primary h-full rounded-full" style={{ width: '10%' }}></div>
+                          </div>
+                          <span className="w-12 text-slate-500 text-left shrink-0">245</span>
+                        </div>
+                        {/* 3 stars */}
+                        <div className="flex items-center gap-4 text-xs font-semibold">
+                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                          </div>
+                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
+                            <div className="bg-primary h-full rounded-full" style={{ width: '3%' }}></div>
+                          </div>
+                          <span className="w-12 text-slate-500 text-left shrink-0">74</span>
+                        </div>
+                        {/* 2 stars */}
+                        <div className="flex items-center gap-4 text-xs font-semibold">
+                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                          </div>
+                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
+                            <div className="bg-primary h-full rounded-full" style={{ width: '1%' }}></div>
+                          </div>
+                          <span className="w-12 text-slate-500 text-left shrink-0">24</span>
+                        </div>
+                        {/* 1 star */}
+                        <div className="flex items-center gap-4 text-xs font-semibold">
+                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
+                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
+                          </div>
+                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
+                            <div className="bg-primary h-full rounded-full" style={{ width: '1%' }}></div>
+                          </div>
+                          <span className="w-12 text-slate-500 text-left shrink-0">25</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Feedback cards grid */}
+                    <div className="flex flex-col gap-4 mt-2 divide-y divide-slate-100">
+                      {/* Review 1 */}
+                      <div className="pt-5 flex gap-4 items-start">
+                        <img
+                          alt="User Avatar"
+                          className="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shrink-0"
+                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start gap-4">
+                            <div>
+                              <h5 className="text-xs font-extrabold text-brand-blue">David Thompson</h5>
+                              <div className="flex text-yellow-400 scale-75 origin-left -ml-1 mt-0.5">
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] text-text-muted font-bold whitespace-nowrap shrink-0">2 days ago</span>
+                          </div>
+                          <p className="text-xs text-text-muted leading-relaxed font-semibold mt-2">
+                            Excellent course! The curriculum was structured extremely well, and the technical illustrations were of premium quality. Highly recommend to any developers preparing to build production-grade web applications.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Review 2 */}
+                      <div className="pt-5 flex gap-4 items-start">
+                        <img
+                          alt="User Avatar"
+                          className="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shrink-0"
+                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start gap-4">
+                            <div>
+                              <h5 className="text-xs font-extrabold text-brand-blue">Amanda Lee</h5>
+                              <div className="flex text-yellow-400 scale-75 origin-left -ml-1 mt-0.5">
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] text-text-muted font-bold whitespace-nowrap shrink-0">1 week ago</span>
+                          </div>
+                          <p className="text-xs text-text-muted leading-relaxed font-semibold mt-2">
+                            Very comprehensive. The deep dive into backend database systems and the mock testing architectures are incredibly premium. Best money spent on a course this year.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SAVE ACTION */}
+                  <div className="bg-white rounded-3xl border border-gray-250 p-6 shadow-sm flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleSaveCourseOverview}
+                      className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3.5 px-8 rounded-xl transition-all shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.99] flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-sm font-bold">save</span>
+                      <span>Save Course Overview & Specifications</span>
                     </button>
                   </div>
                 </div>
@@ -2223,6 +2809,22 @@ export const InstructorDashboard: React.FC = () => {
                     <span className="text-[10px] text-text-muted font-bold">Chapters & Lessons Outline</span>
                   </div>
                   <span className="px-2.5 py-0.5 text-[9px] rounded-full bg-primary-light text-primary border border-primary/20 font-bold uppercase tracking-wider shadow-sm">Builder</span>
+                </div>
+
+                {/* Edit Course Landing Page Button */}
+                <div className="p-4 pb-0">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedItem({ type: null, chIdx: 0, lesIdx: null })}
+                    className={`w-full text-left px-4 py-3 rounded-xl border flex items-center gap-2.5 transition-all text-xs font-bold ${
+                      selectedItem.type === null 
+                        ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 scale-[1.01]' 
+                        : 'bg-white hover:bg-slate-50 text-brand-blue border-slate-200 shadow-sm'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                    <span>Edit Course Overview / Landing Page</span>
+                  </button>
                 </div>
                 
                 {/* Curriculum outline mapping */}
