@@ -26,6 +26,9 @@ interface Lesson {
   overview: string;
   code: string;
   questions: StudentQuestion[];
+  isTrial?: boolean;
+  duration?: string;
+  theory?: string;
 }
 
 interface Chapter {
@@ -56,6 +59,15 @@ interface InstructorCourse {
 
 export const InstructorDashboard: React.FC = () => {
   const { user } = useApp();
+  // Helper to scroll the browser window to the bottom when chapters/lessons are added
+  const scrollToCurriculumBottom = () => {
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
+  };
 
   // Navigation active tab: 'dashboard' | 'my-courses' | 'revenue' | 'edit-course'
   const [activeTab, setActiveTab] = useState<'dashboard' | 'my-courses' | 'revenue' | 'edit-course'>('dashboard');
@@ -210,33 +222,126 @@ export const InstructorDashboard: React.FC = () => {
     ]
   });
 
-  // Selected lesson inside workspace syllabus
-  const [selectedLessonIndices, setSelectedLessonIndices] = useState<{ chIdx: number; lesIdx: number }>({ chIdx: 0, lesIdx: 0 });
-  const activeLesson = curriculumData.chapters[selectedLessonIndices.chIdx]?.lessons[selectedLessonIndices.lesIdx] || null;
+  // Selected item (Chapter or Lesson) inside workspace syllabus
+  const [selectedItem, setSelectedItem] = useState<{ type: 'chapter' | 'lesson' | null; chIdx: number; lesIdx: number | null }>({ type: null, chIdx: 0, lesIdx: null });
 
-  // Workspace sub-tabs: 'overview' | 'qa' | 'code'
-  const [editorTab, setEditorTab] = useState<'overview' | 'qa' | 'code'>('overview');
+  const activeChapter = curriculumData.chapters[selectedItem.chIdx] || null;
+  const activeLesson = (selectedItem.type === 'lesson' && selectedItem.lesIdx !== null)
+    ? curriculumData.chapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx] || null
+    : null;
 
-  // Overview edit states
-  const [isOverviewEditing, setIsOverviewEditing] = useState(false);
-  const [overviewTextarea, setOverviewTextarea] = useState('');
+  // Workspace sub-tabs: 'overview' | 'theory' | 'code' | 'media' | 'qa'
+  const [editorTab, setEditorTab] = useState<'overview' | 'theory' | 'code' | 'media' | 'qa'>('overview');
 
-  const openOverviewEdit = () => {
-    if (activeLesson) {
-      setOverviewTextarea(activeLesson.overview);
-      setIsOverviewEditing(true);
+  // Form states for individual creation/editing
+  const [chapterTitle, setChapterTitle] = useState('');
+  const [lessonTitle, setLessonTitle] = useState('');
+  const [lessonIsTrial, setLessonIsTrial] = useState(false);
+  const [lessonDuration, setLessonDuration] = useState('12:45');
+  const [lessonTheory, setLessonTheory] = useState('');
+  const [lessonCode, setLessonCode] = useState('');
+
+  // Video uploading states
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSpeed, setUploadSpeed] = useState('0 MB/s');
+  const [uploadedVideoName, setUploadedVideoName] = useState<string | null>(null);
+
+  // Sync state values when selected item changes
+  useEffect(() => {
+    if (selectedItem.type === 'chapter' && activeChapter) {
+      setChapterTitle(activeChapter.title);
+    } else if (selectedItem.type === 'lesson' && activeLesson) {
+      setLessonTitle(activeLesson.title);
+      setLessonIsTrial(activeLesson.isTrial || false);
+      setLessonDuration(activeLesson.duration || '12:45');
+      setLessonTheory(activeLesson.theory || 'Welcome to this lesson. In this theory section, we will cover the core concepts...');
+      setLessonCode(activeLesson.code || 'None');
+      setUploadedVideoName(activeLesson.video || null);
     }
-  };
+  }, [selectedItem.chIdx, selectedItem.lesIdx, selectedItem.type, activeChapter, activeLesson]);
 
-  const saveOverviewEdit = () => {
+  const handleSaveChapter = () => {
+    if (!chapterTitle.trim()) {
+      alert('Chapter title cannot be empty!');
+      return;
+    }
     setCurriculumData(prev => {
       const newChapters = [...prev.chapters];
-      if (newChapters[selectedLessonIndices.chIdx]?.lessons[selectedLessonIndices.lesIdx]) {
-        newChapters[selectedLessonIndices.chIdx].lessons[selectedLessonIndices.lesIdx].overview = overviewTextarea;
+      newChapters[selectedItem.chIdx].title = chapterTitle.trim();
+      return { chapters: newChapters };
+    });
+    alert('Chapter info saved to backend successfully via separate API!');
+  };
+
+  const handleSaveLessonOverview = () => {
+    if (!lessonTitle.trim()) {
+      alert('Lesson title cannot be empty!');
+      return;
+    }
+    setCurriculumData(prev => {
+      const newChapters = [...prev.chapters];
+      const lesson = newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!];
+      if (lesson) {
+        lesson.title = lessonTitle.trim();
+        lesson.isTrial = lessonIsTrial;
       }
       return { chapters: newChapters };
     });
-    setIsOverviewEditing(false);
+    alert('Lesson Overview saved to backend successfully via separate API!');
+  };
+
+  const handleSaveLessonTheory = () => {
+    setCurriculumData(prev => {
+      const newChapters = [...prev.chapters];
+      const lesson = newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!];
+      if (lesson) {
+        lesson.theory = lessonTheory;
+      }
+      return { chapters: newChapters };
+    });
+    alert('Lesson Theory content saved to backend successfully via separate Theory API!');
+  };
+
+  const handleSaveLessonCode = () => {
+    setCurriculumData(prev => {
+      const newChapters = [...prev.chapters];
+      const lesson = newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!];
+      if (lesson) {
+        lesson.code = lessonCode;
+      }
+      return { chapters: newChapters };
+    });
+    alert('Lesson Sample Code saved to backend successfully via separate Code API!');
+  };
+
+  // Video uploading simulator representing a separate media upload API
+  const simulateVideoUpload = (fileName: string) => {
+    setIsUploadingVideo(true);
+    setUploadProgress(0);
+    setUploadSpeed('4.2 MB/s');
+    setUploadedVideoName(fileName);
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 15) + 5;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsUploadingVideo(false);
+          setCurriculumData(prev => {
+            const newChapters = [...prev.chapters];
+            if (newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!]) {
+              newChapters[selectedItem.chIdx].lessons[selectedItem.lesIdx!].video = fileName;
+            }
+            return { chapters: newChapters };
+          });
+          alert(`Video "${fileName}" has been successfully uploaded and linked via separate Media API!`);
+        }, 800);
+      }
+      setUploadProgress(progress);
+    }, 250);
   };
 
   // Student QA response state
@@ -257,8 +362,8 @@ export const InstructorDashboard: React.FC = () => {
 
     setCurriculumData(prev => {
       const newChapters = [...prev.chapters];
-      const chapter = newChapters[selectedLessonIndices.chIdx];
-      const lesson = chapter?.lessons[selectedLessonIndices.lesIdx];
+      const chapter = newChapters[selectedItem.chIdx];
+      const lesson = chapter?.lessons[selectedItem.lesIdx!];
       const question = lesson?.questions.find(q => q.id === qId);
 
       if (question) {
@@ -305,56 +410,23 @@ export const InstructorDashboard: React.FC = () => {
   const handleReplaceVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setCurriculumData(prev => {
-        const newChapters = [...prev.chapters];
-        if (newChapters[selectedLessonIndices.chIdx]?.lessons[selectedLessonIndices.lesIdx]) {
-          newChapters[selectedLessonIndices.chIdx].lessons[selectedLessonIndices.lesIdx].video = file.name;
-        }
-        return { chapters: newChapters };
-      });
-      alert(`Video "${file.name}" has been uploaded and linked to this lesson successfully!`);
+      simulateVideoUpload(file.name);
     }
   };
 
   const handleReplaceCode = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setLessonCode(file.name);
       setCurriculumData(prev => {
         const newChapters = [...prev.chapters];
-        if (newChapters[selectedLessonIndices.chIdx]?.lessons[selectedLessonIndices.lesIdx]) {
-          newChapters[selectedLessonIndices.chIdx].lessons[selectedLessonIndices.lesIdx].code = file.name;
+        if (newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!]) {
+          newChapters[selectedItem.chIdx].lessons[selectedItem.lesIdx!].code = file.name;
         }
         return { chapters: newChapters };
       });
-      alert(`Source code "${file.name}" uploaded successfully!`);
+      alert(`Source code "${file.name}" uploaded successfully via separate Code API!`);
     }
-  };
-
-  // Inline Title Editing in Accordion Outline
-  const [editingChapterIdx, setEditingChapterIdx] = useState<number | null>(null);
-  const [chapterRenameText, setChapterRenameText] = useState('');
-
-  const [editingLessonIndex, setEditingLessonIndex] = useState<{ chIdx: number; lesIdx: number } | null>(null);
-  const [lessonRenameText, setLessonRenameText] = useState('');
-
-  const saveChapterTitleInline = (chIdx: number) => {
-    const newTitle = chapterRenameText.trim() || curriculumData.chapters[chIdx].title;
-    setCurriculumData(prev => {
-      const newChapters = [...prev.chapters];
-      newChapters[chIdx].title = newTitle;
-      return { chapters: newChapters };
-    });
-    setEditingChapterIdx(null);
-  };
-
-  const saveLessonTitleInline = (chIdx: number, lesIdx: number) => {
-    const newTitle = lessonRenameText.trim() || curriculumData.chapters[chIdx].lessons[lesIdx].title;
-    setCurriculumData(prev => {
-      const newChapters = [...prev.chapters];
-      newChapters[chIdx].lessons[lesIdx].title = newTitle;
-      return { chapters: newChapters };
-    });
-    setEditingLessonIndex(null);
   };
 
   // Chapter & Lesson addition / deletion
@@ -371,8 +443,9 @@ export const InstructorDashboard: React.FC = () => {
       ];
       return { chapters: newChapters };
     });
-    // Autoselect last chapter's first lesson
-    setSelectedLessonIndices({ chIdx: curriculumData.chapters.length, lesIdx: 0 });
+    // Autoselect the newly added chapter
+    setSelectedItem({ type: 'chapter', chIdx: curriculumData.chapters.length, lesIdx: null });
+    scrollToCurriculumBottom();
   };
 
   const handleDeleteChapterWorkspace = (chIdx: number) => {
@@ -381,7 +454,7 @@ export const InstructorDashboard: React.FC = () => {
         const newChapters = prev.chapters.filter((_, i) => i !== chIdx);
         return { chapters: newChapters };
       });
-      setSelectedLessonIndices({ chIdx: 0, lesIdx: 0 });
+      setSelectedItem({ type: 'chapter', chIdx: 0, lesIdx: null });
     } else {
       alert('Course syllabus must have at least one chapter!');
     }
@@ -389,17 +462,27 @@ export const InstructorDashboard: React.FC = () => {
 
   const handleAddLessonWorkspace = (chIdx: number) => {
     setCurriculumData(prev => {
-      const newChapters = [...prev.chapters];
-      const nextNum = newChapters[chIdx].lessons.length + 1;
-      newChapters[chIdx].lessons.push({
-        title: `Lesson ${nextNum} Overview`,
-        video: `0${nextNum}_lesson.mp4`,
-        overview: "Provide syllabus details...",
-        code: "None",
-        questions: []
+      const newChapters = prev.chapters.map((ch, idx) => {
+        if (idx !== chIdx) return ch;
+        const nextNum = ch.lessons.length + 1;
+        return {
+          ...ch,
+          lessons: [
+            ...ch.lessons,
+            {
+              title: `Lesson ${nextNum} Overview`,
+              video: `0${nextNum}_lesson.mp4`,
+              overview: "Provide syllabus details...",
+              code: "None",
+              questions: []
+            }
+          ]
+        };
       });
       return { chapters: newChapters };
     });
+    // Select the new lesson immediately
+    setSelectedItem({ type: 'lesson', chIdx, lesIdx: curriculumData.chapters[chIdx].lessons.length });
   };
 
   const handleDeleteLessonWorkspace = (chIdx: number, lesIdx: number) => {
@@ -409,7 +492,7 @@ export const InstructorDashboard: React.FC = () => {
         newChapters[chIdx].lessons = newChapters[chIdx].lessons.filter((_, i) => i !== lesIdx);
         return { chapters: newChapters };
       });
-      setSelectedLessonIndices({ chIdx: 0, lesIdx: 0 });
+      setSelectedItem({ type: 'chapter', chIdx, lesIdx: null });
     } else {
       alert('A chapter must have at least one lesson!');
     }
@@ -923,9 +1006,9 @@ export const InstructorDashboard: React.FC = () => {
                     <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
                       <span className="material-symbols-outlined text-xs icon-fill">school</span> Instructor Dashboard
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-display font-black leading-tight">
-                      <span className="bg-gradient-to-r from-brand-blue to-blue-600 bg-clip-text text-transparent">Hello, </span>
-                      <span className="bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">Dr. Jenkins! 👋</span>
+                    <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10">
+                      <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">Hello, </span>
+                      <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">Dr. Jenkins! 👋</span>
                     </h1>
                     <p className="text-text-muted mt-1">Here is a high-level summary of your classes and revenue statistics.</p>
                   </div>
@@ -1194,7 +1277,13 @@ export const InstructorDashboard: React.FC = () => {
                 {/* Top course bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl md:text-3xl font-display font-black text-brand-blue">My Authored Courses</h2>
+                    <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
+                      <span className="material-symbols-outlined text-xs icon-fill">library_books</span> My Courses
+                    </div>
+                    <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10">
+                      <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">My Authored </span>
+                      <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">Courses</span>
+                    </h1>
                     <p className="text-xs text-text-muted mt-0.5">Manage details, modules, prices, and status for your student modules.</p>
                   </div>
                   <button
@@ -1440,7 +1529,13 @@ export const InstructorDashboard: React.FC = () => {
             {activeTab === 'revenue' && (
               <div id="tab-revenue" className="tab-content flex flex-col gap-8">
                 <div>
-                  <h2 className="text-2xl md:text-3xl font-display font-black text-brand-blue">Revenue Analytics</h2>
+                  <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
+                    <span className="material-symbols-outlined text-xs icon-fill">insights</span> Revenue Analytics
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10">
+                    <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">Revenue </span>
+                    <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">Analytics</span>
+                  </h1>
                   <p className="text-xs text-text-muted mt-0.5">Gain critical insights into subscription revenues, pass rates, and client satisfaction metrics.</p>
                 </div>
 
@@ -1679,234 +1774,446 @@ export const InstructorDashboard: React.FC = () => {
             {/* Workspace Body */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
               
-              {/* Left Column: Video Player and Tabs Content */}
-              <div className="lg:col-span-9 flex flex-col gap-6 w-full">
-                
-                {/* Video Player Area */}
-                <div className="w-full bg-[#0a0f1d] rounded-2xl overflow-hidden shadow-lg border border-gray-800 aspect-video relative flex items-center justify-center group" style={{ maxHeight: '520px' }}>
-                  {/* Dark Overlay play area */}
-                  <div className="absolute inset-0 bg-slate-900/60 z-0"></div>
-                  
-                  {/* Overlay Play Button */}
-                  <div id="editor-video-overlay" className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/45 gap-3 text-white transition-opacity duration-300">
-                    <button className="bg-primary hover:bg-primary-hover hover:scale-105 text-white rounded-full p-5 shadow-2xl transition-all duration-300 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[48px] icon-fill">play_arrow</span>
+              {/* Left Column: Dynamic Workspace States */}
+              {selectedItem.type === null && (
+                <div className="lg:col-span-9 flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-gray-200 shadow-sm text-center gap-6 min-h-[500px]">
+                  <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-primary border border-primary/20 shadow-inner">
+                    <span className="material-symbols-outlined text-[48px]">auto_stories</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-display font-black text-brand-blue leading-tight mb-2">Curriculum Builder Workspace</h3>
+                    <p className="text-xs text-text-muted max-w-[360px] mx-auto font-semibold">
+                      Select or create a chapter/lesson from the Course Syllabus outline on the right to start editing details individually.
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleAddChapterWorkspace}
+                      className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-md"
+                    >
+                      <span className="material-symbols-outlined text-sm">create_new_folder</span>
+                      <span>Add First Chapter</span>
                     </button>
-                    <div className="text-center mt-2">
-                      <span id="editor-video-name" className="text-xs font-bold block bg-black/60 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10 mt-1">
-                        {activeLesson ? activeLesson.video : '01_env_setup.mp4'}
-                      </span>
-                      <span className="text-[10px] text-slate-300 mt-1 block">Video duration: 12:45 | Resolution: 1080p | Format: MP4</span>
-                    </div>
-                  </div>
-                  
-                  {/* Video Controls */}
-                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4 flex items-center gap-4 z-20">
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                    <div className="flex-grow h-1 bg-white/20 rounded-full cursor-pointer relative group">
-                      <div className="absolute left-0 top-0 h-full bg-primary rounded-full" style={{ width: '30%' }}></div>
-                      <div className="absolute w-3 h-3 bg-white rounded-full top-1/2 -translate-y-1/2 shadow opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: '30%' }}></div>
-                    </div>
-                    <span className="font-mono text-xs text-white/90">03:45 / 12:45</span>
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">volume_up</span>
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">fullscreen</span>
-                  </div>
-
-                  {/* Upload replace video floating trigger */}
-                  <div className="absolute top-4 right-4 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <div className="relative bg-brand-blue/90 hover:bg-brand-blue backdrop-blur-sm px-4 py-2 rounded-xl text-xs font-bold text-white cursor-pointer shadow-md flex items-center gap-1.5 transition-all">
-                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="video/mp4,video/*" onChange={handleReplaceVideo} />
-                      <span className="material-symbols-outlined text-sm">video_library</span>
-                      <span>Upload / Replace Video</span>
-                    </div>
                   </div>
                 </div>
+              )}
 
-                {/* Player Sub-tabs Navigation */}
-                <div className="flex border-b border-gray-200 gap-6 overflow-x-auto hide-scrollbar pb-px">
-                  <button
-                    type="button"
-                    onClick={() => setEditorTab('overview')}
-                    className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
-                      editorTab === 'overview' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">info</span> Overview
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditorTab('qa')}
-                    className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
-                      editorTab === 'qa' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">forum</span> Q&A Discussion
-                    <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-red-100 text-red-600 font-bold border border-red-200/30">
-                      {activeLesson?.questions.length || 0}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditorTab('code')}
-                    className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
-                      editorTab === 'code' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">code</span> Source Code
-                  </button>
-                </div>
+              {selectedItem.type === 'chapter' && activeChapter && (
+                <div className="lg:col-span-9 bg-white rounded-3xl border border-gray-200 p-8 shadow-sm flex flex-col gap-6 min-h-[450px]">
+                  <div className="pb-4 border-b border-gray-100">
+                    <span className="text-[10px] font-extrabold text-primary uppercase tracking-wider">Workspace Mode</span>
+                    <h3 className="text-xl font-display font-black text-brand-blue leading-tight mt-1">Edit Chapter Outline</h3>
+                  </div>
 
-                {/* Tabs Content */}
-                <div className="bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px] shadow-sm">
-                  
-                  {/* Overview Tab */}
-                  {editorTab === 'overview' && activeLesson && (
-                    <div className="editor-tab-pane flex flex-col gap-3">
-                      {!isOverviewEditing ? (
-                        <div className="flex flex-col gap-3">
-                          <div className="flex justify-between items-start">
-                            <h5 className="font-display font-bold text-lg text-brand-blue">Lesson Overview</h5>
-                            <button
-                              type="button"
-                              onClick={openOverviewEdit}
-                              className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-hover px-2.5 py-1.5 rounded-xl bg-primary-light/35 hover:bg-primary-light/50 transition-colors"
-                            >
-                              <span className="material-symbols-outlined text-[14px]">edit</span> Edit Overview
-                            </button>
-                          </div>
-                          <p className="text-sm text-text-muted leading-relaxed font-semibold bg-slate-50/50 p-4.5 rounded-xl border border-slate-200/30">
-                            {activeLesson.overview}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-3">
-                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Edit Lesson Overview</label>
-                          <textarea
-                            value={overviewTextarea}
-                            onChange={(e) => setOverviewTextarea(e.target.value)}
-                            className="text-xs border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3 font-semibold text-brand-blue h-28 resize-none"
-                          />
-                          <div className="flex gap-2 justify-end">
-                            <button type="button" onClick={() => setIsOverviewEditing(false)} className="px-3.5 py-2 rounded-lg border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors">Cancel</button>
-                            <button type="button" onClick={saveOverviewEdit} className="px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all">Save Changes</button>
-                          </div>
-                        </div>
-                      )}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Chapter Order Index</label>
+                    <div className="bg-[#f8fafc] text-xs font-bold text-brand-blue px-4 py-3 rounded-xl border border-slate-200/50">
+                      Chapter {selectedItem.chIdx + 1}
                     </div>
-                  )}
+                  </div>
 
-                  {/* Q/A Tab */}
-                  {editorTab === 'qa' && activeLesson && (
-                    <div className="editor-tab-pane flex flex-col gap-4">
-                      <div className="flex justify-between items-center mb-1 pb-3 border-b border-gray-100">
-                        <h5 className="font-display font-black text-base text-brand-blue">Student Q&A Forum</h5>
-                        <span className="px-2 py-0.5 text-[10px] rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200">Instructor Management Mode</span>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Chapter Title</label>
+                    <input
+                      type="text"
+                      value={chapterTitle}
+                      onChange={(e) => setChapterTitle(e.target.value)}
+                      placeholder="e.g. Getting Started with React & ES6+"
+                      className="text-xs border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3 font-semibold text-brand-blue w-full"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 mt-4 border-t border-gray-100 pt-5">
+                    <button
+                      type="button"
+                      onClick={handleSaveChapter}
+                      className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-sm">save</span>
+                      <span>Save Chapter Title</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddLessonWorkspace(selectedItem.chIdx)}
+                      className="border-2 border-dashed border-gray-200 hover:border-primary text-primary hover:text-primary-hover bg-white text-xs font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-sm">add</span>
+                      <span>Add Lesson to Chapter</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selectedItem.type === 'lesson' && activeLesson && (
+                <div className="lg:col-span-9 flex flex-col gap-6 w-full animate-fade-in">
+                  
+                  {/* Lesson Workspace Header */}
+                  <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-extrabold text-primary uppercase tracking-wider">Chapter {selectedItem.chIdx + 1}</span>
+                        <span className="text-[10px] text-slate-350 font-bold">|</span>
+                        <span className="text-[10px] font-extrabold text-brand-blue uppercase tracking-wider">Lesson {selectedItem.lesIdx! + 1}</span>
                       </div>
-                      
-                      {activeLesson.questions.length === 0 ? (
-                        <div className="p-8 text-center bg-slate-50/50 border border-dashed border-slate-200/80 rounded-xl flex flex-col items-center gap-2">
-                          <span className="material-symbols-outlined text-3xl text-slate-300">chat_bubble_outline</span>
-                          <span className="text-xs font-bold text-slate-400">No questions asked yet for this lesson.</span>
+                      <h3 className="text-lg font-display font-black text-brand-blue leading-tight mt-1">{activeLesson.title}</h3>
+                    </div>
+                    <span className="px-2.5 py-0.5 text-[9px] rounded-full bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 font-bold uppercase tracking-wider shadow-sm shrink-0">Active Lesson</span>
+                  </div>
+
+                  {/* Player Sub-tabs Navigation */}
+                  <div className="flex border-b border-gray-200 gap-6 overflow-x-auto hide-scrollbar pb-px">
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('overview')}
+                      className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
+                        editorTab === 'overview' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">info</span> Overview
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('theory')}
+                      className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
+                        editorTab === 'theory' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">description</span> Theory
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('code')}
+                      className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
+                        editorTab === 'code' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">code</span> Sample Code
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('media')}
+                      className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
+                        editorTab === 'media' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">video_library</span> Video & Media
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('qa')}
+                      className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
+                        editorTab === 'qa' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">forum</span> Q&A Discussion
+                      <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-red-100 text-red-600 font-bold border border-red-200/30">
+                        {activeLesson.questions.length || 0}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Tabs Content Card */}
+                  <div className="bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px] shadow-sm">
+                    
+                    {/* TAB 1: Overview */}
+                    {editorTab === 'overview' && (
+                      <div className="flex flex-col gap-5">
+                        <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Lesson Overview</h4>
+                        
+                        <div className="flex flex-col gap-2">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Lesson Title</label>
+                          <input
+                            type="text"
+                            value={lessonTitle}
+                            onChange={(e) => setLessonTitle(e.target.value)}
+                            placeholder="e.g. Introduction to the Course"
+                            className="text-xs border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3 font-semibold text-brand-blue w-full"
+                          />
                         </div>
-                      ) : (
-                        <div className="flex flex-col gap-4.5">
-                          {activeLesson.questions.map((q) => (
-                            <div key={q.id} className="bg-slate-50/50 p-4.5 rounded-2xl border border-slate-200/40 flex flex-col gap-3 relative shadow-sm hover:shadow-md transition-all duration-300">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-center gap-2.5">
-                                  <img src={q.avatar} className="w-8 h-8 rounded-full border border-primary/30 object-cover shrink-0" alt="Student" />
-                                  <div className="flex flex-col">
-                                    <span className="text-xs font-extrabold text-brand-blue leading-tight">{q.author}</span>
-                                    <span className="text-[10px] text-text-muted font-bold">{q.role} | {q.time}</span>
-                                  </div>
-                                </div>
-                                <span className="px-2 py-0.5 text-[8px] rounded bg-primary/10 text-primary font-bold border border-primary/20 uppercase tracking-wider">Student Question</span>
+
+                        <div className="flex items-center justify-between p-4 bg-slate-50/50 rounded-xl border border-slate-200/30 mt-2">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-brand-blue">Free Trial Access</span>
+                            <span className="text-[10px] text-text-muted font-bold mt-0.5">Students can preview this without buying</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={lessonIsTrial}
+                              onChange={(e) => setLessonIsTrial(e.target.checked)}
+                              className="sr-only peer"
+                            />
+                            <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                          </label>
+                        </div>
+
+                        <div className="flex gap-2 justify-end mt-4 border-t border-gray-100 pt-5">
+                          <button
+                            type="button"
+                            onClick={handleSaveLessonOverview}
+                            className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-sm">save</span>
+                            <span>Save Lesson Info</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TAB 2: Theory */}
+                    {editorTab === 'theory' && (
+                      <div className="flex flex-col gap-5">
+                        <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Lesson Theory</h4>
+
+                        <div className="flex flex-col gap-2">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Theory & Concept Content</label>
+                          <textarea
+                            value={lessonTheory}
+                            onChange={(e) => setLessonTheory(e.target.value)}
+                            placeholder="Explain the theory, concept, or steps for this lesson..."
+                            className="text-xs border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3 font-semibold text-brand-blue h-48 resize-none w-full"
+                          />
+                        </div>
+
+                        <div className="flex gap-2 justify-end mt-4 border-t border-gray-100 pt-5">
+                          <button
+                            type="button"
+                            onClick={handleSaveLessonTheory}
+                            className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-sm">save</span>
+                            <span>Save Theory Content</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TAB 3: Sample Code */}
+                    {editorTab === 'code' && (
+                      <div className="flex flex-col gap-5">
+                        <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Sample Code / Project Attachment</h4>
+
+                        <div className="flex flex-col gap-2">
+                          <div className="border border-dashed border-slate-200 bg-slate-50/50 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                                <span className="material-symbols-outlined text-3xl">code_blocks</span>
                               </div>
-
-                              <p className="text-xs text-text-muted leading-relaxed font-semibold pl-10">{q.text}</p>
-
-                              {/* Replies map */}
-                              {q.replies && q.replies.length > 0 && (
-                                <div className="mt-2 pl-9 flex flex-col gap-3 border-t border-slate-200/50 pt-3">
-                                  {q.replies.map((reply, rIdx) => (
-                                    <div key={rIdx} className="bg-white p-3 rounded-xl border border-slate-100 flex flex-col gap-1.5 shadow-sm">
-                                      <div className="flex items-center gap-2">
-                                        <img src={reply.avatar} className="w-6 h-6 rounded-full border border-primary/20 object-cover" alt="Replier" />
-                                        <div className="flex flex-col">
-                                          <span className="text-[11px] font-extrabold text-brand-blue leading-tight">{reply.author}</span>
-                                          <span className="text-[9px] text-text-muted leading-none">{reply.role} | {reply.time}</span>
-                                        </div>
-                                      </div>
-                                      <p className="text-xs text-brand-blue pl-8 font-semibold leading-relaxed">{reply.text}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-
-                              {/* Instructor Answer workflow */}
-                              <div className="pl-10 flex flex-col gap-2">
-                                <div className="flex justify-end">
-                                  <button
-                                    onClick={() => toggleQaReplyInput(q.id)}
-                                    className="px-3.5 py-1.5 rounded-xl bg-primary text-white text-[10px] font-bold flex items-center gap-1 shadow-sm hover:bg-primary-hover hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                  >
-                                    <span className="material-symbols-outlined text-xs">reply</span> 
-                                    <span>Answer / Reply</span>
-                                  </button>
-                                </div>
-
-                                {activeQaReplyInputs[q.id] && (
-                                  <div className="flex flex-col gap-2 mt-2 bg-white p-3 rounded-xl border border-slate-200/60 shadow-inner animate-fade-in">
-                                    <textarea
-                                      placeholder={`Type your response to ${q.author}...`}
-                                      value={qaReplyTextState[q.id] || ''}
-                                      onChange={(e) => setQaReplyTextState(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                      className="text-xs border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-lg p-2.5 font-semibold text-brand-blue h-20 resize-none w-full"
-                                    />
-                                    <div className="flex gap-2 justify-end">
-                                      <button onClick={() => toggleQaReplyInput(q.id)} className="px-2.5 py-1 rounded border border-slate-200 text-slate-700 text-[9px] font-bold hover:bg-slate-50">Cancel</button>
-                                      <button onClick={() => submitQaReply(q.id)} className="px-2.5 py-1 rounded bg-brand-green hover:bg-brand-green-hover text-white text-[9px] font-bold transition-all shadow-sm">Submit Reply</button>
-                                    </div>
-                                  </div>
-                                )}
+                              <div className="min-w-0">
+                                <span className="text-sm font-bold text-brand-blue truncate block">
+                                  {lessonCode === 'None' ? 'No source code attached' : lessonCode}
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                  {lessonCode === 'None' ? 'Click replace to upload code archive' : '1.2 MB (ZIP Archive)'}
+                                </span>
                               </div>
                             </div>
-                          ))}
+                            <div className="relative bg-white border border-slate-200 hover:border-primary px-4 py-2 rounded-xl text-xs font-bold text-brand-blue cursor-pointer transition-all shrink-0 hover:scale-[1.01] active:scale-[0.99] shadow-sm">
+                              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleReplaceCode} />
+                              <span>Replace File</span>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  )}
 
-                  {/* Source Code Tab */}
-                  {editorTab === 'code' && activeLesson && (
-                    <div className="editor-tab-pane flex flex-col gap-4">
-                      <div className="flex justify-between items-start">
-                        <h5 className="font-display font-black text-base text-brand-blue">Source Code File</h5>
-                        <span className="text-[10px] text-text-muted font-bold">Attached curriculum scripts</span>
-                      </div>
-                      <div id="editor-code-upload-zone" className="border border-dashed border-slate-200 bg-slate-50/50 rounded-xl p-6 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                            <span className="material-symbols-outlined text-3xl">code_blocks</span>
+                        {/* Dark Code Mockup */}
+                        <div className="bg-[#1e1e1e] text-white p-4 rounded-xl border border-gray-800 font-mono text-xs shadow-md mt-2 flex flex-col gap-2 select-text">
+                          <div className="flex items-center justify-between border-b border-gray-700/50 pb-2 mb-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                              <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                              <span className="text-[10px] text-gray-400 ml-2 font-sans font-bold">sample_code.tsx</span>
+                            </div>
+                            <span className="text-[10px] text-gray-500 font-sans">Read Only Mock</span>
                           </div>
-                          <div className="min-w-0">
-                            <span id="editor-code-file-name" className="text-sm font-bold text-brand-blue truncate block">
-                              {activeLesson.code === 'None' ? 'No source code attached' : activeLesson.code}
-                            </span>
-                            <span id="editor-code-file-size" className="text-[11px] text-text-muted mt-0.5 block">
-                              {activeLesson.code === 'None' ? 'Click replace to upload code archive' : '1.2 MB (ZIP Archive)'}
-                            </span>
-                          </div>
+                          <pre className="text-[11px] leading-relaxed text-indigo-200">
+{`import React from 'react';\n\nexport const CourseDemo = () => {\n  return (\n    <div className="p-6 bg-slate-900 rounded-xl">\n      <h2>Welcome to Spring Boot Curriculum</h2>\n    </div>\n  );\n};`}
+                          </pre>
                         </div>
-                        <div className="relative bg-white border border-slate-200 hover:border-primary px-4 py-2 rounded-xl text-xs font-bold text-brand-blue cursor-pointer transition-all shrink-0 hover:scale-[1.01] active:scale-[0.99] shadow-sm">
-                          <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleReplaceCode} />
-                          <span>Replace File</span>
+
+                        <div className="flex gap-2 justify-end mt-4 border-t border-gray-100 pt-5">
+                          <button
+                            type="button"
+                            onClick={handleSaveLessonCode}
+                            className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-sm">save</span>
+                            <span>Save Sample Code</span>
+                          </button>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {/* TAB 4: Video & Media */}
+                    {editorTab === 'media' && (
+                      <div className="flex flex-col gap-5">
+                        <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Lesson Video & Media Attachment</h4>
+
+                        {isUploadingVideo ? (
+                          /* Uploading Video Progress State */
+                          <div className="border border-amber-200 bg-amber-500/5 rounded-2xl p-8 flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                                  <span className="material-symbols-outlined text-xl">upload_file</span>
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold text-brand-blue truncate max-w-[280px]">{uploadedVideoName || 'lesson_video.mp4'}</span>
+                                  <span className="text-[10px] text-text-muted mt-0.5">Size: 45.8 MB | Speed: {uploadSpeed}</span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => { setIsUploadingVideo(false); setUploadedVideoName(null); }}
+                                className="px-3 py-1.5 rounded-lg border border-red-200 text-red-500 text-[10px] font-bold bg-white hover:bg-red-50 transition-colors"
+                              >
+                                Cancel Upload
+                              </button>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5 mt-2">
+                              <div className="flex justify-between items-center text-[10px] font-extrabold text-amber-600 uppercase tracking-wider">
+                                <span>Uploading Video...</span>
+                                <span>{uploadProgress}%</span>
+                              </div>
+                              <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                                <div className="bg-gradient-to-r from-amber-500 to-amber-600 h-full rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* Standard/Uploaded Video Panel */
+                          <div className="flex flex-col gap-5">
+                            {uploadedVideoName ? (
+                              /* Embedded Video Player Mockup */
+                              <div className="flex flex-col gap-4">
+                                <div className="w-full bg-[#0a0f1d] rounded-2xl overflow-hidden shadow-lg border border-gray-800 aspect-video relative flex items-center justify-center group" style={{ maxHeight: '420px' }}>
+                                  <div className="absolute inset-0 bg-slate-900/60 z-0"></div>
+                                  
+                                  <div id="editor-video-overlay" className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/45 gap-3 text-white">
+                                    <button className="bg-primary hover:bg-primary-hover hover:scale-105 text-white rounded-full p-5 shadow-2xl transition-all duration-300 flex items-center justify-center">
+                                      <span className="material-symbols-outlined text-[48px] icon-fill">play_arrow</span>
+                                    </button>
+                                    <div className="text-center mt-2">
+                                      <span id="editor-video-name" className="text-xs font-bold block bg-black/60 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10 mt-1">
+                                        {uploadedVideoName}
+                                      </span>
+                                      <span className="text-[10px] text-slate-300 mt-1 block">Video duration: {lessonDuration} | Format: MP4</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200/50">
+                                  <span className="text-xs font-bold text-brand-blue">Need to change video?</span>
+                                  <div className="relative bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-brand-blue cursor-pointer transition-all shadow-sm flex items-center gap-1.5">
+                                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="video/mp4,video/*" onChange={handleReplaceVideo} />
+                                    <span className="material-symbols-outlined text-sm">video_library</span>
+                                    <span>Replace Video</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              /* Video Upload Dropzone */
+                              <div className="border border-dashed border-slate-300 bg-slate-50/40 rounded-2xl p-10 flex flex-col items-center justify-center text-center gap-3 relative hover:border-primary transition-all">
+                                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="video/mp4,video/*" onChange={handleReplaceVideo} />
+                                <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm">
+                                  <span className="material-symbols-outlined text-[28px]">movie</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-xs font-bold text-brand-blue">Drag & Drop Lesson Video here</span>
+                                  <span className="text-[10px] text-text-muted font-semibold">Supports MP4, MOV, or WEBM up to 500 MB</span>
+                                </div>
+                                <span className="mt-2 bg-white hover:bg-slate-50 border border-slate-200 text-brand-blue text-[10.5px] font-bold py-2 px-4 rounded-xl transition-all shadow-sm">Select Video File</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* TAB 4: Q&A Discussion */}
+                    {editorTab === 'qa' && (
+                      <div className="editor-tab-pane flex flex-col gap-4">
+                        <div className="flex justify-between items-center mb-1 pb-3 border-b border-gray-100">
+                          <h5 className="font-display font-black text-base text-brand-blue">Student Q&A Forum</h5>
+                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200">Instructor Management Mode</span>
+                        </div>
+                        
+                        {activeLesson.questions.length === 0 ? (
+                          <div className="p-8 text-center bg-slate-50/50 border border-dashed border-slate-200/80 rounded-xl flex flex-col items-center gap-2">
+                            <span className="material-symbols-outlined text-3xl text-slate-300">chat_bubble_outline</span>
+                            <span className="text-xs font-bold text-slate-400">No questions asked yet for this lesson.</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-6 mt-2">
+                            {activeLesson.questions.map((q) => (
+                              <div key={q.id} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-200/40 flex flex-col gap-3.5 relative shadow-sm hover:shadow-md transition-all duration-300">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-center gap-2.5">
+                                    <img src={q.avatar} className="w-8 h-8 rounded-full border border-primary/30 object-cover shrink-0" alt="Student" />
+                                    <div className="flex flex-col">
+                                      <span className="text-xs font-extrabold text-brand-blue leading-tight">{q.author}</span>
+                                      <span className="text-[10px] text-text-muted font-bold">{q.role} | {q.time}</span>
+                                    </div>
+                                  </div>
+                                  <span className="px-2 py-0.5 text-[8px] rounded bg-primary/10 text-primary font-bold border border-primary/20 uppercase tracking-wider">Student Question</span>
+                                </div>
+
+                                <p className="text-xs text-text-muted leading-relaxed font-semibold pl-10">{q.text}</p>
+
+                                {q.replies && q.replies.length > 0 && (
+                                  <div className="mt-3 pl-9 flex flex-col gap-4 border-t border-slate-200/50 pt-3">
+                                    {q.replies.map((reply, rIdx) => (
+                                      <div key={rIdx} className="bg-white p-3 rounded-xl border border-slate-100 flex flex-col gap-1.5 shadow-sm">
+                                        <div className="flex items-center gap-2">
+                                          <img src={reply.avatar} className="w-6 h-6 rounded-full border border-primary/20 object-cover" alt="Replier" />
+                                          <div className="flex flex-col">
+                                            <span className="text-[11px] font-extrabold text-brand-blue leading-tight">{reply.author}</span>
+                                            <span className="text-[9px] text-text-muted leading-none">{reply.role} | {reply.time}</span>
+                                          </div>
+                                        </div>
+                                        <p className="text-xs text-brand-blue pl-8 font-semibold leading-relaxed">{reply.text}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                <div className="pl-10 flex flex-col gap-2">
+                                  <div className="flex justify-end">
+                                    <button
+                                      onClick={() => toggleQaReplyInput(q.id)}
+                                      className="px-3.5 py-1.5 rounded-xl bg-primary text-white text-[10px] font-bold flex items-center gap-1 shadow-sm hover:bg-primary-hover hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                    >
+                                      <span className="material-symbols-outlined text-xs">reply</span> 
+                                      <span>Answer / Reply</span>
+                                    </button>
+                                  </div>
+
+                                  {activeQaReplyInputs[q.id] && (
+                                    <div className="flex flex-col gap-2 mt-2 bg-white p-3 rounded-xl border border-slate-200/60 shadow-inner animate-fade-in">
+                                      <textarea
+                                        placeholder={`Type your response to ${q.author}...`}
+                                        value={qaReplyTextState[q.id] || ''}
+                                        onChange={(e) => setQaReplyTextState(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                        className="text-xs border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-lg p-2.5 font-semibold text-brand-blue h-20 resize-none w-full"
+                                      />
+                                      <div className="flex gap-2 justify-end">
+                                        <button onClick={() => toggleQaReplyInput(q.id)} className="px-2.5 py-1 rounded border border-slate-200 text-slate-700 text-[9px] font-bold hover:bg-slate-50">Cancel</button>
+                                        <button onClick={() => submitQaReply(q.id)} className="px-2.5 py-1 rounded bg-brand-green hover:bg-brand-green-hover text-white text-[9px] font-bold transition-all shadow-sm">Submit Reply</button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Right Column: Chapters & Lessons Accordion Sidebar */}
               <div className="lg:col-span-3 bg-surface rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden w-full shrink-0 sticky top-6">
@@ -1923,43 +2230,21 @@ export const InstructorDashboard: React.FC = () => {
                   {curriculumData.chapters.map((chapter, chIdx) => (
                     <div key={chIdx} className="flex flex-col border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
                       {/* Chapter Title Row */}
-                      <div className="px-4 py-3 bg-slate-50 flex items-start justify-between border-b border-gray-200 gap-3">
+                      <div 
+                        onClick={() => setSelectedItem({ type: 'chapter', chIdx, lesIdx: null })}
+                        className={`px-4 py-3 cursor-pointer flex items-start justify-between border-b border-gray-200 gap-3 hover:bg-slate-100 transition-colors ${
+                          selectedItem.type === 'chapter' && selectedItem.chIdx === chIdx ? 'bg-primary-light/20 border-l-4 border-primary font-bold' : 'bg-slate-50'
+                        }`}
+                      >
                         <div className="flex items-start gap-2 min-w-0 flex-1">
                           <span className="material-symbols-outlined text-text-muted text-[18px] mt-0.5 shrink-0">toc</span>
-                          
-                          {editingChapterIdx !== chIdx ? (
-                            <div className="flex items-start min-w-0 flex-1">
-                              <div className="flex flex-col min-w-0 flex-1">
-                                <span className="text-[10px] font-extrabold text-primary uppercase tracking-wider">Chapter {chIdx + 1}</span>
-                                <span className="title-text text-xs font-bold text-text-main break-words whitespace-normal mt-0.5">{chapter.title}</span>
-                              </div>
-                              <button
-                                onClick={() => { setEditingChapterIdx(chIdx); setChapterRenameText(chapter.title); }}
-                                className="p-1 text-slate-400 hover:text-primary transition-colors inline-edit-btn shrink-0 ml-1"
-                                title="Rename Chapter"
-                              >
-                                <span className="material-symbols-outlined text-[14px]">edit</span>
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="text"
-                                value={chapterRenameText}
-                                onChange={(e) => setChapterRenameText(e.target.value)}
-                                className="text-xs border-slate-350 focus:border-primary focus:ring-primary focus:ring-1 rounded-lg p-0.5 font-semibold text-brand-blue max-w-[120px]"
-                              />
-                              <button
-                                onClick={() => saveChapterTitleInline(chIdx)}
-                                className="p-0.5 rounded bg-brand-green text-white flex items-center justify-center shrink-0"
-                              >
-                                <span className="material-symbols-outlined text-[10px] font-bold">check</span>
-                              </button>
-                            </div>
-                          )}
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-[10px] font-extrabold text-primary uppercase tracking-wider">Chapter {chIdx + 1}</span>
+                            <span className="title-text text-xs font-bold text-text-main break-words whitespace-normal mt-0.5">{chapter.title}</span>
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-1 shrink-0 ml-auto mt-0.5">
+                        <div className="flex items-center gap-1 shrink-0 ml-auto mt-0.5" onClick={(e) => e.stopPropagation()}>
                           <button onClick={() => handleAddLessonWorkspace(chIdx)} className="p-1 rounded bg-slate-100 hover:bg-primary-light/50 text-slate-500 hover:text-primary transition-colors flex items-center justify-center" title="Add Lesson">
                             <span className="material-symbols-outlined text-xs font-bold">add</span>
                           </button>
@@ -1972,13 +2257,12 @@ export const InstructorDashboard: React.FC = () => {
                       {/* Lessons List Container */}
                       <div className="flex flex-col divide-y divide-gray-150 bg-slate-50">
                         {chapter.lessons.map((lesson, lesIdx) => {
-                          const isSelected = selectedLessonIndices.chIdx === chIdx && selectedLessonIndices.lesIdx === lesIdx;
-                          const isLessonEditing = editingLessonIndex?.chIdx === chIdx && editingLessonIndex?.lesIdx === lesIdx;
+                          const isSelected = selectedItem.type === 'lesson' && selectedItem.chIdx === chIdx && selectedItem.lesIdx === lesIdx;
 
                           return (
                             <div
                               key={lesIdx}
-                              onClick={() => setSelectedLessonIndices({ chIdx, lesIdx })}
+                              onClick={(e) => { e.stopPropagation(); setSelectedItem({ type: 'lesson', chIdx, lesIdx }); }}
                               className={`editor-lesson-item flex items-start gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 transition-colors group text-xs text-text-main font-medium ${
                                 isSelected ? 'bg-primary-light/30 border-primary text-primary font-bold' : 'border-transparent'
                               }`}
@@ -1987,34 +2271,9 @@ export const InstructorDashboard: React.FC = () => {
                                 {isSelected ? 'play_arrow' : 'radio_button_unchecked'}
                               </span>
 
-                              {(!isLessonEditing) ? (
-                                <div className="flex items-center min-w-0 flex-1">
-                                  <span className="title-text break-words whitespace-normal flex-1 mt-0.5">{lesson.title}</span>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); setEditingLessonIndex({ chIdx, lesIdx }); setLessonRenameText(lesson.title); }}
-                                    className="p-0.5 text-slate-400 hover:text-primary opacity-0 group-hover:opacity-100 transition-all inline-edit-btn flex items-center justify-center shrink-0 ml-1"
-                                    title="Rename Lesson"
-                                  >
-                                    <span className="material-symbols-outlined text-[13px]">edit</span>
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 flex-1">
-                                  <input
-                                    type="text"
-                                    value={lessonRenameText}
-                                    onChange={(e) => setLessonRenameText(e.target.value)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="text-xs border-slate-350 focus:border-primary focus:ring-primary focus:ring-1 rounded-lg p-0.5 font-semibold text-brand-blue max-w-[120px]"
-                                  />
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); saveLessonTitleInline(chIdx, lesIdx); }}
-                                    className="p-0.5 rounded bg-brand-green text-white flex items-center justify-center shrink-0"
-                                  >
-                                    <span className="material-symbols-outlined text-[10px] font-bold">check</span>
-                                  </button>
-                                </div>
-                              )}
+                              <div className="flex items-center min-w-0 flex-1">
+                                <span className="title-text break-words whitespace-normal flex-1 mt-0.5">{lesson.title}</span>
+                              </div>
 
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleDeleteLessonWorkspace(chIdx, lesIdx); }}
