@@ -886,6 +886,7 @@ export const InstructorDashboard: React.FC = () => {
   const [appliedEndDate, setAppliedEndDate] = useState<string>('');
   
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
+  const [hoveredEnrollmentPointIdx, setHoveredEnrollmentPointIdx] = useState<number | null>(null);
   const [selectedFailedPayout, setSelectedFailedPayout] = useState<PayoutHistoryItem | null>(null);
   const [enrollmentPage, setEnrollmentPage] = useState<number>(1);
   const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
@@ -1030,6 +1031,74 @@ export const InstructorDashboard: React.FC = () => {
       roundMax
     };
   }, [monthlyChartData]);
+
+  const monthlyEnrollmentChartData = useMemo(() => {
+    const months = [
+      { label: 'Jun 25', year: 2025, month: 5, count: 0 },
+      { label: 'Jul 25', year: 2025, month: 6, count: 0 },
+      { label: 'Aug 25', year: 2025, month: 7, count: 0 },
+      { label: 'Sep 25', year: 2025, month: 8, count: 0 },
+      { label: 'Oct 25', year: 2025, month: 9, count: 0 },
+      { label: 'Nov 25', year: 2025, month: 10, count: 0 },
+      { label: 'Dec 25', year: 2025, month: 11, count: 0 },
+      { label: 'Jan 26', year: 2026, month: 0, count: 0 },
+      { label: 'Feb 26', year: 2026, month: 1, count: 0 },
+      { label: 'Mar 26', year: 2026, month: 2, count: 0 },
+      { label: 'Apr 26', year: 2026, month: 3, count: 0 },
+      { label: 'May 26', year: 2026, month: 4, count: 0 }
+    ];
+
+    mockTransactions.forEach(tx => {
+      const d = new Date(tx.timestamp);
+      const txYear = d.getFullYear();
+      const txMonth = d.getMonth();
+      
+      const matched = months.find(m => m.year === txYear && m.month === txMonth);
+      if (matched) {
+        matched.count += 1;
+      }
+    });
+
+    return months;
+  }, [mockTransactions]);
+
+  const enrollmentChartPoints = useMemo(() => {
+    const maxCount = Math.max(...monthlyEnrollmentChartData.map(m => m.count), 5);
+    const roundMax = Math.ceil(maxCount / 5) * 5;
+    
+    const width = 720;
+    const height = 240;
+    const paddingLeft = 40;
+    const paddingRight = 15;
+    const paddingTop = 15;
+    const paddingBottom = 30;
+    
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+    
+    const points = monthlyEnrollmentChartData.map((m, idx) => {
+      const x = paddingLeft + (idx * (chartWidth / 11));
+      const y = paddingTop + chartHeight - (m.count / roundMax) * chartHeight;
+      return {
+        x,
+        y,
+        countFormatted: m.count + (m.count === 1 ? ' student' : ' students')
+      };
+    });
+    
+    return {
+      points,
+      paddingLeft,
+      paddingRight,
+      paddingTop,
+      paddingBottom,
+      width,
+      height,
+      chartWidth,
+      chartHeight,
+      roundMax
+    };
+  }, [monthlyEnrollmentChartData]);
 
   const sortedMockTransactions = useMemo(() => {
     return [...mockTransactions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -1442,106 +1511,354 @@ export const InstructorDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Graphs & Actions Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Graphs & Trends Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Left: Analytics Enrollment Chart */}
-                  <div className="lg:col-span-8 bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
+                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
                     <div className="flex justify-between items-center mb-6">
                       <div>
                         <h3 className="font-display font-bold text-lg text-brand-blue">Student Enrollment Trend</h3>
-                        <p className="text-xs text-text-muted">Visualizes course subscriptions over the last 5 months.</p>
+                        <p className="text-xs text-text-muted mt-0.5">Visualizes course subscriptions over the last 12 months.</p>
                       </div>
-                      <span className="text-xs font-bold text-primary flex items-center gap-1 bg-primary-light/30 px-2 py-0.5 rounded-lg">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span> Subscriptions
-                      </span>
+                      <div className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-slate-50 border border-slate-200/40 p-2 rounded-xl">
+                        <span className="w-3 h-3 bg-primary rounded-full"></span>
+                        <span>Monthly Enrollments</span>
+                      </div>
                     </div>
 
                     {/* Curved Premium SVG Line Chart */}
-                    <div className="w-full relative h-[250px] mt-4 select-none">
-                      <svg className="w-full h-full" viewBox="0 0 700 240" preserveAspectRatio="none">
+                    <div className="w-full relative h-[260px] mt-2 select-none">
+                      <svg viewBox={`0 0 ${enrollmentChartPoints.width} ${enrollmentChartPoints.height}`} className="w-full h-full overflow-visible select-none">
                         <defs>
-                          <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient id="enrollment-chart-area-grad" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#F36F21" stopOpacity="0.25" />
                             <stop offset="100%" stopColor="#F36F21" stopOpacity="0.00" />
                           </linearGradient>
+                          <filter id="enrollment-shadow" x="-10%" y="-10%" width="120%" height="120%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.08" />
+                          </filter>
                         </defs>
 
                         {/* Grid Lines */}
-                        <line x1="0" y1="40" x2="700" y2="40" stroke="#f1f5f9" strokeWidth="1.5" />
-                        <line x1="0" y1="90" x2="700" y2="90" stroke="#f1f5f9" strokeWidth="1.5" />
-                        <line x1="0" y1="140" x2="700" y2="140" stroke="#f1f5f9" strokeWidth="1.5" />
-                        <line x1="0" y1="190" x2="700" y2="190" stroke="#f1f5f9" strokeWidth="1.5" />
+                        {[0, 0.25, 0.5, 0.75, 1].map((ratio, gridIdx) => {
+                          const y = enrollmentChartPoints.paddingTop + enrollmentChartPoints.chartHeight - ratio * enrollmentChartPoints.chartHeight;
+                          const gridVal = ratio * enrollmentChartPoints.roundMax;
+                          return (
+                            <g key={gridIdx} className="opacity-40">
+                              <line 
+                                x1={enrollmentChartPoints.paddingLeft} 
+                                y1={y} 
+                                x2={enrollmentChartPoints.width - enrollmentChartPoints.paddingRight} 
+                                y2={y} 
+                                stroke="#cbd5e1" 
+                                strokeWidth="1" 
+                                strokeDasharray="4 4" 
+                              />
+                              <text 
+                                x={enrollmentChartPoints.paddingLeft - 8} 
+                                y={y + 3} 
+                                textAnchor="end" 
+                                className="text-[10px] fill-slate-500 font-extrabold"
+                              >
+                                {Math.round(gridVal)}
+                              </text>
+                            </g>
+                          );
+                        })}
 
                         {/* Filled Area Under the Curve */}
-                        <path
-                          d="M 50 190 C 150 170, 200 130, 300 120 C 400 110, 450 70, 550 50 C 600 40, 650 30, 670 25 L 670 190 Z"
-                          fill="url(#chartGradient)"></path>
+                        {enrollmentChartPoints.points.length > 0 && (
+                          <path
+                            d={`M ${enrollmentChartPoints.points[0].x} ${enrollmentChartPoints.paddingTop + enrollmentChartPoints.chartHeight} 
+                               L ${enrollmentChartPoints.points.map(p => `${p.x} ${p.y}`).join(' L ')} 
+                               L ${enrollmentChartPoints.points[enrollmentChartPoints.points.length - 1].x} ${enrollmentChartPoints.paddingTop + enrollmentChartPoints.chartHeight} Z`}
+                            fill="url(#enrollment-chart-area-grad)"
+                          />
+                        )}
 
                         {/* Smooth Orange Trend Line */}
-                        <path
-                          d="M 50 190 C 150 170, 200 130, 300 120 C 400 110, 450 70, 550 50 C 600 40, 650 30, 670 25"
-                          fill="none" stroke="#F36F21" strokeWidth="3" strokeLinecap="round"></path>
+                        {enrollmentChartPoints.points.length > 0 && (
+                          <path
+                            d={`M ${enrollmentChartPoints.points.map(p => `${p.x} ${p.y}`).join(' L ')}`}
+                            fill="none" 
+                            stroke="#F36F21" 
+                            strokeWidth="3.5" 
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        )}
 
                         {/* Data Dots */}
-                        <circle cx="50" cy="190" r="5" fill="#fff" stroke="#F36F21" strokeWidth="3"></circle>
-                        <circle cx="170" cy="165" r="5" fill="#fff" stroke="#F36F21" strokeWidth="3"></circle>
-                        <circle cx="300" cy="120" r="5" fill="#fff" stroke="#F36F21" strokeWidth="3"></circle>
-                        <circle cx="430" cy="95" r="5" fill="#fff" stroke="#F36F21" strokeWidth="3"></circle>
-                        <circle cx="550" cy="50" r="5" fill="#fff" stroke="#F36F21" strokeWidth="3"></circle>
-                        <circle cx="670" cy="25" r="5" fill="#fff" stroke="#F36F21" strokeWidth="3"></circle>
+                        {enrollmentChartPoints.points.map((p, idx) => {
+                          const isHovered = hoveredEnrollmentPointIdx === idx;
+                          return (
+                            <g key={idx}>
+                              {isHovered && (
+                                <circle 
+                                  cx={p.x} 
+                                  cy={p.y} 
+                                  r="8.5" 
+                                  fill="#F36F21" 
+                                  fillOpacity="0.2" 
+                                  className="transition-all duration-200"
+                                />
+                              )}
+                              <circle 
+                                cx={p.x} 
+                                cy={p.y} 
+                                r={isHovered ? "6" : "4.5"} 
+                                fill="#fff" 
+                                stroke="#F36F21" 
+                                strokeWidth={isHovered ? "4" : "2.5"}
+                                className="cursor-pointer transition-all duration-200"
+                                onMouseEnter={() => setHoveredEnrollmentPointIdx(idx)}
+                                onMouseLeave={() => setHoveredEnrollmentPointIdx(null)}
+                              />
+                            </g>
+                          );
+                        })}
 
                         {/* X Axis Labels */}
-                        <text x="50" y="215" fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle">January</text>
-                        <text x="170" y="215" fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle">February</text>
-                        <text x="300" y="215" fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle">March</text>
-                        <text x="430" y="215" fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle">April</text>
-                        <text x="550" y="215" fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle">May</text>
-                        <text x="670" y="215" fill="#64748b" fontSize="10" fontWeight="600" textAnchor="middle">June</text>
+                        {monthlyEnrollmentChartData.map((m, idx) => {
+                          const p = enrollmentChartPoints.points[idx];
+                          return (
+                            <text 
+                              key={idx}
+                              x={p.x} 
+                              y={enrollmentChartPoints.height - 8} 
+                              fill="#64748b" 
+                              fontSize="9" 
+                              fontWeight="800" 
+                              textAnchor="middle"
+                              className="tracking-tight"
+                            >
+                              {m.label}
+                            </text>
+                          );
+                        })}
+
+                        {/* Tooltip Card */}
+                        {hoveredEnrollmentPointIdx !== null && (() => {
+                          const p = enrollmentChartPoints.points[hoveredEnrollmentPointIdx];
+                          const tooltipWidth = 120;
+                          const tooltipHeight = 48;
+                          let tx = p.x - tooltipWidth / 2;
+                          let ty = p.y - tooltipHeight - 12;
+                          
+                          // Bound checks
+                          if (tx < enrollmentChartPoints.paddingLeft) tx = enrollmentChartPoints.paddingLeft;
+                          if (tx + tooltipWidth > enrollmentChartPoints.width - enrollmentChartPoints.paddingRight) {
+                            tx = enrollmentChartPoints.width - enrollmentChartPoints.paddingRight - tooltipWidth;
+                          }
+
+                          return (
+                            <g filter="url(#enrollment-shadow)" className="pointer-events-none animate-fade-in">
+                              <rect 
+                                x={tx} 
+                                y={ty} 
+                                width={tooltipWidth} 
+                                height={tooltipHeight} 
+                                rx="10" 
+                                fill="#12284C" 
+                              />
+                              <text 
+                                x={tx + tooltipWidth / 2} 
+                                y={ty + 18} 
+                                textAnchor="middle" 
+                                fill="#94a3b8" 
+                                className="text-[9px] font-extrabold uppercase tracking-wider"
+                              >
+                                {monthlyEnrollmentChartData[hoveredEnrollmentPointIdx].label}
+                              </text>
+                              <text 
+                                x={tx + tooltipWidth / 2} 
+                                y={ty + 34} 
+                                textAnchor="middle" 
+                                fill="#ffffff" 
+                                className="text-[12px] font-black"
+                              >
+                                {p.countFormatted}
+                              </text>
+                            </g>
+                          );
+                        })()}
                       </svg>
+                    </div>
+                    <div className="text-center text-[10px] text-text-muted mt-3 font-semibold">
+                      <span>* Hover over data points to display precise monthly subscription details.</span>
                     </div>
                   </div>
 
-                  {/* Right: Quick Console Actions */}
-                  <div className="lg:col-span-4 bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Quick Actions</h3>
-                      <div className="flex flex-col gap-3">
-                        {/* Create Course CTA */}
-                        <button
-                          onClick={() => setIsCreateCourseOpen(true)}
-                          className="group text-left p-3.5 rounded-xl border border-slate-200 hover:border-primary/30 bg-surface hover:bg-primary-light/10 transition-all duration-300 flex items-center gap-3 w-full"
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
-                            <span className="material-symbols-outlined text-[20px]">library_add</span>
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-bold text-brand-blue group-hover:text-primary transition-colors">Create New Course</h4>
-                            <p className="text-[11px] text-text-muted mt-0.5">Design syllabus, upload files, write content.</p>
-                          </div>
-                        </button>
-
-
-
-                        {/* View Sales CTA */}
-                        <a
-                          href="#revenue"
-                          onClick={() => setActiveTab('revenue')}
-                          className="group text-left p-3.5 rounded-xl border border-slate-200 hover:border-blue-300 bg-surface hover:bg-blue-50/50 transition-all duration-300 flex items-center gap-3"
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-                            <span className="material-symbols-outlined text-[20px]">query_stats</span>
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-bold text-brand-blue group-hover:text-blue-600 transition-colors">View Sales & Revenue</h4>
-                            <p className="text-[11px] text-text-muted mt-0.5">Track user payouts and subscription growth.</p>
-                          </div>
-                        </a>
+                  {/* Right: 12-Month Revenue Trend Chart Card */}
+                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                      <div>
+                        <h3 className="font-display font-bold text-lg text-brand-blue uppercase tracking-wider">12-Month Revenue Trend</h3>
+                        <p className="text-xs text-text-muted mt-0.5">Visual representation of monthly gross earnings variations over a year.</p>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-slate-50 border border-slate-200/40 p-2 rounded-xl">
+                        <span className="w-3 h-3 bg-primary rounded-full"></span>
+                        <span>Monthly Gross Revenue</span>
                       </div>
                     </div>
 
-                    <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between text-xs text-text-muted font-medium bg-slate-50 p-3.5 rounded-xl">
-                      <span>Next payout cycle:</span>
-                      <span className="font-bold text-brand-blue">June 01, 2026</span>
+                    {/* SVG Line Chart Wrapper */}
+                    <div className="relative w-full h-[260px] mt-2">
+                      <svg viewBox={`0 0 ${chartPoints.width} ${chartPoints.height}`} className="w-full h-full overflow-visible select-none">
+                        <defs>
+                          <linearGradient id="dashboard-chart-area-grad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#F36F21" stopOpacity="0.25"/>
+                            <stop offset="100%" stopColor="#F36F21" stopOpacity="0"/>
+                          </linearGradient>
+                          <filter id="dashboard-shadow" x="-10%" y="-10%" width="120%" height="120%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.08"/>
+                          </filter>
+                        </defs>
+                        
+                        {/* Horizontal Gridlines */}
+                        {[0, 0.25, 0.5, 0.75, 1].map((ratio, gridIdx) => {
+                          const y = chartPoints.paddingTop + chartPoints.chartHeight - ratio * chartPoints.chartHeight;
+                          const gridVal = ratio * chartPoints.roundMax;
+                          return (
+                            <g key={gridIdx} className="opacity-40">
+                              <line 
+                                x1={chartPoints.paddingLeft} 
+                                y1={y} 
+                                x2={chartPoints.width - chartPoints.paddingRight} 
+                                y2={y} 
+                                stroke="#cbd5e1" 
+                                strokeWidth="1" 
+                                strokeDasharray="4 4" 
+                              />
+                              <text 
+                                x={chartPoints.paddingLeft - 10} 
+                                y={y + 4} 
+                                textAnchor="end" 
+                                className="text-[10px] fill-slate-500 font-extrabold"
+                              >
+                                {gridVal === 0 ? '0 ₫' : `${(gridVal / 1000000).toFixed(1)}M ₫`}
+                              </text>
+                            </g>
+                          );
+                        })}
+
+                        {/* Smooth Area Under the Curve */}
+                        {chartPoints.points.length > 0 && (
+                          <path
+                            d={`M ${chartPoints.points[0].x} ${chartPoints.paddingTop + chartPoints.chartHeight} 
+                               L ${chartPoints.points.map(p => `${p.x} ${p.y}`).join(' L ')} 
+                               L ${chartPoints.points[chartPoints.points.length - 1].x} ${chartPoints.paddingTop + chartPoints.chartHeight} Z`}
+                            fill="url(#dashboard-chart-area-grad)"
+                          />
+                        )}
+
+                        {/* Line Stroke */}
+                        {chartPoints.points.length > 0 && (
+                          <path
+                            d={`M ${chartPoints.points.map(p => `${p.x} ${p.y}`).join(' L ')}`}
+                            fill="none"
+                            stroke="#F36F21"
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        )}
+
+                        {/* Interactive Data Dots */}
+                        {chartPoints.points.map((p, idx) => {
+                          const isHovered = hoveredPointIdx === idx;
+                          return (
+                            <g key={idx}>
+                              {isHovered && (
+                                <circle 
+                                  cx={p.x} 
+                                  cy={p.y} 
+                                  r="8.5" 
+                                  fill="#F36F21" 
+                                  fillOpacity="0.2" 
+                                  className="transition-all duration-200"
+                                />
+                              )}
+                              <circle
+                                cx={p.x}
+                                cy={p.y}
+                                r={isHovered ? "6" : "4.5"}
+                                fill="#ffffff"
+                                stroke="#F36F21"
+                                strokeWidth={isHovered ? "4" : "2.5"}
+                                className="cursor-pointer transition-all duration-200"
+                                onMouseEnter={() => setHoveredPointIdx(idx)}
+                                onMouseLeave={() => setHoveredPointIdx(null)}
+                              />
+                            </g>
+                          );
+                        })}
+
+                        {/* X-Axis Month Ticks */}
+                        {monthlyChartData.map((m, idx) => {
+                          const p = chartPoints.points[idx];
+                          return (
+                            <text
+                              key={idx}
+                              x={p.x}
+                              y={chartPoints.height - 8}
+                              textAnchor="middle"
+                              className="text-[9px] fill-slate-400 font-extrabold tracking-tight"
+                            >
+                              {m.label}
+                            </text>
+                          );
+                        })}
+
+                        {/* Floating Custom SVG Tooltip Card */}
+                        {hoveredPointIdx !== null && (() => {
+                          const p = chartPoints.points[hoveredPointIdx];
+                          const tooltipWidth = 130;
+                          const tooltipHeight = 48;
+                          let tx = p.x - tooltipWidth / 2;
+                          let ty = p.y - tooltipHeight - 12;
+                          
+                          // Bound checks
+                          if (tx < chartPoints.paddingLeft) tx = chartPoints.paddingLeft;
+                          if (tx + tooltipWidth > chartPoints.width - chartPoints.paddingRight) {
+                            tx = chartPoints.width - chartPoints.paddingRight - tooltipWidth;
+                          }
+
+                          return (
+                            <g filter="url(#dashboard-shadow)" className="pointer-events-none animate-fade-in">
+                              <rect 
+                                x={tx} 
+                                y={ty} 
+                                width={tooltipWidth} 
+                                height={tooltipHeight} 
+                                rx="10" 
+                                fill="#12284C" 
+                              />
+                              <text 
+                                x={tx + tooltipWidth / 2} 
+                                y={ty + 18} 
+                                textAnchor="middle" 
+                                fill="#94a3b8" 
+                                className="text-[9px] font-extrabold uppercase tracking-wider"
+                              >
+                                {monthlyChartData[hoveredPointIdx].label}
+                              </text>
+                              <text 
+                                x={tx + tooltipWidth / 2} 
+                                y={ty + 34} 
+                                textAnchor="middle" 
+                                fill="#ffffff" 
+                                className="text-[12px] font-black"
+                              >
+                                {p.amountFormatted}
+                              </text>
+                            </g>
+                          );
+                        })()}
+                      </svg>
+                    </div>
+                    <div className="text-center text-[10px] text-text-muted mt-3 font-semibold">
+                      <span>* Hover over data points to display precise monthly gross earnings details.</span>
                     </div>
                   </div>
                 </div>
