@@ -57,8 +57,8 @@ interface InstructorCourse {
 export const InstructorDashboard: React.FC = () => {
   const { user } = useApp();
 
-  // Navigation active tab: 'dashboard' | 'my-courses' | 'revenue' | 'wallet' | 'edit-course'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'my-courses' | 'revenue' | 'wallet' | 'edit-course'>('dashboard');
+  // Navigation active tab: 'dashboard' | 'my-courses' | 'revenue' | 'edit-course'
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'my-courses' | 'revenue' | 'edit-course'>('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // Synchronize Tab State with Location Hash (just like in the HTML template)
@@ -71,8 +71,6 @@ export const InstructorDashboard: React.FC = () => {
         setActiveTab('my-courses');
       } else if (currentHash === '#revenue') {
         setActiveTab('revenue');
-      } else if (currentHash === '#wallet') {
-        setActiveTab('wallet');
       } else {
         setActiveTab('dashboard');
       }
@@ -864,20 +862,6 @@ export const InstructorDashboard: React.FC = () => {
             <span className="sidebar-text text-sm">Revenue</span>
           </a>
 
-          <a
-            href="#wallet"
-            onClick={() => setActiveTab('wallet')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'wallet'
-                ? 'bg-white/10 text-white font-bold border-l-4 border-primary'
-                : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
-          >
-            <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${
-              activeTab === 'wallet' ? 'text-primary icon-fill' : ''
-            }`}>account_balance_wallet</span>
-            <span className="sidebar-text text-sm">Wallet</span>
-          </a>
         </nav>
 
         {/* Sidebar Footer Action (Student View Switcher & Profile) */}
@@ -1664,127 +1648,7 @@ export const InstructorDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* ================= TAB: WALLET ================= */}
-            {activeTab === 'wallet' && (
-              <div id="tab-wallet" className="tab-content flex flex-col gap-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
-                      <span className="material-symbols-outlined text-xs icon-fill">account_balance_wallet</span> My Wallet
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-display font-black text-brand-blue">Wallet & Financials</h2>
-                    <p className="text-xs text-text-muted mt-0.5">Manage your payout methods, review historical transactions, and withdraw funds.</p>
-                  </div>
-                </div>
 
-                {/* Wallet Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Main Balance */}
-                  <div className="bg-gradient-to-br from-brand-blue to-brand-blue-light text-white rounded-2xl p-6 border border-brand-blue-light/50 shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[160px]">
-                    <div className="absolute -right-6 -bottom-6 opacity-10">
-                      <span className="material-symbols-outlined text-[120px]">account_balance_wallet</span>
-                    </div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Available Balance</span>
-                        <p className="text-3xl font-display font-black tracking-tight mt-1">10.730.000 ₫</p>
-                      </div>
-                      <span className="px-2 py-0.5 text-[10px] font-bold bg-white/20 rounded-lg text-white">Active</span>
-                    </div>
-                    <button onClick={handlePayoutRequest} className="w-full mt-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-1">
-                      <span className="material-symbols-outlined text-sm">local_atm</span> Withdraw Funds
-                    </button>
-                  </div>
-
-                  {/* Pending Balance */}
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between min-h-[160px]">
-                    <div>
-                      <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Pending Payouts</span>
-                      <p className="text-3xl font-display font-black text-brand-blue mt-1">4.500.000 ₫</p>
-                      <p className="text-[10px] text-text-muted mt-1.5">Next settlement on June 01, 2026</p>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-brand-green font-bold bg-brand-green-light px-3 py-1.5 rounded-xl border border-brand-green/10 mt-3">
-                      <span className="w-2 h-2 rounded-full bg-brand-green inline-block animate-pulse"></span>
-                      <span>Auto-transfer active</span>
-                    </div>
-                  </div>
-
-                  {/* Payout Method */}
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between min-h-[160px]">
-                    <div>
-                      <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Payout Destination</span>
-                      <div className="flex items-center gap-3 mt-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-xl">account_balance</span>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-brand-blue truncate">Vietcombank</p>
-                          <p className="text-[10px] text-text-muted mt-0.5">•••• 8899</p>
-                        </div>
-                      </div>
-                    </div>
-                    <button onClick={() => alert('Bank account routing update workflow is under maintenance.')} className="w-full mt-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold text-xs transition-colors flex items-center justify-center gap-1">
-                      <span className="material-symbols-outlined text-sm">edit</span> Update Method
-                    </button>
-                  </div>
-                </div>
-
-                {/* Transaction History */}
-                <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow">
-                  <div className="flex items-center justify-between mb-5">
-                    <h3 className="font-display font-bold text-lg text-brand-blue">Transaction History</h3>
-                    <div className="flex items-center gap-2">
-                      <button className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600">
-                        <span className="material-symbols-outlined text-sm">filter_list</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto w-full">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
-                      <thead>
-                        <tr className="text-xs uppercase tracking-wider text-text-muted border-b border-slate-100 font-semibold bg-slate-50/50 rounded-lg">
-                          <th className="py-3 px-4 rounded-l-lg">Transaction ID</th>
-                          <th className="py-3 px-4">Date</th>
-                          <th className="py-3 px-4">Type</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-right rounded-r-lg font-bold text-primary">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr>
-                          <td className="py-3.5 px-4 font-mono text-xs text-brand-blue font-bold">TXN-902348</td>
-                          <td className="py-3.5 px-4 text-slate-500 font-medium">May 15, 2026</td>
-                          <td className="py-3.5 px-4 text-slate-700 font-medium">Withdrawal to Vietcombank</td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 text-[10px] rounded-full bg-brand-green-light text-brand-green font-bold">Success</span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-bold text-red-600">-5.000.000 ₫</td>
-                        </tr>
-                        <tr>
-                          <td className="py-3.5 px-4 font-mono text-xs text-brand-blue font-bold">TXN-894723</td>
-                          <td className="py-3.5 px-4 text-slate-500 font-medium">May 01, 2026</td>
-                          <td className="py-3.5 px-4 text-slate-700 font-medium">Monthly Settlement Payout</td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 text-[10px] rounded-full bg-brand-green-light text-brand-green font-bold">Success</span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-bold text-red-600">-10.730.000 ₫</td>
-                        </tr>
-                        <tr>
-                          <td className="py-3.5 px-4 font-mono text-xs text-brand-blue font-bold">TXN-881245</td>
-                          <td className="py-3.5 px-4 text-slate-500 font-medium">April 24, 2026</td>
-                          <td className="py-3.5 px-4 text-slate-700 font-medium">Course Sale: DSA Course</td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-600 font-bold">Processed</span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-bold text-brand-green">+499.000 ₫</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
           </main>
         )}
 
