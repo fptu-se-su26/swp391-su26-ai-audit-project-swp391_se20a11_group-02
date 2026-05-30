@@ -293,21 +293,13 @@ export const StudentDashboard: React.FC = () => {
   const [paymentStatusClass, setPaymentStatusClass] = useState<string>('');
   const [showDepositToast, setShowDepositToast] = useState<boolean>(false);
 
-  // Withdraw Tab States
-  const [withdrawBank, setWithdrawBank] = useState<string>('');
-  const [withdrawNumber, setWithdrawNumber] = useState<string>('');
-  const [withdrawName, setWithdrawName] = useState<string>('');
-  const [withdrawAmount, setWithdrawAmount] = useState<string>('');
-  const [isWithdrawLoading, setIsWithdrawLoading] = useState<boolean>(false);
-  const [showWithdrawToast, setShowWithdrawToast] = useState<boolean>(false);
-
   // Synchronize Tab with Location Hash
   useEffect(() => {
     const hash = location.hash.replace('#', '');
-    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'withdraw', 'payment-transaction'];
+    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction'];
     if (hash && validTabs.includes(hash)) {
       setActiveTab(hash);
-      if (['wallet-transaction', 'deposit', 'withdraw', 'payment-transaction'].includes(hash)) {
+      if (['wallet-transaction', 'deposit', 'payment-transaction'].includes(hash)) {
         setIsWalletOpen(true);
       }
     } else {
@@ -477,24 +469,6 @@ export const StudentDashboard: React.FC = () => {
     });
   };
 
-  // Withdraw Actions
-  const handleWithdrawSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsWithdrawLoading(true);
-
-    setTimeout(() => {
-      setIsWithdrawLoading(false);
-      setShowWithdrawToast(true);
-      setWithdrawBank('');
-      setWithdrawNumber('');
-      setWithdrawName('');
-      setWithdrawAmount('');
-
-      setTimeout(() => {
-        setShowWithdrawToast(false);
-      }, 3000);
-    }, 2000);
-  };
 
   // Restrict Dashboard Access if not logged in
   if (!user) {
@@ -601,17 +575,6 @@ export const StudentDashboard: React.FC = () => {
             >
               <span className="material-symbols-outlined text-[18px]">download</span>
               <span className="sidebar-text hidden md:inline">Deposit</span>
-            </button>
-            <button 
-              onClick={() => handleTabChange('withdraw')} 
-              className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg font-medium text-left transition-colors ${
-                activeTab === 'withdraw'
-                  ? 'text-primary font-bold bg-primary-light/20 border border-primary/10'
-                  : 'text-text-muted hover:text-primary hover:bg-surface-gray/50'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">upload</span>
-              <span className="sidebar-text hidden md:inline">Withdraw</span>
             </button>
             <button 
               onClick={() => handleTabChange('payment-transaction')} 
@@ -1913,7 +1876,6 @@ export const StudentDashboard: React.FC = () => {
               <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
                 <button onClick={() => handleTabChange('wallet-transaction')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Wallet Transaction</button>
                 <button onClick={() => handleTabChange('deposit')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Deposit</button>
-                <button onClick={() => handleTabChange('withdraw')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Withdraw</button>
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
@@ -2012,7 +1974,6 @@ export const StudentDashboard: React.FC = () => {
               <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
                 <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Wallet Transaction</button>
                 <button onClick={() => handleTabChange('deposit')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Deposit</button>
-                <button onClick={() => handleTabChange('withdraw')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Withdraw</button>
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
@@ -2128,171 +2089,6 @@ export const StudentDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Tab: Withdraw */}
-        {activeTab === 'withdraw' && (
-          <div className="flex flex-col gap-6 animate-fade-in">
-            {/* Header subnavs & Balance */}
-            <div className="flex flex-col md:flex-row justify-between items-center border-b border-surface-container mb-2 pb-2 md:pb-0 gap-4">
-              <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
-                <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Wallet Transaction</button>
-                <button onClick={() => handleTabChange('deposit')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Deposit</button>
-                <button onClick={() => handleTabChange('withdraw')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Withdraw</button>
-                <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Payment Transaction</button>
-              </div>
-              <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
-                <div className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
-                </div>
-                <div>
-                  <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">2,500,000 ₫</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-              {/* Left Column: Form */}
-              <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.08)] p-6 md:p-8">
-                <form className="flex flex-col gap-6" id="withdrawForm" onSubmit={handleWithdrawSubmit}>
-                  <div className="flex flex-col gap-2 font-semibold text-left">
-                    <label className="font-label-md text-label-md text-surface-navy font-bold" htmlFor="bankName">Bank Name</label>
-                    <select 
-                      value={withdrawBank}
-                      onChange={(e) => setWithdrawBank(e.target.value)}
-                      className="w-full bg-surface-bright border border-surface-container rounded-lg px-4 py-3 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none cursor-pointer" 
-                      id="bankName" 
-                      name="bankName" 
-                      required
-                    >
-                      <option disabled value="">Select your bank</option>
-                      <option value="vcb">Vietcombank</option>
-                      <option value="tcb">Techcombank</option>
-                      <option value="bidv">BIDV</option>
-                      <option value="mbb">MB Bank</option>
-                      <option value="vtb">VietinBank</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-2 font-semibold text-left">
-                    <label className="font-label-md text-label-md text-surface-navy font-bold" htmlFor="accNumber">Account Number</label>
-                    <input 
-                      value={withdrawNumber}
-                      onChange={(e) => setWithdrawNumber(e.target.value)}
-                      className="w-full bg-surface-bright border border-surface-container rounded-lg px-4 py-3 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" 
-                      id="accNumber" 
-                      name="accNumber" 
-                      placeholder="e.g. 1903456789012" 
-                      required 
-                      type="text" 
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2 font-semibold text-left">
-                    <label className="font-label-md text-label-md text-surface-navy font-bold" htmlFor="accName">Account Name</label>
-                    <input 
-                      value={withdrawName}
-                      onChange={(e) => setWithdrawName(e.target.value)}
-                      className="w-full bg-surface-bright border border-surface-container rounded-lg px-4 py-3 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all uppercase" 
-                      id="accName" 
-                      name="accName" 
-                      placeholder="e.g. NGUYEN VAN A" 
-                      required 
-                      type="text" 
-                    />
-                    <p className="font-caption text-caption text-text-muted mt-1 font-normal">Must exactly match the name registered with your bank.</p>
-                  </div>
-                  <div className="flex flex-col gap-2 mt-4 font-semibold text-left">
-                    <label className="font-label-md text-label-md text-surface-navy font-bold" htmlFor="amount">Withdrawal Amount (VND)</label>
-                    <div className="relative">
-                      <input 
-                        value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
-                        className="w-full bg-surface-bright border border-surface-container rounded-lg px-4 py-3 pl-10 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-lg font-bold" 
-                        id="amount" 
-                        max="2500000" 
-                        min="100000" 
-                        name="amount" 
-                        placeholder="0" 
-                        required 
-                        step="10000" 
-                        type="number" 
-                      />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-headline-md text-text-muted font-bold">₫</span>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-surface-container mt-4">
-                    <button 
-                      className="w-full bg-primary hover:bg-primary-hover text-white font-label-md text-label-md py-4 rounded-full transition-all shadow-md hover:shadow-lg flex justify-center items-center gap-2 border-none cursor-pointer font-bold" 
-                      id="submitBtn" 
-                      type="submit"
-                    >
-                      <span>Withdraw Funds</span>
-                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Right Column: Rules */}
-              <div className="lg:col-span-4 flex flex-col gap-6">
-                <div className="bg-surface-navy text-surface-container-lowest rounded-xl p-6 md:p-8 relative overflow-hidden shadow-[0_4px_20px_rgba(26,54,93,0.15)] text-left">
-                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '20px 20px' }}></div>
-                  <div className="relative z-10 flex flex-col gap-6">
-                    <div className="flex items-center gap-3 border-b border-surface-variant/20 pb-4">
-                      <span className="material-symbols-outlined text-primary" style={{ color: '#F36F21' }}>info</span>
-                      <h3 className="font-headline-md text-headline-md text-primary font-bold" style={{ color: '#F36F21' }}>Withdrawal Rules</h3>
-                    </div>
-                    <ul className="flex flex-col gap-4 font-body-md text-body-md text-surface-variant font-medium">
-                      <li className="flex gap-3 items-start">
-                        <span className="material-symbols-outlined text-green-400 text-sm mt-1">check_circle</span>
-                        <span>Minimum withdrawal amount is <strong>100,000 VND</strong>.</span>
-                      </li>
-                      <li className="flex gap-3 items-start">
-                        <span className="material-symbols-outlined text-green-400 text-sm mt-1">schedule</span>
-                        <span>Processing time takes typically <strong>2-4 hours</strong> during business days.</span>
-                      </li>
-                      <li className="flex gap-3 items-start">
-                        <span className="material-symbols-outlined text-green-400 text-sm mt-1">badge</span>
-                        <span>The bank account name <strong>must exactly match</strong> your registered profile name.</span>
-                      </li>
-                      <li className="flex gap-3 items-start">
-                        <span className="material-symbols-outlined text-green-400 text-sm mt-1">warning</span>
-                        <span>Withdrawals requested on weekends or holidays will be processed on the next business day.</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Support Card */}
-                <div className="glass-card rounded-xl p-6 flex items-start gap-4 shadow-sm text-left border border-gray-150">
-                  <span className="material-symbols-outlined text-text-muted mt-1">support_agent</span>
-                  <div>
-                    <h4 className="font-label-md text-label-md text-surface-navy font-bold mb-1">Need help?</h4>
-                    <p className="font-caption text-caption text-text-muted mb-2 font-medium">If you experience issues with your withdrawal, contact support.</p>
-                    <a className="font-label-md text-label-md text-primary hover:underline font-bold" href="#">Contact Support</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Toast for Withdraw */}
-            {showWithdrawToast && (
-              <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-700 text-white font-label-md text-label-md px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 animate-fade-in font-bold">
-                <span className="material-symbols-outlined text-white icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                <span>Withdrawal Request Submitted!</span>
-              </div>
-            )}
-
-            {/* Loading Overlay */}
-            {isWithdrawLoading && (
-              <div className="fixed inset-0 bg-surface-navy/50 backdrop-blur-sm z-[100] flex items-center justify-center">
-                <div className="bg-surface-container-lowest p-6 rounded-xl shadow-xl flex flex-col items-center gap-4">
-                  <span className="material-symbols-outlined text-primary animate-spin text-4xl">sync</span>
-                  <p className="font-label-md text-label-md text-surface-navy font-bold">Processing request...</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Tab: Payment Transaction */}
         {activeTab === 'payment-transaction' && (
           <div className="flex flex-col gap-6 animate-fade-in">
@@ -2301,7 +2097,6 @@ export const StudentDashboard: React.FC = () => {
               <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
                 <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Wallet Transaction</button>
                 <button onClick={() => handleTabChange('deposit')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Deposit</button>
-                <button onClick={() => handleTabChange('withdraw')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Withdraw</button>
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
