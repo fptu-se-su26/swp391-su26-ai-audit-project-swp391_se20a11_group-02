@@ -362,7 +362,6 @@ export const Contests: React.FC = () => {
                     <span className="inline-flex items-center gap-1.5 bg-brand-green text-white font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider pulse-glow-green">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> Ongoing
                     </span>
-                    <span className="text-xs bg-brand-blue-light/5 text-brand-blue font-bold px-2 py-0.5 rounded">Sprint League</span>
                   </div>
                   <div>
                     <h3 className="font-display font-extrabold text-lg md:text-xl text-brand-blue group-hover:text-primary transition-colors">
@@ -402,7 +401,6 @@ export const Contests: React.FC = () => {
                     <span className="inline-flex items-center gap-1.5 bg-brand-green text-white font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider pulse-glow-green">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> Ongoing
                     </span>
-                    <span className="text-xs bg-brand-blue-light/5 text-brand-blue font-bold px-2 py-0.5 rounded">Structure Series</span>
                   </div>
                   <div>
                     <h3 className="font-display font-extrabold text-lg md:text-xl text-brand-blue group-hover:text-primary transition-colors">
@@ -442,7 +440,6 @@ export const Contests: React.FC = () => {
                     <span className="inline-flex items-center gap-1.5 bg-warning-container text-on-warning-container font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
                       <span className="material-symbols-outlined text-[12px] font-bold">schedule</span> Upcoming
                     </span>
-                    <span className="text-xs bg-primary-light text-primary font-bold px-2 py-0.5 rounded">Mega Prize</span>
                   </div>
                   <div>
                     <h3 className="font-display font-extrabold text-lg md:text-xl text-brand-blue group-hover:text-primary transition-colors">
@@ -494,7 +491,6 @@ export const Contests: React.FC = () => {
                     <span className="inline-flex items-center gap-1.5 bg-warning-container text-on-warning-container font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
                       <span className="material-symbols-outlined text-[12px] font-bold">schedule</span> Upcoming
                     </span>
-                    <span className="text-xs bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded">Starter Friendly</span>
                   </div>
                   <div>
                     <h3 className="font-display font-extrabold text-lg md:text-xl text-brand-blue group-hover:text-primary transition-colors">
@@ -546,7 +542,6 @@ export const Contests: React.FC = () => {
                     <span className="inline-flex items-center gap-1.5 bg-warning-container text-on-warning-container font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
                       <span className="material-symbols-outlined text-[12px] font-bold">schedule</span> Upcoming
                     </span>
-                    <span className="text-xs bg-brand-green/10 text-brand-green font-bold px-2 py-0.5 rounded">Database Skill</span>
                   </div>
                   <div>
                     <h3 className="font-display font-extrabold text-lg md:text-xl text-brand-blue group-hover:text-primary transition-colors">
@@ -598,7 +593,6 @@ export const Contests: React.FC = () => {
                     <span className="inline-flex items-center gap-1.5 bg-error/10 text-error font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
                       <span className="material-symbols-outlined text-[12px] font-bold">done</span> Ended
                     </span>
-                    <span className="text-xs bg-gray-100 text-text-muted px-2 py-0.5 rounded font-bold">Past Arena</span>
                   </div>
                   <div>
                     <h3 className="font-display font-extrabold text-xl md:text-2xl text-brand-blue group-hover:text-primary transition-colors">
@@ -608,11 +602,6 @@ export const Contests: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">calendar_today</span>
                         <span>Oct 01 – Oct 15, 2026</span>
-                      </div>
-                      <span className="text-gray-300">•</span>
-                      <div className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[16px]">group</span>
-                        <span>4,102 Participated</span>
                       </div>
                     </div>
                   </div>
@@ -655,11 +644,14 @@ export const Contests: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8 shrink-0">
-                  <span className="text-xs text-text-muted font-bold">100 XP Awarded</span>
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-2 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8 shrink-0">
                   <Link to="/contests/1" className="px-5 py-3 bg-surface-gray hover:bg-gray-200 text-text-main border border-gray-200 font-extrabold text-xs rounded-xl shadow-sm transition-all">
                     View Standings
                   </Link>
+                  <span className="text-xs text-text-muted font-bold mt-1 flex items-center gap-1 shrink-0">
+                    <span className="material-symbols-outlined text-[16px] text-[#46A040] icon-fill">group</span>
+                    4,102 Participated
+                  </span>
                 </div>
               </article>
             )}
@@ -672,7 +664,6 @@ export const Contests: React.FC = () => {
                     <span className="inline-flex items-center gap-1.5 bg-error/10 text-error font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
                       <span className="material-symbols-outlined text-[12px] font-bold">done</span> Ended
                     </span>
-                    <span className="text-xs bg-gray-100 text-text-muted px-2 py-0.5 rounded font-bold">Past Arena</span>
                   </div>
                   <div>
                     <h3 className="font-display font-extrabold text-xl md:text-2xl text-brand-blue group-hover:text-primary transition-colors">
@@ -682,11 +673,6 @@ export const Contests: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">calendar_today</span>
                         <span>Sep 23 – Sep 30, 2026</span>
-                      </div>
-                      <span className="text-gray-300">•</span>
-                      <div className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[16px]">group</span>
-                        <span>2,845 Participated</span>
                       </div>
                     </div>
                   </div>
@@ -729,11 +715,14 @@ export const Contests: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8 shrink-0">
-                  <span className="text-xs text-text-muted font-bold">120 XP Awarded</span>
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-2 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8 shrink-0">
                   <Link to="/contests/1" className="px-5 py-3 bg-surface-gray hover:bg-gray-200 text-text-main border border-gray-200 font-extrabold text-xs rounded-xl shadow-sm transition-all">
                     View Standings
                   </Link>
+                  <span className="text-xs text-text-muted font-bold mt-1 flex items-center gap-1 shrink-0">
+                    <span className="material-symbols-outlined text-[16px] text-[#46A040] icon-fill">group</span>
+                    2,845 Participated
+                  </span>
                 </div>
               </article>
             )}
@@ -763,9 +752,6 @@ export const Contests: React.FC = () => {
               />
               <div>
                 <h4 className="text-sm font-bold text-brand-blue">Thanh MiLa</h4>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <span className="inline-flex bg-primary/10 text-primary text-[10px] font-extrabold px-2 py-0.5 rounded">Expert League</span>
-                </div>
               </div>
             </div>
             
@@ -794,47 +780,6 @@ export const Contests: React.FC = () => {
                 <span className="text-[9px] uppercase tracking-wider text-text-muted font-bold">Avg. Accuracy</span>
                 <span className="text-lg font-black text-[#46A040] mt-0.5">85%</span>
                 <span className="text-[9px] text-text-muted font-medium mt-1">High submission rate</span>
-              </div>
-            </div>
-
-            <div className="h-px bg-gray-100"></div>
-
-            {/* Milestone Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[10px] font-semibold text-text-muted">
-                <span>Milestone Progress</span>
-                <span className="font-bold text-brand-blue">1,850 / 2,000 to Master</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-primary h-full rounded-full" style={{ width: '74%' }}></div>
-              </div>
-            </div>
-
-            <div className="h-px bg-gray-100"></div>
-
-            {/* Unlocked Specialty Badges */}
-            <div className="flex flex-col gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-text-muted font-bold">Combat Trophy Showcase</span>
-              <div className="flex items-center gap-3">
-                <div className="group/badge relative w-9 h-9 rounded-full bg-amber-50 border border-amber-200 text-amber-500 flex items-center justify-center shadow-sm cursor-pointer hover:scale-105 transition-all">
-                  <span className="material-symbols-outlined text-lg icon-fill">emoji_events</span>
-                  {/* Custom tooltip inside layout */}
-                  <div className="absolute bottom-full mb-2 hidden group-hover/badge:block w-40 bg-brand-blue text-white text-[10px] p-2 rounded-lg text-center shadow-md z-10 left-1/2 -translate-x-1/2 leading-normal">
-                    <strong>Algorithmic Titan</strong><br />Solve all 5 contest problems in under 60 minutes.
-                  </div>
-                </div>
-                <div className="group/badge relative w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-500 flex items-center justify-center shadow-sm cursor-pointer hover:scale-105 transition-all">
-                  <span className="material-symbols-outlined text-lg">local_fire_department</span>
-                  <div className="absolute bottom-full mb-2 hidden group-hover/badge:block w-40 bg-brand-blue text-white text-[10px] p-2 rounded-lg text-center shadow-md z-10 left-1/2 -translate-x-1/2 leading-normal">
-                    <strong>Streak King</strong><br />Participated in 5 consecutive weekly contests.
-                  </div>
-                </div>
-                <div className="group/badge relative w-9 h-9 rounded-full bg-blue-50 border border-blue-200 text-blue-500 flex items-center justify-center shadow-sm cursor-pointer hover:scale-105 transition-all">
-                  <span className="material-symbols-outlined text-lg icon-fill">security</span>
-                  <div className="absolute bottom-full mb-2 hidden group-hover/badge:block w-40 bg-brand-blue text-white text-[10px] p-2 rounded-lg text-center shadow-md z-10 left-1/2 -translate-x-1/2 leading-normal">
-                    <strong>Bug Buster</strong><br />Achieved 100% test case pass on first code submission.
-                  </div>
-                </div>
               </div>
             </div>
           </div>

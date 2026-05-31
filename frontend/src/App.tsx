@@ -19,7 +19,6 @@ import { ContestSubmissions } from './pages/ContestSubmissions';
 import { ContestRanking } from './pages/ContestRanking';
 import { ContestLayout } from './components/ContestLayout';
 import { ShoppingCart } from './pages/ShoppingCart';
-import { Withdraw } from './pages/Withdraw';
 import { WalletTransaction } from './pages/WalletTransaction';
 import { PaymentTransaction } from './pages/PaymentTransaction';
 
@@ -61,7 +60,6 @@ function App() {
             
             {/* Shopping cart & wallet */}
             <Route path="shopping-cart" element={<ShoppingCart />} />
-            <Route path="withdraw" element={<Withdraw />} />
             <Route path="wallet-transaction" element={<WalletTransaction />} />
             <Route path="payment-transaction" element={<PaymentTransaction />} />
           </Route>
