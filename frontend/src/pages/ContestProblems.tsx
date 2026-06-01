@@ -1,39 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 export const ContestProblems: React.FC = () => {
   const { id = '42' } = useParams<{ id: string }>();
-  
-  // Interactive React State for Ticking Timer (Ends In) starting at 01:24:55
-  const [timeLeft, setTimeLeft] = useState<string>('01:24:55');
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        const parts = prev.split(':').map(Number);
-        let sec = parts[2];
-        let min = parts[1];
-        let hr = parts[0];
-
-        if (sec > 0) {
-          sec--;
-        } else {
-          sec = 59;
-          if (min > 0) {
-            min--;
-          } else {
-            min = 59;
-            if (hr > 0) hr--;
-          }
-        }
-
-        const pad = (n: number) => String(n).padStart(2, '0');
-        return `${pad(hr)}:${pad(min)}:${pad(sec)}`;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   // Interactive React State for Status Checkmarks (Allows cycling through status when clicked)
   const [statusA, setStatusA] = useState<'check_circle' | 'cancel' | 'radio_button_unchecked'>('check_circle');
@@ -100,10 +69,7 @@ export const ContestProblems: React.FC = () => {
   };
 
   return (
-    <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10">
-      
-      {/* Main Content (Left 85%) */}
-      <main className="w-full md:w-[85%] px-4 sm:px-8 py-8 md:py-12 bg-surface-gray">
+    <main className="w-full px-4 sm:px-8 py-8 md:py-12 bg-surface-gray flex-grow">
         <div className="max-w-[1280px] mx-auto">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             
@@ -269,56 +235,5 @@ export const ContestProblems: React.FC = () => {
           </div>
         </div>
       </main>
-
-      {/* Right Sidebar (15%) */}
-      <aside className="w-full md:w-[15%] min-w-[280px] bg-white border-l border-gray-200 flex flex-col relative sticky top-16 h-[calc(100vh-64px)]">
-        
-        {/* Sidebar Content */}
-        <div className="flex-grow overflow-y-auto py-8 px-6">
-          
-          {/* Contest Header / Timer */}
-          <div className="mb-10 text-center">
-            <h2 className="text-xl font-black text-text-main mb-2 tracking-tight">Contest #{id}</h2>
-            <div className="bg-surface-gray rounded-lg p-4 shadow-sm border border-gray-200">
-              <p className="text-xs font-label text-text-muted uppercase tracking-wider mb-1">Ends In</p>
-              <div className="font-display text-2xl font-bold text-primary tabular-nums tracking-tight">{timeLeft}</div>
-            </div>
-          </div>
-
-          {/* Navigation Links */}
-          <nav className="space-y-2 font-label text-sm">
-            <Link 
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-main font-medium hover:bg-surface-gray transition-all" 
-              to={`/contests/${id}`}
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              Overview
-            </Link>
-            <Link 
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-primary font-bold border-l-4 border-primary bg-primary-light/20 shadow-sm translate-x-1 transition-all" 
-              to={`/contests/${id}/problems`}
-            >
-              <span className="material-symbols-outlined icon-fill">extension</span>
-              Problems
-            </Link>
-            <Link 
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-main font-medium hover:bg-surface-gray transition-all" 
-              to={`/contests/${id}/submissions`}
-            >
-              <span className="material-symbols-outlined">list_alt</span>
-              Submissions
-            </Link>
-            <Link 
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-main font-medium hover:bg-surface-gray transition-all" 
-              to={`/contests/${id}/ranking`}
-            >
-              <span className="material-symbols-outlined">leaderboard</span>
-              Rankings
-            </Link>
-          </nav>
-        </div>
-      </aside>
-
-    </div>
   );
 };

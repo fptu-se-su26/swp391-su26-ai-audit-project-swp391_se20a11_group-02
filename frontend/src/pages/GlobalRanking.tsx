@@ -347,7 +347,7 @@ export const GlobalRanking: React.FC = () => {
       </div>
 
       {/* Main Layout Container */}
-      <div className="flex-grow flex flex-col w-full max-w-[1440px] mx-auto mt-16 px-4 lg:px-8 py-8 md:py-12 z-10">
+      <div className="flex-grow flex flex-col w-full max-w-[1440px] mx-auto px-4 lg:px-8 pt-4 pb-8 md:pt-6 md:pb-12 z-10">
         {/* Header Text */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div>

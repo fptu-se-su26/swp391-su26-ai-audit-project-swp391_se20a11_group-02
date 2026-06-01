@@ -8,6 +8,8 @@ export const Layout: React.FC = () => {
   const location = useLocation();
 
   const isInstructorRoute = location.pathname.startsWith('/instructor');
+  const isProblemSolvePage = location.pathname.startsWith('/problems/');
+  const isContestDetailPage = location.pathname.startsWith('/contests/');
 
   const handleLogout = () => {
     logout();
@@ -30,7 +32,7 @@ export const Layout: React.FC = () => {
           <div className="flex justify-between items-center w-full px-8 h-16 max-w-[1440px] mx-auto relative">
           {/* Brand */}
           <Link to="/" className="shrink-0 flex items-center cursor-pointer">
-            <img src="/LOGO.png" alt="Nonstop Coding Logo" className="h-16 w-auto" />
+            <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding Logo" className="h-16 w-auto" />
           </Link>
           <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2 h-full">
             <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Learning</NavLink>
@@ -88,12 +90,12 @@ export const Layout: React.FC = () => {
       )}
 
       {/* Main content body with Outlet */}
-      <main className={`relative z-10 flex-grow w-full ${isInstructorRoute ? '' : 'pt-16'}`}>
+      <main className={`relative z-10 flex-grow w-full min-w-0 ${isInstructorRoute ? '' : 'pt-16'}`}>
         <Outlet />
       </main>
 
       {/* Master Footer */}
-      {!isInstructorRoute && (
+      {!isInstructorRoute && !isProblemSolvePage && !isContestDetailPage && (
         <footer className="bg-brand-blue text-white mt-auto shrink-0 w-full z-40 relative">
           <div className="max-w-[1440px] mx-auto px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

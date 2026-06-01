@@ -110,9 +110,82 @@ const suggestedProblems = [
 ];
 
 const participatedContests = [
-  { name: 'Weekly Algorithm Sprint #45', date: 'Oct 24, 2024', rank: '124 / 2450', score: '350 pts' },
-  { name: 'Data Structures Challenge Series', date: 'Oct 15, 2024', rank: '342 / 1800', score: '280 pts' },
-  { name: 'Intro to DP Challenge', date: 'Oct 01, 2024', rank: '950 / 4102', score: '150 pts' }
+  { name: 'Weekly Algorithm Sprint #45', date: 'Oct 24, 2026', rank: '124 / 2450', score: '350 pts' },
+  { name: 'Data Structures Challenge Series', date: 'Oct 15, 2026', rank: '342 / 1800', score: '280 pts' },
+  { name: 'Intro to DP Challenge', date: 'Oct 01, 2026', rank: '950 / 4102', score: '150 pts' }
+];
+
+const contestHistoryData = [
+  {
+    name: 'Weekly Algorithm Sprint #45',
+    status: 'Ongoing',
+    date: 'Oct 24, 2026',
+    startDate: 'Oct 24, 2026 08:00 AM',
+    endDate: 'Oct 27, 2026 08:00 AM',
+    problemsSolved: '3/5',
+    timeSpent: '2h 15m',
+    rank: '124 / 2450',
+    score: '350 pts',
+    category: 'Sprint League',
+    difficulty: 'Medium',
+    xpEarned: '+50 XP'
+  },
+  {
+    name: 'Data Structures Challenge Series',
+    status: 'Ended',
+    date: 'Oct 15, 2026',
+    startDate: 'Oct 15, 2026 09:00 AM',
+    endDate: 'Oct 15, 2026 12:00 PM',
+    problemsSolved: '4/5',
+    timeSpent: '3h 10m',
+    rank: '342 / 1800',
+    score: '280 pts',
+    category: 'Structure Series',
+    difficulty: 'Hard',
+    xpEarned: '+100 XP'
+  },
+  {
+    name: 'Intro to DP Challenge',
+    status: 'Ended',
+    date: 'Oct 01, 2026',
+    startDate: 'Oct 01, 2026 02:00 PM',
+    endDate: 'Oct 01, 2026 05:00 PM',
+    problemsSolved: '2/5',
+    timeSpent: '1h 45m',
+    rank: '950 / 4102',
+    score: '150 pts',
+    category: 'Past Arena',
+    difficulty: 'Easy',
+    xpEarned: '+30 XP'
+  },
+  {
+    name: 'Code Masters Championship 2026',
+    status: 'Upcoming',
+    date: 'Nov 15, 2026',
+    startDate: 'Nov 15, 2026 08:00 AM',
+    endDate: 'Nov 15, 2026 11:00 AM',
+    problemsSolved: 'N/A',
+    timeSpent: 'N/A',
+    rank: 'Registered',
+    score: 'N/A',
+    category: 'Mega Prize',
+    difficulty: 'Hard',
+    xpEarned: 'Pending'
+  },
+  {
+    name: 'SQL Mastery Arena',
+    status: 'Upcoming',
+    date: 'Nov 25, 2026',
+    startDate: 'Nov 25, 2026 10:00 AM',
+    endDate: 'Nov 25, 2026 01:00 PM',
+    problemsSolved: 'N/A',
+    timeSpent: 'N/A',
+    rank: 'Registered',
+    score: 'N/A',
+    category: 'Database Skill',
+    difficulty: 'Medium',
+    xpEarned: 'Pending'
+  }
 ];
 
 const suggestedCourses = [
@@ -263,6 +336,9 @@ export const StudentDashboard: React.FC = () => {
   const [myCourses] = useState(initialMyCourses);
   const [myCoursesFilter, setMyCoursesFilter] = useState<'all' | 'ongoing' | 'completed'>('all');
 
+  // Contest History tab states
+  const [contestFilter, setContestFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'ended'>('all');
+
   // Course Player (Learning View) States
   const [playerCourseTitle, setPlayerCourseTitle] = useState<string>('Java Fundamentals to Advanced');
   const [playerCourseAuthor, setPlayerCourseAuthor] = useState<string>('Dr. Alan Turing • Java Level');
@@ -293,21 +369,13 @@ export const StudentDashboard: React.FC = () => {
   const [paymentStatusClass, setPaymentStatusClass] = useState<string>('');
   const [showDepositToast, setShowDepositToast] = useState<boolean>(false);
 
-  // Withdraw Tab States
-  const [withdrawBank, setWithdrawBank] = useState<string>('');
-  const [withdrawNumber, setWithdrawNumber] = useState<string>('');
-  const [withdrawName, setWithdrawName] = useState<string>('');
-  const [withdrawAmount, setWithdrawAmount] = useState<string>('');
-  const [isWithdrawLoading, setIsWithdrawLoading] = useState<boolean>(false);
-  const [showWithdrawToast, setShowWithdrawToast] = useState<boolean>(false);
-
   // Synchronize Tab with Location Hash
   useEffect(() => {
     const hash = location.hash.replace('#', '');
-    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'withdraw', 'payment-transaction'];
+    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'contest-history'];
     if (hash && validTabs.includes(hash)) {
       setActiveTab(hash);
-      if (['wallet-transaction', 'deposit', 'withdraw', 'payment-transaction'].includes(hash)) {
+      if (['wallet-transaction', 'deposit', 'payment-transaction'].includes(hash)) {
         setIsWalletOpen(true);
       }
     } else {
@@ -477,24 +545,6 @@ export const StudentDashboard: React.FC = () => {
     });
   };
 
-  // Withdraw Actions
-  const handleWithdrawSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsWithdrawLoading(true);
-
-    setTimeout(() => {
-      setIsWithdrawLoading(false);
-      setShowWithdrawToast(true);
-      setWithdrawBank('');
-      setWithdrawNumber('');
-      setWithdrawName('');
-      setWithdrawAmount('');
-
-      setTimeout(() => {
-        setShowWithdrawToast(false);
-      }, 3000);
-    }, 2000);
-  };
 
   // Restrict Dashboard Access if not logged in
   if (!user) {
@@ -539,10 +589,17 @@ export const StudentDashboard: React.FC = () => {
           <span className="sidebar-text hidden md:inline">My Courses</span>
         </button>
 
-        <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-lg text-text-main hover:bg-surface-gray hover:text-primary transition-colors font-medium">
+        <button
+          onClick={() => handleTabChange('contest-history')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left ${
+            activeTab === 'contest-history'
+              ? 'bg-primary-light/20 text-primary font-bold border border-primary/10'
+              : 'text-text-main hover:bg-surface-gray hover:text-primary'
+          }`}
+        >
           <span className="material-symbols-outlined">emoji_events</span>
           <span className="sidebar-text hidden md:inline">Contest History</span>
-        </a>
+        </button>
 
         <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-lg text-text-main hover:bg-surface-gray hover:text-primary transition-colors font-medium">
           <span className="material-symbols-outlined">menu_book</span>
@@ -603,17 +660,6 @@ export const StudentDashboard: React.FC = () => {
               <span className="sidebar-text hidden md:inline">Deposit</span>
             </button>
             <button 
-              onClick={() => handleTabChange('withdraw')} 
-              className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg font-medium text-left transition-colors ${
-                activeTab === 'withdraw'
-                  ? 'text-primary font-bold bg-primary-light/20 border border-primary/10'
-                  : 'text-text-muted hover:text-primary hover:bg-surface-gray/50'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">upload</span>
-              <span className="sidebar-text hidden md:inline">Withdraw</span>
-            </button>
-            <button 
               onClick={() => handleTabChange('payment-transaction')} 
               className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg font-medium text-left transition-colors ${
                 activeTab === 'payment-transaction'
@@ -643,8 +689,8 @@ export const StudentDashboard: React.FC = () => {
                     <span className="material-symbols-outlined text-xs icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>dashboard</span> Dashboard Arena
                   </div>
                   <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10">
-                    <span className="bg-gradient-to-r from-[#0114a7] to-[#2563eb] bg-clip-text text-transparent">Welcome</span> 
-                    <span className="bg-gradient-to-r from-[#ff6000] to-[#ff8c42] bg-clip-text text-transparent"> back, Join! 👋</span>
+                    <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">Welcome back,</span> 
+                    <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent"> Join! 👋</span>
                   </h1>
                   <p className="text-text-muted mt-1">Here is your learning progress and recent activities.</p>
                 </div>
@@ -846,7 +892,7 @@ export const StudentDashboard: React.FC = () => {
                   <span className="material-symbols-outlined text-brand-blue-light">emoji_events</span>
                   Participated Contests
                 </h2>
-                <a href="#" className="text-sm text-primary font-semibold hover:underline">View History</a>
+                <button onClick={() => handleTabChange('contest-history')} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer">View History</button>
               </div>
               <div className="bg-surface rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
@@ -1595,8 +1641,8 @@ export const StudentDashboard: React.FC = () => {
                 <span className="material-symbols-outlined text-xs icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>forum</span> My Comments
               </div>
               <h1 className="text-3xl md:text-4xl font-display font-black leading-tight">
-                <span className="bg-gradient-to-r from-[#0114a7] to-[#2563eb] bg-clip-text text-transparent">My</span>
-                <span className="bg-gradient-to-r from-[#ff6000] to-[#ff8c42] bg-clip-text text-transparent"> Comments 💬</span>
+                <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">My</span>
+                <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent"> Comments 💬</span>
               </h1>
               <p className="text-text-muted mt-1">Track all your Q&amp;A interactions across courses and problem discussions.</p>
             </div>
@@ -1913,7 +1959,6 @@ export const StudentDashboard: React.FC = () => {
               <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
                 <button onClick={() => handleTabChange('wallet-transaction')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Wallet Transaction</button>
                 <button onClick={() => handleTabChange('deposit')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Deposit</button>
-                <button onClick={() => handleTabChange('withdraw')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Withdraw</button>
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
@@ -2012,7 +2057,6 @@ export const StudentDashboard: React.FC = () => {
               <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
                 <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Wallet Transaction</button>
                 <button onClick={() => handleTabChange('deposit')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Deposit</button>
-                <button onClick={() => handleTabChange('withdraw')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Withdraw</button>
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
@@ -2128,171 +2172,6 @@ export const StudentDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Tab: Withdraw */}
-        {activeTab === 'withdraw' && (
-          <div className="flex flex-col gap-6 animate-fade-in">
-            {/* Header subnavs & Balance */}
-            <div className="flex flex-col md:flex-row justify-between items-center border-b border-surface-container mb-2 pb-2 md:pb-0 gap-4">
-              <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
-                <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Wallet Transaction</button>
-                <button onClick={() => handleTabChange('deposit')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Deposit</button>
-                <button onClick={() => handleTabChange('withdraw')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Withdraw</button>
-                <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Payment Transaction</button>
-              </div>
-              <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
-                <div className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
-                </div>
-                <div>
-                  <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">2,500,000 ₫</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-              {/* Left Column: Form */}
-              <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.08)] p-6 md:p-8">
-                <form className="flex flex-col gap-6" id="withdrawForm" onSubmit={handleWithdrawSubmit}>
-                  <div className="flex flex-col gap-2 font-semibold text-left">
-                    <label className="font-label-md text-label-md text-surface-navy font-bold" htmlFor="bankName">Bank Name</label>
-                    <select 
-                      value={withdrawBank}
-                      onChange={(e) => setWithdrawBank(e.target.value)}
-                      className="w-full bg-surface-bright border border-surface-container rounded-lg px-4 py-3 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none cursor-pointer" 
-                      id="bankName" 
-                      name="bankName" 
-                      required
-                    >
-                      <option disabled value="">Select your bank</option>
-                      <option value="vcb">Vietcombank</option>
-                      <option value="tcb">Techcombank</option>
-                      <option value="bidv">BIDV</option>
-                      <option value="mbb">MB Bank</option>
-                      <option value="vtb">VietinBank</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-2 font-semibold text-left">
-                    <label className="font-label-md text-label-md text-surface-navy font-bold" htmlFor="accNumber">Account Number</label>
-                    <input 
-                      value={withdrawNumber}
-                      onChange={(e) => setWithdrawNumber(e.target.value)}
-                      className="w-full bg-surface-bright border border-surface-container rounded-lg px-4 py-3 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" 
-                      id="accNumber" 
-                      name="accNumber" 
-                      placeholder="e.g. 1903456789012" 
-                      required 
-                      type="text" 
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2 font-semibold text-left">
-                    <label className="font-label-md text-label-md text-surface-navy font-bold" htmlFor="accName">Account Name</label>
-                    <input 
-                      value={withdrawName}
-                      onChange={(e) => setWithdrawName(e.target.value)}
-                      className="w-full bg-surface-bright border border-surface-container rounded-lg px-4 py-3 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all uppercase" 
-                      id="accName" 
-                      name="accName" 
-                      placeholder="e.g. NGUYEN VAN A" 
-                      required 
-                      type="text" 
-                    />
-                    <p className="font-caption text-caption text-text-muted mt-1 font-normal">Must exactly match the name registered with your bank.</p>
-                  </div>
-                  <div className="flex flex-col gap-2 mt-4 font-semibold text-left">
-                    <label className="font-label-md text-label-md text-surface-navy font-bold" htmlFor="amount">Withdrawal Amount (VND)</label>
-                    <div className="relative">
-                      <input 
-                        value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
-                        className="w-full bg-surface-bright border border-surface-container rounded-lg px-4 py-3 pl-10 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-lg font-bold" 
-                        id="amount" 
-                        max="2500000" 
-                        min="100000" 
-                        name="amount" 
-                        placeholder="0" 
-                        required 
-                        step="10000" 
-                        type="number" 
-                      />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-headline-md text-text-muted font-bold">₫</span>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-surface-container mt-4">
-                    <button 
-                      className="w-full bg-primary hover:bg-primary-hover text-white font-label-md text-label-md py-4 rounded-full transition-all shadow-md hover:shadow-lg flex justify-center items-center gap-2 border-none cursor-pointer font-bold" 
-                      id="submitBtn" 
-                      type="submit"
-                    >
-                      <span>Withdraw Funds</span>
-                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Right Column: Rules */}
-              <div className="lg:col-span-4 flex flex-col gap-6">
-                <div className="bg-surface-navy text-surface-container-lowest rounded-xl p-6 md:p-8 relative overflow-hidden shadow-[0_4px_20px_rgba(26,54,93,0.15)] text-left">
-                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '20px 20px' }}></div>
-                  <div className="relative z-10 flex flex-col gap-6">
-                    <div className="flex items-center gap-3 border-b border-surface-variant/20 pb-4">
-                      <span className="material-symbols-outlined text-primary" style={{ color: '#F36F21' }}>info</span>
-                      <h3 className="font-headline-md text-headline-md text-primary font-bold" style={{ color: '#F36F21' }}>Withdrawal Rules</h3>
-                    </div>
-                    <ul className="flex flex-col gap-4 font-body-md text-body-md text-surface-variant font-medium">
-                      <li className="flex gap-3 items-start">
-                        <span className="material-symbols-outlined text-green-400 text-sm mt-1">check_circle</span>
-                        <span>Minimum withdrawal amount is <strong>100,000 VND</strong>.</span>
-                      </li>
-                      <li className="flex gap-3 items-start">
-                        <span className="material-symbols-outlined text-green-400 text-sm mt-1">schedule</span>
-                        <span>Processing time takes typically <strong>2-4 hours</strong> during business days.</span>
-                      </li>
-                      <li className="flex gap-3 items-start">
-                        <span className="material-symbols-outlined text-green-400 text-sm mt-1">badge</span>
-                        <span>The bank account name <strong>must exactly match</strong> your registered profile name.</span>
-                      </li>
-                      <li className="flex gap-3 items-start">
-                        <span className="material-symbols-outlined text-green-400 text-sm mt-1">warning</span>
-                        <span>Withdrawals requested on weekends or holidays will be processed on the next business day.</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Support Card */}
-                <div className="glass-card rounded-xl p-6 flex items-start gap-4 shadow-sm text-left border border-gray-150">
-                  <span className="material-symbols-outlined text-text-muted mt-1">support_agent</span>
-                  <div>
-                    <h4 className="font-label-md text-label-md text-surface-navy font-bold mb-1">Need help?</h4>
-                    <p className="font-caption text-caption text-text-muted mb-2 font-medium">If you experience issues with your withdrawal, contact support.</p>
-                    <a className="font-label-md text-label-md text-primary hover:underline font-bold" href="#">Contact Support</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Toast for Withdraw */}
-            {showWithdrawToast && (
-              <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-700 text-white font-label-md text-label-md px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 animate-fade-in font-bold">
-                <span className="material-symbols-outlined text-white icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                <span>Withdrawal Request Submitted!</span>
-              </div>
-            )}
-
-            {/* Loading Overlay */}
-            {isWithdrawLoading && (
-              <div className="fixed inset-0 bg-surface-navy/50 backdrop-blur-sm z-[100] flex items-center justify-center">
-                <div className="bg-surface-container-lowest p-6 rounded-xl shadow-xl flex flex-col items-center gap-4">
-                  <span className="material-symbols-outlined text-primary animate-spin text-4xl">sync</span>
-                  <p className="font-label-md text-label-md text-surface-navy font-bold">Processing request...</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Tab: Payment Transaction */}
         {activeTab === 'payment-transaction' && (
           <div className="flex flex-col gap-6 animate-fade-in">
@@ -2301,7 +2180,6 @@ export const StudentDashboard: React.FC = () => {
               <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
                 <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Wallet Transaction</button>
                 <button onClick={() => handleTabChange('deposit')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Deposit</button>
-                <button onClick={() => handleTabChange('withdraw')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Withdraw</button>
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
@@ -2404,6 +2282,264 @@ export const StudentDashboard: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Tab: Contest History */}
+        {activeTab === 'contest-history' && (() => {
+          const participatedContestsOnly = contestHistoryData.filter(c => c.status.toLowerCase() !== 'upcoming');
+          return (
+            <div className="flex flex-col gap-8 animate-fade-in text-left">
+              {/* Header section */}
+              <div>
+                <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-3 shadow-sm w-fit">
+                  <span className="material-symbols-outlined text-xs icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span> My Performance
+                </div>
+                <h1 className="text-3xl md:text-4xl font-display font-black leading-tight">
+                  <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">Contest</span> 
+                  <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent"> History</span>
+                </h1>
+                <p className="text-text-muted mt-1 text-sm md:text-base">Track your competitive coding journey, review points, and view past contest standings.</p>
+              </div>
+
+              {/* Performance Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Total Points</span>
+                      <p className="text-3xl font-display font-black text-brand-blue mt-1">780 <span className="text-xs font-semibold text-text-muted">pts</span></p>
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                      <span className="material-symbols-outlined text-xl icon-fill">trophy</span>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-brand-green font-bold flex items-center gap-0.5 mt-5">
+                    <span className="material-symbols-outlined text-[12px] font-black">trending_up</span> +32 last week
+                  </div>
+                </div>
+
+                <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-blue"></div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Global Rank</span>
+                      <p className="text-3xl font-display font-black text-brand-blue mt-1">#458</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-brand-blue group-hover:scale-110 transition-transform duration-300">
+                      <span className="material-symbols-outlined text-xl">leaderboard</span>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-text-muted font-bold mt-5">
+                    Top 4.2% among active players
+                  </div>
+                </div>
+
+                <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-green"></div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Contests Attended</span>
+                      <p className="text-3xl font-display font-black text-brand-blue mt-1">3</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-brand-green group-hover:scale-110 transition-transform duration-300">
+                      <span className="material-symbols-outlined text-xl">calendar_today</span>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-text-muted font-bold mt-5">
+                    Completed & ongoing matches
+                  </div>
+                </div>
+
+                <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Top Placements</span>
+                      <div className="flex items-center gap-2.5 mt-2">
+                        <span className="inline-flex items-center bg-amber-50 text-amber-700 border border-amber-250/20 rounded-full px-3 py-1 text-sm font-black shadow-sm transition-transform hover:scale-105" title="Top 1">
+                          <span className="text-base mr-1">🥇</span> 1
+                        </span>
+                        <span className="inline-flex items-center bg-slate-50 text-slate-700 border border-slate-250/20 rounded-full px-3 py-1 text-sm font-black shadow-sm transition-transform hover:scale-105" title="Top 2">
+                          <span className="text-base mr-1">🥈</span> 1
+                        </span>
+                        <span className="inline-flex items-center bg-orange-50 text-orange-700 border border-orange-250/20 rounded-full px-3 py-1 text-sm font-black shadow-sm transition-transform hover:scale-105" title="Top 3">
+                          <span className="text-base mr-1">🥉</span> 0
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform duration-300">
+                      <span className="material-symbols-outlined text-xl">military_tech</span>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-text-muted font-bold mt-5">
+                    Podium finish counts
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Navigation & Search */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-3">
+                <div className="flex flex-wrap gap-2.5">
+                  {(['all', 'ongoing', 'ended'] as const).map((tab) => {
+                    const count = tab === 'all' 
+                      ? participatedContestsOnly.length 
+                      : participatedContestsOnly.filter(c => c.status.toLowerCase() === tab).length;
+                    const isActive = contestFilter === tab || (tab === 'all' && contestFilter === 'upcoming'); // Fallback if filter state was 'upcoming'
+                    
+                    return (
+                      <button
+                        key={tab}
+                        onClick={() => setContestFilter(tab === 'all' ? 'all' : tab)}
+                        className={`px-4 py-2.5 text-xs md:text-sm font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center gap-2 border ${
+                          isActive
+                            ? 'bg-primary text-white shadow-sm border-primary/20 scale-[1.02]'
+                            : 'bg-slate-100 hover:bg-slate-200/80 text-text-muted hover:text-brand-blue hover:scale-[1.01] border-transparent'
+                        }`}
+                      >
+                        <span className="capitalize">{tab === 'all' ? 'All Contests' : `${tab} matches`}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                          isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-text-muted'
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <span className="text-xs font-bold text-text-muted tracking-wide">
+                  Showing {participatedContestsOnly.filter(c => contestFilter === 'all' || contestFilter === 'upcoming' || c.status.toLowerCase() === contestFilter).length} matches
+                </span>
+              </div>
+
+              {/* List of Contests */}
+              <div className="flex flex-col gap-6">
+                {participatedContestsOnly
+                  .filter(c => contestFilter === 'all' || contestFilter === 'upcoming' || c.status.toLowerCase() === contestFilter)
+                  .map((contest, index) => {
+                    const isOngoing = contest.status === 'Ongoing';
+                    const isEnded = contest.status === 'Ended';
+
+                    return (
+                      <article
+                        key={index}
+                        className={`bg-surface rounded-3xl border border-slate-150 p-6 md:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6 transition-all duration-300 hover:shadow-[0_12px_40px_rgba(26,54,93,0.05)] hover:border-slate-350 relative overflow-hidden group ${
+                          isOngoing ? 'border-l-4 border-l-brand-green bg-gradient-to-r from-emerald-50/10 to-white hover:from-emerald-50/20' : 
+                          'border-l-4 border-l-slate-400 bg-gradient-to-r from-slate-50/20 to-white hover:from-slate-50/30'
+                        }`}
+                      >
+                        {/* Left: Info */}
+                        <div className="flex-1 flex flex-col gap-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {isOngoing && (
+                              <span className="inline-flex items-center gap-1.5 bg-brand-green/10 text-brand-green font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider border border-brand-green/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-ping"></span> Ongoing
+                              </span>
+                            )}
+                            {isEnded && (
+                              <span className="inline-flex items-center gap-1.5 bg-error/10 text-error font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider border border-error/10">
+                                <span className="material-symbols-outlined text-[12px] font-black">done</span> Ended
+                              </span>
+                            )}
+                          </div>
+
+                          <div>
+                            <h3 className="font-display font-black text-lg md:text-xl text-brand-blue group-hover:text-primary transition-colors tracking-tight leading-snug duration-200">
+                              {contest.name}
+                            </h3>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-text-muted text-xs mt-2.5 font-semibold">
+                              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-lg px-2.5 py-1">
+                                <span className="material-symbols-outlined text-[16px] text-brand-green font-black">play_circle</span>
+                                <span>Start Date: <strong className="text-brand-blue font-bold">{contest.startDate}</strong></span>
+                              </div>
+                              <span className="text-gray-300/80 hidden sm:inline">•</span>
+                              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-lg px-2.5 py-1">
+                                <span className="material-symbols-outlined text-[16px] text-error font-black">stop_circle</span>
+                                <span>End Date: <strong className="text-brand-blue font-bold">{contest.endDate}</strong></span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Middle Section: Performance stats box */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border border-slate-100/70 bg-slate-50/60 rounded-2xl p-4.5 mt-1 relative overflow-hidden">
+                            <div className="flex items-center gap-3 relative z-10">
+                              <div className="w-9 h-9 rounded-xl bg-blue-50/80 flex items-center justify-center text-brand-blue shrink-0">
+                                <span className="material-symbols-outlined text-lg opacity-90">leaderboard</span>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Your Rank</p>
+                                <p className="text-sm font-black text-brand-blue mt-0.5">{contest.rank}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 relative z-10 sm:border-l sm:border-slate-200/50 sm:pl-4">
+                              <div className="w-9 h-9 rounded-xl bg-orange-50/80 flex items-center justify-center text-primary shrink-0">
+                                <span className="material-symbols-outlined text-lg opacity-90">stars</span>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Contest Score</p>
+                                <p className="text-sm font-black text-brand-blue mt-0.5">{contest.score}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 relative z-10 sm:border-l sm:border-slate-200/50 sm:pl-4">
+                              <div className="w-9 h-9 rounded-xl bg-green-50/80 flex items-center justify-center text-brand-green shrink-0">
+                                <span className="material-symbols-outlined text-lg opacity-90">task_alt</span>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Problems Solved</p>
+                                <p className="text-sm font-black text-brand-blue mt-0.5">{contest.problemsSolved}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex flex-col items-start lg:items-end justify-center shrink-0 min-w-[150px] gap-2.5 lg:border-l lg:border-slate-100 lg:pl-6">
+                          {isOngoing && (
+                            <>
+                              <Link 
+                                to="/contests/1" 
+                                className="w-full text-center px-6 py-3 bg-gradient-to-r from-brand-green to-emerald-600 hover:from-brand-green-hover hover:to-emerald-700 text-white font-extrabold text-xs rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.98] transform"
+                              >
+                                Enter Arena
+                              </Link>
+                              <span className="text-[10px] text-text-muted font-bold text-center w-full block">Time Remaining: 3 days</span>
+                            </>
+                          )}
+                          {isEnded && (
+                            <>
+                              <Link 
+                                to="/contests/1" 
+                                className="w-full text-center px-6 py-3 bg-slate-50 hover:bg-slate-100 text-brand-blue border border-slate-200/80 font-extrabold text-xs rounded-2xl shadow-sm hover:border-slate-300 transition-all duration-200 active:scale-[0.98] transform"
+                              >
+                                View Standings
+                              </Link>
+                              <div className="text-[10px] text-brand-green font-bold text-center w-full flex items-center justify-center gap-1 mt-1">
+                                <span className="material-symbols-outlined text-[14px] icon-fill">check_circle</span> Participated
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+
+                {participatedContestsOnly.filter(c => contestFilter === 'all' || contestFilter === 'upcoming' || c.status.toLowerCase() === contestFilter).length === 0 && (
+                  <div className="flex flex-col items-center justify-center text-center p-16 bg-white rounded-3xl border border-slate-200/60 shadow-sm">
+                    <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center text-text-muted mb-4">
+                      <span className="material-symbols-outlined text-3xl">emoji_events</span>
+                    </div>
+                    <h3 className="text-lg font-headline font-black text-brand-blue">No Contests Found</h3>
+                    <p className="text-xs text-text-muted max-w-xs mt-1 leading-relaxed">
+                      We couldn't find any contests matching the selected category. Explore the active contests catalog to participate!
+                    </p>
+                    <Link to="/contests" className="mt-4 px-5 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-black rounded-xl transition-all shadow-sm">
+                      Browse Contests
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     </div>
