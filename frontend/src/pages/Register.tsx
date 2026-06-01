@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
+  const { register } = useApp();
 
   const [fullname, setFullname] = useState('');
   const [username, setUsername] = useState('');
@@ -10,11 +12,31 @@ export const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Redirect to login on successful submission
-    navigate('/login');
+    if (password !== confirmPassword) {
+      setError('Mật khẩu và mật khẩu xác nhận không khớp!');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await register({
+        username,
+        password,
+        confirmPassword,
+        displayname: fullname,
+        email
+      });
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Đăng ký không thành công. Vui lòng kiểm tra lại.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,6 +65,12 @@ export const Register: React.FC = () => {
             <h2 className="font-headline-md text-headline-md text-[#0b1c30]">Create an Account</h2>
             <p className="font-body-md text-body-md text-[#5a4136] mt-xs">Please enter your details to sign up.</p>
           </div>
+
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-4 text-red-700 text-sm font-medium">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-lg">
             {/* Full Name */}
@@ -191,10 +219,11 @@ export const Register: React.FC = () => {
 
             {/* Submit Button */}
             <button
-              className="w-full flex justify-center py-sm px-md border border-transparent rounded-lg shadow-sm font-label-md text-label-md text-white bg-[#ff6b00] hover:bg-[#a04100] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a04100] items-center pt-[10px] pb-[6px]"
+              className="w-full flex justify-center py-sm px-md border border-transparent rounded-lg shadow-sm font-label-md text-label-md text-white bg-[#ff6b00] hover:bg-[#a04100] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a04100] items-center pt-[10px] pb-[6px] disabled:opacity-50"
               type="submit"
+              disabled={loading}
             >
-              Create Account
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
         </div>

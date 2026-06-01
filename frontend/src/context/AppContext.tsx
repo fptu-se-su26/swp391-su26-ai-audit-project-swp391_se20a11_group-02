@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { authService } from '../services/authService';
 
 export interface User {
   id: string;
@@ -48,8 +49,9 @@ interface AppContextType {
   enrolledCourses: string[]; // Course IDs
   submissions: CodeSubmission[];
   registeredContests: string[]; // Contest IDs
-  login: (username: string, role: 'student' | 'instructor') => void;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (registerData: any) => Promise<void>;
+  logout: () => Promise<void>;
   depositFunds: (amount: number, method: string) => void;
   withdrawFunds: (amount: number, bank: string, account: string) => boolean;
   addToCart: (courseId: string) => void;
@@ -68,15 +70,10 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Pre-load a default user
-  const [user, setUser] = useState<User | null>({
-    id: 'u1',
-    name: 'Nguyễn Văn Hùng',
-    username: 'hungnv',
-    email: 'hungnv@fpt.edu.vn',
-    role: 'student',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is',
-    walletBalance: 2500000,
+  // Persist user state from localStorage
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('user_info');
+    return saved ? JSON.parse(saved) : null;
   });
 
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([
@@ -105,22 +102,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   ]);
   const [registeredContests, setRegisteredContests] = useState<string[]>([]);
 
-  const login = (username: string, role: 'student' | 'instructor') => {
-    setUser({
-      id: role === 'instructor' ? 'inst-1' : 'u1',
-      name: role === 'instructor' ? 'Dr. Lê Minh Tuấn' : username || 'Nguyễn Văn Hùng',
-      username: username || 'hungnv',
-      email: role === 'instructor' ? 'tuanlm@fpt.edu.vn' : `${username || 'hungnv'}@fpt.edu.vn`,
-      role: role,
-      avatar: role === 'instructor' 
-        ? 'https://ui-avatars.com/api/?name=Le+Tuan&background=F36F21&color=fff'
-        : 'https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is',
-      walletBalance: role === 'instructor' ? 15800000 : 2500000,
-    });
+  const login = async (username: string, password: string): Promise<void> => {
+    const result = await authService.login(username, password);
+    const isInstructor = result.roles?.includes('INSTRUCTOR') || result.roles?.includes('ADMIN');
+    const userRole: 'student' | 'instructor' = isInstructor ? 'instructor' : 'student';
+
+    const loggedInUser: User = {
+      id: result.id.toString(),
+      name: result.displayName || username,
+      username: result.username || username,
+      email: result.email || '',
+      role: userRole,
+      avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(result.displayName || username)}&background=F36F21&color=fff`,
+      walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
+    };
+
+    setUser(loggedInUser);
+    localStorage.setItem('user_info', JSON.stringify(loggedInUser));
   };
 
-  const logout = () => {
-    setUser(null);
+  const register = async (registerData: any): Promise<void> => {
+    const result = await authService.register(registerData);
+    const isInstructor = result.roles?.includes('INSTRUCTOR') || result.roles?.includes('ADMIN');
+    const userRole: 'student' | 'instructor' = isInstructor ? 'instructor' : 'student';
+
+    const loggedInUser: User = {
+      id: result.id.toString(),
+      name: result.displayName || registerData.displayname,
+      username: result.username || registerData.username,
+      email: result.email || registerData.email,
+      role: userRole,
+      avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(result.displayName || registerData.displayname)}&background=F36F21&color=fff`,
+      walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
+    };
+
+    setUser(loggedInUser);
+    localStorage.setItem('user_info', JSON.stringify(loggedInUser));
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      await authService.logout();
+    } catch (e) {
+      console.error('Logout API failed, forcing local logout:', e);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('user_info');
+    }
   };
 
   const depositFunds = (amount: number, method: string) => {
@@ -262,6 +290,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         submissions,
         registeredContests,
         login,
+        register,
         logout,
         depositFunds,
         withdrawFunds,

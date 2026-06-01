@@ -1932,7 +1932,7 @@ ALTER TABLE public.user_roles OWNER TO postgres;
 CREATE TABLE public.users (
     id integer NOT NULL,
     username character varying(255) NOT NULL,
-    password character varying(255) NOT NULL,
+    password_hash character varying(255) NOT NULL,
     displayname character varying(255) NOT NULL,
     avatarurl character varying(255),
     email character varying(255) NOT NULL,
