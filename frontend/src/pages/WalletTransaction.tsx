@@ -9,7 +9,6 @@ export const WalletTransaction: React.FC = () => {
         <div className="flex h-12 gap-6 overflow-x-auto whitespace-nowrap w-full md:w-auto">
           <Link className="text-primary font-bold border-b-2 border-primary h-full flex items-center text-sm" to="/wallet-transaction">Wallet Transaction</Link>
           <Link className="text-text-muted hover:text-primary transition-colors h-full flex items-center text-sm" to="/dashboard#deposit">Deposit</Link>
-          <Link className="text-text-muted hover:text-primary transition-colors h-full flex items-center text-sm" to="/withdraw">Withdraw</Link>
           <Link className="text-text-muted hover:text-primary transition-colors h-full flex items-center text-sm" to="/payment-transaction">Payment Transaction</Link>
         </div>
         <div className="bg-white py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-gray-200">

@@ -1,43 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React from 'react';
 
 export const ContestSubmissions: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const [timeLeft, setTimeLeft] = useState<string>('01:24:55');
-
-  // Tick countdown timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        const parts = prev.split(':').map(Number);
-        let sec = parts[2];
-        let min = parts[1];
-        let hr = parts[0];
-
-        if (sec > 0) {
-          sec--;
-        } else {
-          sec = 59;
-          if (min > 0) {
-            min--;
-          } else {
-            min = 59;
-            if (hr > 0) hr--;
-          }
-        }
-
-        const pad = (n: number) => String(n).padStart(2, '0');
-        return `${pad(hr)}:${pad(min)}:${pad(sec)}`;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   return (
-    <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10">
-      {/* Main Content (Left 85%) */}
-      <main className="w-full md:w-[85%] px-4 sm:px-8 py-8 md:py-12 bg-surface-gray">
+    <main className="w-full px-4 sm:px-8 py-8 md:py-12 bg-surface-gray flex-grow">
         <div className="max-w-[1280px] mx-auto">
           <h1 className="font-headline text-headline-lg text-text-main mb-8">Submissions</h1>
           
@@ -228,37 +194,5 @@ export const ContestSubmissions: React.FC = () => {
           </div>
         </div>
       </main>
-
-      {/* Right Sidebar (15%) */}
-      <aside className="w-full md:w-[15%] min-w-[280px] bg-white border-l border-gray-200 flex flex-col relative sticky top-16 h-[calc(100vh-64px)]">
-        <div className="flex-grow overflow-y-auto py-8 px-6">
-          <div className="mb-10 text-center">
-            <h2 className="text-xl font-black text-text-main mb-2 tracking-tight">Contest #42</h2>
-            <div className="bg-surface-gray rounded-lg p-4 shadow-sm border border-gray-200">
-              <p className="text-xs font-label text-text-muted uppercase tracking-wider mb-1">Ends In</p>
-              <div className="font-display text-2xl font-bold text-primary tabular-nums tracking-tight">{timeLeft}</div>
-            </div>
-          </div>
-          <nav className="space-y-2 font-label text-sm">
-            <Link className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-muted font-medium hover:bg-surface-gray transition-all" to={`/contests/${id || 42}`}>
-              <span className="material-symbols-outlined">dashboard</span>
-              Overview
-            </Link>
-            <Link className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-muted font-medium hover:bg-surface-gray transition-all" to={`/contests/${id || 42}/problems`}>
-              <span className="material-symbols-outlined">extension</span>
-              Problems
-            </Link>
-            <Link className="flex items-center gap-3 py-3 px-4 rounded-lg text-primary font-bold border-l-4 border-primary bg-primary-light/40 shadow-sm translate-x-1 transition-all" to={`/contests/${id || 42}/submissions`}>
-              <span className="material-symbols-outlined icon-fill">list_alt</span>
-              Submissions
-            </Link>
-            <Link className="flex items-center gap-3 py-3 px-4 rounded-lg text-text-muted font-medium hover:bg-surface-gray transition-all" to={`/contests/${id || 42}/ranking`}>
-              <span className="material-symbols-outlined">leaderboard</span>
-              Rankings
-            </Link>
-          </nav>
-        </div>
-      </aside>
-    </div>
   );
 };
