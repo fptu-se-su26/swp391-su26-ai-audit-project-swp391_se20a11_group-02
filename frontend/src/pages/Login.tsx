@@ -7,11 +7,21 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(username || 'Nguyễn Văn Hùng', 'student');
-    navigate('/dashboard');
+    setLoading(true);
+    setError(null);
+    try {
+      await login(username, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Đăng nhập không thành công. Vui lòng kiểm tra lại.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,12 +44,17 @@ export const Login: React.FC = () => {
           <p className="font-body-lg text-body-lg text-[#5a4136] mt-sm">The Motivating Mentor</p>
         </div>
 
-        {/* Login Card */}
         <div className="glass-card rounded-xl p-xl transition-all duration-300 hover:shadow-[0_8px_30px_rgba(26,54,93,0.12)]">
           <div className="mb-lg">
             <h2 className="font-headline-md text-headline-md text-[#0b1c30]">Welcome back</h2>
             <p className="font-body-md text-body-md text-[#5a4136] mt-xs">Please enter your details to sign in.</p>
           </div>
+
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-4 text-red-700 text-sm font-medium">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-lg">
             {/* Email Input */}
@@ -104,10 +119,11 @@ export const Login: React.FC = () => {
 
             {/* Submit Button */}
             <button
-              className="w-full flex justify-center py-sm px-md border border-transparent rounded-lg shadow-sm font-label-md text-label-md text-white bg-[#ff6b00] hover:bg-[#a04100] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a04100] items-center pt-[10px] pb-[6px]"
+              className="w-full flex justify-center py-sm px-md border border-transparent rounded-lg shadow-sm font-label-md text-label-md text-white bg-[#ff6b00] hover:bg-[#a04100] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a04100] items-center pt-[10px] pb-[6px] disabled:opacity-50"
               type="submit"
+              disabled={loading}
             >
-              Log In
+              {loading ? 'Logging In...' : 'Log In'}
             </button>
           </form>
 
