@@ -13,7 +13,7 @@ services:
       - backend/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/schema-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/schema-db.sql:/docker-entrypoint-initdb.d/schema_db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -34,7 +34,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # RabbitMQ để quản lý bất đồng bộ
+  # RabbitMQ to manage asynchronous tasks and event queuing
   rabbitmq:
     build: 
       context: ./backend
@@ -49,17 +49,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # Profile "full" dành cho khi cần test các tính năng nặng như Online Judge
-  judge0:
-    image: judge0/judge0:1.13.0
-    container_name: nonstopcoding_judge0
-    ports:
-      - "2358:2358"
-    profiles: ["full"]
-    depends_on:
-      redis:
-        condition: service_healthy
 
 volumes:
   postgres_data:
