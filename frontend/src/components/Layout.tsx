@@ -16,6 +16,17 @@ export const Layout: React.FC = () => {
     navigate('/login');
   };
 
+  // Redirection / Protection logic
+  const privateRoutes = ['/dashboard', '/instructor', '/wallet-transaction', '/payment-transaction', '/shopping-cart'];
+  const isPrivateRoute = privateRoutes.some(route => location.pathname.startsWith(route));
+
+  React.useEffect(() => {
+    // If not logged in and trying to access private routes, redirect to root Home page
+    if (!user && isPrivateRoute) {
+      navigate('/', { replace: true });
+    }
+  }, [user, isPrivateRoute, navigate]);
+
   return (
     <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex flex-col antialiased selection:bg-primary-light selection:text-brand-blue relative">
 
@@ -35,7 +46,9 @@ export const Layout: React.FC = () => {
             <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding Logo" className="h-16 w-auto" />
           </Link>
           <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2 h-full">
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Learning</NavLink>
+            {user && (
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Learning</NavLink>
+            )}
             <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/courses">Courses</NavLink>
             <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/problems">Problems</NavLink>
             <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/contests">Contests</NavLink>
@@ -43,10 +56,12 @@ export const Layout: React.FC = () => {
           </nav>
           <div className="flex items-center gap-4">
             {/* Instructor Capsule Link */}
-            <Link to="/instructor" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
-              <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">school</span>
-              <span>Instructor</span>
-            </Link>
+            {user && user.role === 'instructor' && (
+              <Link to="/instructor" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
+                <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">school</span>
+                <span>Instructor</span>
+              </Link>
+            )}
             <button className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all">
               <span className="material-symbols-outlined">notifications</span>
             </button>
@@ -56,34 +71,44 @@ export const Layout: React.FC = () => {
                 <span className="absolute top-1 right-0 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">{cart.length}</span>
               )}
             </Link>
-            <div className="relative flex items-center gap-1 cursor-pointer group ml-2">
-              <img
-                alt="User Avatar"
-                className="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-primary transition-all object-cover"
-                src={user?.avatar || "https://ui-avatars.com/api/?name=You&background=12284C&color=fff"}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=You&background=12284C&color=fff';
-                }}
-              />
-              <span className="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">arrow_drop_down</span>
+            {user ? (
+              <div className="relative flex items-center gap-1 cursor-pointer group ml-2">
+                <img
+                  alt="User Avatar"
+                  className="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-primary transition-all object-cover"
+                  src={user?.avatar || "https://ui-avatars.com/api/?name=You&background=12284C&color=fff"}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=You&background=12284C&color=fff';
+                  }}
+                />
+                <span className="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">arrow_drop_down</span>
 
-              {/* Dropdown Menu */}
-              <div className="absolute top-full right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2 cursor-default text-left">
-                <Link to="/dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">dashboard</span> My Learning
-                </Link>
-                <a href="#" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">person</span> Edit Profile
-                </a>
-                <Link to="/wallet-transaction" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span> Wallet
-                </Link>
-                <div className="h-px bg-gray-100 my-1 w-full"></div>
-                <button onClick={handleLogout} className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2 w-full text-left">
-                  <span className="material-symbols-outlined text-[18px]">logout</span> Logout
-                </button>
+                {/* Dropdown Menu */}
+                <div className="absolute top-full right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2 cursor-default text-left">
+                  <Link to="/dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">dashboard</span> My Learning
+                  </Link>
+                  <a href="#" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">person</span> Edit Profile
+                  </a>
+                  <Link to="/wallet-transaction" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span> Wallet
+                  </Link>
+                  <div className="h-px bg-gray-100 my-1 w-full"></div>
+                  <button onClick={handleLogout} className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2 w-full text-left">
+                    <span className="material-symbols-outlined text-[18px]">logout</span> Logout
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#ff8c42] hover:from-[#d95f19] hover:to-primary text-white font-extrabold text-xs md:text-sm shadow-sm transition-all transform active:scale-95 group select-none shrink-0"
+              >
+                <span className="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">login</span>
+                <span>Login</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
