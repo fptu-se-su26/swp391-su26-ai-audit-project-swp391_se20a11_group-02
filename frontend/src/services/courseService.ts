@@ -562,3 +562,118 @@ export const getCourseById = async (id: string): Promise<Course | undefined> => 
 export const getEnrolledCourses = async (enrolledIds: string[]): Promise<Course[]> => {
   return mockCourses.filter(c => enrolledIds.includes(c.id));
 };
+
+// --- BACKEND API INTEGRATION ---
+const BASE_URL = 'http://localhost:8080/nonstopcoding';
+
+export interface CourseListItemResponse {
+  id: number;
+  title: string;
+  thumbnailUrl: string;
+  shortDescription: string;
+  price: number;
+  averageRating: number;
+  totalReviews: number;
+  totalEnrolled: number;
+  enrolled: boolean;
+  progressPercentage: number;
+  instructorName: string;
+  categoryName?: string; // Mapped dynamically in frontend or backend
+}
+
+export interface PageResponse<T> {
+  page: number;
+  size: number;
+  numberOfElements: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  content: T[];
+}
+
+export interface ApiResponse<T> {
+  status: number;
+  code: number;
+  message: string;
+  result: T;
+  timestamp: string;
+}
+
+export interface CourseSearchRequestParams {
+  keyword?: string;
+  categoryIds?: number[];
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+  maxRating?: number;
+  instructorName?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string[];
+  order?: string[];
+}
+
+export const fetchCourses = async (params: CourseSearchRequestParams): Promise<PageResponse<CourseListItemResponse>> => {
+  const queryParams = new URLSearchParams();
+
+  if (params.keyword && params.keyword.trim() !== '') {
+    queryParams.append('keyword', params.keyword.trim());
+  }
+
+  if (params.categoryIds && params.categoryIds.length > 0) {
+    params.categoryIds.forEach(id => queryParams.append('categoryIds', id.toString()));
+  }
+
+  if (params.minPrice !== undefined && params.minPrice !== null) {
+    queryParams.append('minPrice', params.minPrice.toString());
+  }
+
+  if (params.maxPrice !== undefined && params.maxPrice !== null) {
+    queryParams.append('maxPrice', params.maxPrice.toString());
+  }
+
+  if (params.minRating !== undefined && params.minRating !== null) {
+    queryParams.append('minRating', params.minRating.toString());
+  }
+
+  if (params.maxRating !== undefined && params.maxRating !== null) {
+    queryParams.append('maxRating', params.maxRating.toString());
+  }
+
+  if (params.instructorName && params.instructorName.trim() !== '') {
+    queryParams.append('instructorName', params.instructorName.trim());
+  }
+
+  if (params.page !== undefined && params.page !== null) {
+    queryParams.append('page', params.page.toString());
+  }
+
+  if (params.size !== undefined && params.size !== null) {
+    queryParams.append('size', params.size.toString());
+  }
+
+  if (params.sortBy && params.sortBy.length > 0) {
+    params.sortBy.forEach(field => queryParams.append('sortBy', field));
+  }
+
+  if (params.order && params.order.length > 0) {
+    params.order.forEach(ord => queryParams.append('order', ord));
+  }
+
+  const response = await fetch(`${BASE_URL}/courses?${queryParams.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include', // Important: sends session cookie for personalized enrollment status
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải danh sách khóa học');
+  }
+
+  const data: ApiResponse<PageResponse<CourseListItemResponse>> = await response.json();
+  return data.result;
+};

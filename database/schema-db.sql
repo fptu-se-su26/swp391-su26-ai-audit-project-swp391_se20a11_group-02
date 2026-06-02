@@ -834,6 +834,9 @@ CREATE TABLE public.courses (
     average_rating double precision DEFAULT 0 NOT NULL,
     total_reviews integer DEFAULT 0 NOT NULL,
     total_enrolled integer DEFAULT 0 NOT NULL,
+    total_lessons integer DEFAULT 0 NOT NULL,
+    total_quizzes integer DEFAULT 0 NOT NULL,
+    total_videos integer DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     fts_document tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, ((public.f_unaccent((title)::text) || ' '::text) || public.f_unaccent((short_description)::text)))) STORED,
@@ -3697,6 +3700,26 @@ ALTER TABLE ONLY public.wallets
 --
 -- PostgreSQL database dump complete
 --
+
+--
+-- TOC entry 5720 (class 1259 OID 20000)
+-- Name: completed_lessons_count; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.completed_lessons_count (
+    id bigserial NOT NULL,
+    user_id integer NOT NULL,
+    course_id integer NOT NULL,
+    completed_lessons_count integer DEFAULT 0 NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT pk_completed_lessons_count PRIMARY KEY (id),
+    CONSTRAINT uq_completed_lessons_count_user_course UNIQUE (user_id, course_id),
+    CONSTRAINT fk_completed_lessons_count_user FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_completed_lessons_count_course FOREIGN KEY (course_id) REFERENCES public.courses(id) ON DELETE CASCADE
+);
+
+ALTER TABLE public.completed_lessons_count OWNER TO postgres;
+
 
 \unrestrict f1XHs00uIydZOdKgwloTsfsJfFawJeimqheWfTVWkTffDKy9YRUqdApVBuVwhZG
 
