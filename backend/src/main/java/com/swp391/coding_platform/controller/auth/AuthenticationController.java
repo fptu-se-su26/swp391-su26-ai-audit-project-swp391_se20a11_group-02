@@ -2,6 +2,7 @@ package com.swp391.coding_platform.controller.auth;
 
 import com.nimbusds.jose.JOSEException;
 import com.swp391.coding_platform.dto.request.AuthenticationRequest;
+import com.swp391.coding_platform.dto.request.GoogleLoginRequest;
 import com.swp391.coding_platform.dto.request.RegisterRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.AuthenticationResponse;
@@ -94,6 +95,22 @@ public class AuthenticationController {
                 .status(200)
                 .code(1000)
                 .message("Login successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> googleLogin(
+            @RequestBody @Valid GoogleLoginRequest googleLoginRequest, HttpServletResponse response){
+
+        AuthenticationResponse result = authenticationService.googleLogin(googleLoginRequest);
+        addAuthCookies(response, result);
+
+        return ResponseEntity.ok(ApiResponse.<AuthenticationResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Google login successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());

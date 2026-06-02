@@ -14,7 +14,6 @@ import com.swp391.coding_platform.dto.response.IntrospectResponse;
 import com.swp391.coding_platform.entity.auth.InvalidatedTokenEntity;
 import com.swp391.coding_platform.entity.auth.RoleEntity;
 import com.swp391.coding_platform.entity.enums.RoleName;
-import com.swp391.coding_platform.entity.enums.UserStatus;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.event.UserRegisteredEvent;
 import com.swp391.coding_platform.exception.AppException;
@@ -23,6 +22,13 @@ import com.swp391.coding_platform.mapper.UserMapper;
 import com.swp391.coding_platform.repository.auth.InvalidatedTokenRepository;
 import com.swp391.coding_platform.repository.auth.RoleRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
+import com.swp391.coding_platform.entity.user.UserOauthAccountEntity;
+import com.swp391.coding_platform.repository.user.UserOauthAccountRepository;
+import com.swp391.coding_platform.dto.request.GoogleLoginRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -53,10 +59,15 @@ public class AuthenticationService {
     InvalidatedTokenRepository invalidatedTokenRepository;
     ApplicationEventPublisher applicationEventPublisher;
     UserMapper userMapper;
+    UserOauthAccountRepository userOauthAccountRepository;
 
     @NonFinal
     @Value("${jwt.signer-key}")
     String SIGNER_KEY;
+
+    @NonFinal
+    @Value("${google.client-id:}")
+    String GOOGLE_CLIENT_ID;
 
     @NonFinal
     @Value("${jwt.valid-duration}")
@@ -85,6 +96,89 @@ public class AuthenticationService {
         AuthenticationResponse authenticationResponse = buildAuthResponse(userEntity, accessToken, refreshToken);
 
         return authenticationResponse;
+    }
+
+    @Transactional
+    public AuthenticationResponse googleLogin(GoogleLoginRequest request) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                    .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(request.getIdToken());
+            if (idToken == null) {
+                throw new AppException(ErrorCode.UNAUTHENTICATED);
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String subjectId = payload.getSubject();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String pictureUrl = (String) payload.get("picture");
+
+            // Check if oauth account exists
+            Optional<UserOauthAccountEntity> oauthAccountOpt = userOauthAccountRepository.findByProviderAndProviderUserId("google", subjectId);
+            UserEntity userEntity;
+
+            if (oauthAccountOpt.isPresent()) {
+                userEntity = oauthAccountOpt.get().getUser();
+                boolean changed = false;
+                if (userEntity.getAvatarurl() == null || !userEntity.getAvatarurl().equals(pictureUrl)) {
+                    userEntity.setAvatarurl(pictureUrl);
+                    changed = true;
+                }
+                if (changed) {
+                    userRepository.save(userEntity);
+                }
+            } else {
+                // Link or Register
+                Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+                if (userOpt.isPresent()) {
+                    userEntity = userOpt.get();
+                } else {
+                    // Create new user
+                    String baseUsername = email.contains("@") ? email.split("@")[0] : email;
+                    String username = baseUsername + "_" + UUID.randomUUID().toString().substring(0, 5);
+                    while(userRepository.existsByUsername(username)) {
+                        username = baseUsername + "_" + UUID.randomUUID().toString().substring(0, 5);
+                    }
+
+                    userEntity = UserEntity.builder()
+                            .username(username)
+                            .email(email)
+                            .displayname(name != null ? name : baseUsername)
+                            .avatarurl(pictureUrl)
+                            // passwordHash is null
+                            .build();
+
+                    var userRole = roleRepository.findByName(RoleName.USER)
+                            .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.USER).build()));
+                    userEntity.setRoles(Set.of(userRole));
+                    userEntity = userRepository.save(userEntity);
+
+                    applicationEventPublisher.publishEvent(UserRegisteredEvent.builder().userEntity(userEntity).build());
+                }
+
+                // Create link
+                UserOauthAccountEntity oauthAccount = UserOauthAccountEntity.builder()
+                        .user(userEntity)
+                        .provider("google")
+                        .providerUserId(subjectId)
+                        .build();
+                userOauthAccountRepository.save(oauthAccount);
+            }
+
+            userEntity.validateStatus();
+
+            String accessToken = generateToken(userEntity, false);
+            String refreshToken = generateToken(userEntity, true);
+
+            return buildAuthResponse(userEntity, accessToken, refreshToken);
+
+        } catch (Exception e) {
+            log.error("Google verify error", e);
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
     }
 
     @Transactional

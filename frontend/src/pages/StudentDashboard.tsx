@@ -688,9 +688,19 @@ export const StudentDashboard: React.FC = () => {
                   <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-3 shadow-sm relative z-10">
                     <span className="material-symbols-outlined text-xs icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>dashboard</span> Dashboard Arena
                   </div>
-                  <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10">
+                  <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10 flex items-center gap-3 flex-wrap">
                     <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">Welcome back,</span> 
-                    <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent"> Join! 👋</span>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={user.avatar} 
+                        alt="User Avatar" 
+                        className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-primary/20 shadow-sm object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=User&background=12284C&color=fff';
+                        }}
+                      />
+                      <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent"> {user.name}! 👋</span>
+                    </div>
                   </h1>
                   <p className="text-text-muted mt-1">Here is your learning progress and recent activities.</p>
                 </div>
