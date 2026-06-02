@@ -50,6 +50,7 @@ interface AppContextType {
   submissions: CodeSubmission[];
   registeredContests: string[]; // Contest IDs
   login: (username: string, password: string) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
   register: (registerData: any) => Promise<void>;
   logout: () => Promise<void>;
   depositFunds: (amount: number, method: string) => void;
@@ -114,6 +115,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       email: result.email || '',
       role: userRole,
       avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(result.displayName || username)}&background=F36F21&color=fff`,
+      walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
+    };
+
+    setUser(loggedInUser);
+    setUser(loggedInUser);
+    localStorage.setItem('user_info', JSON.stringify(loggedInUser));
+  };
+
+  const googleLogin = async (idToken: string): Promise<void> => {
+    const result = await authService.googleLogin(idToken);
+    const isInstructor = result.roles?.includes('INSTRUCTOR') || result.roles?.includes('ADMIN');
+    const userRole: 'student' | 'instructor' = isInstructor ? 'instructor' : 'student';
+
+    const loggedInUser: User = {
+      id: result.id.toString(),
+      name: result.displayName || 'Google User',
+      username: result.username || 'google_user',
+      email: result.email || '',
+      role: userRole,
+      avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=User&background=F36F21&color=fff`,
       walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
     };
 
@@ -290,6 +311,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         submissions,
         registeredContests,
         login,
+        googleLogin,
         register,
         logout,
         depositFunds,
