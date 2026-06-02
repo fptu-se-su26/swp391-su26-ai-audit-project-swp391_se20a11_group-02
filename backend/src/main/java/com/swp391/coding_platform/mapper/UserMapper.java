@@ -16,6 +16,8 @@ public interface UserMapper {
     @Mapping(target = "accessToken", ignore = true)
     @Mapping(target = "refreshToken", ignore = true)
     @Mapping(target = "balance", ignore = true)
+    @Mapping(target = "displayName", source = "displayname")
+    @Mapping(target = "avatarUrl", source = "avatarurl")
     AuthenticationResponse toAuthenticationResponse(UserEntity userEntity);
 
     @Mapping(target = "id", ignore = true)
