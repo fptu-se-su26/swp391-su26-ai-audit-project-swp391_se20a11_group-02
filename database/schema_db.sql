@@ -66,7 +66,7 @@ CREATE TYPE public.contest_status AS ENUM (
     'RUNNING',
     'ENDED',
     'CANCELLED'
-);
+    );
 
 
 ALTER TYPE public.contest_status OWNER TO postgres;
@@ -80,7 +80,7 @@ CREATE TYPE public.course_status AS ENUM (
     'PENDING',
     'APPROVED',
     'REJECTED'
-);
+    );
 
 
 ALTER TYPE public.course_status OWNER TO postgres;
@@ -94,7 +94,7 @@ CREATE TYPE public.enrollment_status AS ENUM (
     'ACTIVE',
     'CANCELLED',
     'COMPLETED'
-);
+    );
 
 
 ALTER TYPE public.enrollment_status OWNER TO postgres;
@@ -108,7 +108,7 @@ CREATE TYPE public.instructor_app_status AS ENUM (
     'PENDING',
     'APPROVED',
     'REJECTED'
-);
+    );
 
 
 ALTER TYPE public.instructor_app_status OWNER TO postgres;
@@ -121,7 +121,7 @@ ALTER TYPE public.instructor_app_status OWNER TO postgres;
 CREATE TYPE public.instructor_status AS ENUM (
     'ACTIVE',
     'SUSPENDED'
-);
+    );
 
 
 ALTER TYPE public.instructor_status OWNER TO postgres;
@@ -141,7 +141,7 @@ CREATE TYPE public.oj_verdict AS ENUM (
     'RUNTIME_ERROR',
     'MEMORY_LIMIT_EXCEEDED',
     'INTERNAL_ERROR'
-);
+    );
 
 
 ALTER TYPE public.oj_verdict OWNER TO postgres;
@@ -155,7 +155,7 @@ CREATE TYPE public.order_status AS ENUM (
     'PENDING',
     'COMPLETED',
     'FAILED'
-);
+    );
 
 
 ALTER TYPE public.order_status OWNER TO postgres;
@@ -168,7 +168,7 @@ ALTER TYPE public.order_status OWNER TO postgres;
 CREATE TYPE public.payment_type AS ENUM (
     'DEPOSIT',
     'WITHDRAW'
-);
+    );
 
 
 ALTER TYPE public.payment_type OWNER TO postgres;
@@ -183,7 +183,7 @@ CREATE TYPE public.payout_status AS ENUM (
     'PROCESSING',
     'SUCCESS',
     'FAILED'
-);
+    );
 
 
 ALTER TYPE public.payout_status OWNER TO postgres;
@@ -197,7 +197,7 @@ CREATE TYPE public.problem_difficulty AS ENUM (
     'EASY',
     'MEDIUM',
     'HARD'
-);
+    );
 
 
 ALTER TYPE public.problem_difficulty OWNER TO postgres;
@@ -212,7 +212,7 @@ CREATE TYPE public.problem_scope AS ENUM (
     'CONTEST',
     'SHARED',
     'PRACTICE'
-);
+    );
 
 
 ALTER TYPE public.problem_scope OWNER TO postgres;
@@ -226,7 +226,7 @@ CREATE TYPE public.progress_status AS ENUM (
     'NOT_STARTED',
     'IN_PROGRESS',
     'COMPLETED'
-);
+    );
 
 
 ALTER TYPE public.progress_status OWNER TO postgres;
@@ -239,7 +239,7 @@ ALTER TYPE public.progress_status OWNER TO postgres;
 CREATE TYPE public.quiz_status AS ENUM (
     'IN_PROGRESS',
     'COMPLETED'
-);
+    );
 
 
 ALTER TYPE public.quiz_status OWNER TO postgres;
@@ -253,7 +253,7 @@ CREATE TYPE public.role_name AS ENUM (
     'USER',
     'INSTRUCTOR',
     'ADMIN'
-);
+    );
 
 
 ALTER TYPE public.role_name OWNER TO postgres;
@@ -267,7 +267,7 @@ CREATE TYPE public.scoring_rule AS ENUM (
     'ICPC',
     'IOI',
     'CUSTOM'
-);
+    );
 
 
 ALTER TYPE public.scoring_rule OWNER TO postgres;
@@ -280,7 +280,7 @@ ALTER TYPE public.scoring_rule OWNER TO postgres;
 CREATE TYPE public.status_active_locked AS ENUM (
     'ACTIVE',
     'LOCKED'
-);
+    );
 
 
 ALTER TYPE public.status_active_locked OWNER TO postgres;
@@ -294,7 +294,7 @@ CREATE TYPE public.status_transaction AS ENUM (
     'SUCCESS',
     'FAILED',
     'PENDING'
-);
+    );
 
 
 ALTER TYPE public.status_transaction OWNER TO postgres;
@@ -312,7 +312,7 @@ CREATE TYPE public.transaction_type AS ENUM (
     'REFUND',
     'AWARD',
     'PLATFORM_FEE'
-);
+    );
 
 
 ALTER TYPE public.transaction_type OWNER TO postgres;
@@ -324,8 +324,8 @@ ALTER TYPE public.transaction_type OWNER TO postgres;
 
 CREATE FUNCTION public.f_unaccent(text) RETURNS text
     LANGUAGE sql IMMUTABLE STRICT
-    AS $_$
-    SELECT public.unaccent('public.unaccent', $1);
+AS $_$
+SELECT public.unaccent('public.unaccent', $1);
 $_$;
 
 
@@ -341,10 +341,10 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.cart_items (
-    id integer NOT NULL,
-    cart_id integer NOT NULL,
-    course_id integer NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                   id integer NOT NULL,
+                                   cart_id integer NOT NULL,
+                                   course_id integer NOT NULL,
+                                   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -381,10 +381,10 @@ ALTER SEQUENCE public.cart_items_id_seq OWNED BY public.cart_items.id;
 --
 
 CREATE TABLE public.carts (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                              id integer NOT NULL,
+                              user_id integer NOT NULL,
+                              created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                              updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -421,11 +421,11 @@ ALTER SEQUENCE public.carts_id_seq OWNED BY public.carts.id;
 --
 
 CREATE TABLE public.categories (
-    id integer NOT NULL,
-    name character varying(255) NOT NULL,
-    description text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                   id integer NOT NULL,
+                                   name character varying(255) NOT NULL,
+                                   description text,
+                                   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -462,12 +462,12 @@ ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
 --
 
 CREATE TABLE public.chapters (
-    id integer NOT NULL,
-    course_id integer NOT NULL,
-    title character varying(255) NOT NULL,
-    order_index integer DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                 id integer NOT NULL,
+                                 course_id integer NOT NULL,
+                                 title character varying(255) NOT NULL,
+                                 order_index integer DEFAULT 0 NOT NULL,
+                                 created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                 updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -504,11 +504,11 @@ ALTER SEQUENCE public.chapters_id_seq OWNED BY public.chapters.id;
 --
 
 CREATE TABLE public.completed_lessons_count (
-    id bigint NOT NULL,
-    completed_lessons_count integer NOT NULL,
-    updated_at timestamp(6) with time zone NOT NULL,
-    course_id bigint NOT NULL,
-    user_id integer NOT NULL
+                                                id bigint NOT NULL,
+                                                completed_lessons_count integer NOT NULL,
+                                                updated_at timestamp(6) with time zone NOT NULL,
+                                                course_id bigint NOT NULL,
+                                                user_id integer NOT NULL
 );
 
 
@@ -526,7 +526,7 @@ ALTER TABLE public.completed_lessons_count ALTER COLUMN id ADD GENERATED BY DEFA
     NO MINVALUE
     NO MAXVALUE
     CACHE 1
-);
+    );
 
 
 --
@@ -535,19 +535,19 @@ ALTER TABLE public.completed_lessons_count ALTER COLUMN id ADD GENERATED BY DEFA
 --
 
 CREATE TABLE public.contest (
-    id integer NOT NULL,
-    created_by integer NOT NULL,
-    title character varying(255) NOT NULL,
-    description text,
-    scoring_rule public.scoring_rule DEFAULT 'ICPC'::public.scoring_rule,
-    password_hash character varying(255),
-    start_time timestamp with time zone NOT NULL,
-    end_time timestamp with time zone NOT NULL,
-    durations integer NOT NULL,
-    status public.contest_status DEFAULT 'UPCOMING'::public.contest_status,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    fts_document tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, ((public.f_unaccent((title)::text) || ' '::text) || public.f_unaccent(COALESCE(description, ''::text))))) STORED
+                                id integer NOT NULL,
+                                created_by integer NOT NULL,
+                                title character varying(255) NOT NULL,
+                                description text,
+                                scoring_rule public.scoring_rule DEFAULT 'ICPC'::public.scoring_rule,
+                                password_hash character varying(255),
+                                start_time timestamp with time zone NOT NULL,
+                                end_time timestamp with time zone NOT NULL,
+                                durations integer NOT NULL,
+                                status public.contest_status DEFAULT 'UPCOMING'::public.contest_status,
+                                created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                fts_document tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, ((public.f_unaccent((title)::text) || ' '::text) || public.f_unaccent(COALESCE(description, ''::text))))) STORED
 );
 
 
@@ -584,10 +584,10 @@ ALTER SEQUENCE public.contest_id_seq OWNED BY public.contest.id;
 --
 
 CREATE TABLE public.contest_participants (
-    id integer NOT NULL,
-    contest_id integer NOT NULL,
-    user_id integer NOT NULL,
-    joined_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                             id integer NOT NULL,
+                                             contest_id integer NOT NULL,
+                                             user_id integer NOT NULL,
+                                             joined_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -624,17 +624,17 @@ ALTER SEQUENCE public.contest_participants_id_seq OWNED BY public.contest_partic
 --
 
 CREATE TABLE public.contest_problem_attempts (
-    id integer NOT NULL,
-    contest_id integer NOT NULL,
-    user_id integer NOT NULL,
-    problem_id integer NOT NULL,
-    is_solved boolean DEFAULT false NOT NULL,
-    solved_at_seconds integer,
-    failed_attempts_count integer DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT contest_problem_attempts_failed_attempts_count_check CHECK ((failed_attempts_count >= 0)),
-    CONSTRAINT contest_problem_attempts_solved_at_seconds_check CHECK ((solved_at_seconds >= 0))
+                                                 id integer NOT NULL,
+                                                 contest_id integer NOT NULL,
+                                                 user_id integer NOT NULL,
+                                                 problem_id integer NOT NULL,
+                                                 is_solved boolean DEFAULT false NOT NULL,
+                                                 solved_at_seconds integer,
+                                                 failed_attempts_count integer DEFAULT 0 NOT NULL,
+                                                 created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                                 updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                                 CONSTRAINT contest_problem_attempts_failed_attempts_count_check CHECK ((failed_attempts_count >= 0)),
+                                                 CONSTRAINT contest_problem_attempts_solved_at_seconds_check CHECK ((solved_at_seconds >= 0))
 );
 
 
@@ -671,10 +671,10 @@ ALTER SEQUENCE public.contest_problem_attempts_id_seq OWNED BY public.contest_pr
 --
 
 CREATE TABLE public.contest_problems (
-    id integer NOT NULL,
-    contest_id integer NOT NULL,
-    problem_id integer NOT NULL,
-    order_index integer NOT NULL
+                                         id integer NOT NULL,
+                                         contest_id integer NOT NULL,
+                                         problem_id integer NOT NULL,
+                                         order_index integer NOT NULL
 );
 
 
@@ -711,14 +711,14 @@ ALTER SEQUENCE public.contest_problems_id_seq OWNED BY public.contest_problems.i
 --
 
 CREATE TABLE public.contest_rankings (
-    id integer NOT NULL,
-    contest_id integer NOT NULL,
-    user_id integer NOT NULL,
-    problems_solved integer DEFAULT 0 NOT NULL,
-    total_penalty integer DEFAULT 0 NOT NULL,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT contest_rankings_problems_solved_check CHECK ((problems_solved >= 0)),
-    CONSTRAINT contest_rankings_total_penalty_check CHECK ((total_penalty >= 0))
+                                         id integer NOT NULL,
+                                         contest_id integer NOT NULL,
+                                         user_id integer NOT NULL,
+                                         problems_solved integer DEFAULT 0 NOT NULL,
+                                         total_penalty integer DEFAULT 0 NOT NULL,
+                                         updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                         CONSTRAINT contest_rankings_problems_solved_check CHECK ((problems_solved >= 0)),
+                                         CONSTRAINT contest_rankings_total_penalty_check CHECK ((total_penalty >= 0))
 );
 
 
@@ -755,9 +755,9 @@ ALTER SEQUENCE public.contest_rankings_id_seq OWNED BY public.contest_rankings.i
 --
 
 CREATE TABLE public.course_category_mappings (
-    id integer NOT NULL,
-    course_id bigint NOT NULL,
-    category_id integer NOT NULL
+                                                 id integer NOT NULL,
+                                                 course_id bigint NOT NULL,
+                                                 category_id integer NOT NULL
 );
 
 
@@ -794,13 +794,13 @@ ALTER SEQUENCE public.course_category_mappings_id_seq OWNED BY public.course_cat
 --
 
 CREATE TABLE public.course_reviews (
-    id integer NOT NULL,
-    course_id integer NOT NULL,
-    user_id integer NOT NULL,
-    content text NOT NULL,
-    star integer NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                       id integer NOT NULL,
+                                       course_id integer NOT NULL,
+                                       user_id integer NOT NULL,
+                                       content text NOT NULL,
+                                       star integer NOT NULL,
+                                       created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                       updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -837,31 +837,31 @@ ALTER SEQUENCE public.course_reviews_id_seq OWNED BY public.course_reviews.id;
 --
 
 CREATE TABLE public.courses (
-    id bigint NOT NULL,
-    instructor_id integer NOT NULL,
-    title character varying(255) NOT NULL,
-    thumbnail_url character varying(255) NOT NULL,
-    short_description character varying(255) NOT NULL,
-    long_description text NOT NULL,
-    what_you_learn text,
-    course_highlight text,
-    technology_tool character varying(255),
-    prerequisites text,
-    target_audience text,
-    completion_benefits text,
-    status character varying(255) DEFAULT 'PENDING'::public.course_status,
-    price numeric(15,2) DEFAULT 0 NOT NULL,
-    type character varying(50) NOT NULL,
-    average_rating double precision DEFAULT 0 NOT NULL,
-    total_reviews integer DEFAULT 0 NOT NULL,
-    total_enrolled integer DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    fts_document tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, ((public.f_unaccent((title)::text) || ' '::text) || public.f_unaccent((short_description)::text)))) STORED,
-    total_lessons integer NOT NULL,
-    total_quizzes integer NOT NULL,
-    total_videos integer NOT NULL,
-    CONSTRAINT courses_price_check CHECK ((price >= (0)::numeric))
+                                id bigint NOT NULL,
+                                instructor_id integer NOT NULL,
+                                title character varying(255) NOT NULL,
+                                thumbnail_url character varying(255) NOT NULL,
+                                short_description character varying(255) NOT NULL,
+                                long_description text NOT NULL,
+                                what_you_learn text,
+                                course_highlight text,
+                                technology_tool character varying(255),
+                                prerequisites text,
+                                target_audience text,
+                                completion_benefits text,
+                                status character varying(255) DEFAULT 'PENDING'::public.course_status,
+                                price numeric(15,2) DEFAULT 0 NOT NULL,
+                                type character varying(50) NOT NULL,
+                                average_rating double precision DEFAULT 0 NOT NULL,
+                                total_reviews integer DEFAULT 0 NOT NULL,
+                                total_enrolled integer DEFAULT 0 NOT NULL,
+                                created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                fts_document tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, ((public.f_unaccent((title)::text) || ' '::text) || public.f_unaccent((short_description)::text)))) STORED,
+                                total_lessons integer NOT NULL,
+                                total_quizzes integer NOT NULL,
+                                total_videos integer NOT NULL,
+                                CONSTRAINT courses_price_check CHECK ((price >= (0)::numeric))
 );
 
 
@@ -898,11 +898,11 @@ ALTER SEQUENCE public.courses_id_seq OWNED BY public.courses.id;
 --
 
 CREATE TABLE public.enrollments (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    course_id bigint NOT NULL,
-    enrolled_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    status character varying(255) DEFAULT 'ACTIVE'::public.enrollment_status
+                                    id integer NOT NULL,
+                                    user_id integer NOT NULL,
+                                    course_id bigint NOT NULL,
+                                    enrolled_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                    status character varying(255) DEFAULT 'ACTIVE'::public.enrollment_status
 );
 
 
@@ -939,14 +939,14 @@ ALTER SEQUENCE public.enrollments_id_seq OWNED BY public.enrollments.id;
 --
 
 CREATE TABLE public.instructor_applications (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    cv_url character varying(255) NOT NULL,
-    introduction text NOT NULL,
-    status public.instructor_app_status DEFAULT 'PENDING'::public.instructor_app_status,
-    admin_note text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                                id integer NOT NULL,
+                                                user_id integer NOT NULL,
+                                                cv_url character varying(255) NOT NULL,
+                                                introduction text NOT NULL,
+                                                status public.instructor_app_status DEFAULT 'PENDING'::public.instructor_app_status,
+                                                admin_note text,
+                                                created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                                updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -983,14 +983,14 @@ ALTER SEQUENCE public.instructor_applications_id_seq OWNED BY public.instructor_
 --
 
 CREATE TABLE public.instructors (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    full_name character varying(255) NOT NULL,
-    major character varying(255) NOT NULL,
-    bio text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    status character varying(255) DEFAULT 'ACTIVE'::public.instructor_status,
-    hired_by_admin boolean DEFAULT false
+                                    id integer NOT NULL,
+                                    user_id integer NOT NULL,
+                                    full_name character varying(255) NOT NULL,
+                                    major character varying(255) NOT NULL,
+                                    bio text,
+                                    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                    status character varying(255) DEFAULT 'ACTIVE'::public.instructor_status,
+                                    hired_by_admin boolean DEFAULT false
 );
 
 
@@ -1027,10 +1027,10 @@ ALTER SEQUENCE public.instructors_id_seq OWNED BY public.instructors.id;
 --
 
 CREATE TABLE public.invalidated_tokens (
-    id integer NOT NULL,
-    token character varying(255) NOT NULL,
-    expiry_time timestamp with time zone NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                           id integer NOT NULL,
+                                           token character varying(255) NOT NULL,
+                                           expiry_time timestamp with time zone NOT NULL,
+                                           created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1067,13 +1067,13 @@ ALTER SEQUENCE public.invalidated_tokens_id_seq OWNED BY public.invalidated_toke
 --
 
 CREATE TABLE public.lesson_comments (
-    id integer NOT NULL,
-    lesson_id integer NOT NULL,
-    user_id integer NOT NULL,
-    content text NOT NULL,
-    parent_comment_id integer,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                        id integer NOT NULL,
+                                        lesson_id integer NOT NULL,
+                                        user_id integer NOT NULL,
+                                        content text NOT NULL,
+                                        parent_comment_id integer,
+                                        created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                        updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1110,10 +1110,10 @@ ALTER SEQUENCE public.lesson_comments_id_seq OWNED BY public.lesson_comments.id;
 --
 
 CREATE TABLE public.lesson_problems (
-    id integer NOT NULL,
-    lesson_id integer NOT NULL,
-    problem_id integer NOT NULL,
-    order_index integer DEFAULT 0 NOT NULL
+                                        id integer NOT NULL,
+                                        lesson_id integer NOT NULL,
+                                        problem_id integer NOT NULL,
+                                        order_index integer DEFAULT 0 NOT NULL
 );
 
 
@@ -1150,11 +1150,11 @@ ALTER SEQUENCE public.lesson_problems_id_seq OWNED BY public.lesson_problems.id;
 --
 
 CREATE TABLE public.lesson_progress (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    lesson_id integer NOT NULL,
-    course_id bigint NOT NULL,
-    completed_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                        id integer NOT NULL,
+                                        user_id integer NOT NULL,
+                                        lesson_id integer NOT NULL,
+                                        course_id bigint NOT NULL,
+                                        completed_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1191,16 +1191,16 @@ ALTER SEQUENCE public.lesson_progress_id_seq OWNED BY public.lesson_progress.id;
 --
 
 CREATE TABLE public.lessons (
-    id integer NOT NULL,
-    chapter_id integer NOT NULL,
-    title character varying(255) NOT NULL,
-    theory_content text,
-    video_url character varying(255),
-    source_code text,
-    is_trial boolean DEFAULT false NOT NULL,
-    order_index integer DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                id integer NOT NULL,
+                                chapter_id integer NOT NULL,
+                                title character varying(255) NOT NULL,
+                                theory_content text,
+                                video_url character varying(255),
+                                source_code text,
+                                is_trial boolean DEFAULT false NOT NULL,
+                                order_index integer DEFAULT 0 NOT NULL,
+                                created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1237,10 +1237,10 @@ ALTER SEQUENCE public.lessons_id_seq OWNED BY public.lessons.id;
 --
 
 CREATE TABLE public.order_items (
-    id integer NOT NULL,
-    order_id integer NOT NULL,
-    course_id integer NOT NULL,
-    price numeric(15,2) DEFAULT 0 NOT NULL
+                                    id integer NOT NULL,
+                                    order_id integer NOT NULL,
+                                    course_id integer NOT NULL,
+                                    price numeric(15,2) DEFAULT 0 NOT NULL
 );
 
 
@@ -1277,12 +1277,12 @@ ALTER SEQUENCE public.order_items_id_seq OWNED BY public.order_items.id;
 --
 
 CREATE TABLE public.orders (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    total_amount numeric(15,2) DEFAULT 0 NOT NULL,
-    status public.order_status DEFAULT 'PENDING'::public.order_status,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                               id integer NOT NULL,
+                               user_id integer NOT NULL,
+                               total_amount numeric(15,2) DEFAULT 0 NOT NULL,
+                               status public.order_status DEFAULT 'PENDING'::public.order_status,
+                               created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                               updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1319,14 +1319,14 @@ ALTER SEQUENCE public.orders_id_seq OWNED BY public.orders.id;
 --
 
 CREATE TABLE public.payment_transactions (
-    id integer NOT NULL,
-    wallet_id integer NOT NULL,
-    amount numeric(15,2) NOT NULL,
-    type public.payment_type NOT NULL,
-    transaction_code character varying(255) NOT NULL,
-    status public.status_transaction DEFAULT 'PENDING'::public.status_transaction,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT payment_transactions_amount_check CHECK ((amount >= (0)::numeric))
+                                             id integer NOT NULL,
+                                             wallet_id integer NOT NULL,
+                                             amount numeric(15,2) NOT NULL,
+                                             type public.payment_type NOT NULL,
+                                             transaction_code character varying(255) NOT NULL,
+                                             status public.status_transaction DEFAULT 'PENDING'::public.status_transaction,
+                                             created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                             CONSTRAINT payment_transactions_amount_check CHECK ((amount >= (0)::numeric))
 );
 
 
@@ -1363,19 +1363,19 @@ ALTER SEQUENCE public.payment_transactions_id_seq OWNED BY public.payment_transa
 --
 
 CREATE TABLE public.payout_requests (
-    id integer NOT NULL,
-    wallet_id integer NOT NULL,
-    payout_period character varying(50) NOT NULL,
-    amount numeric(15,2) NOT NULL,
-    bank_name character varying(255) NOT NULL,
-    bank_account_number character varying(255) NOT NULL,
-    bank_account_name character varying(255) NOT NULL,
-    status public.payout_status DEFAULT 'PENDING'::public.payout_status,
-    transaction_reference character varying(255),
-    admin_note text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT payout_requests_amount_check CHECK ((amount > (0)::numeric))
+                                        id integer NOT NULL,
+                                        wallet_id integer NOT NULL,
+                                        payout_period character varying(50) NOT NULL,
+                                        amount numeric(15,2) NOT NULL,
+                                        bank_name character varying(255) NOT NULL,
+                                        bank_account_number character varying(255) NOT NULL,
+                                        bank_account_name character varying(255) NOT NULL,
+                                        status public.payout_status DEFAULT 'PENDING'::public.payout_status,
+                                        transaction_reference character varying(255),
+                                        admin_note text,
+                                        created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                        updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                        CONSTRAINT payout_requests_amount_check CHECK ((amount > (0)::numeric))
 );
 
 
@@ -1412,17 +1412,17 @@ ALTER SEQUENCE public.payout_requests_id_seq OWNED BY public.payout_requests.id;
 --
 
 CREATE TABLE public.problem_submission_details (
-    id integer NOT NULL,
-    submission_id integer NOT NULL,
-    testcase_id integer NOT NULL,
-    token character varying(255),
-    execution_time double precision,
-    memory_used integer,
-    verdict public.oj_verdict DEFAULT 'PENDING'::public.oj_verdict,
-    stdout text,
-    stderr text,
-    compile_output text,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                                   id integer NOT NULL,
+                                                   submission_id integer NOT NULL,
+                                                   testcase_id integer NOT NULL,
+                                                   token character varying(255),
+                                                   execution_time double precision,
+                                                   memory_used integer,
+                                                   verdict public.oj_verdict DEFAULT 'PENDING'::public.oj_verdict,
+                                                   stdout text,
+                                                   stderr text,
+                                                   compile_output text,
+                                                   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1459,19 +1459,19 @@ ALTER SEQUENCE public.problem_submission_details_id_seq OWNED BY public.problem_
 --
 
 CREATE TABLE public.problem_submissions (
-    id integer NOT NULL,
-    problem_id integer NOT NULL,
-    user_id integer NOT NULL,
-    lesson_id integer,
-    contest_id integer,
-    language_id integer NOT NULL,
-    source_code text NOT NULL,
-    execution_time double precision,
-    memory_used integer,
-    score numeric(10,2),
-    submitted_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    verdict public.oj_verdict DEFAULT 'PENDING'::public.oj_verdict,
-    is_plagiarized boolean DEFAULT false
+                                            id integer NOT NULL,
+                                            problem_id integer NOT NULL,
+                                            user_id integer NOT NULL,
+                                            lesson_id integer,
+                                            contest_id integer,
+                                            language_id integer NOT NULL,
+                                            source_code text NOT NULL,
+                                            execution_time double precision,
+                                            memory_used integer,
+                                            score numeric(10,2),
+                                            submitted_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                            verdict public.oj_verdict DEFAULT 'PENDING'::public.oj_verdict,
+                                            is_plagiarized boolean DEFAULT false
 );
 
 
@@ -1508,9 +1508,9 @@ ALTER SEQUENCE public.problem_submissions_id_seq OWNED BY public.problem_submiss
 --
 
 CREATE TABLE public.problem_tag_mappings (
-    id integer NOT NULL,
-    problem_id integer NOT NULL,
-    tag_id integer NOT NULL
+                                             id integer NOT NULL,
+                                             problem_id integer NOT NULL,
+                                             tag_id integer NOT NULL
 );
 
 
@@ -1547,13 +1547,13 @@ ALTER SEQUENCE public.problem_tag_mappings_id_seq OWNED BY public.problem_tag_ma
 --
 
 CREATE TABLE public.problem_tags (
-    id integer NOT NULL,
-    name character varying(100) NOT NULL,
-    slug character varying(120) NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT problem_tags_name_check CHECK ((TRIM(BOTH FROM name) <> ''::text)),
-    CONSTRAINT problem_tags_slug_check CHECK ((TRIM(BOTH FROM slug) <> ''::text))
+                                     id integer NOT NULL,
+                                     name character varying(100) NOT NULL,
+                                     slug character varying(120) NOT NULL,
+                                     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                     CONSTRAINT problem_tags_name_check CHECK ((TRIM(BOTH FROM name) <> ''::text)),
+                                     CONSTRAINT problem_tags_slug_check CHECK ((TRIM(BOTH FROM slug) <> ''::text))
 );
 
 
@@ -1590,12 +1590,12 @@ ALTER SEQUENCE public.problem_tags_id_seq OWNED BY public.problem_tags.id;
 --
 
 CREATE TABLE public.problem_testcases (
-    id integer NOT NULL,
-    problem_id integer NOT NULL,
-    input_data text NOT NULL,
-    expected_output text NOT NULL,
-    order_index integer NOT NULL,
-    token character varying(255)
+                                          id integer NOT NULL,
+                                          problem_id integer NOT NULL,
+                                          input_data text NOT NULL,
+                                          expected_output text NOT NULL,
+                                          order_index integer NOT NULL,
+                                          token character varying(255)
 );
 
 
@@ -1632,30 +1632,30 @@ ALTER SEQUENCE public.problem_testcases_id_seq OWNED BY public.problem_testcases
 --
 
 CREATE TABLE public.problems (
-    id integer NOT NULL,
-    title character varying(255) NOT NULL,
-    description text NOT NULL,
-    input_description text,
-    output_description text,
-    constraints text,
-    example_input text,
-    example_output text,
-    hint text,
-    problem_scope public.problem_scope NOT NULL,
-    difficulty public.problem_difficulty DEFAULT 'MEDIUM'::public.problem_difficulty,
-    is_active boolean DEFAULT true NOT NULL,
-    created_by_teacher_id integer NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    total_testcase integer DEFAULT 0 NOT NULL,
-    time_limit_ms integer DEFAULT 2000 NOT NULL,
-    memory_limit_kb integer DEFAULT 128000 NOT NULL,
-    is_public boolean DEFAULT false NOT NULL,
-    total_submission integer DEFAULT 0,
-    total_accepted integer DEFAULT 0,
-    score numeric(10,2) DEFAULT 100.00 NOT NULL,
-    solutions text,
-    fts_document tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, public.f_unaccent((title)::text))) STORED
+                                 id integer NOT NULL,
+                                 title character varying(255) NOT NULL,
+                                 description text NOT NULL,
+                                 input_description text,
+                                 output_description text,
+                                 constraints text,
+                                 example_input text,
+                                 example_output text,
+                                 hint text,
+                                 problem_scope public.problem_scope NOT NULL,
+                                 difficulty public.problem_difficulty DEFAULT 'MEDIUM'::public.problem_difficulty,
+                                 is_active boolean DEFAULT true NOT NULL,
+                                 created_by_teacher_id integer NOT NULL,
+                                 created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                 updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                 total_testcase integer DEFAULT 0 NOT NULL,
+                                 time_limit_ms integer DEFAULT 2000 NOT NULL,
+                                 memory_limit_kb integer DEFAULT 128000 NOT NULL,
+                                 is_public boolean DEFAULT false NOT NULL,
+                                 total_submission integer DEFAULT 0,
+                                 total_accepted integer DEFAULT 0,
+                                 score numeric(10,2) DEFAULT 100.00 NOT NULL,
+                                 solutions text,
+                                 fts_document tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, public.f_unaccent((title)::text))) STORED
 );
 
 
@@ -1692,10 +1692,10 @@ ALTER SEQUENCE public.problems_id_seq OWNED BY public.problems.id;
 --
 
 CREATE TABLE public.quiz_attempt_answers (
-    id integer NOT NULL,
-    quiz_attempt_id integer NOT NULL,
-    quiz_question_id integer NOT NULL,
-    selected_option_id integer
+                                             id integer NOT NULL,
+                                             quiz_attempt_id integer NOT NULL,
+                                             quiz_question_id integer NOT NULL,
+                                             selected_option_id integer
 );
 
 
@@ -1732,15 +1732,15 @@ ALTER SEQUENCE public.quiz_attempt_answers_id_seq OWNED BY public.quiz_attempt_a
 --
 
 CREATE TABLE public.quiz_attempts (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    quiz_id integer NOT NULL,
-    total_question integer NOT NULL,
-    correct_question integer NOT NULL,
-    score double precision NOT NULL,
-    submitted_at timestamp with time zone,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                      id integer NOT NULL,
+                                      user_id integer NOT NULL,
+                                      quiz_id integer NOT NULL,
+                                      total_question integer NOT NULL,
+                                      correct_question integer NOT NULL,
+                                      score double precision NOT NULL,
+                                      submitted_at timestamp with time zone,
+                                      created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                      updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1777,13 +1777,13 @@ ALTER SEQUENCE public.quiz_attempts_id_seq OWNED BY public.quiz_attempts.id;
 --
 
 CREATE TABLE public.quiz_options (
-    id integer NOT NULL,
-    question_id integer NOT NULL,
-    content text NOT NULL,
-    order_index integer DEFAULT 0 NOT NULL,
-    is_correct boolean DEFAULT false NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                     id integer NOT NULL,
+                                     question_id integer NOT NULL,
+                                     content text NOT NULL,
+                                     order_index integer DEFAULT 0 NOT NULL,
+                                     is_correct boolean DEFAULT false NOT NULL,
+                                     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1820,12 +1820,12 @@ ALTER SEQUENCE public.quiz_options_id_seq OWNED BY public.quiz_options.id;
 --
 
 CREATE TABLE public.quiz_questions (
-    id integer NOT NULL,
-    quiz_id integer NOT NULL,
-    content text NOT NULL,
-    order_index integer DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                       id integer NOT NULL,
+                                       quiz_id integer NOT NULL,
+                                       content text NOT NULL,
+                                       order_index integer DEFAULT 0 NOT NULL,
+                                       created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                       updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1862,11 +1862,11 @@ ALTER SEQUENCE public.quiz_questions_id_seq OWNED BY public.quiz_questions.id;
 --
 
 CREATE TABLE public.quizzes (
-    id integer NOT NULL,
-    lesson_id integer NOT NULL,
-    title character varying(255) NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+                                id integer NOT NULL,
+                                lesson_id integer NOT NULL,
+                                title character varying(255) NOT NULL,
+                                created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+                                updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1903,8 +1903,8 @@ ALTER SEQUENCE public.quizzes_id_seq OWNED BY public.quizzes.id;
 --
 
 CREATE TABLE public.roles (
-    id integer NOT NULL,
-    name character varying(255) NOT NULL
+                              id integer NOT NULL,
+                              name character varying(255) NOT NULL
 );
 
 
@@ -1941,11 +1941,11 @@ ALTER SEQUENCE public.roles_id_seq OWNED BY public.roles.id;
 --
 
 CREATE TABLE public.user_oauth_accounts (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    provider character varying(50) NOT NULL,
-    provider_user_id character varying(255) NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+                                            id integer NOT NULL,
+                                            user_id integer NOT NULL,
+                                            provider character varying(50) NOT NULL,
+                                            provider_user_id character varying(255) NOT NULL,
+                                            created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 
@@ -1982,8 +1982,8 @@ ALTER SEQUENCE public.user_oauth_accounts_id_seq OWNED BY public.user_oauth_acco
 --
 
 CREATE TABLE public.user_roles (
-    user_id integer NOT NULL,
-    role_id integer NOT NULL
+                                   user_id integer NOT NULL,
+                                   role_id integer NOT NULL
 );
 
 
@@ -1995,14 +1995,14 @@ ALTER TABLE public.user_roles OWNER TO postgres;
 --
 
 CREATE TABLE public.users (
-    id integer NOT NULL,
-    username character varying(255) NOT NULL,
-    password_hash character varying(255),
-    displayname character varying(255) NOT NULL,
-    avatarurl character varying(255),
-    email character varying(255) NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    status character varying(255) DEFAULT 'ACTIVE'::public.status_active_locked
+                              id integer NOT NULL,
+                              username character varying(255) NOT NULL,
+                              password_hash character varying(255),
+                              displayname character varying(255) NOT NULL,
+                              avatarurl character varying(255),
+                              email character varying(255) NOT NULL,
+                              created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                              status character varying(255) DEFAULT 'ACTIVE'::public.status_active_locked
 );
 
 
@@ -2039,15 +2039,15 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 --
 
 CREATE TABLE public.wallet_transactions (
-    id integer NOT NULL,
-    wallet_id integer NOT NULL,
-    amount numeric(15,2) NOT NULL,
-    type public.transaction_type NOT NULL,
-    status public.status_transaction DEFAULT 'PENDING'::public.status_transaction,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    order_id integer,
-    reference_id character varying(255),
-    CONSTRAINT wallet_transactions_amount_check CHECK ((amount >= (0)::numeric))
+                                            id integer NOT NULL,
+                                            wallet_id integer NOT NULL,
+                                            amount numeric(15,2) NOT NULL,
+                                            type public.transaction_type NOT NULL,
+                                            status public.status_transaction DEFAULT 'PENDING'::public.status_transaction,
+                                            created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                            order_id integer,
+                                            reference_id character varying(255),
+                                            CONSTRAINT wallet_transactions_amount_check CHECK ((amount >= (0)::numeric))
 );
 
 
@@ -2084,12 +2084,12 @@ ALTER SEQUENCE public.wallet_transactions_id_seq OWNED BY public.wallet_transact
 --
 
 CREATE TABLE public.wallets (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    balance numeric(15,2) DEFAULT 0 NOT NULL,
-    status character varying(255) DEFAULT 'ACTIVE'::public.status_active_locked,
-    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT wallets_balance_check CHECK ((balance >= (0)::numeric))
+                                id integer NOT NULL,
+                                user_id integer NOT NULL,
+                                balance numeric(15,2) DEFAULT 0 NOT NULL,
+                                status character varying(255) DEFAULT 'ACTIVE'::public.status_active_locked,
+                                updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                CONSTRAINT wallets_balance_check CHECK ((balance >= (0)::numeric))
 );
 
 
