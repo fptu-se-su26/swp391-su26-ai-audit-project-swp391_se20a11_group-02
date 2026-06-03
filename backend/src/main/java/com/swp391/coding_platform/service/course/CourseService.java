@@ -2,7 +2,10 @@ package com.swp391.coding_platform.service.course;
 
 import com.swp391.coding_platform.dto.request.CourseSearchRequest;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
+import com.swp391.coding_platform.dto.response.CourseDetailResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
+import com.swp391.coding_platform.exception.AppException;
+import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
 import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity;
@@ -122,5 +125,28 @@ public class CourseService {
         return completedLessonsCountEntity != null ? completedLessonsCountEntity.getCompletedLessonsCount() : 0;
     }
 
+    public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
+        CourseEntity courseEntity = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
+        CourseDetailResponse response = courseMapper.toCourseDetailResponse(courseEntity);
+
+        if (userId != null) {
+            boolean isEnrolled = isEnrollCourseById(courseId, userId);
+            response.setEnrolled(isEnrolled);
+
+            if (isEnrolled) {
+                int completeLessons = getCompleteLessons(courseId, userId);
+                int totalLesson = courseEntity.getTotalLessons() != null ? courseEntity.getTotalLessons() : 0;
+                response.setProgressPercentage(ProgressUtils.calculatePercentage(completeLessons, totalLesson));
+            } else {
+                response.setProgressPercentage(0);
+            }
+        } else {
+            response.setEnrolled(false);
+            response.setProgressPercentage(0);
+        }
+
+        return response;
+    }
 }

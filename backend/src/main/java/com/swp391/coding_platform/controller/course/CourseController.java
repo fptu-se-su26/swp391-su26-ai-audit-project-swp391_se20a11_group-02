@@ -3,6 +3,7 @@ package com.swp391.coding_platform.controller.course;
 import com.swp391.coding_platform.dto.request.CourseSearchRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
+import com.swp391.coding_platform.dto.response.CourseDetailResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.service.course.CourseService;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,4 +55,24 @@ public class CourseController {
                 .build());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CourseDetailResponse>> getCourseDetail(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id) {
+
+        Long userId = null;
+        if (jwt != null) {
+            userId = jwt.getClaim("userId");
+        }
+
+        var result = courseService.getCourseDetail(userId, id);
+
+        return ResponseEntity.ok(ApiResponse.<CourseDetailResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Get course detail successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }

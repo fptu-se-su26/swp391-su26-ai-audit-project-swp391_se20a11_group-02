@@ -677,3 +677,50 @@ export const fetchCourses = async (params: CourseSearchRequestParams): Promise<P
   const data: ApiResponse<PageResponse<CourseListItemResponse>> = await response.json();
   return data.result;
 };
+
+export interface CourseDetailResponse {
+  id: number;
+  title: string;
+  thumbnailUrl: string;
+  shortDescription: string;
+  longDescription: string;
+  whatYouLearn?: string;
+  courseHighlight?: string;
+  technologyTool?: string;
+  prerequisites?: string;
+  targetAudience?: string;
+  completionBenefits?: string;
+  price: number;
+  averageRating: number;
+  totalReviews: number;
+  totalEnrolled: number;
+  totalLessons: number;
+  totalQuizzes: number;
+  totalVideos: number;
+  enrolled: boolean;
+  progressPercentage: number;
+  instructorName: string;
+  instructorTitle?: string;
+  instructorBio?: string;
+  instructorAvatarUrl?: string;
+  categoryName?: string;
+  type?: string;
+}
+
+export const fetchCourseDetail = async (id: number | string): Promise<CourseDetailResponse> => {
+  const response = await fetch(`${BASE_URL}/courses/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải chi tiết khóa học');
+  }
+
+  const data: ApiResponse<CourseDetailResponse> = await response.json();
+  return data.result;
+};
