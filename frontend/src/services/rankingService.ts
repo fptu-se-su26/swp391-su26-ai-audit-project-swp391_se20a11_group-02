@@ -8,18 +8,11 @@ export interface RankingUser {
   name: string;
   avatar: string;
   points: number;
-  solved: number;
-  accuracy: number;
-  language: string;
-  title: string;
-  titleClass: string;
 }
 
 export interface UserRankStats {
   rank: number;
   points: number;
-  solved: number;
-  streak: number;
   pointsToNextRank: number;
   nextRankUserName: string;
 }

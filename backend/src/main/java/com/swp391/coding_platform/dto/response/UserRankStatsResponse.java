@@ -11,8 +11,6 @@ import lombok.experimental.FieldDefaults;
 public class UserRankStatsResponse {
     int rank;
     double points;
-    long solved;
-    int streak;
     double pointsToNextRank;
     String nextRankUserName;
 }

@@ -55,67 +55,31 @@ export const GlobalRanking: React.FC = () => {
   const p1 = rankings[0] ? {
     name: rankings[0].name,
     points: rankings[0].points.toLocaleString() + " pts",
-    solved: rankings[0].solved.toString(),
-    avatar: rankings[0].avatar,
-    title: rankings[0].title,
-    badgeBg: rankings[0].titleClass,
-    performanceLabel: "Accuracy Rate:",
-    performanceVal: rankings[0].accuracy.toFixed(1) + "%",
-    hasFlame: rankings[0].accuracy >= 85.0
+    avatar: rankings[0].avatar
   } : {
     name: "TBD",
     points: "0 pts",
-    solved: "0",
-    avatar: "",
-    title: "Novice",
-    badgeBg: "bg-slate-100 text-slate-800",
-    performanceLabel: "Accuracy Rate:",
-    performanceVal: "0.0%",
-    hasFlame: false
+    avatar: ""
   };
 
   const p2 = rankings[1] ? {
     name: rankings[1].name,
     points: rankings[1].points.toLocaleString() + " pts",
-    solved: rankings[1].solved.toString(),
-    avatar: rankings[1].avatar,
-    title: rankings[1].title,
-    badgeBg: rankings[1].titleClass,
-    performanceLabel: "Accuracy Rate:",
-    performanceVal: rankings[1].accuracy.toFixed(1) + "%",
-    hasFlame: rankings[1].accuracy >= 85.0
+    avatar: rankings[1].avatar
   } : {
     name: "TBD",
     points: "0 pts",
-    solved: "0",
-    avatar: "",
-    title: "Novice",
-    badgeBg: "bg-slate-100 text-slate-800",
-    performanceLabel: "Accuracy Rate:",
-    performanceVal: "0.0%",
-    hasFlame: false
+    avatar: ""
   };
 
   const p3 = rankings[2] ? {
     name: rankings[2].name,
     points: rankings[2].points.toLocaleString() + " pts",
-    solved: rankings[2].solved.toString(),
-    avatar: rankings[2].avatar,
-    title: rankings[2].title,
-    badgeBg: rankings[2].titleClass,
-    performanceLabel: "Accuracy Rate:",
-    performanceVal: rankings[2].accuracy.toFixed(1) + "%",
-    hasFlame: rankings[2].accuracy >= 85.0
+    avatar: rankings[2].avatar
   } : {
     name: "TBD",
     points: "0 pts",
-    solved: "0",
-    avatar: "",
-    title: "Novice",
-    badgeBg: "bg-slate-100 text-slate-800",
-    performanceLabel: "Accuracy Rate:",
-    performanceVal: "0.0%",
-    hasFlame: false
+    avatar: ""
   };
 
   return (
@@ -299,7 +263,6 @@ export const GlobalRanking: React.FC = () => {
               <span className="material-symbols-outlined text-[38px] icon-fill text-[#46A040] drop-shadow-[0_4px_10px_rgba(70,160,64,0.3)]">military_tech</span>
               <div className="h-1 w-6 bg-[#46A040]/30 rounded-full blur-xs opacity-50 mt-1"></div>
             </div>
-
             <div className="w-full glassmorphism rounded-2xl p-7 shadow-xl border-t-[6px] border-[#46A040] relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.025]">
               {/* Decorative background rank */}
               <div className="absolute -right-6 -bottom-6 text-[100px] font-black font-display text-[#46A040]/5 pointer-events-none select-none">2</div>
@@ -319,32 +282,11 @@ export const GlobalRanking: React.FC = () => {
                 </div>
 
                 <h3 id="p2-name" className="font-display font-bold text-lg text-[#46A040]">{p2.name}</h3>
-                <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold mt-1.5 border uppercase ${p2.badgeBg}`}>
-                  {p2.title}
-                </div>
 
                 {/* Stats breakdown */}
-                <div className="grid grid-cols-2 gap-4 w-full mt-6 pt-4 border-t border-gray-100">
-                  <div className="text-center">
-                    <span className="block text-caption text-text-muted font-semibold uppercase">Score</span>
-                    <span id="p2-points" className="font-display font-black text-[#46A040] text-lg">{p2.points}</span>
-                  </div>
-                  <div className="text-center border-l border-gray-100">
-                    <span className="block text-caption text-text-muted font-semibold uppercase">Solved</span>
-                    <span id="p2-solved" className="font-display font-black text-[#46A040] text-lg">{p2.solved}</span>
-                  </div>
-                </div>
-
-                {/* Performance ring */}
-                <div className="w-full mt-4 bg-[#46A040]/5 rounded-lg p-2.5 flex items-center justify-between text-xs border border-[#46A040]/10">
-                  <span className="text-text-muted">{p2.performanceLabel}</span>
-                  {p2.hasFlame ? (
-                    <span className="font-bold text-[#46A040] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-xs icon-fill">local_fire_department</span> {p2.performanceVal}
-                    </span>
-                  ) : (
-                    <span className="font-bold text-[#46A040]">{p2.performanceVal}</span>
-                  )}
+                <div className="w-full mt-6 pt-4 border-t border-gray-100 text-center">
+                  <span className="block text-caption text-text-muted font-semibold uppercase">Score</span>
+                  <span id="p2-points" className="font-display font-black text-[#46A040] text-lg">{p2.points}</span>
                 </div>
               </div>
             </div>
@@ -378,32 +320,10 @@ export const GlobalRanking: React.FC = () => {
                 </div>
 
                 <h3 id="p1-name" className="font-display font-black text-xl text-[#F36F21] tracking-tight">{p1.name}</h3>
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mt-1.5 border uppercase tracking-wide ${p1.badgeBg}`}>
-                  {p1.title}
-                </div>
-
                 {/* Stats breakdown */}
-                <div className="grid grid-cols-2 gap-4 w-full mt-6 pt-5 border-t border-[#F36F21]/10">
-                  <div className="text-center">
-                    <span className="block text-caption text-text-muted font-semibold uppercase">Score</span>
-                    <span id="p1-points" className="font-display font-black text-[#F36F21] text-xl">{p1.points}</span>
-                  </div>
-                  <div className="text-center border-l border-[#F36F21]/10">
-                    <span className="block text-caption text-text-muted font-semibold uppercase">Solved</span>
-                    <span id="p1-solved" className="font-display font-black text-brand-blue text-xl">{p1.solved}</span>
-                  </div>
-                </div>
-
-                {/* Performance ring */}
-                <div className="w-full mt-4 bg-[#F36F21]/10 rounded-lg p-2.5 flex items-center justify-between text-xs border border-[#F36F21]/20">
-                  <span className="text-[#F36F21] font-bold">{p1.performanceLabel}</span>
-                  {p1.hasFlame ? (
-                    <span className="font-bold text-[#F36F21] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-xs icon-fill">local_fire_department</span> {p1.performanceVal}
-                    </span>
-                  ) : (
-                    <span className="font-bold text-[#F36F21]">{p1.performanceVal}</span>
-                  )}
+                <div className="w-full mt-6 pt-5 border-t border-[#F36F21]/10 text-center">
+                  <span className="block text-caption text-text-muted font-semibold uppercase">Score</span>
+                  <span id="p1-points" className="font-display font-black text-[#F36F21] text-xl">{p1.points}</span>
                 </div>
               </div>
             </div>
@@ -436,32 +356,10 @@ export const GlobalRanking: React.FC = () => {
                 </div>
 
                 <h3 id="p3-name" className="font-display font-bold text-md text-[#12284C]">{p3.name}</h3>
-                <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold mt-1.5 border uppercase ${p3.badgeBg}`}>
-                  {p3.title}
-                </div>
-
                 {/* Stats breakdown */}
-                <div className="grid grid-cols-2 gap-4 w-full mt-6 pt-4 border-t border-gray-100">
-                  <div className="text-center">
-                    <span className="block text-caption text-text-muted font-semibold uppercase">Score</span>
-                    <span id="p3-points" className="font-display font-black text-[#12284C] text-md">{p3.points}</span>
-                  </div>
-                  <div className="text-center border-l border-gray-100">
-                    <span className="block text-caption text-text-muted font-semibold uppercase">Solved</span>
-                    <span id="p3-solved" className="font-display font-black text-[#12284C] text-md">{p3.solved}</span>
-                  </div>
-                </div>
-
-                {/* Performance ring */}
-                <div className="w-full mt-4 bg-[#12284C]/5 rounded-lg p-2.5 flex items-center justify-between text-xs border border-[#12284C]/10">
-                  <span className="text-text-muted">{p3.performanceLabel}</span>
-                  {p3.hasFlame ? (
-                    <span className="font-bold text-[#12284C] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-xs icon-fill">local_fire_department</span> {p3.performanceVal}
-                    </span>
-                  ) : (
-                    <span className="font-bold text-[#12284C]">{p3.performanceVal}</span>
-                  )}
+                <div className="w-full mt-6 pt-4 border-t border-gray-100 text-center">
+                  <span className="block text-caption text-text-muted font-semibold uppercase">Score</span>
+                  <span id="p3-points" className="font-display font-black text-[#12284C] text-md">{p3.points}</span>
                 </div>
               </div>
             </div>
@@ -498,11 +396,6 @@ export const GlobalRanking: React.FC = () => {
                     <span className="bg-white/10 text-white border border-white/10 px-2 py-0.5 rounded-lg text-xs font-bold">
                       Score: {userStats ? userStats.points.toLocaleString() : '0'} pts
                     </span>
-                    {userStats && userStats.streak > 0 && (
-                      <span className="bg-orange-500/20 text-orange-300 border border-orange-500/30 px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px] text-orange-500 icon-fill">local_fire_department</span> {userStats.streak} Ngày
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
@@ -632,11 +525,7 @@ export const GlobalRanking: React.FC = () => {
                             <div className="flex flex-col">
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-text-main group-hover:text-primary transition-colors">{u.name}</span>
-                                <span className={`${u.titleClass} px-1.5 py-0.5 rounded text-[9px] font-bold uppercase`}>{u.title}</span>
                               </div>
-                              <span className="text-xs text-text-muted mt-0.5">
-                                {u.solved} solved • Accuracy: {u.accuracy}% • Language: {u.language}
-                              </span>
                             </div>
                           </div>
                         </td>

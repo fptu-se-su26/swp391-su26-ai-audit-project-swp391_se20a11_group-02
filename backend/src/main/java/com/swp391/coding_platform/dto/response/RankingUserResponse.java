@@ -14,9 +14,4 @@ public class RankingUserResponse {
     String name;
     String avatar;
     double points;
-    long solved;
-    double accuracy;
-    String language;
-    String title;
-    String titleClass;
 }

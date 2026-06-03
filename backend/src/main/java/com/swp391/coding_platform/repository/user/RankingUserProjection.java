@@ -5,7 +5,4 @@ public interface RankingUserProjection {
     String getDisplayname();
     String getAvatarurl();
     Double getPoints();
-    Long getSolved();
-    Double getAccuracy();
-    Integer getLanguageId();
 }
