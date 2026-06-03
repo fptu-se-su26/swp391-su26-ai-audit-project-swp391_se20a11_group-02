@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ProblemDescriptionService {
+public class gitProblemDescriptionService {
 
     ProblemRepository problemRepository;
     ProblemTagMappingRepository problemTagMappingRepository;
