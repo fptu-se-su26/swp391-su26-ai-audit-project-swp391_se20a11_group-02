@@ -2000,11 +2000,14 @@ CREATE TABLE public.users (
     avatarurl character varying(255),
     email character varying(255) NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    status character varying(255) DEFAULT 'ACTIVE'::public.status_active_locked
+    status character varying(255) DEFAULT 'ACTIVE'::public.status_active_locked,
+    score double precision DEFAULT 0.0 NOT NULL
 );
 
 
 ALTER TABLE public.users OWNER TO postgres;
+
+CREATE INDEX idx_users_score_id ON public.users USING btree (score DESC, id ASC);
 
 --
 -- TOC entry 220 (class 1259 OID 18633)
