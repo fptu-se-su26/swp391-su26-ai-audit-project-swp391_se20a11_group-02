@@ -6,15 +6,21 @@ import type { ProblemDetail, SubmitResponse, ProblemComment } from '../services/
 export const SolveProblem: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
-  // Core UI states
-  const [activeTab, setActiveTab] = useState<'description' | 'discussion' | 'solutions' | 'submissions' | 'test-result'>(() => {
-    const saved = sessionStorage.getItem('solveProblemActiveTab');
-    return (saved as any) || 'description';
+  const [activeTab, setActiveTab] = useState<'description' | 'discussion' | 'solutions' | 'submissions'>(() => {
+    const savedTab = sessionStorage.getItem('solveProblemActiveTab');
+    const savedId = sessionStorage.getItem('solveProblemActiveId');
+    if (savedId === id && savedTab) {
+      return (savedTab as any) || 'description';
+    }
+    return 'description';
   });
 
   useEffect(() => {
-    sessionStorage.setItem('solveProblemActiveTab', activeTab);
-  }, [activeTab]);
+    if (id) {
+      sessionStorage.setItem('solveProblemActiveId', id);
+      sessionStorage.setItem('solveProblemActiveTab', activeTab);
+    }
+  }, [id, activeTab]);
 
   const [leftWidth, setLeftWidth] = useState<number>(50);
   const [isResizing, setIsResizing] = useState<boolean>(false);
@@ -29,6 +35,7 @@ export const SolveProblem: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
+    setLoading(true);
     problemService.fetchProblemDetail(id)
       .then(data => {
         setProblem(data);
@@ -37,14 +44,19 @@ export const SolveProblem: React.FC = () => {
           setSelectedLang(defaultLang);
           setCodeHtml(data.templates[defaultLang] || '');
         }
-        if (data.submissions) {
-          setSubmissions(data.submissions);
-        }
         setLoading(false);
       })
       .catch(err => {
         setError(err.message);
         setLoading(false);
+      });
+
+    problemService.fetchProblemSubmissions(id)
+      .then(data => {
+        setSubmissions(data);
+      })
+      .catch(err => {
+        console.error("Failed to load submissions:", err);
       });
   }, [id]);
 
@@ -127,7 +139,7 @@ export const SolveProblem: React.FC = () => {
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !commentText.trim()) return;
-    
+
     problemService.postProblemComment(id, commentText)
       .then(newComment => {
         setComments([newComment, ...comments]);
@@ -140,10 +152,10 @@ export const SolveProblem: React.FC = () => {
 
   const handleAddReply = (parentId: number) => {
     if (!id || !replyText.trim()) return;
-    
+
     problemService.postProblemComment(id, replyText, parentId)
       .then(newReply => {
-        setComments(prevComments => 
+        setComments(prevComments =>
           prevComments.map(c => {
             if (c.id === parentId) {
               return {
@@ -201,7 +213,7 @@ export const SolveProblem: React.FC = () => {
           ...submissions
         ]);
 
-        setActiveTab(result.verdict === 'ACCEPTED' ? 'submissions' : 'test-result');
+        setActiveTab('submissions');
       })
       .catch(err => {
         setIsSubmitting(false);
@@ -209,7 +221,7 @@ export const SolveProblem: React.FC = () => {
       });
   };
 
-  const getTabClass = (tab: 'description' | 'discussion' | 'solutions' | 'submissions' | 'test-result') => {
+  const getTabClass = (tab: 'description' | 'discussion' | 'solutions' | 'submissions') => {
     return activeTab === tab
       ? "py-3 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap outline-none"
       : "py-3 text-sm font-medium text-text-muted hover:text-text-main whitespace-nowrap border-b-2 border-transparent outline-none";
@@ -241,7 +253,8 @@ export const SolveProblem: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] w-full mx-auto overflow-hidden bg-surface-gray">
       {/* Styles injected to ensure identical visual styling of Custom Scrollbars & Resizer */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .resizer {
             width: 8px;
             cursor: col-resize;
@@ -313,8 +326,8 @@ export const SolveProblem: React.FC = () => {
               <div><strong>Runtime:</strong> {submitResult.runtime.toFixed(1)} ms</div>
               <div><strong>Memory:</strong> {(submitResult.memory / 1024).toFixed(1)} MB</div>
             </div>
-            <button 
-              onClick={() => setShowSuccessOverlay(false)} 
+            <button
+              onClick={() => setShowSuccessOverlay(false)}
               className="w-full py-2 bg-brand-green hover:bg-[#3d8c38] text-white rounded font-bold text-sm transition-colors"
             >
               Close
@@ -358,9 +371,8 @@ export const SolveProblem: React.FC = () => {
             <button className={getTabClass('discussion')} onClick={() => setActiveTab('discussion')}>Discussion</button>
             <button className={getTabClass('solutions')} onClick={() => setActiveTab('solutions')}>Solutions</button>
             <button className={getTabClass('submissions')} onClick={() => setActiveTab('submissions')}>Submissions</button>
-            <button className={getTabClass('test-result')} onClick={() => setActiveTab('test-result')}>Test Result</button>
           </div>
-          
+
           {/* Tab Contents */}
           <div className="flex-grow overflow-y-auto p-6" id="tab-contents">
             {/* Description Tab */}
@@ -374,10 +386,10 @@ export const SolveProblem: React.FC = () => {
                     {problem.difficulty === 'Hard' && <span className="bg-red-50 border border-red-200 text-red-600 px-3 py-1 rounded-full text-xs font-bold">Hard</span>}
                   </div>
                 </div>
-                
+
                 <div className="space-y-4 text-base text-text-main leading-relaxed">
                   <div dangerouslySetInnerHTML={{ __html: problem.description }} />
-                  
+
                   {problem.inputDescription && (
                     <div>
                       <h3 className="font-semibold text-lg mb-1 mt-4">Input Description</h3>
@@ -428,14 +440,14 @@ export const SolveProblem: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold text-brand-blue">Discussion</h2>
                 </div>
-                
+
                 {/* Comment Input Box */}
                 <form onSubmit={handleAddComment} className="bg-surface border border-gray-200 rounded-lg p-3 shadow-sm flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shrink-0">ME</div>
                   <div className="flex-grow space-y-2">
-                    <textarea 
-                      className="w-full bg-surface-gray border border-gray-200 rounded-lg p-2 text-sm text-text-main focus:ring-primary focus:border-primary outline-none resize-none" 
-                      rows={2} 
+                    <textarea
+                      className="w-full bg-surface-gray border border-gray-200 rounded-lg p-2 text-sm text-text-main focus:ring-primary focus:border-primary outline-none resize-none"
+                      rows={2}
                       placeholder="Write a comment..."
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
@@ -461,7 +473,7 @@ export const SolveProblem: React.FC = () => {
                       </div>
                       <p className="text-sm text-text-main">{comment.text}</p>
                       <div className="flex gap-4 text-text-muted text-sm font-medium">
-                        <button 
+                        <button
                           onClick={() => {
                             if (activeReplyId === comment.id) {
                               setActiveReplyId(null);
@@ -487,13 +499,13 @@ export const SolveProblem: React.FC = () => {
                             onChange={(e) => setReplyText(e.target.value)}
                           />
                           <div className="flex justify-end gap-2">
-                            <button 
+                            <button
                               onClick={() => setActiveReplyId(null)}
                               className="px-3 py-1 text-xs font-semibold text-text-muted hover:text-text-main transition-colors"
                             >
                               Cancel
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleAddReply(comment.id)}
                               className="bg-primary hover:bg-primary-hover text-white px-3 py-1 rounded-md text-xs font-bold transition-colors shadow-sm"
                             >
@@ -502,7 +514,7 @@ export const SolveProblem: React.FC = () => {
                           </div>
                         </div>
                       )}
-                      
+
                       {comment.replies && comment.replies.map((reply) => (
                         <div key={reply.id} className="ml-10 mt-3 pl-4 border-l-2 border-primary space-y-3">
                           <div className="flex items-center gap-3">
@@ -570,7 +582,7 @@ export const SolveProblem: React.FC = () => {
                     <p className="text-body-md text-text-muted max-w-md mb-6">
                       To view the author's official solution and optimal approaches, you must first solve this problem and pass all test cases.
                     </p>
-                    <button 
+                    <button
                       onClick={() => setActiveTab('description')}
                       className="px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors shadow-sm active:scale-95 flex items-center gap-1.5"
                     >
@@ -618,91 +630,14 @@ export const SolveProblem: React.FC = () => {
               </div>
             )}
 
-            {/* Test Result Tab */}
-            {activeTab === 'test-result' && (
-              <div id="tab-test-result" className="block space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-brand-blue">Test Result</h2>
-                  <div className="text-sm font-medium text-text-muted">
-                    {submitResult 
-                      ? `${submitResult.passedTestcases}/${submitResult.totalTestcases} Passed` 
-                      : `${problem.testcases?.length || 0} Sample Testcases`
-                    }
-                  </div>
-                </div>
-                
-                <div className="space-y-3" id="testcases-container">
-                  {problem.testcases && problem.testcases.length > 0 ? (
-                    problem.testcases.map((tc, index) => {
-                      const i = index + 1;
-                      const hasSubmitted = submitResult !== null;
-                      const isAccepted = hasSubmitted && submitResult.verdict === 'ACCEPTED';
-                      const iconBg = !hasSubmitted 
-                        ? 'bg-blue-50' 
-                        : isAccepted 
-                          ? 'bg-green-100' 
-                          : 'bg-red-100';
-                      const iconColor = !hasSubmitted 
-                        ? 'text-brand-blue' 
-                        : isAccepted 
-                          ? 'text-brand-green' 
-                          : 'text-red-600';
-                      const iconName = !hasSubmitted 
-                        ? 'question_mark' 
-                        : isAccepted 
-                          ? 'check' 
-                          : 'close';
-                      
-                      return (
-                        <details key={tc.id || i} className="group border border-gray-200 rounded-lg bg-surface shadow-sm overflow-hidden">
-                          <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-text-main hover:bg-surface-gray transition-colors list-none">
-                            <div className="flex items-center gap-3">
-                              <span className={`w-6 h-6 rounded-full ${iconBg} ${iconColor} flex items-center justify-center`}>
-                                <span className="material-symbols-outlined text-[16px]">{iconName}</span>
-                              </span>
-                              <span className="font-bold text-text-main">Testcase {i}</span>
-                            </div>
-                            <span className="text-primary text-sm font-medium hover:underline group-open:hidden">View Details</span>
-                            <span className="text-primary text-sm font-medium hover:underline hidden group-open:block">Hide Details</span>
-                          </summary>
-                          <div className="p-4 border-t border-gray-100 bg-surface space-y-4">
-                            <div>
-                              <div className="text-xs text-text-muted font-bold uppercase mb-1">Input</div>
-                              <div className="bg-surface-gray p-3 rounded-lg font-mono text-sm border border-gray-200 whitespace-pre-wrap">
-                                {tc.inputData}
-                              </div>
-                            </div>
-                            {hasSubmitted && (
-                              <div>
-                                <div className="text-xs text-text-muted font-bold uppercase mb-1">Output</div>
-                                <div className={`${isAccepted ? 'bg-surface-gray' : 'bg-red-50 text-red-600 border-red-200'} p-3 rounded-lg font-mono text-sm border border-gray-200 whitespace-pre-wrap`}>
-                                  {isAccepted ? tc.expectedOutput : 'Mismatch Output'}
-                                </div>
-                              </div>
-                            )}
-                            <div>
-                              <div className="text-xs text-text-muted font-bold uppercase mb-1">Expected</div>
-                              <div className="bg-green-50 p-3 rounded-lg font-mono text-sm border border-green-200 text-brand-green whitespace-pre-wrap">
-                                {tc.expectedOutput}
-                              </div>
-                            </div>
-                          </div>
-                        </details>
-                      );
-                    })
-                  ) : (
-                    <div className="text-sm text-text-muted text-center py-8">No testcases available for this problem.</div>
-                  )}
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
 
         {/* Resizer */}
-        <div 
-          id="resizer" 
-          className={`resizer shrink-0 ${isResizing ? 'dragging' : ''}`} 
+        <div
+          id="resizer"
+          className={`resizer shrink-0 ${isResizing ? 'dragging' : ''}`}
           title="Drag to resize"
           onMouseDown={startResizing}
         ></div>
@@ -712,7 +647,7 @@ export const SolveProblem: React.FC = () => {
           {/* Editor Header */}
           <div className="flex items-center justify-between p-2 bg-surface border-b border-gray-200 shrink-0">
             <div className="flex items-center gap-2">
-              <select 
+              <select
                 value={selectedLang}
                 onChange={handleLangChange}
                 className="bg-surface-gray border border-gray-300 text-text-main text-sm rounded-md focus:ring-primary focus:border-primary block px-3 py-1.5 font-medium cursor-pointer outline-none"
@@ -723,10 +658,10 @@ export const SolveProblem: React.FC = () => {
               </select>
             </div>
             <div className="flex gap-1 text-text-muted">
-              <button 
+              <button
                 onClick={handleResetCode}
-                aria-label="Reset Code" 
-                className="p-1.5 hover:bg-surface-gray rounded transition-colors text-text-main hover:text-primary" 
+                aria-label="Reset Code"
+                className="p-1.5 hover:bg-surface-gray rounded transition-colors text-text-main hover:text-primary"
                 title="Reset Code"
               >
                 <span className="material-symbols-outlined text-[20px]">refresh</span>
@@ -743,9 +678,9 @@ export const SolveProblem: React.FC = () => {
               ))}
             </div>
             {/* Code */}
-            <div 
+            <div
               id="code-editor"
-              className="flex-grow py-4 pl-4 overflow-x-auto custom-scroll whitespace-pre outline-none" 
+              className="flex-grow py-4 pl-4 overflow-x-auto custom-scroll whitespace-pre outline-none"
               contentEditable={true}
               suppressContentEditableWarning={true}
               spellCheck={false}
@@ -756,7 +691,7 @@ export const SolveProblem: React.FC = () => {
 
           {/* Action Bar (Removed Run Code, kept Submit) */}
           <div className="p-3 bg-surface border-t border-gray-200 flex justify-end gap-3 shrink-0">
-            <button 
+            <button
               onClick={handleSubmit}
               disabled={isSubmitting}
               className="px-8 py-2 bg-brand-green hover:bg-[#3d8c38] text-white rounded-lg font-bold transition-colors shadow-sm text-sm active:scale-95 disabled:bg-gray-400 flex items-center justify-center gap-2"

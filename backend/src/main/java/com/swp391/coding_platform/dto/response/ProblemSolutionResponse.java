@@ -8,8 +8,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TestcaseResponse {
-    Integer id;
-    String inputData;
-    String expectedOutput;
+public class ProblemSolutionResponse {
+    Integer problemId;
+    String title;
+    String solutionCode;
 }

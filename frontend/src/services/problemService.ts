@@ -23,19 +23,25 @@ export interface ProblemDetail {
   exampleOutput: string;
   hint: string;
   tags: string[];
-  testcases: { id: number; inputData: string; expectedOutput: string }[];
   templates: { [key: string]: string };
   status: 'solved' | 'unsolved' | 'attempted';
   acceptance: string;
   totalSolved: number;
-  submissions?: {
-    status: string;
-    lang: string;
-    runtime: string;
-    memory: string;
-    time: string;
-    statusClass: string;
-  }[];
+}
+
+export interface ProblemSolution {
+  problemId: number;
+  title: string;
+  solutionCode: string;
+}
+
+export interface ProblemSubmission {
+  status: string;
+  lang: string;
+  runtime: string;
+  memory: string;
+  time: string;
+  statusClass: string;
 }
 
 export interface SubmitResponse {
@@ -83,7 +89,7 @@ export const problemService = {
   },
 
   async fetchProblemDetail(id: number | string): Promise<ProblemDetail> {
-    const response = await fetch(`${BASE_URL}/api/problems/${id}`, {
+    const response = await fetch(`${BASE_URL}/api/problems/${id}/description`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -91,7 +97,7 @@ export const problemService = {
       credentials: 'include',
     });
     if (!response.ok) {
-      throw new Error('Failed to fetch problem detail');
+      throw new Error('Failed to fetch problem description');
     }
     const data: ApiResponse<ProblemDetail> = await response.json();
     return data.result;
@@ -115,7 +121,7 @@ export const problemService = {
   },
 
   async fetchProblemComments(problemId: number | string): Promise<ProblemComment[]> {
-    const response = await fetch(`${BASE_URL}/api/problems/${problemId}/comments`, {
+    const response = await fetch(`${BASE_URL}/api/problems/${problemId}/discussion`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -130,7 +136,7 @@ export const problemService = {
   },
 
   async postProblemComment(problemId: number | string, content: string, parentId?: number): Promise<ProblemComment> {
-    const response = await fetch(`${BASE_URL}/api/problems/${problemId}/comments`, {
+    const response = await fetch(`${BASE_URL}/api/problems/${problemId}/discussion`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -143,6 +149,37 @@ export const problemService = {
       throw new Error(err.message || 'Failed to post comment');
     }
     const data: ApiResponse<ProblemComment> = await response.json();
+    return data.result;
+  },
+
+  async fetchProblemSolution(id: number | string): Promise<ProblemSolution> {
+    const response = await fetch(`${BASE_URL}/api/problems/${id}/solution`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch solution. Ensure you have solved the problem.');
+    }
+    const data: ApiResponse<ProblemSolution> = await response.json();
+    return data.result;
+  },
+
+  async fetchProblemSubmissions(id: number | string): Promise<ProblemSubmission[]> {
+    const response = await fetch(`${BASE_URL}/api/problems/${id}/submissions`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch submissions history');
+    }
+    const data: ApiResponse<ProblemSubmission[]> = await response.json();
     return data.result;
   }
 };

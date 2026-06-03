@@ -1,11 +1,9 @@
 package com.swp391.coding_platform.controller.problem;
 
+import com.swp391.coding_platform.dto.request.CreateCommentRequest;
 import com.swp391.coding_platform.dto.request.SubmitRequest;
-import com.swp391.coding_platform.dto.response.ApiResponse;
-import com.swp391.coding_platform.dto.response.ProblemDetailResponse;
-import com.swp391.coding_platform.dto.response.ProblemListItemResponse;
-import com.swp391.coding_platform.dto.response.SubmitResponse;
-import com.swp391.coding_platform.service.problem.ProblemService;
+import com.swp391.coding_platform.dto.response.*;
+import com.swp391.coding_platform.service.problem.*;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +25,12 @@ import java.util.List;
 public class ProblemController {
 
     ProblemService problemService;
+    ProblemDescriptionService problemDescriptionService;
+    ProblemDiscussionService problemDiscussionService;
+    ProblemSolutionService problemSolutionService;
+    ProblemSubmissionService problemSubmissionService;
 
+    // 1. Problem List API
     @GetMapping
     public ResponseEntity<ApiResponse<List<ProblemListItemResponse>>> getProblems(
             @AuthenticationPrincipal Jwt jwt) {
@@ -48,8 +51,9 @@ public class ProblemController {
                 .build());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProblemDetailResponse>> getProblemDetail(
+    // 2. Description API
+    @GetMapping("/{id}/description")
+    public ResponseEntity<ApiResponse<ProblemDescriptionResponse>> getProblemDescription(
             @PathVariable Integer id,
             @AuthenticationPrincipal Jwt jwt) {
 
@@ -58,34 +62,116 @@ public class ProblemController {
             userId = jwt.getClaim("userId");
         }
 
-        ProblemDetailResponse result = problemService.getProblemDetail(id, userId);
+        ProblemDescriptionResponse result = problemDescriptionService.getProblemDescription(id, userId);
 
-        return ResponseEntity.ok(ApiResponse.<ProblemDetailResponse>builder()
+        return ResponseEntity.ok(ApiResponse.<ProblemDescriptionResponse>builder()
                 .status(200)
                 .code(1000)
-                .message("Get problem detail successfully")
+                .message("Get problem description successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());
     }
 
-    @PostMapping("/{id}/submit")
-    public ResponseEntity<ApiResponse<SubmitResponse>> submitProblem(
-        @PathVariable Integer id,
-        @AuthenticationPrincipal Jwt jwt,
-        @Valid @RequestBody SubmitRequest request) {
+    // 3. Discussion APIs
+    @GetMapping("/{id}/discussion")
+    public ResponseEntity<ApiResponse<List<ProblemCommentResponse>>> getDiscussion(
+            @PathVariable Integer id) {
+
+        List<ProblemCommentResponse> result = problemDiscussionService.getComments(id);
+
+        return ResponseEntity.ok(ApiResponse.<List<ProblemCommentResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Get discussion comments successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/{id}/discussion")
+    public ResponseEntity<ApiResponse<ProblemCommentResponse>> addDiscussionComment(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody CreateCommentRequest request) {
 
         Long userId = null;
         if (jwt != null) {
             userId = jwt.getClaim("userId");
         }
 
-        SubmitResponse result = problemService.submitProblem(id, userId, request);
+        ProblemCommentResponse result = problemDiscussionService.addComment(id, userId, request);
+
+        return ResponseEntity.ok(ApiResponse.<ProblemCommentResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Add discussion comment successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    // 4. Solution API
+    @GetMapping("/{id}/solution")
+    public ResponseEntity<ApiResponse<ProblemSolutionResponse>> getProblemSolution(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = null;
+        if (jwt != null) {
+            userId = jwt.getClaim("userId");
+        }
+
+        ProblemSolutionResponse result = problemSolutionService.getProblemSolution(id, userId);
+
+        return ResponseEntity.ok(ApiResponse.<ProblemSolutionResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Get problem solution successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    // 5. Submission APIs
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<ApiResponse<SubmitResponse>> submitProblem(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody SubmitRequest request) {
+
+        Long userId = null;
+        if (jwt != null) {
+            userId = jwt.getClaim("userId");
+        }
+
+        SubmitResponse result = problemSubmissionService.submitProblem(id, userId, request);
 
         return ResponseEntity.ok(ApiResponse.<SubmitResponse>builder()
                 .status(200)
                 .code(1000)
                 .message("Submit solution successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/{id}/submissions")
+    public ResponseEntity<ApiResponse<List<ProblemSubmissionResponse>>> getSubmissions(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = null;
+        if (jwt != null) {
+            userId = jwt.getClaim("userId");
+        }
+
+        List<ProblemSubmissionResponse> result = problemSubmissionService.getSubmissions(id, userId);
+
+        return ResponseEntity.ok(ApiResponse.<List<ProblemSubmissionResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Get submissions successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());

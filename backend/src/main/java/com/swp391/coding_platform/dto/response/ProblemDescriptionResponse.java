@@ -11,7 +11,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProblemDetailResponse {
+public class ProblemDescriptionResponse {
     Integer id;
     String title;
     String difficulty;
@@ -23,10 +23,8 @@ public class ProblemDetailResponse {
     String exampleOutput;
     String hint;
     List<String> tags;
-    List<TestcaseResponse> testcases;
     Map<String, String> templates;
     String status;
     String acceptance;
     Integer totalSolved;
-    List<ProblemSubmissionResponse> submissions;
 }
