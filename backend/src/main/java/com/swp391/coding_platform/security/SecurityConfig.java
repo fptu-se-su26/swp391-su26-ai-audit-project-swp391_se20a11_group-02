@@ -51,7 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google").permitAll()
 
                         // 3. Các API Public để xem dữ liệu (Giới hạn HTTP GET)
-                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}", "/contests").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}", "/contests", "/rankings").permitAll()
                         .requestMatchers("/online-judge/problems/practice").permitAll()
 
                         // 4. Các API Webhook / Callback từ hệ thống bên thứ 3

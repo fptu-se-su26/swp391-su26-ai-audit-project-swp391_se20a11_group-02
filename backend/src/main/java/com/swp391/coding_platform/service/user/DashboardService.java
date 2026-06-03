@@ -58,7 +58,7 @@ public class DashboardService {
 
         // 6. Ranking query
         CompletableFuture<Long> rankingFuture = CompletableFuture.supplyAsync(() -> {
-            Long rank = userRepository.getUserRanking(userId);
+            Integer rank = userRepository.getUserRanking(userId);
             return rank != null ? rank : 0L;
         });
 

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,7 +24,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
                    "    FROM users" +
                    ") " +
                    "SELECT current_rank FROM RankedUsers WHERE id = :userId", nativeQuery = true)
-    Long getUserRanking(@Param("userId") Integer userId);
+    Integer getUserRanking(@Param("userId") Integer userId);
     
     @Query(value = "SELECT COUNT(DISTINCT ps.problem_id) FROM problem_submissions ps " +
                    "JOIN problems p ON ps.problem_id = p.id " +
@@ -37,4 +38,13 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
             "AND is_public = true",
             nativeQuery = true)
     Long countTotalPracticeProblems();
+
+    @Query(value = "SELECT " +
+            "  u.id as userId, " +
+            "  u.displayname as displayname, " +
+            "  u.avatarurl as avatarurl, " +
+            "  u.score as points " +
+            "FROM public.users u " +
+            "ORDER BY u.score DESC, u.id ASC", nativeQuery = true)
+    List<RankingUserProjection> getGlobalRankingList();
 }
