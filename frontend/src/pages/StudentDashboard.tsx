@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { dashboardService, type DashboardStatsResponse } from '../services/dashboardService';
 
 // Mock datasets exactly as they are in the HTML
 const initialMyCourses = [
@@ -331,6 +332,7 @@ export const StudentDashboard: React.FC = () => {
   // Navigation states
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isWalletOpen, setIsWalletOpen] = useState<boolean>(false);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStatsResponse | null>(null);
 
   // My Courses tab states
   const [myCourses] = useState(initialMyCourses);
@@ -382,6 +384,15 @@ export const StudentDashboard: React.FC = () => {
       setActiveTab('dashboard');
     }
   }, [location.hash]);
+
+  // Fetch Dashboard Stats
+  useEffect(() => {
+    if (user && activeTab === 'dashboard') {
+      dashboardService.getDashboardStats()
+        .then(setDashboardStats)
+        .catch(console.error);
+    }
+  }, [user, activeTab]);
 
   const handleTabChange = (tab: string) => {
     navigate(`#${tab}`);
@@ -711,7 +722,11 @@ export const StudentDashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                    <p className="text-[17px] font-bold text-green-600 leading-none mt-0.5 font-mono">1.000.000 ₫</p>
+                    <p className="text-[17px] font-bold text-green-600 leading-none mt-0.5 font-mono">
+                      {dashboardStats?.currentBalance !== undefined 
+                        ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(dashboardStats.currentBalance)
+                        : '0 ₫'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -727,7 +742,9 @@ export const StudentDashboard: React.FC = () => {
                       <span className="text-[10px] md:text-xs font-semibold text-text-muted">Enrolled</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-base lg:text-lg font-bold text-text-main">8 <span className="text-[10px] font-medium text-text-muted">/ 12</span></span>
+                      <span className="text-base lg:text-lg font-bold text-text-main">
+                        {dashboardStats?.completedCourses || 0} <span className="text-[10px] font-medium text-text-muted">/ {dashboardStats?.enrolled || 0}</span>
+                      </span>
                     </div>
                   </div>
 
@@ -738,7 +755,9 @@ export const StudentDashboard: React.FC = () => {
                       <span className="text-[10px] md:text-xs font-semibold text-text-muted">Solved</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-base lg:text-lg font-bold text-text-main">145 <span className="text-[10px] font-medium text-text-muted">/ 300</span></span>
+                      <span className="text-base lg:text-lg font-bold text-text-main">
+                        {dashboardStats?.solvedPractice || 0} <span className="text-[10px] font-medium text-text-muted">/ {dashboardStats?.totalPracticeProblems || 0}</span>
+                      </span>
                     </div>
                   </div>
 
@@ -749,7 +768,9 @@ export const StudentDashboard: React.FC = () => {
                       <span className="text-[10px] md:text-xs font-semibold text-text-muted">Ranking</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-base lg:text-lg font-bold text-text-main">#42 <span className="text-[10px] font-medium text-text-muted">/ 2.5k pts</span></span>
+                      <span className="text-base lg:text-lg font-bold text-text-main">
+                        #{dashboardStats?.ranking || 0} <span className="text-[10px] font-medium text-text-muted">/ {dashboardStats?.totalUsers || 0}</span>
+                      </span>
                     </div>
                   </div>
 

@@ -255,7 +255,6 @@ export const Register: React.FC = () => {
                   text="continue_with"
                   width="100%"
                   shape="rectangular"
-                  locale="en"
                 />
               </div>
             </div>
