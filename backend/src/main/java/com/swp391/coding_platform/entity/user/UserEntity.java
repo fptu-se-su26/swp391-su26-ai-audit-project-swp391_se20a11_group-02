@@ -63,6 +63,10 @@ public class UserEntity {
     )
     Set<RoleEntity> roles;
 
+    @Builder.Default
+    @Column(name = "score", nullable = false)
+    Double score = 0.0;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     WalletEntity wallet;
 
