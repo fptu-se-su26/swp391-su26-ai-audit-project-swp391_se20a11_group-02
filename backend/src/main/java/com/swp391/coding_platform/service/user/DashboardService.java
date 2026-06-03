@@ -1,20 +1,30 @@
 package com.swp391.coding_platform.service.user;
 
+import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.DashboardStatsResponse;
+import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.enums.EnrollmentStatus;
 import com.swp391.coding_platform.entity.payment.WalletEntity;
+import com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
+import com.swp391.coding_platform.mapper.CourseMapper;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
 import com.swp391.coding_platform.repository.payment.WalletRepository;
+import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
+import com.swp391.coding_platform.util.ProgressUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +34,8 @@ public class DashboardService {
     private final EnrollmentRepository enrollmentRepository;
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
+    private final CompletedLessonCountRepository completedLessonCountRepository;
+    private final CourseMapper courseMapper;
 
     public DashboardStatsResponse getDashboardStats(Integer userId) {
 
@@ -90,5 +102,42 @@ public class DashboardService {
             log.error("Error occurred while fetching dashboard stats for user: {}", userId, e);
             throw new AppException(ErrorCode.DASHBOARD_STATS_FETCH_FAILED);
         }
+    }
+
+    public List<CourseListItemResponse> getEnrolledCourses(Integer userId) {
+        // 1. Get active courses
+        Set<CourseEntity> activeCourses = enrollmentRepository.findActiveCoursesByUserId(userId.longValue());
+
+        if (activeCourses == null || activeCourses.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. Extract course IDs to avoid N+1 queries
+        Set<Long> courseIds = activeCourses.stream()
+                .map(CourseEntity::getId)
+                .collect(Collectors.toSet());
+
+        // 3. Query completed lesson counts in one go
+        List<CompletedLessonsCountEntity> lessonCounts = completedLessonCountRepository
+                .findByUserIdAndCourseIdIn(userId.longValue(), courseIds);
+
+        // 4. Map courseId to completed count for fast lookup
+        Map<Long, Integer> completedCountsMap = lessonCounts.stream()
+                .collect(Collectors.toMap(
+                        c -> c.getCourse().getId(),
+                        c -> c.getCompletedLessonsCount() != null ? c.getCompletedLessonsCount() : 0
+                ));
+
+        // 5. Map entities to DTOs and calculate progress using the utility class
+        return activeCourses.stream().map(course -> {
+            int completed = completedCountsMap.getOrDefault(course.getId(), 0);
+            int total = course.getTotalLessons() != null ? course.getTotalLessons() : 0;
+            int progress = ProgressUtils.calculatePercentage(completed, total);
+
+            CourseListItemResponse response = courseMapper.toCourseListItemResponse(course);
+            response.setEnrolled(true);
+            response.setProgressPercentage(progress);
+            return response;
+        }).toList();
     }
 }
