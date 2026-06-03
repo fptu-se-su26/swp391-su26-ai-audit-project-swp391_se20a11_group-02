@@ -7,6 +7,8 @@ import com.swp391.coding_platform.dto.response.CurriculumLessonResponse;
 import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.course.ChapterEntity;
 import com.swp391.coding_platform.entity.course.LessonEntity;
+import com.swp391.coding_platform.dto.response.CourseReviewDto;
+import com.swp391.coding_platform.entity.course.CourseReviewEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -31,4 +33,8 @@ public interface CourseMapper {
 
     @Mapping(target = "type", expression = "java(lessonEntity.getVideoUrl() != null && !lessonEntity.getVideoUrl().isEmpty() ? \"video\" : (lessonEntity.getTheoryContent() != null && !lessonEntity.getTheoryContent().isEmpty() ? \"reading\" : \"coding\"))")
     CurriculumLessonResponse toCurriculumLessonResponse(LessonEntity lessonEntity);
+
+    @Mapping(target = "displayName", source = "user.displayname")
+    @Mapping(target = "avatarUrl", source = "user.avatarurl")
+    CourseReviewDto toCourseReviewDto(CourseReviewEntity reviewEntity);
 }

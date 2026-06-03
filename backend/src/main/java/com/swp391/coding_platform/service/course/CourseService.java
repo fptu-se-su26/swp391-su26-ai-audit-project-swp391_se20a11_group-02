@@ -17,8 +17,12 @@ import com.swp391.coding_platform.repository.course.ChapterRepository;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
 import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
 import com.swp391.coding_platform.repository.progress.LessonProgressRepository;
+import com.swp391.coding_platform.repository.CourseReviewRepository;
 import com.swp391.coding_platform.repository.specification.CourseSpecification;
 import com.swp391.coding_platform.util.ProgressUtils;
+import com.swp391.coding_platform.dto.response.CourseReviewDto;
+import com.swp391.coding_platform.dto.response.CourseReviewStatsResponse;
+import com.swp391.coding_platform.entity.course.CourseReviewEntity;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -42,6 +46,7 @@ public class CourseService {
     LessonProgressRepository lessonProgressRepository;
     EnrollmentRepository enrollmentRepository;
     ChapterRepository chapterRepository;
+    CourseReviewRepository courseReviewRepository;
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
@@ -164,5 +169,35 @@ public class CourseService {
         return chapters.stream()
                 .map(courseMapper::toCurriculumChapterResponse)
                 .collect(Collectors.toList());
+    }
+
+    public CourseReviewStatsResponse getCourseReviews(Long courseId, Pageable pageable) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
+        CourseEntity course = courseRepository.findById(courseId).orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        Page<CourseReviewEntity> reviewPage = courseReviewRepository.findByCourseIdOrderByCreatedAtDesc(courseId, pageable);
+        Page<CourseReviewDto> reviewDtoPage = reviewPage.map(courseMapper::toCourseReviewDto);
+
+        List<Object[]> starCounts = courseReviewRepository.countStarsByCourseId(courseId);
+        Map<Integer, Long> starDistribution = new HashMap<>();
+        // Initialize all stars with 0
+        for (int i = 1; i <= 5; i++) {
+            starDistribution.put(i, 0L);
+        }
+        for (Object[] row : starCounts) {
+            Integer star = (Integer) row[0];
+            Long count = ((Number) row[1]).longValue();
+            starDistribution.put(star, count);
+        }
+
+        return CourseReviewStatsResponse.builder()
+                .averageRating(course.getAverageRating())
+                .totalReviews(course.getTotalReviews())
+                .starDistribution(starDistribution)
+                .reviews(PageResponse.from(reviewDtoPage))
+                .build();
     }
 }

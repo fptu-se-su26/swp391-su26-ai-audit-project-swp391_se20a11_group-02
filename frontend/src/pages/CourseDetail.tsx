@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { fetchCourseDetail, fetchCourseCurriculum, type CourseDetailResponse, type CurriculumChapterResponse } from '../services/courseService';
+import { fetchCourseDetail, fetchCourseCurriculum, fetchCourseReviews, type CourseDetailResponse, type CurriculumChapterResponse, type CourseReviewStatsResponse } from '../services/courseService';
 
 export const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [course, setCourse] = useState<CourseDetailResponse | null>(null);
   const [curriculum, setCurriculum] = useState<CurriculumChapterResponse[]>([]);
+  const [reviewsStats, setReviewsStats] = useState<CourseReviewStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,15 +30,27 @@ export const CourseDetail: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const [detailData, curriculumData] = await Promise.all([
+        const [detailData, curriculumData, reviewsData] = await Promise.all([
           fetchCourseDetail(id),
           fetchCourseCurriculum(id).catch((err) => {
             console.error('Failed to load curriculum:', err);
             return [] as CurriculumChapterResponse[];
           }),
+          fetchCourseReviews(id).catch((err) => {
+            console.error('Failed to load reviews:', err);
+            return null;
+          }),
         ]);
+        const sortedCurriculum = curriculumData
+          .map(chapter => ({
+            ...chapter,
+            lessons: [...chapter.lessons].sort((a, b) => a.orderIndex - b.orderIndex)
+          }))
+          .sort((a, b) => a.orderIndex - b.orderIndex);
+
         setCourse(detailData);
-        setCurriculum(curriculumData);
+        setCurriculum(sortedCurriculum);
+        setReviewsStats(reviewsData);
       } catch (err: any) {
         setError(err.message || 'Không thể tải thông tin chi tiết khóa học');
       } finally {
@@ -76,6 +89,9 @@ export const CourseDetail: React.FC = () => {
 
   const parseList = (text?: string): string[] => {
     if (!text) return [];
+    if (text.includes('#')) {
+      return text.split('#').map(item => item.trim()).filter(Boolean);
+    }
     return text.split('\n').map(line => line.replace(/^[-*•\d.]+\s*/, '').trim()).filter(Boolean);
   };
 
@@ -115,7 +131,7 @@ export const CourseDetail: React.FC = () => {
   const prerequisitesList = parseList(course.prerequisites);
   const audienceList = parseList(course.targetAudience);
   const benefitsList = parseList(course.completionBenefits);
-  const techToolsList = course.technologyTool ? course.technologyTool.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const techToolsList = course.technologyTool ? course.technologyTool.split(/[#,]/).map(s => s.trim()).filter(Boolean) : [];
 
   return (
     <div className="w-full text-left">
@@ -283,13 +299,13 @@ export const CourseDetail: React.FC = () => {
                     <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
                       <span className="w-1.5 h-8 bg-primary rounded-full"></span>Course Highlights
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex flex-wrap gap-4">
                       {highlightsList.map((item, idx) => (
-                        <div key={idx} className="p-6 bg-surface-gray rounded-xl text-center space-y-3">
-                          <span className="material-symbols-outlined text-primary text-4xl">
+                        <div key={idx} className="flex items-center gap-3 bg-surface-gray border border-gray-200 px-5 py-3 rounded-xl hover:border-primary transition-all">
+                          <span className="material-symbols-outlined text-primary text-2xl">
                             {idx % 3 === 0 ? 'developer_mode' : idx % 3 === 1 ? 'all_inclusive' : 'person_celebrate'}
                           </span>
-                          <p className="font-bold text-text-main font-body">{item}</p>
+                          <span className="font-bold text-text-main font-body">{item}</span>
                         </div>
                       ))}
                     </div>
@@ -353,17 +369,15 @@ export const CourseDetail: React.FC = () => {
                     <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
                       <span className="w-1.5 h-8 bg-primary rounded-full"></span>Completion Benefits
                     </h2>
-                    <div className="p-8 bg-surface-gray rounded-2xl border border-primary/20 flex flex-col md:flex-row items-center gap-8">
-                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-primary text-5xl">emoji_events</span>
+                    <div className="p-6 bg-surface-gray rounded-2xl border border-primary/20 flex flex-col sm:flex-row flex-wrap gap-4 items-center">
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-primary text-4xl">emoji_events</span>
                       </div>
-                      <div className="grid md:grid-cols-3 gap-6 w-full">
-                        {benefitsList.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="text-center md:text-left">
-                            <p className="font-bold text-text-main font-body">{item}</p>
-                            <p className="text-sm text-text-muted font-body mt-1">
-                              {idx === 0 ? 'Industry recognized' : idx === 1 ? 'Ready for employers' : 'Placement assistance'}
-                            </p>
+                      <div className="flex flex-wrap gap-4 flex-1">
+                        {benefitsList.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-surface px-4 py-2.5 rounded-xl border border-gray-200">
+                            <span className="material-symbols-outlined text-brand-green text-lg">check_circle</span>
+                            <span className="font-bold text-text-main font-body text-sm">{item}</span>
                           </div>
                         ))}
                       </div>
@@ -406,14 +420,14 @@ export const CourseDetail: React.FC = () => {
                                 <h3 className="font-bold text-text-main">{chapter.title}</h3>
                               </div>
                               <span className="text-body-sm text-text-muted font-medium font-body">
-                                {chapter.lessons.length} bài học
+                                {chapter.lessons.length} {chapter.lessons.length === 1 ? 'lesson' : 'lessons'}
                               </span>
                             </div>
                             {isOpen && (
                               <div className="bg-surface divide-y divide-gray-200">
                                 {chapter.lessons.length === 0 ? (
                                   <div className="p-6 text-center text-text-muted text-sm font-body">
-                                    Không có bài học nào trong chương này.
+                                    No lessons available in this chapter.
                                   </div>
                                 ) : (
                                   chapter.lessons.map((lesson) => (
@@ -453,74 +467,77 @@ export const CourseDetail: React.FC = () => {
                   <h2 className="text-headline-md font-bold text-text-main mb-6">Student Feedback</h2>
                   <div className="flex flex-col md:flex-row gap-10 items-start md:items-center p-8 bg-surface-gray border border-gray-200 rounded-2xl">
                     <div className="flex flex-col items-center gap-2 shrink-0">
-                      <span className="text-6xl font-extrabold text-primary">{course.averageRating}</span>
+                      <span className="text-6xl font-extrabold text-primary">{reviewsStats?.averageRating || course.averageRating || 0}</span>
                       <div className="flex text-yellow-400">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: i < Math.round(course.averageRating) ? '"FILL" 1' : '' }}>star</span>
+                          <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: i < Math.round(reviewsStats?.averageRating || course.averageRating || 0) ? '"FILL" 1' : '' }}>star</span>
                         ))}
                       </div>
                       <span className="text-body-md font-bold text-text-main">Course Rating</span>
                     </div>
                     <div className="flex-1 w-full space-y-3">
-                      <div className="flex items-center gap-4">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                          <div className="bg-primary h-full" style={{ width: '85%' }}></div>
-                        </div>
-                        <div className="flex items-center gap-4 min-w-[160px] font-body">
-                          <div className="flex text-yellow-400">
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                      {[5, 4, 3, 2, 1].map(star => {
+                        const count = reviewsStats?.starDistribution?.[star] || 0;
+                        const total = reviewsStats?.totalReviews || 1; // avoid division by 0
+                        const percentage = reviewsStats?.totalReviews ? Math.round((count / total) * 100) : 0;
+                        
+                        return (
+                          <div key={star} className="flex items-center gap-4">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                              <div className="bg-primary h-full" style={{ width: `${percentage}%` }}></div>
+                            </div>
+                            <div className="flex items-center gap-4 min-w-[160px] font-body">
+                              <div className="flex text-yellow-400">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <span key={i} className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: i < star ? '"FILL" 1' : '' }}>star</span>
+                                ))}
+                              </div>
+                              <span className="text-body-sm font-semibold text-text-muted">{count}</span>
+                            </div>
                           </div>
-                          <span className="text-body-sm font-semibold text-text-muted">{Math.round(course.totalReviews * 0.85)}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                          <div className="bg-primary h-full" style={{ width: '10%' }}></div>
-                        </div>
-                        <div className="flex items-center gap-4 min-w-[160px] font-body">
-                          <div className="flex text-yellow-400">
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[18px]">star</span>
-                          </div>
-                          <span className="text-body-sm font-semibold text-text-muted">{Math.round(course.totalReviews * 0.10)}</span>
-                        </div>
-                      </div>
+                        );
+                      })}
                     </div>
                   </div>
 
                   <div className="space-y-6 pt-6">
                     <h3 className="text-headline-sm font-bold text-text-main">Reviews</h3>
                     <div className="divide-y divide-gray-200">
-                      <div className="py-8 flex flex-col sm:flex-row gap-6">
-                        <div className="w-12 h-12 rounded-full bg-brand-blue flex items-center justify-center text-white font-bold shrink-0">
-                          DT
-                        </div>
-                        <div className="flex-1 space-y-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-bold text-text-main">David Thompson</p>
-                              <div className="flex text-yellow-400 scale-75 origin-left -ml-1">
-                                <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                      {reviewsStats?.reviews?.content?.length ? (
+                        reviewsStats.reviews.content.map(review => (
+                          <div key={review.id} className="py-8 flex flex-col sm:flex-row gap-6">
+                            {review.avatarUrl ? (
+                              <img src={review.avatarUrl} alt={review.displayName} className="w-12 h-12 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-brand-blue flex items-center justify-center text-white font-bold shrink-0">
+                                {review.displayName.substring(0, 2).toUpperCase()}
                               </div>
+                            )}
+                            <div className="flex-1 space-y-3">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="font-bold text-text-main">{review.displayName}</p>
+                                  <div className="flex text-yellow-400 scale-75 origin-left -ml-1">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                      <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: i < review.star ? '"FILL" 1' : '' }}>star</span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <span className="text-body-sm text-text-muted font-body">
+                                  {new Date(review.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-body-md text-text-main leading-relaxed font-body">
+                                {review.content}
+                              </p>
                             </div>
-                            <span className="text-body-sm text-text-muted font-body">2 days ago</span>
                           </div>
-                          <p className="text-body-md text-text-main leading-relaxed font-body">
-                            Khóa học rất hay và thực tế! Nội dung trình bày mạch lạc, dễ hiểu, các bài tập thực hành giúp tôi nắm vững kiến thức nhanh chóng.
-                          </p>
+                        ))
+                      ) : (
+                        <div className="py-8 text-center text-text-muted">
+                          No reviews available yet.
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </section>

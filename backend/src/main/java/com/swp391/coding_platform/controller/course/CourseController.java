@@ -6,7 +6,9 @@ import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.CourseDetailResponse;
 import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
+import com.swp391.coding_platform.dto.response.CourseReviewStatsResponse;
 import com.swp391.coding_platform.service.course.CourseService;
+import org.springframework.data.domain.PageRequest;
 import java.util.List;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -88,6 +90,22 @@ public class CourseController {
                 .status(200)
                 .code(1000)
                 .message("Get course curriculum successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<ApiResponse<CourseReviewStatsResponse>> getCourseReviews(
+            @PathVariable("id") Long id,
+            org.springframework.data.domain.Pageable pageable) {
+
+        var result = courseService.getCourseReviews(id, pageable);
+
+        return ResponseEntity.ok(ApiResponse.<CourseReviewStatsResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Get course reviews successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());

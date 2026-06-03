@@ -758,3 +758,41 @@ export const fetchCourseCurriculum = async (id: number | string): Promise<Curric
   const data: ApiResponse<CurriculumChapterResponse[]> = await response.json();
   return data.result;
 };
+
+export interface CourseReviewDto {
+  id: number;
+  content: string;
+  star: number;
+  displayName: string;
+  avatarUrl?: string;
+  createdAt: string;
+}
+
+export interface CourseReviewStatsResponse {
+  averageRating: number;
+  totalReviews: number;
+  starDistribution: Record<number, number>;
+  reviews: PageResponse<CourseReviewDto>;
+}
+
+export const fetchCourseReviews = async (id: number | string, page: number = 0, size: number = 10): Promise<CourseReviewStatsResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('page', page.toString());
+  queryParams.append('size', size.toString());
+
+  const response = await fetch(`${BASE_URL}/courses/${id}/reviews?${queryParams.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải đánh giá khóa học');
+  }
+
+  const data: ApiResponse<CourseReviewStatsResponse> = await response.json();
+  return data.result;
+};
