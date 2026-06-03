@@ -18,8 +18,8 @@ export const Login: React.FC = () => {
     try {
       await login(username, password);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Đăng nhập không thành công. Vui lòng kiểm tra lại.');
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : 'Đăng nhập không thành công. Vui lòng kiểm tra lại.');
     } finally {
       setLoading(false);
     }
@@ -149,8 +149,8 @@ export const Login: React.FC = () => {
                       try {
                         await googleLogin(credentialResponse.credential);
                         navigate('/dashboard');
-                      } catch (err: any) {
-                        setError(err.message || 'Đăng nhập Google thất bại');
+                      } catch (err) {
+                        setError(err instanceof Error && err.message ? err.message : 'Đăng nhập Google thất bại');
                       } finally {
                         setLoading(false);
                       }
