@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { dashboardService, type DashboardStatsResponse } from '../services/dashboardService';
+import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse } from '../services/dashboardService';
 
 // Mock datasets exactly as they are in the HTML
 const initialMyCourses = [
@@ -341,7 +341,7 @@ export const StudentDashboard: React.FC = () => {
   const [maxStreak, setMaxStreak] = useState<number>(0);
 
   // My Courses tab states
-  const [myCourses] = useState(initialMyCourses);
+  const [myCourses, setMyCourses] = useState<CourseListItemResponse[]>([]);
   const [myCoursesFilter, setMyCoursesFilter] = useState<'all' | 'ongoing' | 'completed'>('all');
 
   // Contest History tab states
@@ -412,6 +412,93 @@ export const StudentDashboard: React.FC = () => {
         .catch(console.error);
     }
   }, [user, activeTab, activityYear]);
+
+  // Fetch Enrolled Courses
+  useEffect(() => {
+    if (user && (activeTab === 'dashboard' || activeTab === 'my-courses')) {
+      dashboardService.getEnrolledCourses()
+        .then(setMyCourses)
+        .catch(console.error);
+    }
+  }, [user, activeTab]);
+
+  const ongoingScrollRef = useRef<HTMLDivElement>(null);
+  const completedScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: -ref.current.offsetWidth, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: ref.current.offsetWidth, behavior: 'smooth' });
+    }
+  };
+
+  const renderLevelBadge = (price: number) => {
+    if (price === 0) {
+      return <span className="inline-block bg-[#fce2d3] text-primary font-bold text-[10px] px-2.5 py-1 rounded-lg">Beginner</span>;
+    } else if (price < 250000) {
+      return <span className="inline-block bg-blue-100 text-blue-800 font-bold text-[10px] px-2.5 py-1 rounded-lg">Intermediate</span>;
+    } else {
+      return <span className="inline-block bg-[#ba1a1a]/10 text-[#ba1a1a] font-bold text-[10px] px-2.5 py-1 rounded-lg">Advanced</span>;
+    }
+  };
+
+  const renderCourseCard = (course: CourseListItemResponse, isCompleted: boolean) => {
+    const isFree = course.price === 0;
+    
+    return (
+      <article 
+        key={course.id} 
+        onClick={() => handleOpenCoursePlayer(course.title, course.instructorName, 'Java', `${isCompleted ? 100 : course.progressPercentage}%`, course.thumbnailUrl)}
+        className="w-[calc(100vw-32px)] sm:w-[calc(50vw-24px)] lg:w-[calc(25%-18px)] flex-shrink-0 snap-start bg-surface rounded-2xl overflow-hidden border border-gray-200 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer group shadow-sm text-left"
+      >
+        <div className="h-[160px] relative overflow-hidden flex items-center justify-center bg-brand-blue">
+          <img src={course.thumbnailUrl} alt={course.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
+        </div>
+        <div className="p-5 flex-1 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="inline-block bg-surface-gray text-text-muted font-bold text-[10px] px-2.5 py-1 rounded-lg border border-gray-200">
+              General
+            </span>
+            {renderLevelBadge(course.price)}
+          </div>
+          <div>
+            <h3 className="font-display font-extrabold text-base text-brand-blue line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[44px]">{course.title}</h3>
+            <p className="text-xs text-text-muted mt-1">{course.instructorName}</p>
+          </div>
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            <span className="material-symbols-outlined text-yellow-400 text-[16px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+            <span className="text-xs font-extrabold text-brand-blue">{course.averageRating}</span>
+            <span className="text-[10px] text-text-muted">({(course.totalReviews || 0).toLocaleString('en-US')} reviews)</span>
+            <span className="text-[10px] text-text-muted">•</span>
+            <span className="inline-flex items-center gap-0.5 text-[10px] text-text-muted">
+              <span className="material-symbols-outlined text-[12px] opacity-75">group</span>
+              {(course.totalEnrolled || 0).toLocaleString('en-US')} enrolled
+            </span>
+          </div>
+          
+          <div className="mt-auto pt-3 border-t border-gray-100 flex flex-col gap-2">
+            <div className="w-full flex flex-col gap-1 text-left">
+              <div className="flex justify-between text-[10px] font-bold text-brand-blue">
+                <span>Progress</span>
+                <span className={isCompleted ? "text-brand-green" : "text-primary"}>{isCompleted ? "100%" : `${course.progressPercentage}%`}</span>
+              </div>
+              <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                <div 
+                  className={`${isCompleted ? 'bg-brand-green' : 'bg-primary'} h-full transition-all duration-300`}
+                  style={{ width: `${isCompleted ? 100 : course.progressPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  };
 
   const handleTabChange = (tab: string) => {
     navigate(`#${tab}`);
@@ -871,75 +958,45 @@ export const StudentDashboard: React.FC = () => {
             </section>
 
             {/* Ongoing Courses */}
-            <section>
+            <section className="relative">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">play_circle</span>
                   Ongoing Courses
                 </h2>
-                <button onClick={() => handleTabChange('my-courses')} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer">View All</button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => scrollLeft(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                  </button>
+                  <button onClick={() => scrollRight(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
+                  <button onClick={() => { setMyCoursesFilter('ongoing'); handleTabChange('my-courses'); }} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer ml-2">View All</button>
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {myCourses.filter(c => c.status === 'ongoing').map(course => (
-                  <article 
-                    key={course.id} 
-                    onClick={() => handleOpenCoursePlayer(course.title, course.author, course.category, course.progress, course.thumbnail)}
-                    className="bg-surface rounded-xl overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer group"
-                  >
-                    <div className="h-[140px] bg-brand-blue relative overflow-hidden flex items-center justify-center">
-                      <img src={course.thumbnail} alt={course.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-bold text-text-main text-base line-clamp-2 mb-1 group-hover:text-primary transition-colors">{course.title}</h3>
-                      <p className="text-sm text-text-muted mb-4">{course.author}</p>
-                      <div className="mt-auto space-y-1">
-                        <div className="flex justify-between text-xs text-text-muted font-bold">
-                          <span>Progress</span>
-                          <span className="text-primary">{course.progress}</span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-1.5">
-                          <div className="bg-primary h-1.5 rounded-full" style={{ width: `${course.progressVal}%` }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+              <div ref={ongoingScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+                {myCourses.filter(c => c.progressPercentage < 100).map(course => renderCourseCard(course, false))}
               </div>
             </section>
 
             {/* Completed Courses */}
-            <section>
+            <section className="relative">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
                   <span className="material-symbols-outlined text-brand-green">check_circle</span>
                   Completed Courses
                 </h2>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => scrollLeft(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                  </button>
+                  <button onClick={() => scrollRight(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {myCourses.filter(c => c.status === 'completed').map(course => (
-                  <article 
-                    key={course.id} 
-                    onClick={() => handleOpenCoursePlayer(course.title, course.author, course.category, course.progress, course.thumbnail)}
-                    className="bg-surface rounded-xl overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer group"
-                  >
-                    <div className="h-[140px] bg-brand-blue relative overflow-hidden flex items-center justify-center">
-                      <img src={course.thumbnail} alt={course.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-bold text-text-main text-base line-clamp-2 mb-1 group-hover:text-primary transition-colors">{course.title}</h3>
-                      <p className="text-sm text-text-muted mb-4">{course.author}</p>
-                      <div className="mt-auto space-y-1">
-                        <div className="flex justify-between text-xs text-text-muted font-bold">
-                          <span>Progress</span>
-                          <span className="text-brand-green">{course.progress}</span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-1.5">
-                          <div className="bg-brand-green h-1.5 rounded-full" style={{ width: '100%' }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+              <div ref={completedScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+                {myCourses.filter(c => c.progressPercentage === 100).map(course => renderCourseCard(course, true))}
               </div>
             </section>
 
@@ -1097,7 +1154,7 @@ export const StudentDashboard: React.FC = () => {
                 All Courses
                 <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                   myCoursesFilter === 'all' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-text-muted'
-                }`}>8</span>
+                }`}>{myCourses.length}</span>
               </button>
               <button 
                 onClick={() => setMyCoursesFilter('ongoing')}
@@ -1109,7 +1166,7 @@ export const StudentDashboard: React.FC = () => {
                 In Progress
                 <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                   myCoursesFilter === 'ongoing' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-text-muted'
-                }`}>4</span>
+                }`}>{myCourses.filter(c => c.progressPercentage < 100).length}</span>
               </button>
               <button 
                 onClick={() => setMyCoursesFilter('completed')}
@@ -1121,42 +1178,46 @@ export const StudentDashboard: React.FC = () => {
                 Completed
                 <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                   myCoursesFilter === 'completed' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-text-muted'
-                }`}>4</span>
+                }`}>{myCourses.filter(c => c.progressPercentage === 100).length}</span>
               </button>
             </div>
 
             {/* Courses Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {myCourses
-                .filter(course => myCoursesFilter === 'all' || course.status === myCoursesFilter)
+                .filter(course => 
+                  myCoursesFilter === 'all' || 
+                  (myCoursesFilter === 'ongoing' && course.progressPercentage < 100) || 
+                  (myCoursesFilter === 'completed' && course.progressPercentage === 100)
+                )
                 .map(course => (
                   <article 
                     key={course.id} 
-                    onClick={() => handleOpenCoursePlayer(course.title, course.author, course.category, course.progress, course.thumbnail)}
+                    onClick={() => handleOpenCoursePlayer(course.title, course.instructorName, 'Java', `${course.progressPercentage}%`, course.thumbnailUrl)}
                     className="bg-surface rounded-xl overflow-hidden border border-gray-200 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer group relative"
                   >
                     <div className="absolute top-3 left-3 z-10 flex gap-1.5">
-                      <span className="bg-brand-blue/80 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-md">{course.category}</span>
+                      <span className="bg-brand-blue/80 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-md">Course</span>
                     </div>
                     <div className="h-[140px] bg-brand-blue relative overflow-hidden flex items-center justify-center">
-                      <img src={course.thumbnail} alt={course.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
+                      <img src={course.thumbnailUrl} alt={course.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
                       <h3 className="font-bold text-text-main text-base line-clamp-2 mb-1 group-hover:text-primary transition-colors leading-tight">{course.title}</h3>
                       <p className="text-xs text-text-muted mb-2 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">person</span> {course.author}
+                        <span className="material-symbols-outlined text-[14px]">person</span> {course.instructorName}
                       </p>
                       <div className="flex items-center gap-1.5 mb-4">
                         <div className="flex items-center">
                           <span className="material-symbols-outlined text-yellow-400 text-[16px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          <span className="text-xs font-bold text-text-main ml-0.5">{course.rating}</span>
+                          <span className="text-xs font-bold text-text-main ml-0.5">{course.averageRating}</span>
                         </div>
                         <span className="text-gray-300">•</span>
-                        <span className="text-[10px] text-text-muted">{course.ratingsCount} ratings</span>
+                        <span className="text-[10px] text-text-muted">{course.totalReviews} ratings</span>
                       </div>
                       
                       <div className="mt-auto pt-3 border-t border-gray-50 space-y-1.5">
-                        {course.status === 'completed' ? (
+                        {course.progressPercentage === 100 ? (
                           <>
                             <div className="flex justify-between items-center text-[11px] font-semibold">
                               <span className="text-brand-green flex items-center gap-1 font-bold">
@@ -1175,10 +1236,10 @@ export const StudentDashboard: React.FC = () => {
                                 <span className="material-symbols-outlined text-[14px] text-primary">pending</span>
                                 In Progress
                               </span>
-                              <span className="text-primary font-bold">{course.progress}</span>
+                              <span className="text-primary font-bold">{course.progressPercentage}%</span>
                             </div>
                             <div className="w-full bg-gray-100 rounded-full h-1.5">
-                              <div className="bg-primary h-1.5 rounded-full" style={{ width: `${course.progressVal}%` }}></div>
+                              <div className="bg-primary h-1.5 rounded-full" style={{ width: `${course.progressPercentage}%` }}></div>
                             </div>
                           </>
                         )}

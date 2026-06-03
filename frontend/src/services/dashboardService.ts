@@ -18,6 +18,20 @@ export interface UserActivityResponse {
     activeDates: string[];
 }
 
+export interface CourseListItemResponse {
+    id: number;
+    title: string;
+    thumbnailUrl: string;
+    shortDescription: string;
+    price: number;
+    averageRating: number;
+    totalReviews: number;
+    totalEnrolled: number;
+    enrolled: boolean;
+    progressPercentage: number;
+    instructorName: string;
+}
+
 export const dashboardService = {
   async getDashboardStats(): Promise<DashboardStatsResponse> {
     const response = await fetch(`${BASE_URL}/me/dashboard-stats`, {
@@ -48,6 +62,23 @@ export const dashboardService = {
     
     if (!response.ok) {
       throw new Error('Failed to fetch user activities');
+    }
+    
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getEnrolledCourses(): Promise<CourseListItemResponse[]> {
+    const response = await fetch(`${BASE_URL}/me/enrolled-courses`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch enrolled courses');
     }
     
     const data = await response.json();
