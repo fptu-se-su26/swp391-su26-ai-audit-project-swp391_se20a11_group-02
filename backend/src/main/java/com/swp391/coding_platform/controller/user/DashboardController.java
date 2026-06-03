@@ -21,9 +21,10 @@ public class DashboardController {
 
     @GetMapping("/dashboard-stats")
     public ResponseEntity<ApiResponse<DashboardStatsResponse>> getDashboardStats(@AuthenticationPrincipal Jwt jwt) {
-        Long userId = null;
+        Integer userId = null;
         if(jwt != null){
-            userId = jwt.getClaim("userId");
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) userId = idClaim.intValue();
         }
         
         DashboardStatsResponse result = dashboardService.getDashboardStats(userId);

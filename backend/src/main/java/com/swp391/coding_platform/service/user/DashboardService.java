@@ -25,7 +25,7 @@ public class DashboardService {
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
 
-    public DashboardStatsResponse getDashboardStats(Long userId) {
+    public DashboardStatsResponse getDashboardStats(Integer userId) {
 
         // 1. Enrolled query
         CompletableFuture<Long> enrolledFuture = CompletableFuture.supplyAsync(() -> 
@@ -58,7 +58,7 @@ public class DashboardService {
 
         // 6. Ranking query
         CompletableFuture<Long> rankingFuture = CompletableFuture.supplyAsync(() -> {
-            Long rank = userRepository.getUserRanking(userId);
+            Integer rank = userRepository.getUserRanking(userId);
             return rank != null ? rank : 0L;
         });
 

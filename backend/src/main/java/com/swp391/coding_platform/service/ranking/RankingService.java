@@ -41,7 +41,7 @@ public class RankingService {
 
     @Transactional(readOnly = true)
     public UserRankStatsResponse getUserRankStats(Integer userId, String filter) {
-        Integer userRank = userRepository.getUserRank(userId);
+        Integer userRank = userRepository.getUserRanking(userId);
         if (userRank == null) {
             userRank = 0;
         }

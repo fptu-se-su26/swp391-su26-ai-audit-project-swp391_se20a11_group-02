@@ -34,15 +34,16 @@ public class CourseController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid CourseSearchRequest courseSearchRequest){
 
-        Long userId = null;
+        Integer userId = null;
         if(jwt != null){
-            userId = jwt.getClaim("userId");
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) userId = idClaim.intValue();
         }
 
         Pageable pageable = courseSearchRequest.getPageable();
 
         var result = courseService.
-                getCourseList(userId, courseSearchRequest, pageable);
+                getCourseList(userId != null ? userId.longValue() : null, courseSearchRequest, pageable);
 
         return ResponseEntity.ok(ApiResponse.<PageResponse<CourseListItemResponse>>builder()
                 .status(200)

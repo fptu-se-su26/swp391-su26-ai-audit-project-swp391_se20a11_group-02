@@ -334,6 +334,12 @@ export const StudentDashboard: React.FC = () => {
   const [isWalletOpen, setIsWalletOpen] = useState<boolean>(false);
   const [dashboardStats, setDashboardStats] = useState<DashboardStatsResponse | null>(null);
 
+  // Activity tracking
+  const [activeDates, setActiveDates] = useState<string[]>([]);
+  const [activityYear, setActivityYear] = useState<number>(2026);
+  const [currentStreak, setCurrentStreak] = useState<number>(0);
+  const [maxStreak, setMaxStreak] = useState<number>(0);
+
   // My Courses tab states
   const [myCourses] = useState(initialMyCourses);
   const [myCoursesFilter, setMyCoursesFilter] = useState<'all' | 'ongoing' | 'completed'>('all');
@@ -394,16 +400,28 @@ export const StudentDashboard: React.FC = () => {
     }
   }, [user, activeTab]);
 
+  // Fetch Activity Graph Data
+  useEffect(() => {
+    if (user && activeTab === 'dashboard') {
+      dashboardService.getUserActivities(activityYear)
+        .then((res) => {
+           setActiveDates(res.activeDates || []);
+           setMaxStreak(res.maxStreak || 0);
+           setCurrentStreak(res.currentStreak || 0);
+        })
+        .catch(console.error);
+    }
+  }, [user, activeTab, activityYear]);
+
   const handleTabChange = (tab: string) => {
     navigate(`#${tab}`);
   };
 
   // Activity Graph helper (12 months list)
   const isLeapYear = (year: number) => (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-  const currentYear = new Date().getFullYear();
   const months = [
     { name: 'Jan', days: 31 },
-    { name: 'Feb', days: isLeapYear(currentYear) ? 29 : 28 },
+    { name: 'Feb', days: isLeapYear(activityYear) ? 29 : 28 },
     { name: 'Mar', days: 31 },
     { name: 'Apr', days: 30 },
     { name: 'May', days: 31 },
@@ -781,7 +799,7 @@ export const StudentDashboard: React.FC = () => {
                       <span className="text-[10px] md:text-xs font-semibold text-text-muted">Streak</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-base lg:text-lg font-bold text-text-main">12 <span className="text-[10px] font-medium text-text-muted">Days</span></span>
+                      <span className="text-base lg:text-lg font-bold text-text-main">{currentStreak || 0} <span className="text-[10px] font-medium text-text-muted">Days</span></span>
                     </div>
                   </div>
                 </div>
@@ -795,12 +813,17 @@ export const StudentDashboard: React.FC = () => {
                         <span className="material-symbols-outlined text-text-muted text-[13px] cursor-help" title="Learn more about activity">info</span>
                       </div>
                       <div className="flex items-center gap-3 text-[10px] lg:text-xs font-medium text-text-muted">
-                        <span>Current streak: <strong className="text-text-main">3</strong></span>
-                        <span>Max streak: <strong className="text-text-main">3</strong></span>
-                        <select className="bg-surface-gray border-none text-text-main rounded-md py-0.5 pl-2 pr-6 text-[10px] lg:text-xs focus:ring-primary outline-none cursor-pointer">
-                          <option>Current</option>
-                          <option>2023</option>
-                          <option>2022</option>
+                        <span>Current streak: <strong className="text-text-main">{currentStreak}</strong></span>
+                        <span>Max streak: <strong className="text-text-main">{maxStreak}</strong></span>
+                        <select 
+                          value={activityYear}
+                          onChange={(e) => setActivityYear(Number(e.target.value))}
+                          className="bg-surface-gray border-none text-text-main rounded-md py-0.5 pl-2 pr-6 text-[10px] lg:text-xs focus:ring-primary outline-none cursor-pointer"
+                        >
+                          <option value={new Date().getFullYear()}>Current</option>
+                          <option value="2026">2026</option>
+                          <option value="2025">2025</option>
+                          <option value="2024">2024</option>
                         </select>
                       </div>
                     </div>
@@ -811,8 +834,12 @@ export const StudentDashboard: React.FC = () => {
                           const blocks = [];
                           for (let i = 0; i < 35; i++) {
                             if (i < month.days) {
-                              const isActive = ((mIdx * 7 + i) % 3 === 0) || ((mIdx * 5 + i) % 7 === 0);
-                              blocks.push({ key: i, active: isActive, visible: true });
+                              const monthStr = String(mIdx + 1).padStart(2, '0');
+                              const dayStr = String(i + 1).padStart(2, '0');
+                              const dateString = `${activityYear}-${monthStr}-${dayStr}`;
+                              const isActive = activeDates.includes(dateString);
+                              
+                              blocks.push({ key: i, active: isActive, visible: true, date: dateString });
                             } else {
                               blocks.push({ key: i, active: false, visible: false });
                             }
@@ -826,7 +853,7 @@ export const StudentDashboard: React.FC = () => {
                                     <div
                                       key={block.key}
                                       className={`w-full aspect-square rounded-[1px] ${block.active ? 'bg-primary' : 'bg-gray-100'}`}
-                                      title="Active day"
+                                      title={block.active ? `Active on ${block.date}` : `No activity on ${block.date}`}
                                     />
                                   ) : (
                                     <div key={block.key} className="w-full aspect-square opacity-0" />

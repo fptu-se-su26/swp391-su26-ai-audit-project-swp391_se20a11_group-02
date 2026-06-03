@@ -51,8 +51,8 @@ public class UserEntity {
     UserStatus status = UserStatus.ACTIVE;
 
     @Builder.Default
-    @Column(name = "point", nullable = false, columnDefinition = "integer default 0")
-    Integer point = 0;
+    @Column(name = "score", nullable = false, columnDefinition = "integer default 0")
+    Integer score = 0;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -62,10 +62,6 @@ public class UserEntity {
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     Set<RoleEntity> roles;
-
-    @Builder.Default
-    @Column(name = "score", nullable = false)
-    Double score = 0.0;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     WalletEntity wallet;
