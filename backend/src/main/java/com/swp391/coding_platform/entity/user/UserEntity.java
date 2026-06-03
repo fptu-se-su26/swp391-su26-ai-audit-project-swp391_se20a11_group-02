@@ -51,8 +51,8 @@ public class UserEntity {
     UserStatus status = UserStatus.ACTIVE;
 
     @Builder.Default
-    @Column(name = "point", nullable = false, columnDefinition = "integer default 0")
-    Integer point = 0;
+    @Column(name = "score", nullable = false, columnDefinition = "integer default 0")
+    Integer score = 0;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

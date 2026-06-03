@@ -3839,6 +3839,21 @@ ALTER TABLE ONLY public.completed_lessons_count
 
 --
 -- PostgreSQL database dump complete
+
+--
+-- Table structure for table `user_daily_activities`
+--
+CREATE TABLE public.user_daily_activities (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    activity_date DATE NOT NULL,
+    streak INTEGER DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_daily_activities_unique_user_date UNIQUE (user_id, activity_date)
+);
+
+CREATE INDEX idx_user_activities_user_date ON public.user_daily_activities(user_id, activity_date);
+
 --
 
 \unrestrict d08YY8PMQ9Fau7Lcc517SofghsomBbJX00XyisPVxI2a55BW2At9Wcg1t0piN9W

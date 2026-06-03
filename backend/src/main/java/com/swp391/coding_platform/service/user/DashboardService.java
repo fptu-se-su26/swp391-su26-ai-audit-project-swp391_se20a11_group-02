@@ -25,7 +25,7 @@ public class DashboardService {
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
 
-    public DashboardStatsResponse getDashboardStats(Long userId) {
+    public DashboardStatsResponse getDashboardStats(Integer userId) {
 
         // 1. Enrolled query
         CompletableFuture<Long> enrolledFuture = CompletableFuture.supplyAsync(() -> 
