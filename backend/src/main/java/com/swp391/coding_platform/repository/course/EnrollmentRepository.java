@@ -16,6 +16,9 @@ import java.util.Set;
 @Repository
 public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Long> {
     Boolean existsByUserIdAndCourseIdAndStatusIn(Long userId, Long courseId, Collection<EnrollmentStatus> statuses);
+    Long countByUserId(Long userId);
+
+    Long countByUserIdAndStatus(Long userId, EnrollmentStatus status);
 
     @Query("SELECT e.course.id FROM EnrollmentEntity e " +
             "WHERE e.user.id = :userId " +

@@ -91,7 +91,9 @@ public enum ErrorCode {
     CONTEST_NOT_JOINED(9202, "User has not joined this contest", HttpStatus.FORBIDDEN),
 
     INSUFFICIENT_BALANCE(10001, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
-    COURSE_ALREADY_IN_CART(10002, "Course already in cart", HttpStatus.CONFLICT);
+    COURSE_ALREADY_IN_CART(10002, "Course already in cart", HttpStatus.CONFLICT),
+
+    DASHBOARD_STATS_FETCH_FAILED(11000, "Failed to fetch dashboard statistics", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final String message;
