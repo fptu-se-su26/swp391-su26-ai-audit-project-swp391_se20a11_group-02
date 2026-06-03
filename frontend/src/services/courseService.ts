@@ -724,3 +724,37 @@ export const fetchCourseDetail = async (id: number | string): Promise<CourseDeta
   const data: ApiResponse<CourseDetailResponse> = await response.json();
   return data.result;
 };
+
+export interface CurriculumLessonResponse {
+  id: number;
+  title: string;
+  isTrial: boolean;
+  orderIndex: number;
+  videoUrl?: string;
+  type: 'video' | 'coding' | 'reading';
+}
+
+export interface CurriculumChapterResponse {
+  id: number;
+  title: string;
+  orderIndex: number;
+  lessons: CurriculumLessonResponse[];
+}
+
+export const fetchCourseCurriculum = async (id: number | string): Promise<CurriculumChapterResponse[]> => {
+  const response = await fetch(`${BASE_URL}/courses/${id}/curriculum`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải chương trình học');
+  }
+
+  const data: ApiResponse<CurriculumChapterResponse[]> = await response.json();
+  return data.result;
+};

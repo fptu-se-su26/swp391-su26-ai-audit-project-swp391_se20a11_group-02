@@ -2,7 +2,11 @@ package com.swp391.coding_platform.mapper;
 
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.CourseDetailResponse;
+import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
+import com.swp391.coding_platform.dto.response.CurriculumLessonResponse;
 import com.swp391.coding_platform.entity.course.CourseEntity;
+import com.swp391.coding_platform.entity.course.ChapterEntity;
+import com.swp391.coding_platform.entity.course.LessonEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -22,4 +26,9 @@ public interface CourseMapper {
     @Mapping(target = "instructorAvatarUrl", source = "instructor.user.avatarurl")
     @Mapping(target = "categoryName", expression = "java(courseEntity.getCategories() != null && !courseEntity.getCategories().isEmpty() ? courseEntity.getCategories().iterator().next().getName() : null)")
     CourseDetailResponse toCourseDetailResponse(CourseEntity courseEntity);
+
+    CurriculumChapterResponse toCurriculumChapterResponse(ChapterEntity chapterEntity);
+
+    @Mapping(target = "type", expression = "java(lessonEntity.getVideoUrl() != null && !lessonEntity.getVideoUrl().isEmpty() ? \"video\" : (lessonEntity.getTheoryContent() != null && !lessonEntity.getTheoryContent().isEmpty() ? \"reading\" : \"coding\"))")
+    CurriculumLessonResponse toCurriculumLessonResponse(LessonEntity lessonEntity);
 }

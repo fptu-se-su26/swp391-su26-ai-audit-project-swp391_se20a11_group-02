@@ -3,14 +3,17 @@ package com.swp391.coding_platform.service.course;
 import com.swp391.coding_platform.dto.request.CourseSearchRequest;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.CourseDetailResponse;
+import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
 import com.swp391.coding_platform.entity.course.CourseEntity;
+import com.swp391.coding_platform.entity.course.ChapterEntity;
 import com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity;
 import com.swp391.coding_platform.entity.enums.EnrollmentStatus;
 import com.swp391.coding_platform.repository.course.CourseRepository;
+import com.swp391.coding_platform.repository.course.ChapterRepository;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
 import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
 import com.swp391.coding_platform.repository.progress.LessonProgressRepository;
@@ -38,6 +41,7 @@ public class CourseService {
     CompletedLessonCountRepository completedLessonCountRepository;
     LessonProgressRepository lessonProgressRepository;
     EnrollmentRepository enrollmentRepository;
+    ChapterRepository chapterRepository;
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
@@ -148,5 +152,17 @@ public class CourseService {
         }
 
         return response;
+    }
+
+    public List<CurriculumChapterResponse> getCourseCurriculum(Long courseId) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
+        List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+
+        return chapters.stream()
+                .map(courseMapper::toCurriculumChapterResponse)
+                .collect(Collectors.toList());
     }
 }

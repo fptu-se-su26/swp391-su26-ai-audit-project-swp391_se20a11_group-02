@@ -4,8 +4,10 @@ import com.swp391.coding_platform.dto.request.CourseSearchRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.CourseDetailResponse;
+import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.service.course.CourseService;
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +73,21 @@ public class CourseController {
                 .status(200)
                 .code(1000)
                 .message("Get course detail successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/{id}/curriculum")
+    public ResponseEntity<ApiResponse<List<CurriculumChapterResponse>>> getCourseCurriculum(
+            @PathVariable("id") Long id) {
+
+        var result = courseService.getCourseCurriculum(id);
+
+        return ResponseEntity.ok(ApiResponse.<List<CurriculumChapterResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Get course curriculum successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());

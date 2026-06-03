@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { fetchCourseDetail, type CourseDetailResponse } from '../services/courseService';
+import { fetchCourseDetail, fetchCourseCurriculum, type CourseDetailResponse, type CurriculumChapterResponse } from '../services/courseService';
 
 export const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [course, setCourse] = useState<CourseDetailResponse | null>(null);
+  const [curriculum, setCurriculum] = useState<CurriculumChapterResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,7 +14,7 @@ export const CourseDetail: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'about' | 'curriculum' | 'reviews'>('about');
 
   // Curriculum Accordion State
-  const [section1Open, setSection1Open] = useState(true);
+  const [openChapters, setOpenChapters] = useState<Record<number, boolean>>({});
 
   // Cart & Video Modal Interactive States
   const [addedToCart, setAddedToCart] = useState(false);
@@ -28,8 +29,15 @@ export const CourseDetail: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchCourseDetail(id);
-        setCourse(data);
+        const [detailData, curriculumData] = await Promise.all([
+          fetchCourseDetail(id),
+          fetchCourseCurriculum(id).catch((err) => {
+            console.error('Failed to load curriculum:', err);
+            return [] as CurriculumChapterResponse[];
+          }),
+        ]);
+        setCourse(detailData);
+        setCurriculum(curriculumData);
       } catch (err: any) {
         setError(err.message || 'Không thể tải thông tin chi tiết khóa học');
       } finally {
@@ -38,6 +46,22 @@ export const CourseDetail: React.FC = () => {
     };
     loadDetail();
   }, [id]);
+
+  useEffect(() => {
+    if (curriculum && curriculum.length > 0) {
+      setOpenChapters(prev => ({
+        ...prev,
+        [curriculum[0].id]: true
+      }));
+    }
+  }, [curriculum]);
+
+  const toggleChapter = (chapterId: number) => {
+    setOpenChapters(prev => ({
+      ...prev,
+      [chapterId]: !prev[chapterId]
+    }));
+  };
 
   const handleAddToCart = () => {
     if (course) {
@@ -357,33 +381,69 @@ export const CourseDetail: React.FC = () => {
                       {course.totalLessons} lessons • {course.totalQuizzes} quizzes
                     </p>
                   </div>
-                  <div className="border border-gray-200 rounded-xl overflow-hidden">
-                    <div className="bg-surface-gray border-b border-gray-200">
-                      <div 
-                        onClick={() => setSection1Open(!section1Open)}
-                        className="p-4 flex justify-between items-center cursor-pointer select-none"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span 
-                            className="material-symbols-outlined text-text-main transition-transform duration-200"
-                            style={{ transform: section1Open ? 'rotate(0deg)' : 'rotate(-90deg)' }}
-                          >
-                            expand_more
-                          </span>
-                          <h3 className="font-bold text-text-main">Chương trình học</h3>
-                        </div>
-                        <span className="text-body-sm text-text-muted font-medium font-body">
-                          {course.totalLessons} bài học
-                        </span>
-                      </div>
-                      <div className={`bg-surface divide-y divide-gray-200 transition-all duration-200 ${section1Open ? '' : 'hidden'}`}>
-                        <div className="p-8 text-center text-text-muted font-body">
-                          <span className="material-symbols-outlined text-5xl mb-2 text-gray-300">menu_book</span>
-                          <p className="font-semibold">Nội dung chương trình học chi tiết đang được cập nhật.</p>
-                        </div>
-                      </div>
+                  {curriculum.length === 0 ? (
+                    <div className="p-8 text-center text-text-muted font-body border border-gray-200 rounded-xl bg-surface">
+                      <span className="material-symbols-outlined text-5xl mb-2 text-gray-300">menu_book</span>
+                      <p className="font-semibold">Nội dung chương trình học chi tiết đang được cập nhật.</p>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-200 bg-surface">
+                      {curriculum.map((chapter) => {
+                        const isOpen = !!openChapters[chapter.id];
+                        return (
+                          <div key={chapter.id} className="bg-surface-gray">
+                            <div 
+                              onClick={() => toggleChapter(chapter.id)}
+                              className="p-4 flex justify-between items-center cursor-pointer select-none bg-surface-gray hover:bg-gray-50 transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span 
+                                  className="material-symbols-outlined text-text-main transition-transform duration-200"
+                                  style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+                                >
+                                  expand_more
+                                </span>
+                                <h3 className="font-bold text-text-main">{chapter.title}</h3>
+                              </div>
+                              <span className="text-body-sm text-text-muted font-medium font-body">
+                                {chapter.lessons.length} bài học
+                              </span>
+                            </div>
+                            {isOpen && (
+                              <div className="bg-surface divide-y divide-gray-200">
+                                {chapter.lessons.length === 0 ? (
+                                  <div className="p-6 text-center text-text-muted text-sm font-body">
+                                    Không có bài học nào trong chương này.
+                                  </div>
+                                ) : (
+                                  chapter.lessons.map((lesson) => (
+                                    <div key={lesson.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                      <div className="flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-brand-green text-[20px]">
+                                          {lesson.type === 'video' ? 'play_circle' : lesson.type === 'coding' ? 'code' : 'description'}
+                                        </span>
+                                        <span className="text-body-md text-text-main font-body">
+                                          {lesson.title}
+                                        </span>
+                                      </div>
+                                      {lesson.isTrial && (
+                                        <button 
+                                          onClick={() => setIsVideoModalOpen(true)}
+                                          className="bg-primary text-white text-body-sm font-bold px-3 py-1 rounded hover:bg-primary-hover transition-all"
+                                        >
+                                          Preview
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </section>
               </div>
 
