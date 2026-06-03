@@ -193,13 +193,13 @@ export const Register: React.FC = () => {
               />
               <label className="ml-2 block text-sm text-text-muted select-none" htmlFor="terms">
                 I agree to the{' '}
-                <a className="font-medium text-primary hover:text-primary-hover transition-colors" href="#">
+                <Link className="font-medium text-primary hover:text-primary-hover transition-colors font-semibold" to="/terms">
                   Terms and Conditions
-                </a>{' '}
+                </Link>{' '}
                 and{' '}
-                <a className="font-medium text-primary hover:text-primary-hover transition-colors" href="#">
+                <Link className="font-medium text-primary hover:text-primary-hover transition-colors font-semibold" to="/privacy">
                   Privacy Policy
-                </a>
+                </Link>
                 .
               </label>
             </div>

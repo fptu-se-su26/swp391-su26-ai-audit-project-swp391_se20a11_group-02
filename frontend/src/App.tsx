@@ -22,6 +22,10 @@ import { ContestLayout } from './components/ContestLayout';
 import { ShoppingCart } from './pages/ShoppingCart';
 import { WalletTransaction } from './pages/WalletTransaction';
 import { PaymentTransaction } from './pages/PaymentTransaction';
+import { ContactUs } from './pages/ContactUs';
+import { TermsOfService } from './pages/TermsOfService';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { CookiesPolicy } from './pages/CookiesPolicy';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id.apps.googleusercontent.com';
@@ -66,6 +70,12 @@ function App() {
               <Route path="shopping-cart" element={<ShoppingCart />} />
               <Route path="wallet-transaction" element={<WalletTransaction />} />
               <Route path="payment-transaction" element={<PaymentTransaction />} />
+              
+              {/* Footer legal and contact pages */}
+              <Route path="contact" element={<ContactUs />} />
+              <Route path="terms" element={<TermsOfService />} />
+              <Route path="privacy" element={<PrivacyPolicy />} />
+              <Route path="cookies" element={<CookiesPolicy />} />
             </Route>
 
             {/* Fallback redirect */}
