@@ -40,7 +40,9 @@ SET row_security = off;
 -- Name: public; Type: SCHEMA; Schema: -; Owner: pg_database_owner
 --
 
-CREATE SCHEMA public;
+CREATE SCHEMA IF NOT EXISTS public;
+
+CREATE EXTENSION IF NOT EXISTS unaccent;
 
 
 ALTER SCHEMA public OWNER TO pg_database_owner;
@@ -323,7 +325,7 @@ ALTER TYPE public.transaction_type OWNER TO postgres;
 CREATE FUNCTION public.f_unaccent(text) RETURNS text
     LANGUAGE sql IMMUTABLE STRICT
     AS $_$
-    SELECT unaccent('unaccent', $1);
+    SELECT public.unaccent('unaccent', $1);
 $_$;
 
 
@@ -3841,5 +3843,5 @@ ALTER TABLE ONLY public.completed_lessons_count
 -- PostgreSQL database dump complete
 --
 
-\unrestrict d08YY8PMQ9Fau7Lcc517SofghsomBbJX00XyisPVxI2a55BW2At9Wcg1t0piN9W
+
 
