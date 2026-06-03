@@ -325,7 +325,7 @@ ALTER TYPE public.transaction_type OWNER TO postgres;
 CREATE FUNCTION public.f_unaccent(text) RETURNS text
     LANGUAGE sql IMMUTABLE STRICT
     AS $_$
-    SELECT public.unaccent('unaccent', $1);
+    SELECT public.unaccent('public.unaccent', $1);
 $_$;
 
 
