@@ -50,6 +50,10 @@ public class UserEntity {
     @Column(name = "status", nullable = false)
     UserStatus status = UserStatus.ACTIVE;
 
+    @Builder.Default
+    @Column(name = "score", nullable = false, columnDefinition = "integer default 0")
+    Integer score = 0;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "user_roles",

@@ -52,7 +52,8 @@ export const CourseDetail: React.FC = () => {
         setCurriculum(sortedCurriculum);
         setReviewsStats(reviewsData);
       } catch (err: any) {
-        setError(err.message || 'Không thể tải thông tin chi tiết khóa học');
+        console.error("Error fetching course detail", err);
+        setError(err.message || 'Failed to load course details');
       } finally {
         setLoading(false);
       }
@@ -79,7 +80,7 @@ export const CourseDetail: React.FC = () => {
   const handleAddToCart = () => {
     if (course) {
       addToCart(course.id.toString());
-      setSuccessMessage('Đã thêm khóa học vào giỏ hàng thành công!');
+      setSuccessMessage('Course added to cart successfully!');
       setAddedToCart(true);
       setTimeout(() => {
         setSuccessMessage('');
@@ -112,16 +113,16 @@ export const CourseDetail: React.FC = () => {
 
   if (error || !course) {
     return (
-      <div className="w-full min-h-[500px] flex flex-col items-center justify-center text-center p-12 max-w-md mx-auto">
-        <span className="material-symbols-outlined text-red-500 text-6xl mb-4">error</span>
-        <h3 className="text-lg font-bold text-red-700">Error Loading Course</h3>
-        <p className="text-sm text-red-600 mt-2">{error || 'Không tìm thấy khóa học'}</p>
-        <Link 
-          to="/courses"
-          className="mt-6 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-bold transition-all shadow-md"
+      <div className="flex-grow flex flex-col items-center justify-center p-8 mt-20">
+        <span className="material-symbols-outlined text-6xl text-gray-300 mb-4">error_outline</span>
+        <h2 className="text-2xl font-bold text-gray-700">Oops!</h2>
+        <p className="text-sm text-red-600 mt-2">{error || 'Course not found'}</p>
+        <button 
+          onClick={() => navigate('/courses')}
+          className="mt-6 bg-brand-blue text-white px-6 py-2 rounded-full font-bold hover:bg-brand-blue-light transition-colors"
         >
-          Trở lại danh sách khóa học
-        </Link>
+          Back to courses list
+        </button>
       </div>
     );
   }
@@ -135,7 +136,6 @@ export const CourseDetail: React.FC = () => {
 
   return (
     <div className="w-full text-left">
-      {/* Styles defined in HTML */}
       <style>{`
         .active-tab {
           border-bottom: 2px solid #F36F21;
@@ -148,7 +148,6 @@ export const CourseDetail: React.FC = () => {
         }
       `}</style>
 
-      {/* Dynamic Alerts */}
       {successMessage && (
         <div className="fixed top-20 right-8 bg-brand-green border border-brand-green/30 text-white p-4 rounded-xl z-50 font-bold flex items-center gap-2 animate-fade-in shadow-xl">
           <span className="material-symbols-outlined text-[20px] icon-fill">check_circle</span>
@@ -156,7 +155,6 @@ export const CourseDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Video Modal Popup */}
       {isVideoModalOpen && (
         <div 
           onClick={() => setIsVideoModalOpen(false)}
@@ -184,7 +182,6 @@ export const CourseDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Updated Hero Banner Section */}
       <div className="bg-brand-blue text-white pt-24 pb-32">
         <div className="max-w-[1440px] mx-auto px-4 md:px-16 flex flex-col lg:flex-row gap-12 text-left">
           <div className="w-full lg:w-[72%] space-y-6">
@@ -227,18 +224,12 @@ export const CourseDetail: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="hidden lg:block w-[28%] relative">
-            {/* Spacer to allow absolute positioning of sidebar */}
-          </div>
         </div>
       </div>
 
       <main className="max-w-[1440px] mx-auto px-4 md:px-16 pb-20 -mt-20 relative z-10">
-        {/* Two Column Layout */}
         <div className="flex flex-col lg:flex-row gap-12 text-left">
-          {/* Main Content (72%) */}
           <div className="w-full lg:w-[72%] bg-surface rounded-2xl p-8 shadow-sm border border-gray-200">
-            {/* Tab Navigation */}
             <div className="flex gap-8 border-b border-gray-200 mb-10 overflow-x-auto whitespace-nowrap" id="course-tabs">
               <button
                 onClick={() => setActiveTab('about')}
@@ -260,11 +251,8 @@ export const CourseDetail: React.FC = () => {
               </button>
             </div>
 
-            {/* Dynamic Content Wrapper */}
             <div className="space-y-12">
-              {/* 1. ABOUT SECTION */}
               <div id="content-about" className={`space-y-12 transition-all duration-300 ${activeTab === 'about' ? '' : 'hidden'}`}>
-                {/* Course Description */}
                 <section>
                   <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
                     <span className="w-1.5 h-8 bg-primary rounded-full"></span>Course Description
@@ -274,7 +262,6 @@ export const CourseDetail: React.FC = () => {
                   </div>
                 </section>
 
-                {/* What you'll learn */}
                 {whatYouLearnList.length > 0 && (
                   <section>
                     <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
@@ -293,7 +280,6 @@ export const CourseDetail: React.FC = () => {
                   </section>
                 )}
 
-                {/* Course Highlights */}
                 {highlightsList.length > 0 && (
                   <section>
                     <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
@@ -312,7 +298,6 @@ export const CourseDetail: React.FC = () => {
                   </section>
                 )}
 
-                {/* Technologies & Tools */}
                 {techToolsList.length > 0 && (
                   <section>
                     <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
@@ -328,7 +313,6 @@ export const CourseDetail: React.FC = () => {
                   </section>
                 )}
 
-                {/* Prerequisites */}
                 {prerequisitesList.length > 0 && (
                   <section>
                     <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
@@ -344,7 +328,6 @@ export const CourseDetail: React.FC = () => {
                   </section>
                 )}
 
-                {/* Target Audience */}
                 {audienceList.length > 0 && (
                   <section>
                     <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
@@ -363,16 +346,12 @@ export const CourseDetail: React.FC = () => {
                   </section>
                 )}
 
-                {/* Completion Benefits */}
                 {benefitsList.length > 0 && (
                   <section>
                     <h2 className="text-headline-md font-bold text-text-main mb-6 flex items-center gap-3">
                       <span className="w-1.5 h-8 bg-primary rounded-full"></span>Completion Benefits
                     </h2>
                     <div className="p-6 bg-surface-gray rounded-2xl border border-primary/20 flex flex-col sm:flex-row flex-wrap gap-4 items-center">
-                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-primary text-4xl">emoji_events</span>
-                      </div>
                       <div className="flex flex-wrap gap-4 flex-1">
                         {benefitsList.map((item, idx) => (
                           <div key={idx} className="flex items-center gap-2 bg-surface px-4 py-2.5 rounded-xl border border-gray-200">
@@ -386,7 +365,6 @@ export const CourseDetail: React.FC = () => {
                 )}
               </div>
 
-              {/* 2. CURRICULUM SECTION */}
               <div id="content-curriculum" className={`space-y-12 transition-all duration-300 ${activeTab === 'curriculum' ? '' : 'hidden'}`}>
                 <section className="space-y-6">
                   <div className="flex justify-between items-end mb-4">
@@ -396,9 +374,10 @@ export const CourseDetail: React.FC = () => {
                     </p>
                   </div>
                   {curriculum.length === 0 ? (
-                    <div className="p-8 text-center text-text-muted font-body border border-gray-200 rounded-xl bg-surface">
-                      <span className="material-symbols-outlined text-5xl mb-2 text-gray-300">menu_book</span>
-                      <p className="font-semibold">Nội dung chương trình học chi tiết đang được cập nhật.</p>
+                    <div className="p-8 text-center bg-gray-50 border border-gray-100 rounded-lg">
+                      <span className="material-symbols-outlined text-4xl text-gray-300 mb-2">construction</span>
+                      <p className="font-semibold">Detailed curriculum is being updated.</p>
+                      <p className="text-sm text-text-muted mt-1">Please check back later for the complete syllabus.</p>
                     </div>
                   ) : (
                     <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-200 bg-surface">

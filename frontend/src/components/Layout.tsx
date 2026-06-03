@@ -152,10 +152,10 @@ export const Layout: React.FC = () => {
               <div className="flex flex-col gap-4">
                 <h4 className="text-body-lg font-bold font-display">Support</h4>
                 <nav className="flex flex-col gap-2">
-                  <a className="text-white/70 hover:text-primary transition-colors" href="#">Help Center</a>
+                   <a className="text-white/70 hover:text-primary transition-colors" href="#">Help Center</a>
                   <a className="text-white/70 hover:text-primary transition-colors" href="#">FAQ</a>
-                  <a className="text-white/70 hover:text-primary transition-colors" href="#">Contact Us</a>
-                  <a className="text-white/70 hover:text-primary transition-colors" href="#">Terms of Service</a>
+                  <Link className="text-white/70 hover:text-primary transition-colors" to="/contact">Contact Us</Link>
+                  <Link className="text-white/70 hover:text-primary transition-colors" to="/terms">Terms of Service</Link>
                 </nav>
               </div>
               <div className="flex flex-col gap-4">
@@ -170,8 +170,8 @@ export const Layout: React.FC = () => {
             <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-sm text-white/60">© 2024 Nonstop Coding. All rights reserved.</p>
               <div className="flex gap-6">
-                <a className="text-sm text-white/60 hover:text-primary" href="#">Privacy Policy</a>
-                <a className="text-sm text-white/60 hover:text-primary" href="#">Cookies Policy</a>
+                <Link className="text-sm text-white/60 hover:text-primary" to="/privacy">Privacy Policy</Link>
+                <Link className="text-sm text-white/60 hover:text-primary" to="/cookies">Cookies Policy</Link>
               </div>
             </div>
           </div>

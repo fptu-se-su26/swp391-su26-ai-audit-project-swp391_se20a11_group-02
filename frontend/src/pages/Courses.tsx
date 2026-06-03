@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchCourses, type CourseListItemResponse, type CourseSearchRequestParams } from '../services/courseService';
+import { useApp } from '../context/AppContext';
 
 export const Courses: React.FC = () => {
+  const { cart, addToCart } = useApp();
   // Filter and Sort states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -19,6 +21,7 @@ export const Courses: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
   const coursesPerPage = 12; // Matches backend page size
 
@@ -278,6 +281,14 @@ export const Courses: React.FC = () => {
 
   return (
     <div className="relative z-10 flex-grow w-full max-w-[1440px] mx-auto px-4 lg:px-8 py-xxl pt-8 text-left">
+      {/* Dynamic Alerts */}
+      {successMessage && (
+        <div className="fixed top-20 right-8 bg-brand-green border border-brand-green/30 text-white p-4 rounded-xl z-50 font-bold flex items-center gap-2 animate-fade-in shadow-xl">
+          <span className="material-symbols-outlined text-[20px] icon-fill">check_circle</span>
+          {successMessage}
+        </div>
+      )}
+
       {/* Page Header */}
       <header className="mb-xl">
         {/* Decorative Badge */}
@@ -757,7 +768,28 @@ export const Courses: React.FC = () => {
             <span className="bg-brand-green/10 text-brand-green font-extrabold text-[10px] px-2 py-1 rounded shadow-sm">
               Get Free
             </span>
-          ) : null}
+          ) : (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addToCart(course.id.toString());
+                setSuccessMessage('Course added to cart successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+              }}
+              disabled={cart.includes(course.id.toString())}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm ${
+                cart.includes(course.id.toString())
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-orange-600 hover:scale-105 hover:shadow-md'
+              }`}
+              title={cart.includes(course.id.toString()) ? 'In Cart' : 'Add to cart'}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {cart.includes(course.id.toString()) ? 'check' : 'add'}
+              </span>
+            </button>
+          )}
         </div>
       </div>
     );
