@@ -26,7 +26,7 @@ interface CartItem {
 
 export const ShoppingCart: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, checkoutCart, user } = useApp();
+  const { cart, removeFromCart, checkoutCart, user, clearCart } = useApp();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState('');
@@ -186,6 +186,15 @@ export const ShoppingCart: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-gutter items-start">
           {/* Left Column: Cart Items */}
           <div className="w-full lg:w-[70%] space-y-md">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-xl font-bold text-text-main">{cartItems.length} Course{cartItems.length !== 1 ? 's' : ''} in Cart</h2>
+              <button 
+                onClick={clearCart}
+                className="text-primary hover:text-primary-hover font-semibold underline text-sm transition-colors cursor-pointer"
+              >
+                Remove All
+              </button>
+            </div>
             {cartItems.map((item) => (
               <div 
                 key={item.id} 

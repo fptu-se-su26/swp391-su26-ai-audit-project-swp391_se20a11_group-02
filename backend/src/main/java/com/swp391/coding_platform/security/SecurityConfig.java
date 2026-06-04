@@ -50,8 +50,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google").permitAll()
 
                         // 3. Các API Public để xem dữ liệu (Giới hạn HTTP GET)
-                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}", "/contests", "/rankings").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/problems", "/api/problems/*/description", "/api/problems/*/discussion").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}", "/contests").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/problems").permitAll()
                         .requestMatchers("/online-judge/problems/practice").permitAll()
 
                         // 4. Các API Webhook / Callback từ hệ thống bên thứ 3
@@ -119,7 +119,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Cấu hình các domain frontend được phép gọi API
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173")); 
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173")); 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);

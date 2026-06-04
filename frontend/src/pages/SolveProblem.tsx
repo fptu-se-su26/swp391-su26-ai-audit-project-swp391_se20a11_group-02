@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { problemService } from '../services/problemService';
 import type { ProblemDetail, SubmitResponse, ProblemComment } from '../services/problemService';
+import { useApp } from '../context/AppContext';
 
 export const SolveProblem: React.FC = () => {
+  const { user } = useApp();
   const { id } = useParams<{ id: string }>();
 
   const [activeTab, setActiveTab] = useState<'description' | 'discussion' | 'solutions' | 'submissions'>(() => {
@@ -42,7 +44,7 @@ export const SolveProblem: React.FC = () => {
         if (data.templates) {
           const defaultLang = Object.keys(data.templates)[0] || 'Java';
           setSelectedLang(defaultLang);
-          setCodeHtml(data.templates[defaultLang] || '');
+          setCodeHtml(data.source_code || data.templates[defaultLang] || '');
         }
         setLoading(false);
       })
@@ -148,6 +150,33 @@ export const SolveProblem: React.FC = () => {
       .catch(err => {
         alert(err.message || "Failed to post comment. Make sure you are logged in.");
       });
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return 'ME';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    if (parts[0].length >= 2) return parts[0].substring(0, 2).toUpperCase();
+    return parts[0][0].toUpperCase();
+  };
+
+  const getAvatarBg = (name: string) => {
+    const bgs = ['bg-brand-blue', 'bg-brand-green', 'bg-orange-500', 'bg-purple-500', 'bg-red-500', 'bg-teal-500'];
+    let hash = 0;
+    for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return bgs[Math.abs(hash) % bgs.length];
+  };
+
+  const formatHtmlText = (text: string | undefined | null) => {
+    if (!text) return '';
+    // Replace literal '\n' with '<br />' for HTML rendering
+    return text.replace(/\\n/g, '<br />');
+  };
+
+  const formatPreText = (text: string | undefined | null) => {
+    if (!text) return '';
+    // Replace literal '\n' with actual newline for <pre> tags
+    return text.replace(/\\n/g, '\n');
   };
 
   const handleAddReply = (parentId: number) => {
@@ -388,19 +417,19 @@ export const SolveProblem: React.FC = () => {
                 </div>
 
                 <div className="space-y-4 text-base text-text-main leading-relaxed">
-                  <div dangerouslySetInnerHTML={{ __html: problem.description }} />
+                  <div dangerouslySetInnerHTML={{ __html: formatHtmlText(problem.description) }} />
 
                   {problem.inputDescription && (
                     <div>
                       <h3 className="font-semibold text-lg mb-1 mt-4">Input Description</h3>
-                      <div className="text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: problem.inputDescription }} />
+                      <div className="text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: formatHtmlText(problem.inputDescription) }} />
                     </div>
                   )}
 
                   {problem.outputDescription && (
                     <div>
                       <h3 className="font-semibold text-lg mb-1 mt-4">Output Description</h3>
-                      <div className="text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: problem.outputDescription }} />
+                      <div className="text-text-muted text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: formatHtmlText(problem.outputDescription) }} />
                     </div>
                   )}
                 </div>
@@ -409,8 +438,8 @@ export const SolveProblem: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-lg mb-3">Example:</h3>
                     <div className="bg-surface-gray rounded-lg p-4 font-mono text-sm border border-gray-200 space-y-2">
-                      {problem.exampleInput && <div><span className="font-bold text-brand-blue">Input:</span><pre className="whitespace-pre-wrap">{problem.exampleInput}</pre></div>}
-                      {problem.exampleOutput && <div className="mt-2"><span className="font-bold text-brand-blue">Output:</span><pre className="whitespace-pre-wrap">{problem.exampleOutput}</pre></div>}
+                      {problem.exampleInput && <div><span className="font-bold text-brand-blue">Input:</span><pre className="whitespace-pre-wrap">{formatPreText(problem.exampleInput)}</pre></div>}
+                      {problem.exampleOutput && <div className="mt-2"><span className="font-bold text-brand-blue">Output:</span><pre className="whitespace-pre-wrap">{formatPreText(problem.exampleOutput)}</pre></div>}
                     </div>
                   </div>
                 )}
@@ -442,9 +471,14 @@ export const SolveProblem: React.FC = () => {
                 </div>
 
                 {/* Comment Input Box */}
-                <form onSubmit={handleAddComment} className="bg-surface border border-gray-200 rounded-lg p-3 shadow-sm flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shrink-0">ME</div>
+                <form onSubmit={handleAddComment} className="bg-surface border border-gray-200 rounded-lg p-4 shadow-sm flex gap-3">
+                  {user && user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shrink-0">ME</div>
+                  )}
                   <div className="flex-grow space-y-2">
+                    {user && <div className="font-bold text-sm text-text-main mb-1">{user.name}</div>}
                     <textarea
                       className="w-full bg-surface-gray border border-gray-200 rounded-lg p-2 text-sm text-text-main focus:ring-primary focus:border-primary outline-none resize-none"
                       rows={2}
@@ -463,9 +497,13 @@ export const SolveProblem: React.FC = () => {
                   {comments.map((comment) => (
                     <div key={comment.id} className="border border-gray-200 rounded-lg p-4 bg-surface space-y-3 shadow-sm">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full ${comment.avatarBg} flex items-center justify-center text-white text-sm font-bold`}>
-                          {comment.avatarInitials}
-                        </div>
+                        {comment.avatar_url ? (
+                          <img src={comment.avatar_url} alt={comment.author} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className={`w-10 h-10 rounded-full ${getAvatarBg(comment.author)} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+                            {getInitials(comment.author)}
+                          </div>
+                        )}
                         <div>
                           <div className="font-bold text-sm text-text-main">{comment.author}</div>
                           <div className="text-xs text-text-muted">{comment.time}</div>
@@ -518,9 +556,13 @@ export const SolveProblem: React.FC = () => {
                       {comment.replies && comment.replies.map((reply) => (
                         <div key={reply.id} className="ml-10 mt-3 pl-4 border-l-2 border-primary space-y-3">
                           <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full ${reply.avatarBg} flex items-center justify-center text-white text-xs font-bold`}>
-                              {reply.avatarInitials}
-                            </div>
+                            {reply.avatar_url ? (
+                              <img src={reply.avatar_url} alt={reply.author} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <div className={`w-8 h-8 rounded-full ${getAvatarBg(reply.author)} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
+                                {getInitials(reply.author)}
+                              </div>
+                            )}
                             <div>
                               <div className="font-bold text-sm text-text-main">{reply.author}</div>
                               <div className="text-xs text-text-muted">{reply.time}</div>
