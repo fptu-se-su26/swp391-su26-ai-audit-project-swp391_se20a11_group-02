@@ -30,8 +30,7 @@ export const Problems: React.FC = () => {
       });
   }, []);
 
-  const solvedCount = useMemo(() => problems.filter(p => p.status === 'solved').length, [problems]);
-  const attemptedCount = useMemo(() => problems.filter(p => p.status === 'attempted').length, [problems]);
+  const solvedCount = useMemo(() => problems.filter(p => p.isSolved).length, [problems]);
   const totalCount = problems.length;
 
   // Toggle helper for popular tags
@@ -75,7 +74,11 @@ export const Problems: React.FC = () => {
 
     // Status filter
     if (statusFilter !== 'all') {
-      result = result.filter(p => p.status === statusFilter);
+      if (statusFilter === 'solved') {
+        result = result.filter(p => p.isSolved);
+      } else if (statusFilter === 'unsolved') {
+        result = result.filter(p => !p.isSolved);
+      }
     }
 
     // Difficulty filter
@@ -93,13 +96,13 @@ export const Problems: React.FC = () => {
     // Sort order
     if (sortBy === 'success_desc') {
       result.sort((a, b) => {
-        const rateA = parseFloat(a.acceptance);
-        const rateB = parseFloat(b.acceptance);
+        const rateA = a.totalSubmission > 0 ? (a.totalAccepted / a.totalSubmission) : 0;
+        const rateB = b.totalSubmission > 0 ? (b.totalAccepted / b.totalSubmission) : 0;
         return rateB - rateA;
       });
     } else if (sortBy === 'submissions_desc') {
       result.sort((a, b) => {
-        return b.totalSolved - a.totalSolved;
+        return b.totalSubmission - a.totalSubmission;
       });
     } else {
       // 'recent' -> default by ID/number ascending
@@ -171,10 +174,6 @@ export const Problems: React.FC = () => {
             <span className="text-caption font-bold text-text-muted uppercase">Solved</span>
             <span className="text-headline-md font-bold text-brand-green">{solvedCount}</span>
           </div>
-          <div className="flex flex-col items-center px-4 border-r border-outline-variant/30">
-            <span className="text-caption font-bold text-text-muted uppercase">Attempted</span>
-            <span className="text-headline-md font-bold text-primary">{attemptedCount}</span>
-          </div>
           <div className="flex flex-col items-center px-4">
             <span className="text-caption font-bold text-text-muted uppercase">Total</span>
             <span className="text-headline-md font-bold text-text-main">{totalCount}</span>
@@ -220,7 +219,6 @@ export const Problems: React.FC = () => {
               <option value="all">Status: All</option>
               <option value="solved">Solved</option>
               <option value="unsolved">Unsolved</option>
-              <option value="attempted">Attempted</option>
             </select>
 
             <select
@@ -318,7 +316,7 @@ export const Problems: React.FC = () => {
             >
               <option value="recent">Sort: Newest</option>
               <option value="success_desc">Success Rate</option>
-              <option value="submissions_desc">Total Solved</option>
+              <option value="submissions_desc">Total Submissions</option>
             </select>
           </div>
         </div>
@@ -335,7 +333,7 @@ export const Problems: React.FC = () => {
                 <th className="p-4 font-semibold w-32">Difficulty</th>
                 <th className="p-4 font-semibold w-24 text-right">Score</th>
                 <th className="p-4 font-semibold w-32 text-right">Acceptance</th>
-                <th className="p-4 font-semibold w-40 text-right pr-6">Total</th>
+                <th className="p-4 font-semibold w-40 text-right pr-6">Submissions</th>
               </tr>
             </thead>
             <tbody className="text-body-md font-body-md text-text-main divide-y divide-outline-variant/30">
@@ -346,14 +344,9 @@ export const Problems: React.FC = () => {
                   className="hover:bg-surface-gray/50 transition-colors group cursor-pointer"
                 >
                   <td className="p-4 pl-6 text-center">
-                    {prob.status === 'solved' && (
+                    {prob.isSolved && (
                       <span className="material-symbols-outlined text-[20px] text-brand-green">
                         check_circle
-                      </span>
-                    )}
-                    {prob.status === 'attempted' && (
-                      <span className="material-symbols-outlined text-[20px] text-red-600" title="Wrong Answer">
-                        cancel
                       </span>
                     )}
                   </td>
@@ -382,8 +375,8 @@ export const Problems: React.FC = () => {
                     {prob.difficulty === 'Hard' && <span className="text-red-600 font-medium">Hard</span>}
                   </td>
                   <td className="p-4 text-right font-mono text-sm">{prob.score}</td>
-                  <td className="p-4 text-right">{prob.acceptance}</td>
-                  <td className="p-4 text-right pr-6 font-mono text-sm">{prob.totalSolved}</td>
+                  <td className="p-4 text-right">{prob.totalSubmission > 0 ? (prob.totalAccepted * 100 / prob.totalSubmission).toFixed(1) + '%' : '0.0%'}</td>
+                  <td className="p-4 text-right pr-6 font-mono text-sm">{prob.totalSubmission}</td>
                 </tr>
               ))}
               {filteredAndSortedProblems.length === 0 && (

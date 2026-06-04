@@ -6,9 +6,9 @@ export interface ProblemListItem {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   tags: string[];
   score: number;
-  acceptance: string;
-  totalSolved: number;
-  status: 'solved' | 'unsolved' | 'attempted';
+  totalSubmission: number;
+  totalAccepted: number;
+  isSolved: boolean;
 }
 
 export interface ProblemDetail {
@@ -46,11 +46,9 @@ export interface ProblemSubmission {
 }
 
 export interface SubmitResponse {
-  verdict: string;
-  runtime: number;
-  memory: number;
-  passedTestcases: number;
-  totalTestcases: number;
+  submissionId: number;
+  status: string;
+  message: string;
 }
 
 export interface ProblemComment {
@@ -103,14 +101,15 @@ export const problemService = {
     return data.result;
   },
 
-  async submitSolution(id: number | string, language: string, sourceCode: string): Promise<SubmitResponse> {
-    const response = await fetch(`${BASE_URL}/api/problems/${id}/submit`, {
+  async submitSolution(problemId: number | string, languageId: number, sourceCode: string): Promise<SubmitResponse> {
+
+    const response = await fetch(`${BASE_URL}/online-judge/submissions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({ language, sourceCode }),
+      body: JSON.stringify({ problemId: Number(problemId), languageId, sourceCode }),
     });
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));

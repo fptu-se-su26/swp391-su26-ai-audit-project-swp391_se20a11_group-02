@@ -2,7 +2,7 @@ package com.swp391.coding_platform.service.ranking;
 
 import com.swp391.coding_platform.dto.response.RankingUserResponse;
 import com.swp391.coding_platform.dto.response.UserRankStatsResponse;
-import com.swp391.coding_platform.repository.user.RankingUserProjection;
+import com.swp391.coding_platform.repository.projection.RankingUserProjection;
 import com.swp391.coding_platform.repository.user.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

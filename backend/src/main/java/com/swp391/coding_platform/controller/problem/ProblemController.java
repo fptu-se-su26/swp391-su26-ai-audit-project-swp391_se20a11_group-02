@@ -32,9 +32,12 @@ public class ProblemController {
     public ResponseEntity<ApiResponse<List<ProblemListItemResponse>>> getProblems(
             @AuthenticationPrincipal Jwt jwt) {
 
-        Long userId = null;
+        Integer userId = null;
         if (jwt != null) {
-            userId = jwt.getClaim("userId");
+            Number userIdNum = jwt.getClaim("userId");
+            if (userIdNum != null) {
+                userId = userIdNum.intValue();
+            }
         }
 
         List<ProblemListItemResponse> result = problemService.getProblems(userId);
@@ -54,9 +57,12 @@ public class ProblemController {
             @PathVariable Integer id,
             @AuthenticationPrincipal Jwt jwt) {
 
-        Long userId = null;
+        Integer userId = null;
         if (jwt != null) {
-            userId = jwt.getClaim("userId");
+            Number userIdNum = jwt.getClaim("userId");
+            if (userIdNum != null) {
+                userId = userIdNum.intValue();
+            }
         }
 
         ProblemDescriptionResponse result = problemService.getProblemDescription(id, userId);
@@ -92,9 +98,12 @@ public class ProblemController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CreateCommentRequest request) {
 
-        Long userId = null;
+        Integer userId = null;
         if (jwt != null) {
-            userId = jwt.getClaim("userId");
+            Number userIdNum = jwt.getClaim("userId");
+            if (userIdNum != null) {
+                userId = userIdNum.intValue();
+            }
         }
 
         ProblemCommentResponse result = problemService.addComment(id, userId, request);
@@ -114,9 +123,12 @@ public class ProblemController {
             @PathVariable Integer id,
             @AuthenticationPrincipal Jwt jwt) {
 
-        Long userId = null;
+        Integer userId = null;
         if (jwt != null) {
-            userId = jwt.getClaim("userId");
+            Number userIdNum = jwt.getClaim("userId");
+            if (userIdNum != null) {
+                userId = userIdNum.intValue();
+            }
         }
 
         ProblemSolutionResponse result = problemService.getProblemSolution(id, userId);
@@ -130,38 +142,17 @@ public class ProblemController {
                 .build());
     }
 
-    // // 5. Submission APIs
-    // @PostMapping("/{id}/submit")
-    // public ResponseEntity<ApiResponse<SubmitResponse>> submitProblem(
-    // @PathVariable Integer id,
-    // @AuthenticationPrincipal Jwt jwt,
-    // @Valid @RequestBody SubmitRequest request) {
-    //
-    // Long userId = null;
-    // if (jwt != null) {
-    // userId = jwt.getClaim("userId");
-    // }
-    //
-    // SubmitResponse result = problemSubmissionService.submitProblem(id, userId,
-    // request);
-    //
-    // return ResponseEntity.ok(ApiResponse.<SubmitResponse>builder()
-    // .status(200)
-    // .code(1000)
-    // .message("Submit solution successfully")
-    // .result(result)
-    // .timestamp(Instant.now().toString())
-    // .build());
-    // }
-
     @GetMapping("/{id}/submissions")
     public ResponseEntity<ApiResponse<List<ProblemSubmissionResponse>>> getSubmissions(
             @PathVariable Integer id,
             @AuthenticationPrincipal Jwt jwt) {
 
-        Long userId = null;
+        Integer userId = null;
         if (jwt != null) {
-            userId = jwt.getClaim("userId");
+            Number userIdNum = jwt.getClaim("userId");
+            if (userIdNum != null) {
+                userId = userIdNum.intValue();
+            }
         }
 
         List<ProblemSubmissionResponse> result = problemSubmissionService.getSubmissions(id, userId);
