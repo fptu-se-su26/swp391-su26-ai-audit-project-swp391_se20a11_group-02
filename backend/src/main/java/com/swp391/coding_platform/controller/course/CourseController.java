@@ -3,8 +3,13 @@ package com.swp391.coding_platform.controller.course;
 import com.swp391.coding_platform.dto.request.CourseSearchRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
+import com.swp391.coding_platform.dto.response.CourseDetailResponse;
+import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
+import com.swp391.coding_platform.dto.response.CourseReviewStatsResponse;
 import com.swp391.coding_platform.service.course.CourseService;
+import org.springframework.data.domain.PageRequest;
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,4 +60,55 @@ public class CourseController {
                 .build());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CourseDetailResponse>> getCourseDetail(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id) {
+
+        Long userId = null;
+        if (jwt != null) {
+            userId = jwt.getClaim("userId");
+        }
+
+        var result = courseService.getCourseDetail(userId, id);
+
+        return ResponseEntity.ok(ApiResponse.<CourseDetailResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Get course detail successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/{id}/curriculum")
+    public ResponseEntity<ApiResponse<List<CurriculumChapterResponse>>> getCourseCurriculum(
+            @PathVariable("id") Long id) {
+
+        var result = courseService.getCourseCurriculum(id);
+
+        return ResponseEntity.ok(ApiResponse.<List<CurriculumChapterResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Get course curriculum successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<ApiResponse<CourseReviewStatsResponse>> getCourseReviews(
+            @PathVariable("id") Long id,
+            org.springframework.data.domain.Pageable pageable) {
+
+        var result = courseService.getCourseReviews(id, pageable);
+
+        return ResponseEntity.ok(ApiResponse.<CourseReviewStatsResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Get course reviews successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }

@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
+import { fetchCart, addToCartApi, removeFromCartApi, clearCartApi } from '../services/cartService';
 
 export interface User {
   id: string;
@@ -77,6 +78,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : null;
   });
 
+  const [cart, setCart] = useState<string[]>(() => {
+    const savedCart = localStorage.getItem('guest_cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([
     { id: 'TX-1002', type: 'deposit', amount: 500000, status: 'Completed', method: 'VNPAY', date: '2026-05-24 14:30' },
     { id: 'TX-1001', type: 'deposit', amount: 2000000, status: 'Completed', method: 'Momo', date: '2026-05-20 09:15' },
@@ -86,7 +92,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     { id: 'PAY-2001', courseTitle: 'Cấu trúc dữ liệu và Giải thuật với Java', amount: 499000, status: 'Success', date: '2026-05-21 10:00' },
   ]);
 
-  const [cart, setCart] = useState<string[]>(['c2']); // Start with course 'c2' in cart
   const [enrolledCourses, setEnrolledCourses] = useState<string[]>(['c1']); // Starts enrolled in 'c1'
   const [submissions, setSubmissions] = useState<CodeSubmission[]>([
     {
@@ -102,6 +107,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   ]);
   const [registeredContests, setRegisteredContests] = useState<string[]>([]);
+
+  // Fetch cart from backend when user logs in or app loads
+  useEffect(() => {
+    if (user) {
+      fetchCart().then(async ids => {
+        // Hợp nhất giỏ hàng khách với DB
+        const guestCartStr = localStorage.getItem('guest_cart');
+        const guestCart: string[] = guestCartStr ? JSON.parse(guestCartStr) : [];
+        
+        let mergedCart = [...new Set([...ids.map(id => id.toString()), ...guestCart])];
+        
+        // Push guest items to backend
+        for (const cId of guestCart) {
+           if (!ids.includes(Number(cId))) {
+              await addToCartApi(cId).catch(console.error);
+           }
+        }
+        
+        localStorage.removeItem('guest_cart'); // Clear after merge
+        setCart(mergedCart);
+      }).catch(err => {
+        console.error("Lỗi khi fetch giỏ hàng từ DB:", err);
+      });
+    } else {
+      // Khi logout, giữ nguyên giỏ hàng DB cuối cùng hoặc xóa?
+      // Thường thì nên tải lại từ guest_cart
+      const savedCart = localStorage.getItem('guest_cart');
+      setCart(savedCart ? JSON.parse(savedCart) : []);
+    }
+  }, [user?.id]);
 
   const login = async (username: string, password: string): Promise<void> => {
     const result = await authService.login(username, password);
@@ -201,14 +236,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  const addToCart = (courseId: string) => {
+  const addToCart = async (courseId: string) => {
     if (!cart.includes(courseId)) {
-      setCart(prev => [...prev, courseId]);
+      const newCart = [...cart, courseId];
+      setCart(newCart);
+      
+      if (user) {
+        try {
+          const success = await addToCartApi(courseId);
+          if (!success) {
+            console.error("Backend API returned false for addToCart");
+            alert("Có lỗi xảy ra khi lưu giỏ hàng vào Database. Vui lòng kiểm tra backend!");
+          }
+        } catch (error) {
+          console.error("Error calling addToCartApi", error);
+          alert("Lỗi kết nối Backend: Không thể gọi API lưu giỏ hàng. Chắc chắn bạn đã restart backend chưa?");
+        }
+      } else {
+        // Lưu tạm vào localStorage cho khách chưa đăng nhập
+        localStorage.setItem('guest_cart', JSON.stringify(newCart));
+      }
     }
   };
 
   const removeFromCart = (courseId: string) => {
     setCart(prev => prev.filter(id => id !== courseId));
+    if (user) {
+      removeFromCartApi(courseId).catch(console.error);
+    }
   };
 
   const checkoutCart = (totalPrice: number, courseItems: { id: string; title: string; price: number }[]): boolean => {
@@ -231,7 +286,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
 
     setPaymentTransactions(prev => [...newPayments, ...prev]);
-    setCart([]); // Clear cart
+    setCart([]); // Clear cart locally
+    if (user) {
+      clearCartApi().catch(console.error); // Clear cart in backend
+    }
     return true;
   };
 
