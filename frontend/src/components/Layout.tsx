@@ -1,6 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { ContestSidebar } from './ContestSidebar';
+
+export interface ContestOverviewData {
+  id: number;
+  title: string;
+  description: string;
+  scoringRule: string;
+  startTime: string;
+  endTime: string;
+  durations: number;
+  status: 'UPCOMING' | 'ONGOING' | 'ENDED';
+  creatorName: string;
+  isPrivate: boolean;
+  participantCount: number;
+  problemCount: number;
+  isUserRegistered: boolean;
+}
 
 export const Layout: React.FC = () => {
   const { user, cart, logout } = useApp();
@@ -9,11 +26,153 @@ export const Layout: React.FC = () => {
 
   const isInstructorRoute = location.pathname.startsWith('/instructor');
   const isProblemSolvePage = location.pathname.startsWith('/problems/');
-  const isContestDetailPage = location.pathname.startsWith('/contests/');
+
+  // Parse contestId from location pathname
+  const match = location.pathname.match(/^\/contests\/(\d+)/);
+  const contestId = match ? match[1] : undefined;
+  const isContestPage = !!contestId;
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  // Contest State
+  const [contest, setContest] = useState<ContestOverviewData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string>('--:--:--');
+  const [timerLabel, setTimerLabel] = useState<string>('Ends In');
+  const [password, setPassword] = useState('');
+  const [registering, setRegistering] = useState(false);
+  const [registrationMessage, setRegistrationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const fetchContest = async () => {
+    if (!contestId) return;
+    try {
+      const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contestId}`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data && data.result) {
+        setContest(data.result);
+        setError(null);
+      } else {
+        setError(data.message || 'Failed to fetch contest details');
+      }
+    } catch (err) {
+      console.error('Error fetching contest:', err);
+      setError('Failed to fetch contest details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isContestPage && contestId) {
+      setLoading(true);
+      fetchContest();
+    } else {
+      setContest(null);
+      setLoading(false);
+      setError(null);
+    }
+  }, [contestId, isContestPage]);
+
+  useEffect(() => {
+    if (!contest || !isContestPage) return;
+
+    if (contest.status === 'ENDED') {
+      setTimeLeft('Ended');
+      setTimerLabel('Contest Ended');
+      return;
+    }
+
+    const targetTime = contest.status === 'UPCOMING' ? contest.startTime : contest.endTime;
+    const label = contest.status === 'UPCOMING' ? 'Begins In' : 'Ends In';
+    setTimerLabel(label);
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const end = new Date(targetTime).getTime();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        fetchContest();
+        setTimeLeft('Ended');
+        return;
+      }
+
+      const hrs = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const pad = (n: number) => String(n).padStart(2, '0');
+      setTimeLeft(`${pad(hrs)}:${pad(mins)}:${pad(secs)}`);
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [contest, isContestPage]);
+
+  let activeTab: 'overview' | 'problems' | 'submissions' | 'ranking' = 'overview';
+  if (location.pathname.includes('/problems')) {
+    activeTab = 'problems';
+  } else if (location.pathname.includes('/submissions')) {
+    activeTab = 'submissions';
+  } else if (location.pathname.includes('/ranking')) {
+    activeTab = 'ranking';
+  }
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contestId) return;
+    if (contest?.isPrivate && !password.trim()) {
+      setRegistrationMessage({
+        type: 'error',
+        text: 'Please enter the contest password',
+      });
+      return;
+    }
+
+    setRegistering(true);
+    try {
+      const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contestId}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: contest?.isPrivate ? password : null }),
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (response.ok && data.code === 1000) {
+        setRegistrationMessage({
+          type: 'success',
+          text: 'Successfully registered for the contest!',
+        });
+        setPassword('');
+        await fetchContest();
+      } else {
+        setRegistrationMessage({
+          type: 'error',
+          text: data.message || 'Registration failed',
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setRegistrationMessage({
+        type: 'error',
+        text: 'Connection error. Please try again.',
+      });
+    } finally {
+      setRegistering(false);
+    }
+
+    setTimeout(() => {
+      setRegistrationMessage(null);
+    }, 4000);
   };
 
   // Redirection / Protection logic
@@ -26,6 +185,7 @@ export const Layout: React.FC = () => {
       navigate('/', { replace: true });
     }
   }, [user, isPrivateRoute, navigate]);
+
 
   return (
     <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex flex-col antialiased selection:bg-primary-light selection:text-brand-blue relative">
@@ -116,11 +276,89 @@ export const Layout: React.FC = () => {
 
       {/* Main content body with Outlet */}
       <main className={`relative z-10 flex-grow w-full min-w-0 ${isInstructorRoute ? '' : 'pt-16'}`}>
-        <Outlet />
+        {isContestPage ? (
+          <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10">
+            {/* Main content column on the left (85%) */}
+            <div className="w-full md:w-[85%] flex flex-col bg-surface-gray min-w-0">
+              <Outlet context={{ contest, loading, error, fetchContest }} />
+            </div>
+
+            {/* Shared right sidebar (15%) */}
+            <ContestSidebar
+              contestId={contestId || ''}
+              activeTab={activeTab}
+              timeLeft={timeLeft}
+              timerLabel={timerLabel}
+              isRegistered={!!contest?.isUserRegistered}
+            >
+              {!loading && contest && (
+                <div className="mt-8 border-t border-gray-100 pt-6">
+                  {!user ? (
+                    <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-4 text-center space-y-3">
+                      <span className="material-symbols-outlined text-blue-600 text-3xl mb-1">account_circle</span>
+                      <p className="text-sm font-bold">Authentication Required</p>
+                      <p className="text-xs text-blue-600">Please login to register for this contest.</p>
+                      <button
+                        onClick={() => navigate('/login')}
+                        className="w-full bg-primary hover:bg-primary-hover text-white text-xs font-bold py-2 rounded-lg transition-all"
+                      >
+                        Go to Login
+                      </button>
+                    </div>
+                  ) : contest.isUserRegistered ? (
+                    <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl p-4 text-center">
+                      <span className="material-symbols-outlined text-green-600 text-3xl mb-1 icon-fill">verified_user</span>
+                      <p className="text-sm font-bold">Registered</p>
+                      <p className="text-xs text-green-600 mt-1">You are in this arena!</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleRegister} className="space-y-4">
+                      {contest.isPrivate && (
+                        <div>
+                          <label className="block text-label-md font-medium text-text-muted mb-2 tracking-wider uppercase text-center" htmlFor="contest-password">
+                            Contest Password
+                          </label>
+                          <input
+                            className="w-full bg-surface border border-gray-300 rounded-lg px-4 py-2 text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-center"
+                            id="contest-password"
+                            placeholder="Enter password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                          />
+                        </div>
+                      )}
+                      <button
+                        disabled={registering}
+                        className="w-full bg-primary text-white text-label-md font-label-md rounded-xl font-bold hover:bg-primary-hover transition-all duration-200 shadow-sm py-2.5 disabled:opacity-50"
+                        type="submit"
+                      >
+                        {registering ? 'Registering...' : 'Register Now'}
+                      </button>
+                      {registrationMessage && (
+                        <div
+                          className={`text-xs font-bold p-2.5 rounded-lg text-center ${
+                            registrationMessage.type === 'success'
+                              ? 'bg-green-50 text-green-700 border border-green-200'
+                              : 'bg-red-50 text-red-700 border border-red-200'
+                          }`}
+                        >
+                          {registrationMessage.text}
+                        </div>
+                      )}
+                    </form>
+                  )}
+                </div>
+              )}
+            </ContestSidebar>
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </main>
 
       {/* Master Footer */}
-      {!isInstructorRoute && !isProblemSolvePage && !isContestDetailPage && (
+      {!isInstructorRoute && !isProblemSolvePage && !isContestPage && (
         <footer className="bg-brand-blue text-white mt-auto shrink-0 w-full z-40 relative">
           <div className="max-w-[1440px] mx-auto px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

@@ -1,6 +1,8 @@
 package com.swp391.coding_platform.controller.contest;
 
+import com.swp391.coding_platform.dto.request.ContestRegisterRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
+import com.swp391.coding_platform.dto.response.ContestProblemResponse;
 import com.swp391.coding_platform.dto.response.ContestResponse;
 import com.swp391.coding_platform.dto.response.ContestUserStatsResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
@@ -14,6 +16,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.List;
 
 @RestController
 @RequestMapping("/contests")
@@ -72,10 +75,28 @@ public class ContestController {
                 .build());
     }
 
+    @GetMapping("/{contestId}")
+    public ResponseEntity<ApiResponse<ContestResponse>> getContestById(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("contestId") Integer contestId) {
+
+        String username = getUsername(jwt);
+        ContestResponse result = contestService.getContestById(contestId, username);
+
+        return ResponseEntity.ok(ApiResponse.<ContestResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Get contest by id successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
     @PostMapping("/{contestId}/register")
     public ResponseEntity<ApiResponse<Void>> registerForContest(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable("contestId") Integer contestId) {
+            @PathVariable("contestId") Integer contestId,
+            @RequestBody(required = false) ContestRegisterRequest request) {
 
         String username = getUsername(jwt);
         if (username == null) {
@@ -86,12 +107,29 @@ public class ContestController {
                     .build());
         }
 
-        contestService.registerForContest(contestId, username);
+        contestService.registerForContest(contestId, username, request);
 
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .status(200)
                 .code(1000)
                 .message("Registered for contest successfully")
+                .build());
+    }
+
+    @GetMapping("/{contestId}/problems")
+    public ResponseEntity<ApiResponse<List<ContestProblemResponse>>> getContestProblems(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("contestId") Integer contestId) {
+
+        String username = getUsername(jwt);
+        List<ContestProblemResponse> result = contestService.getContestProblems(contestId, username);
+
+        return ResponseEntity.ok(ApiResponse.<List<ContestProblemResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Get contest problems successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
                 .build());
     }
 

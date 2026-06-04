@@ -184,8 +184,8 @@ export const Contests: React.FC = () => {
 
   // --- Registration & Modal States ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContestTitle, setModalContestTitle] = useState('');
-  const [modalTicketId, setModalTicketId] = useState('');
+  const [modalContestTitle, _setModalContestTitle] = useState('');
+  const [modalTicketId, _setModalTicketId] = useState('');
 
   // Image fallback handler
   const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {

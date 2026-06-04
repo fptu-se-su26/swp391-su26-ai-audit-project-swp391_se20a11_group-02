@@ -1,14 +1,22 @@
 package com.swp391.coding_platform.service.contest;
 
+import com.swp391.coding_platform.dto.request.ContestRegisterRequest;
+import com.swp391.coding_platform.dto.response.ContestProblemResponse;
 import com.swp391.coding_platform.dto.response.ContestResponse;
 import com.swp391.coding_platform.dto.response.ContestUserStatsResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.contest.ContestParticipantEntity;
+import com.swp391.coding_platform.entity.contest.ContestProblemEntity;
+import com.swp391.coding_platform.entity.contest.ContestProblemAttemptEntity;
 import com.swp391.coding_platform.entity.enums.ContestStatus;
+import com.swp391.coding_platform.exception.AppException;
+import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.ContestMapper;
 import com.swp391.coding_platform.repository.contest.ContestParticipantRepository;
 import com.swp391.coding_platform.repository.contest.ContestRepository;
+import com.swp391.coding_platform.repository.contest.ContestProblemRepository;
+import com.swp391.coding_platform.repository.contest.ContestProblemAttemptRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
 import com.swp391.coding_platform.repository.problem.ProblemSubmissionRepository;
 import lombok.AccessLevel;
@@ -18,8 +26,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +43,9 @@ public class ContestService {
     UserRepository userRepository;
     ProblemSubmissionRepository problemSubmissionRepository;
     ContestParticipantRepository contestParticipantRepository;
+    ContestProblemRepository contestProblemRepository;
+    ContestProblemAttemptRepository contestProblemAttemptRepository;
+    PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public PageResponse<ContestResponse> getContests(
@@ -151,16 +166,44 @@ public class ContestService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public ContestResponse getContestById(Integer contestId, String username) {
+        ContestEntity entity = contestRepository.findById(contestId)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        long partCount = contestRepository.countParticipants(contestId);
+        long probCount = contestRepository.countProblems(contestId);
+        boolean isReg = false;
+        if (username != null) {
+            isReg = contestRepository.isUserRegistered(contestId, username);
+        }
+
+        ContestResponse response = contestMapper.toContestResponse(entity);
+        response.setParticipantCount((int) partCount);
+        response.setProblemCount((int) probCount);
+        response.setIsUserRegistered(isReg);
+
+        return response;
+    }
+
     @Transactional
-    public void registerForContest(Integer contestId, String username) {
+    public void registerForContest(Integer contestId, String username, ContestRegisterRequest request) {
         var user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         var contest = contestRepository.findById(contestId)
-                .orElseThrow(() -> new IllegalArgumentException("Contest not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
         boolean alreadyRegistered = contestRepository.isUserRegistered(contestId, username);
         if (alreadyRegistered) {
             return;
+        }
+
+        // Verify password if contest is private
+        if (contest.getPasswordHash() != null && !contest.getPasswordHash().trim().isEmpty()) {
+            if (request == null || request.getPassword() == null ||
+                    !passwordEncoder.matches(request.getPassword(), contest.getPasswordHash())) {
+                throw new AppException(ErrorCode.CONTEST_PASSWORD_INVALID);
+            }
         }
 
         ContestParticipantEntity participant = ContestParticipantEntity.builder()
@@ -170,5 +213,51 @@ public class ContestService {
                 .build();
 
         contestParticipantRepository.save(participant);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ContestProblemResponse> getContestProblems(Integer contestId, String username) {
+        if (username == null) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        var contest = contestRepository.findById(contestId)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        boolean isRegistered = contestRepository.isUserRegistered(contestId, username);
+        if (!isRegistered) {
+            throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
+        }
+
+        List<ContestProblemEntity> contestProblems = contestProblemRepository.findByContestIdWithProblem(contestId);
+        List<ContestProblemAttemptEntity> attempts = contestProblemAttemptRepository.findByContestIdAndUsername(contestId, username);
+
+        return contestProblems.stream().map(cp -> {
+            var problem = cp.getProblem();
+
+            // Find user's attempt for this specific problem
+            var attemptOpt = attempts.stream()
+                    .filter(a -> a.getProblem().getId().equals(problem.getId()))
+                    .findFirst();
+
+            String status = "UNATTEMPTED";
+            if (attemptOpt.isPresent()) {
+                var attempt = attemptOpt.get();
+                if (attempt.getIsSolved()) {
+                    status = "SOLVED";
+                } else if (attempt.getFailedAttemptsCount() > 0) {
+                    status = "FAILED";
+                }
+            }
+
+            return ContestProblemResponse.builder()
+                    .problemId(problem.getId())
+                    .title(problem.getTitle())
+                    .orderIndex(cp.getOrderIndex())
+                    .difficulty(problem.getDifficulty() != null ? problem.getDifficulty().name() : "MEDIUM")
+                    .totalSubmission(problem.getTotalSubmission())
+                    .totalAccepted(problem.getTotalAccepted())
+                    .status(status)
+                    .build();
+        }).collect(Collectors.toList());
     }
 }
