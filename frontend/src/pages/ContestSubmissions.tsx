@@ -1,6 +1,36 @@
 import React from 'react';
+import { useOutletContext } from 'react-router-dom';
+import type { ContestOverviewData } from '../components/Layout';
 
 export const ContestSubmissions: React.FC = () => {
+  const { contest, loading } = useOutletContext<{
+    contest: ContestOverviewData | null;
+    loading: boolean;
+  }>();
+
+  if (loading) {
+    return (
+      <main className="w-full px-4 sm:px-8 py-8 md:py-12 bg-surface-gray flex-grow animate-pulse">
+        <div className="max-w-[1280px] mx-auto bg-white rounded-xl shadow-sm h-64"></div>
+      </main>
+    );
+  }
+
+  if (contest && !contest.isUserRegistered) {
+    return (
+      <main className="w-full px-4 sm:px-8 py-8 md:py-12 bg-surface-gray flex-grow flex items-center justify-center">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-md rounded-2xl p-8 text-center shadow-xl border border-white/50 space-y-4">
+          <div className="w-16 h-16 rounded-full bg-primary-light/40 text-primary flex items-center justify-center border border-primary/20 mx-auto">
+            <span className="material-symbols-outlined text-4xl">lock</span>
+          </div>
+          <h3 className="font-display font-black text-xl text-brand-blue">Arena Locked</h3>
+          <p className="font-body text-sm text-text-muted">
+            You must register for this contest first to view the submissions. Use the registration panel on the right sidebar.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="w-full px-4 sm:px-8 py-8 md:py-12 bg-surface-gray flex-grow">
