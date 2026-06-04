@@ -16,9 +16,10 @@ public interface UserDailyActivityRepository extends JpaRepository<UserDailyActi
 
     @Modifying
     @Transactional
-    @Query(value = "INSERT INTO user_daily_activities (user_id, activity_date, streak) " +
+    @Query(value = "INSERT INTO user_daily_activities (user_id, activity_date, streak, created_at) " +
             "VALUES (:userId, CURRENT_DATE, " +
-            "  COALESCE((SELECT streak FROM user_daily_activities WHERE user_id = :userId AND activity_date = CURRENT_DATE - 1), 0) + 1 " +
+            "  COALESCE((SELECT streak FROM user_daily_activities WHERE user_id = :userId AND activity_date = CURRENT_DATE - 1), 0) + 1, " +
+            "  CURRENT_TIMESTAMP " +
             ") ON CONFLICT (user_id, activity_date) DO NOTHING",
             nativeQuery = true)
     void trackActivity(@Param("userId") Integer userId);

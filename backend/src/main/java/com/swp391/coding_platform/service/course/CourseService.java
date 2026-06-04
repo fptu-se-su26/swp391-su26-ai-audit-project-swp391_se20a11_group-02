@@ -17,7 +17,7 @@ import com.swp391.coding_platform.repository.course.ChapterRepository;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
 import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
 import com.swp391.coding_platform.repository.progress.LessonProgressRepository;
-import com.swp391.coding_platform.repository.CourseReviewRepository;
+import com.swp391.coding_platform.repository.course.CourseReviewRepository;
 import com.swp391.coding_platform.repository.specification.CourseSpecification;
 import com.swp391.coding_platform.util.ProgressUtils;
 import com.swp391.coding_platform.dto.response.CourseReviewDto;
