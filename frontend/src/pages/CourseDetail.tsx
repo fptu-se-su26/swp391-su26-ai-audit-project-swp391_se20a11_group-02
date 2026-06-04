@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { fetchCourseDetail, fetchCourseCurriculum, fetchCourseReviews, type CourseDetailResponse, type CurriculumChapterResponse, type CourseReviewStatsResponse } from '../services/courseService';
+import { fetchCourseDetail, fetchCourseCurriculum, fetchCourseReviews, submitCourseReview, type CourseDetailResponse, type CurriculumChapterResponse, type CourseReviewStatsResponse } from '../services/courseService';
 
 export const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,11 +18,17 @@ export const CourseDetail: React.FC = () => {
   const [openChapters, setOpenChapters] = useState<Record<number, boolean>>({});
 
   // Cart & Video Modal Interactive States
-  const [addedToCart, setAddedToCart] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
-  const { addToCart, user } = useApp();
+  // Review State
+  const [reviewFormStar, setReviewFormStar] = useState<number>(0);
+  const [reviewFormContent, setReviewFormContent] = useState<string>('');
+  const [isEditingReview, setIsEditingReview] = useState<boolean>(false);
+  const [submittingReview, setSubmittingReview] = useState<boolean>(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+
+  const { addToCart, user, cart } = useApp();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,6 +68,8 @@ export const CourseDetail: React.FC = () => {
     loadDetail();
   }, [id]);
 
+  const isAddedToCart = id ? cart.includes(id) : false;
+
   useEffect(() => {
     if (curriculum && curriculum.length > 0) {
       setOpenChapters(prev => ({
@@ -86,10 +94,39 @@ export const CourseDetail: React.FC = () => {
     if (course) {
       addToCart(course.id.toString());
       setSuccessMessage('Course added to cart successfully!');
-      setAddedToCart(true);
       setTimeout(() => {
         setSuccessMessage('');
       }, 2500);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!id || reviewFormStar === 0 || !reviewFormContent.trim()) {
+      setReviewError('Please select a star rating and enter a review content.');
+      return;
+    }
+    setSubmittingReview(true);
+    setReviewError(null);
+    try {
+      await submitCourseReview(id, reviewFormStar, reviewFormContent);
+      // Reload reviews
+      const reviewsData = await fetchCourseReviews(id);
+      setReviewsStats(reviewsData);
+      setSuccessMessage('Review submitted successfully!');
+      setIsEditingReview(false);
+      setTimeout(() => setSuccessMessage(''), 2500);
+    } catch (err: any) {
+      setReviewError(err.message || 'An error occurred while submitting the review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleEditClick = () => {
+    if (reviewsStats?.myReview) {
+      setReviewFormStar(reviewsStats.myReview.star);
+      setReviewFormContent(reviewsStats.myReview.content);
+      setIsEditingReview(true);
     }
   };
 
@@ -464,19 +501,20 @@ export const CourseDetail: React.FC = () => {
                         const count = reviewsStats?.starDistribution?.[star] || 0;
                         const total = reviewsStats?.totalReviews || 1; // avoid division by 0
                         const percentage = reviewsStats?.totalReviews ? Math.round((count / total) * 100) : 0;
+                        const isMyStar = reviewsStats?.myReview?.star === star;
                         
                         return (
                           <div key={star} className="flex items-center gap-4">
                             <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                              <div className="bg-primary h-full" style={{ width: `${percentage}%` }}></div>
+                              <div className={`h-full ${isMyStar ? 'bg-[#F36F21]' : 'bg-primary'}`} style={{ width: `${percentage}%` }}></div>
                             </div>
-                            <div className="flex items-center gap-4 min-w-[160px] font-body">
+                            <div className={`flex items-center gap-4 min-w-[160px] font-body ${isMyStar ? 'font-bold text-[#F36F21]' : ''}`}>
                               <div className="flex text-yellow-400">
                                 {Array.from({ length: 5 }).map((_, i) => (
                                   <span key={i} className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: i < star ? '"FILL" 1' : '' }}>star</span>
                                 ))}
                               </div>
-                              <span className="text-body-sm font-semibold text-text-muted">{count}</span>
+                              <span className={`text-body-sm ${isMyStar ? 'font-bold' : 'font-semibold text-text-muted'}`}>{count}</span>
                             </div>
                           </div>
                         );
@@ -486,9 +524,94 @@ export const CourseDetail: React.FC = () => {
 
                   <div className="space-y-6 pt-6">
                     <h3 className="text-headline-sm font-bold text-text-main">Reviews</h3>
+
+                    {/* Review Form Area */}
+                    {user && course.enrolled && (!reviewsStats?.myReview || isEditingReview) && (
+                      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
+                        <h4 className="font-bold text-lg mb-4">{isEditingReview ? 'Edit your review' : 'Review this course'}</h4>
+                        
+                        <div className="flex gap-2 mb-4 text-yellow-400">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span 
+                              key={star} 
+                              className="material-symbols-outlined text-3xl cursor-pointer hover:scale-110 transition-transform" 
+                              style={{ fontVariationSettings: star <= reviewFormStar ? '"FILL" 1' : '"FILL" 0' }}
+                              onClick={() => setReviewFormStar(star)}
+                            >
+                              star
+                            </span>
+                          ))}
+                        </div>
+                        
+                        <textarea 
+                          value={reviewFormContent}
+                          onChange={(e) => setReviewFormContent(e.target.value)}
+                          placeholder="Share your experience about this course..."
+                          className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none min-h-[120px] mb-2"
+                        />
+                        
+                        {reviewError && <p className="text-red-500 text-sm mb-4">{reviewError}</p>}
+                        
+                        <div className="flex justify-end gap-3">
+                          {isEditingReview && (
+                            <button 
+                              onClick={() => setIsEditingReview(false)}
+                              className="px-6 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                          <button 
+                            onClick={handleSubmitReview}
+                            disabled={submittingReview}
+                            className="bg-primary text-white px-8 py-2 font-bold rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
+                          >
+                            {submittingReview ? 'Submitting...' : 'Submit Review'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* My Review Display */}
+                    {user && reviewsStats?.myReview && !isEditingReview && (
+                      <div className="bg-orange-50 border border-orange-100 p-6 rounded-xl mb-8 relative">
+                        <div className="absolute top-6 right-6">
+                          <button 
+                            onClick={handleEditClick}
+                            className="text-primary hover:text-primary-hover font-bold flex items-center gap-1 bg-white px-3 py-1.5 rounded-full border border-orange-200 shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">edit</span> Edit
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-4 mb-3">
+                          {reviewsStats.myReview.avatarUrl ? (
+                            <img src={reviewsStats.myReview.avatarUrl} alt="Me" className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-white shadow-sm" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0 shadow-sm">
+                              {(reviewsStats.myReview.displayName || 'You').substring(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-text-main flex items-center gap-2">
+                              {reviewsStats.myReview.displayName || 'You'}
+                              <span className="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">YOURS</span>
+                            </p>
+                            <div className="flex text-yellow-400 scale-75 origin-left -ml-1">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: i < reviewsStats!.myReview!.star ? '"FILL" 1' : '' }}>star</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-body-md text-text-main leading-relaxed font-body mt-2">
+                          {reviewsStats.myReview.content}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="divide-y divide-gray-200">
                       {reviewsStats?.reviews?.content?.length ? (
-                        reviewsStats.reviews.content.map(review => (
+                        reviewsStats.reviews.content.filter(r => r.id !== reviewsStats.myReview?.id).map(review => (
                           <div key={review.id} className="py-8 flex flex-col sm:flex-row gap-6">
                             {review.avatarUrl ? (
                               <img src={review.avatarUrl} alt={review.displayName} className="w-12 h-12 rounded-full object-cover shrink-0" />
@@ -566,9 +689,9 @@ export const CourseDetail: React.FC = () => {
                 <div className="space-y-3 mb-6">
                   {course.enrolled ? (
                     <span className="w-full block py-4 bg-brand-green text-white text-center font-bold rounded-xl shadow-md cursor-default">
-                      Bạn đã tham gia
+                      You are enrolled
                     </span>
-                  ) : addedToCart ? (
+                  ) : isAddedToCart ? (
                     <Link
                       to="/shopping-cart"
                       className="w-full block py-4 bg-brand-blue hover:bg-brand-blue-light text-white text-center font-bold rounded-xl transition-all shadow-md font-body"

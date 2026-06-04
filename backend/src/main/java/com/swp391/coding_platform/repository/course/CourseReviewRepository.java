@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CourseReviewRepository extends JpaRepository<CourseReviewEntity, Integer> {
@@ -17,4 +18,6 @@ public interface CourseReviewRepository extends JpaRepository<CourseReviewEntity
 
     @Query("SELECT r.star, COUNT(r) FROM CourseReviewEntity r WHERE r.course.id = :courseId GROUP BY r.star")
     List<Object[]> countStarsByCourseId(@Param("courseId") Long courseId);
+
+    Optional<CourseReviewEntity> findByCourseIdAndUserId(Long courseId, Integer userId);
 }

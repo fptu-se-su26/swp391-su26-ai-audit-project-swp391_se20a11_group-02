@@ -14,5 +14,6 @@ public class CourseReviewStatsResponse {
     Double averageRating;
     Integer totalReviews;
     Map<Integer, Long> starDistribution;
+    CourseReviewDto myReview;
     PageResponse<CourseReviewDto> reviews;
 }
