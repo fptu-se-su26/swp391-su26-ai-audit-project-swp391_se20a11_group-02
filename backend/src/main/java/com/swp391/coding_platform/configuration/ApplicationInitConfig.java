@@ -32,7 +32,7 @@ public class ApplicationInitConfig {
 
         return args -> {
             if (userRepository.findByUsername("admin").isEmpty()) {
-                var adminRole = roleRepository.findByName(RoleName.ADMIN)
+                RoleEntity adminRole = roleRepository.findByName(RoleName.ADMIN)
                         .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.ADMIN).build()));
 
                 UserEntity adminUser = UserEntity.builder()
