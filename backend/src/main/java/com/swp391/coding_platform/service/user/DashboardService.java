@@ -20,9 +20,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import com.swp391.coding_platform.repository.problem.ProblemSubmissionRepository;
+import com.swp391.coding_platform.entity.problem.ProblemSubmissionEntity;
+import com.swp391.coding_platform.dto.response.ProblemSubmissionResponse;
+import com.swp391.coding_platform.entity.enums.OjVerdict;
+
+import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
 import java.util.List;
-    
+import java.util.Collections;
+import java.util.Arrays;
+import java.util.Locale;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -42,6 +50,7 @@ public class DashboardService {
     private final CompletedLessonCountRepository completedLessonCountRepository;
     private final UserDailyActivityRepository activityRepository;
     private final CourseMapper courseMapper;
+    private final ProblemSubmissionRepository problemSubmissionRepository;
 
     public DashboardStatsResponse getDashboardStats(Integer userId) {
 
@@ -160,5 +169,47 @@ public class DashboardService {
                 .currentStreak(currentStreak)
                 .activeDates(activeDates)
                 .build();
+    }
+
+    public List<ProblemSubmissionResponse> getDoneProblems(Integer userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+
+        List<ProblemSubmissionEntity> subs = problemSubmissionRepository.findSubmissionsWithProblemByUserId(userId);
+        
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(java.time.ZoneId.systemDefault());
+
+        return subs.stream().map(s -> {
+            String subStatus = s.getVerdict() == OjVerdict.ACCEPTED ? "Accepted" : s.getVerdict().name().replace("_", " ");
+            subStatus = Arrays.stream(subStatus.split(" "))
+                    .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                    .collect(Collectors.joining(" "));
+
+            String langStr = "Java";
+            if (s.getLanguageId() != null) {
+                if (s.getLanguageId() == 2) langStr = "Python 3";
+                else if (s.getLanguageId() == 3) langStr = "C++";
+                else if (s.getLanguageId() == 4) langStr = "JavaScript";
+            }
+
+            String runtimeStr = s.getExecutionTime() != null ? String.format(Locale.US, "%.1f ms", s.getExecutionTime()) : "N/A";
+            String memoryStr = s.getMemoryUsed() != null ? String.format(Locale.US, "%.1f MB", s.getMemoryUsed() / 1024.0) : "N/A";
+            String timeStr = formatter.format(s.getSubmittedAt());
+            String statusClass = s.getVerdict() == OjVerdict.ACCEPTED ? "text-brand-green" : "text-red-600";
+
+            return ProblemSubmissionResponse.builder()
+                    .problemId(s.getProblem() != null ? s.getProblem().getId() : null)
+                    .problemTitle(s.getProblem() != null ? s.getProblem().getTitle() : null)
+                    .status(subStatus)
+                    .lang(langStr)
+                    .runtime(runtimeStr)
+                    .memory(memoryStr)
+                    .time(timeStr)
+                    .statusClass(statusClass)
+                    .build();
+        }).collect(Collectors.toList());
     }
 }
