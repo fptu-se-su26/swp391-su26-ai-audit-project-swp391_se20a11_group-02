@@ -5,8 +5,9 @@ import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.CourseDetailResponse;
 import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
-import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.dto.response.CourseReviewStatsResponse;
+import com.swp391.coding_platform.dto.request.CourseReviewRequest;
+import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.service.course.CourseService;
 import org.springframework.data.domain.PageRequest;
 import java.util.List;
@@ -20,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -98,16 +101,48 @@ public class CourseController {
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<ApiResponse<CourseReviewStatsResponse>> getCourseReviews(
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long id,
             org.springframework.data.domain.Pageable pageable) {
 
-        var result = courseService.getCourseReviews(id, pageable);
+        Long userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) userId = idClaim.longValue();
+        }
+
+        var result = courseService.getCourseReviews(id, userId, pageable);
 
         return ResponseEntity.ok(ApiResponse.<CourseReviewStatsResponse>builder()
                 .status(200)
                 .code(1000)
                 .message("Get course reviews successfully")
                 .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/{id}/reviews")
+    public ResponseEntity<ApiResponse<Void>> upsertCourseReview(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id,
+            @RequestBody @Valid CourseReviewRequest request) {
+
+        if (jwt == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Number idClaim = jwt.getClaim("userId");
+        if (idClaim == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        courseService.upsertCourseReview(id, idClaim.longValue(), request);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Review submitted successfully")
                 .timestamp(Instant.now().toString())
                 .build());
     }

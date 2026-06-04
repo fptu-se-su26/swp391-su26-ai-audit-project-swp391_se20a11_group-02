@@ -22,7 +22,10 @@ import com.swp391.coding_platform.repository.specification.CourseSpecification;
 import com.swp391.coding_platform.util.ProgressUtils;
 import com.swp391.coding_platform.dto.response.CourseReviewDto;
 import com.swp391.coding_platform.dto.response.CourseReviewStatsResponse;
+import com.swp391.coding_platform.dto.request.CourseReviewRequest;
 import com.swp391.coding_platform.entity.course.CourseReviewEntity;
+import com.swp391.coding_platform.entity.user.UserEntity;
+import com.swp391.coding_platform.repository.user.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -47,6 +50,7 @@ public class CourseService {
     EnrollmentRepository enrollmentRepository;
     ChapterRepository chapterRepository;
     CourseReviewRepository courseReviewRepository;
+    UserRepository userRepository;
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
@@ -171,7 +175,7 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
-    public CourseReviewStatsResponse getCourseReviews(Long courseId, Pageable pageable) {
+    public CourseReviewStatsResponse getCourseReviews(Long courseId, Long userId, Pageable pageable) {
         if (!courseRepository.existsById(courseId)) {
             throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
@@ -193,11 +197,64 @@ public class CourseService {
             starDistribution.put(star, count);
         }
 
-        return CourseReviewStatsResponse.builder()
+        CourseReviewStatsResponse response = CourseReviewStatsResponse.builder()
                 .averageRating(course.getAverageRating())
                 .totalReviews(course.getTotalReviews())
                 .starDistribution(starDistribution)
                 .reviews(PageResponse.from(reviewDtoPage))
                 .build();
+
+        if (userId != null) {
+            courseReviewRepository.findByCourseIdAndUserId(courseId, userId.intValue())
+                    .ifPresent(review -> response.setMyReview(courseMapper.toCourseReviewDto(review)));
+        }
+
+        return response;
+    }
+
+    public void upsertCourseReview(Long courseId, Long userId, CourseReviewRequest request) {
+        if (!isEnrollCourseById(courseId, userId)) {
+            throw new AppException(ErrorCode.NOT_ENROLLED); // Or a specific error like "NOT_ENROLLED"
+        }
+
+        CourseEntity course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        UserEntity user = userRepository.findById(userId.intValue())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        CourseReviewEntity reviewEntity = courseReviewRepository.findByCourseIdAndUserId(courseId, userId.intValue())
+                .orElseGet(() -> CourseReviewEntity.builder()
+                        .course(course)
+                        .user(user)
+                        .build());
+
+        reviewEntity.setContent(request.getContent());
+        reviewEntity.setStar(request.getStar());
+        reviewEntity.setUpdatedAt(java.time.Instant.now());
+
+        courseReviewRepository.save(reviewEntity);
+
+        // Recalculate average rating
+        List<Object[]> starCounts = courseReviewRepository.countStarsByCourseId(courseId);
+        int totalReviews = 0;
+        double sumStars = 0;
+        for (Object[] row : starCounts) {
+            Integer star = (Integer) row[0];
+            Long count = ((Number) row[1]).longValue();
+            totalReviews += count;
+            sumStars += star * count;
+        }
+
+        if (totalReviews > 0) {
+            double rawAverage = sumStars / totalReviews;
+            course.setAverageRating((double) Math.round(rawAverage * 10) / 10);
+            course.setTotalReviews(totalReviews);
+        } else {
+            course.setAverageRating(0.0);
+            course.setTotalReviews(0);
+        }
+
+        courseRepository.save(course);
     }
 }

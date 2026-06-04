@@ -772,6 +772,7 @@ export interface CourseReviewStatsResponse {
   averageRating: number;
   totalReviews: number;
   starDistribution: Record<number, number>;
+  myReview?: CourseReviewDto;
   reviews: PageResponse<CourseReviewDto>;
 }
 
@@ -795,4 +796,20 @@ export const fetchCourseReviews = async (id: number | string, page: number = 0, 
 
   const data: ApiResponse<CourseReviewStatsResponse> = await response.json();
   return data.result;
+};
+
+export const submitCourseReview = async (id: number | string, star: number, content: string): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/courses/${id}/reviews`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ star, content })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể gửi đánh giá');
+  }
 };

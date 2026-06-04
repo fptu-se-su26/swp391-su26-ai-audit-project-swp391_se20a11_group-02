@@ -70,7 +70,8 @@ public class CartService {
         
         CartEntity cart = cartRepository.findByUserId(user.getId()).orElse(null);
         if (cart != null) {
-            cartItemRepository.deleteByCartIdAndCourseId(cart.getId(), courseId);
+            cart.getItems().removeIf(item -> item.getCourse().getId().equals(courseId));
+            cartRepository.save(cart);
         }
     }
 
@@ -81,7 +82,8 @@ public class CartService {
         
         CartEntity cart = cartRepository.findByUserId(user.getId()).orElse(null);
         if (cart != null) {
-            cartItemRepository.deleteByCartId(cart.getId());
+            cart.getItems().clear();
+            cartRepository.save(cart);
         }
     }
 }
