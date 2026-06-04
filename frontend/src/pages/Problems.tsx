@@ -125,7 +125,7 @@ export const Problems: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="relative z-10 flex-grow w-full mx-auto px-4 lg:px-8 py-xxl pt-8 text-center">
+      <div className="relative z-10 flex-grow w-full max-w-[1440px] mx-auto px-4 lg:px-8 py-xxl pt-8 text-center">
         <div className="flex flex-col items-center justify-center min-h-[400px]">
           <svg className="animate-spin h-10 w-10 text-primary mb-4" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -139,7 +139,7 @@ export const Problems: React.FC = () => {
 
   if (error) {
     return (
-      <div className="relative z-10 flex-grow w-full mx-auto px-4 lg:px-8 py-xxl pt-8 text-center">
+      <div className="relative z-10 flex-grow w-full max-w-[1440px] mx-auto px-4 lg:px-8 py-xxl pt-8 text-center">
         <div className="flex flex-col items-center justify-center min-h-[400px] text-red-600">
           <span className="material-symbols-outlined text-[48px] mb-2">error</span>
           <span className="font-bold mb-2">Error Loading Problems</span>
@@ -150,7 +150,7 @@ export const Problems: React.FC = () => {
   }
 
   return (
-    <div className="relative z-10 flex-grow w-full mx-auto px-4 lg:px-8 py-xxl pt-8 text-left">
+    <div className="relative z-10 flex-grow w-full max-w-[1440px] mx-auto px-4 lg:px-8 py-xxl pt-8 text-left">
       {/* Page Header */}
       <header className="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
