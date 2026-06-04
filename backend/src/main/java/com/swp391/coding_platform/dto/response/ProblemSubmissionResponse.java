@@ -9,6 +9,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProblemSubmissionResponse {
+    Integer problemId;
+    String problemTitle;
     String status;
     String lang;
     String runtime;
