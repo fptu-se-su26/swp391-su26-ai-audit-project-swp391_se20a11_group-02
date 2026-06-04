@@ -58,6 +58,7 @@ interface AppContextType {
   withdrawFunds: (amount: number, bank: string, account: string) => boolean;
   addToCart: (courseId: string) => void;
   removeFromCart: (courseId: string) => void;
+  clearCart: () => void;
   checkoutCart: (totalPrice: number, courseItems: { id: string; title: string; price: number }[]) => boolean;
   submitCodeSolution: (
     problemId: string,
@@ -266,6 +267,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const clearCart = () => {
+    setCart([]);
+    if (user) {
+      clearCartApi().catch(console.error);
+    } else {
+      localStorage.removeItem('guest_cart');
+    }
+  };
+
   const checkoutCart = (totalPrice: number, courseItems: { id: string; title: string; price: number }[]): boolean => {
     if (!user || user.walletBalance < totalPrice) return false;
 
@@ -376,6 +386,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         withdrawFunds,
         addToCart,
         removeFromCart,
+        clearCart,
         checkoutCart,
         submitCodeSolution,
         registerForContest,
