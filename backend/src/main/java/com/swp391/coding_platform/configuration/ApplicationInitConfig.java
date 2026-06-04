@@ -6,9 +6,6 @@ import com.swp391.coding_platform.entity.enums.UserStatus;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.repository.auth.RoleRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -20,23 +17,22 @@ import java.util.Set;
 
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@Profile("dev")
+@Profile("dev") // Đã bỏ @RequiredArgsConstructor và @FieldDefaults
 public class ApplicationInitConfig {
 
-    PasswordEncoder passwordEncoder;
+    // Đã bỏ khai báo biến PasswordEncoder ở đây
 
     @Bean
     ApplicationRunner applicationRunner(
             UserRepository userRepository,
-            RoleRepository roleRepository
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder // <-- Inject trực tiếp thẳng vào parameter của Bean
     ) {
         log.info("Init application for dev environment...");
 
         return args -> {
-            if (userRepository.findByUsername("admin").isEmpty()) {
-                var adminRole = roleRepository.findByName(RoleName.ADMIN)
+            if (!userRepository.findByUsername("admin").isPresent()) {
+                RoleEntity adminRole = roleRepository.findByName(RoleName.ADMIN)
                         .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.ADMIN).build()));
 
                 UserEntity adminUser = UserEntity.builder()
@@ -45,7 +41,7 @@ public class ApplicationInitConfig {
                         .displayname("admin")
                         .email("admin@gmail.com")
                         .status(UserStatus.ACTIVE)
-                        .roles(Set.of(adminRole))
+                        .roles(java.util.Collections.singleton(adminRole))
                         .build();
 
                 userRepository.save(adminUser);

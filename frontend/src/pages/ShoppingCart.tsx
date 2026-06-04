@@ -87,15 +87,9 @@ export const ShoppingCart: React.FC = () => {
   }, [cart]);
 
   const subTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
-  const originalTotal = cartItems.reduce((sum, item) => sum + item.originalPrice, 0);
   
   // Calculate final total based on standard items price and the applied coupon discount
   const finalTotal = subTotal * (1 - couponDiscount / 100);
-
-  // Recalculate total discount percentage dynamically
-  const averageDiscountPercent = originalTotal > 0 
-    ? Math.round(((originalTotal - finalTotal) / originalTotal) * 100) 
-    : 0;
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
