@@ -17,6 +17,8 @@ export const GlobalRanking: React.FC = () => {
   const [rankings, setRankings] = useState<RankingUser[]>([]);
   const [userStats, setUserStats] = useState<UserRankStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     const loadRankings = async () => {
@@ -51,6 +53,21 @@ export const GlobalRanking: React.FC = () => {
   );
 
   const tableUsers = filteredUsers.filter(u => u.rank > 3);
+
+  const totalPages = Math.max(1, Math.ceil(tableUsers.length / itemsPerPage));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeLeague, searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [tableUsers.length, totalPages, currentPage]);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = tableUsers.slice(startIndex, startIndex + itemsPerPage);
 
   const p1 = rankings[0] ? {
     name: rankings[0].name,
@@ -169,6 +186,16 @@ export const GlobalRanking: React.FC = () => {
         }
         .ranking-row:hover {
             transform: scale(1.01) translateY(-2px);
+        }
+        
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
       `}</style>
 
@@ -507,7 +534,7 @@ export const GlobalRanking: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full text-left border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-surface-gray text-text-muted font-label text-label-md border-b border-gray-200">
@@ -517,7 +544,7 @@ export const GlobalRanking: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody id="leaderboard-list" className="text-body-md font-body text-text-main divide-y divide-gray-100">
-                    {tableUsers.map((u) => (
+                    {paginatedUsers.map((u) => (
                       <tr
                         key={u.name}
                         className="hover:bg-surface-gray/50 transition-colors group cursor-pointer ranking-row"
@@ -556,23 +583,52 @@ export const GlobalRanking: React.FC = () => {
               </div>
 
               {/* Pagination */}
-              <div className="px-6 py-4 border-t border-gray-200 bg-surface flex items-center justify-between">
-                <span className="text-sm text-text-muted hidden sm:inline">
-                  Showing 4 to {Math.min(rankings.length, 10)} of {rankings.length} users
-                </span>
-                <div className="flex items-center gap-1 sm:ml-auto">
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-text-muted hover:bg-surface-gray hover:text-primary transition-colors disabled:opacity-50">
-                    <span className="material-symbols-outlined text-sm">chevron_left</span>
-                  </button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded bg-primary text-white font-medium text-sm">1</button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-text-main hover:bg-surface-gray transition-colors font-medium text-sm">2</button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-text-main hover:bg-surface-gray transition-colors font-medium text-sm">3</button>
-                  <span className="w-8 h-8 flex items-center justify-center text-text-muted">...</span>
-                  <button className="w-8 h-8 flex items-center justify-center rounded text-text-muted hover:bg-surface-gray hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-sm">chevron_right</span>
-                  </button>
+              {totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 bg-surface flex items-center justify-between">
+                  <span className="text-sm text-text-muted hidden sm:inline">
+                    Showing {4 + startIndex} to {4 + startIndex + paginatedUsers.length - 1} of {rankings.length} users
+                  </span>
+                  <div className="flex items-center gap-1 sm:ml-auto">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/50 text-text-muted hover:bg-surface-gray disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-sm">chevron_left</span>
+                    </button>
+                    
+                    {/* Dynamic Page Buttons */}
+                    {Array.from({ length: totalPages }, (_, idx) => idx + 1)
+                      .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 2)
+                      .map((pageNum, idx, arr) => {
+                        const showDots = idx > 0 && pageNum - arr[idx - 1] > 1;
+                        return (
+                          <React.Fragment key={pageNum}>
+                            {showDots && <span className="w-8 h-8 flex items-center justify-center text-text-muted">...</span>}
+                            <button
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`w-8 h-8 flex items-center justify-center rounded font-medium text-sm transition-colors ${
+                                currentPage === pageNum
+                                  ? 'bg-primary text-white font-bold'
+                                  : 'border border-outline-variant/50 text-text-muted hover:bg-surface-gray hover:text-primary transition-colors text-sm font-medium'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/50 text-text-muted hover:bg-surface-gray disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-sm">chevron_right</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </div>
