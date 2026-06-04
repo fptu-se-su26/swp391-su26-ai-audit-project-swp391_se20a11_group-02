@@ -6,15 +6,14 @@ DECLARE
     tag3_id INT;
     i INT;
     j INT;
-    teacher_id INT;
+    creator_id INT;
 BEGIN
-    -- Get an instructor ID to associate with the problems
-    SELECT id INTO teacher_id FROM public.instructors LIMIT 1;
+    -- Get a user ID to associate with the problems
+    SELECT id INTO creator_id FROM public.users LIMIT 1;
     
-    -- If no instructor is found, you might want to use a default or fallback value
-    -- We assume teacher_id 1 is safe based on typical seed data, but dynamically fetching is safer.
-    IF teacher_id IS NULL THEN
-        teacher_id := 1; 
+    -- If no user is found, default to 1
+    IF creator_id IS NULL THEN
+        creator_id := 1; 
     END IF;
 
     -- Insert tags if not exists, and get their IDs. 
@@ -38,7 +37,7 @@ BEGIN
         INSERT INTO public.problems (
             title, description, input_description, output_description,
             constraints, example_input, example_output, hint,
-            problem_scope, difficulty, is_active, created_by_teacher_id,
+            problem_scope, difficulty, is_active, created_by,
             total_testcase, time_limit_ms, memory_limit_kb, is_public, score
         ) VALUES (
             'Auto Practice Problem ' || i,
@@ -49,7 +48,7 @@ BEGIN
             '5\n1 2 3 4 5',
             '15',
             '<p>Try to use O(N) time complexity.</p>',
-            'PRACTICE', 'EASY', true, teacher_id,
+            'PRACTICE', 'EASY', true, creator_id,
             10, 2000, 128000, true, 100.00
         ) RETURNING id INTO p_id;
 

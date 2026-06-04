@@ -31,7 +31,7 @@ public class ApplicationInitConfig {
         log.info("Init application for dev environment...");
 
         return args -> {
-            if (userRepository.findByUsername("admin").isEmpty()) {
+            if (!userRepository.findByUsername("admin").isPresent()) {
                 RoleEntity adminRole = roleRepository.findByName(RoleName.ADMIN)
                         .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.ADMIN).build()));
 
@@ -41,7 +41,7 @@ public class ApplicationInitConfig {
                         .displayname("admin")
                         .email("admin@gmail.com")
                         .status(UserStatus.ACTIVE)
-                        .roles(Set.of(adminRole))
+                        .roles(java.util.Collections.singleton(adminRole))
                         .build();
 
                 userRepository.save(adminUser);

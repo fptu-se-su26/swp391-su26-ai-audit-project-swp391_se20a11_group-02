@@ -403,26 +403,9 @@ export const GlobalRanking: React.FC = () => {
               {/* Gamified Progression & Motivation Bar */}
               {user ? (
                 <div className="flex-grow max-w-sm w-full">
-                  {userStats && userStats.pointsToNextRank > 0 ? (
-                    <>
-                      <div className="flex justify-between items-center text-xs text-white/80 font-bold mb-1.5">
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">arrow_circle_up</span> Vượt mặt hạng tiếp theo
-                        </span>
-                        <span className="text-primary font-black">{userStats.pointsToNextRank.toLocaleString()} pts nữa</span>
-                      </div>
-                      {/* Custom sleek progress bar */}
-                      <div className="w-full h-2 bg-white/15 rounded-full overflow-hidden p-0.5">
-                        <div 
-                          className="h-full bg-gradient-to-r from-[#ff6000] to-[#ff8c42] rounded-full shadow-[0_0_8px_rgba(243,111,33,0.5)] transition-all duration-500" 
-                          style={{ width: `${Math.max(10, Math.min(90, 100 - (userStats.pointsToNextRank / (userStats.points + userStats.pointsToNextRank)) * 100))}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-[11px] text-white/60 mt-1.5 italic">
-                        Cần {userStats.pointsToNextRank.toLocaleString()} pts để vượt qua #{userStats.rank - 1} {userStats.nextRankUserName}! Giải thêm bài để thăng hạng.
-                      </p>
-                    </>
-                  ) : (
+                  {!userStats ? (
+                    <div className="text-white/70 text-xs">Đang tải thông số của bạn...</div>
+                  ) : userStats.rank === 1 ? (
                     <>
                       <div className="flex justify-between items-center text-xs text-white/80 font-bold mb-1.5">
                         <span className="flex items-center gap-1">
@@ -435,6 +418,40 @@ export const GlobalRanking: React.FC = () => {
                       </div>
                       <p className="text-[11px] text-white/60 mt-1.5 italic">
                         Bạn đang là Rank #1 trên bảng xếp hạng! Tiếp tục duy trì phong độ nhé.
+                      </p>
+                    </>
+                  ) : userStats.rank > 1 ? (
+                    <>
+                      <div className="flex justify-between items-center text-xs text-white/80 font-bold mb-1.5">
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">arrow_circle_up</span> Vượt mặt hạng tiếp theo
+                        </span>
+                        <span className="text-primary font-black">{userStats.pointsToNextRank.toLocaleString()} pts nữa</span>
+                      </div>
+                      {/* Custom sleek progress bar */}
+                      <div className="w-full h-2 bg-white/15 rounded-full overflow-hidden p-0.5">
+                        <div 
+                          className="h-full bg-gradient-to-r from-[#ff6000] to-[#ff8c42] rounded-full shadow-[0_0_8px_rgba(243,111,33,0.5)] transition-all duration-500" 
+                          style={{ width: `${userStats.points + userStats.pointsToNextRank > 0 ? Math.max(10, Math.min(90, (userStats.points / (userStats.points + userStats.pointsToNextRank)) * 100)) : 10}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-[11px] text-white/60 mt-1.5 italic">
+                        Cần {userStats.pointsToNextRank.toLocaleString()} pts để vượt qua #{userStats.rank - 1} {userStats.nextRankUserName}! Giải thêm bài để thăng hạng.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center text-xs text-white/80 font-bold mb-1.5">
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">pending</span> Chưa có thứ hạng
+                        </span>
+                        <span className="text-white/60 font-black">Chưa xếp hạng</span>
+                      </div>
+                      <div className="w-full h-2 bg-white/15 rounded-full overflow-hidden p-0.5">
+                        <div className="h-full bg-gray-500" style={{ width: '0%' }}></div>
+                      </div>
+                      <p className="text-[11px] text-white/60 mt-1.5 italic">
+                        Bạn chưa có điểm số trên bảng xếp hạng. Hãy giải các bài tập luyện để bắt đầu tranh hạng nhé!
                       </p>
                     </>
                   )}
