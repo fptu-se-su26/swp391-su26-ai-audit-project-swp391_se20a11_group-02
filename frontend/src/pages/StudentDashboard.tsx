@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type ProblemSubmissionResponse } from '../services/dashboardService';
-import { problemService, type ProblemListItem } from '../services/problemService';
 
 // Mock datasets exactly as they are in the HTML
 export const initialMyCourses = [

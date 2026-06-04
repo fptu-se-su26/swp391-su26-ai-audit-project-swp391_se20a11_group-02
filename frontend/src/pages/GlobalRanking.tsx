@@ -18,7 +18,7 @@ export const GlobalRanking: React.FC = () => {
   const [userStats, setUserStats] = useState<UserRankStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 17; // 3 podium users + 17 table users = 20 users total per page
 
   useEffect(() => {
     const loadRankings = async () => {
@@ -126,6 +126,14 @@ export const GlobalRanking: React.FC = () => {
             0%, 100% { box-shadow: 0 0 15px rgba(243, 111, 33, 0.3), inset 0 0 10px rgba(243, 111, 33, 0.05); border-color: rgba(243, 111, 33, 0.4); }
             50% { box-shadow: 0 0 25px rgba(243, 111, 33, 0.6), inset 0 0 15px rgba(243, 111, 33, 0.2); border-color: rgba(243, 111, 33, 0.8); }
         }
+        @keyframes pulse-glow-green {
+            0%, 100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.3), inset 0 0 10px rgba(34, 197, 94, 0.05); border-color: rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(34, 197, 94, 0.6), inset 0 0 15px rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.8); }
+        }
+        @keyframes pulse-glow-blue {
+            0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3), inset 0 0 10px rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.6), inset 0 0 15px rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.8); }
+        }
         @keyframes shine {
             0% { left: -100%; }
             100% { left: 100%; }
@@ -142,6 +150,12 @@ export const GlobalRanking: React.FC = () => {
         }
         .animate-pulse-glow {
             animation: pulse-glow 3s infinite;
+        }
+        .animate-pulse-glow-green {
+            animation: pulse-glow-green 3s infinite;
+        }
+        .animate-pulse-glow-blue {
+            animation: pulse-glow-blue 3s infinite;
         }
         
         .shine-effect {
@@ -172,12 +186,27 @@ export const GlobalRanking: React.FC = () => {
             box-shadow: 0 0 25px rgba(243, 111, 33, 0.45);
         }
         .blue-border {
-            border: 4px solid #0E1F3B;
-            box-shadow: 0 0 18px rgba(18, 40, 76, 0.35);
+            border: 4px solid #3b82f6;
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.45);
         }
         .green-border {
-            border: 4px solid #388A33;
-            box-shadow: 0 0 18px rgba(70, 160, 64, 0.3);
+            border: 4px solid #22c55e;
+            box-shadow: 0 0 25px rgba(34, 197, 94, 0.45);
+        }
+
+        /* Highlight current user in leaderboard */
+        .current-user-row {
+            background-color: rgba(243, 111, 33, 0.08) !important;
+        }
+        .current-user-row td {
+            font-weight: 600;
+        }
+        .current-user-row td:first-child {
+            border-left: 4px solid #F36F21 !important;
+        }
+        #leaderboard-list tr td:first-child {
+            border-left: 4px solid transparent;
+            transition: border-color 0.2s ease;
         }
         
         /* Smooth scale transition for ranking rows */
@@ -287,12 +316,12 @@ export const GlobalRanking: React.FC = () => {
           <div className="flex flex-col items-center order-2 md:order-1 animate-float-medium" style={{ animationDelay: '0.5s' }}>
             {/* Floating Medal Icon for Top 2 (Green) */}
             <div className="text-brand-green animate-crown mb-2 relative z-10 flex flex-col items-center" style={{ animationDelay: '0.3s' }}>
-              <span className="material-symbols-outlined text-[38px] icon-fill text-[#46A040] drop-shadow-[0_4px_10px_rgba(70,160,64,0.3)]">military_tech</span>
-              <div className="h-1 w-6 bg-[#46A040]/30 rounded-full blur-xs opacity-50 mt-1"></div>
+              <span className="material-symbols-outlined text-[38px] icon-fill text-[#22c55e] drop-shadow-[0_4px_10px_rgba(34,197,94,0.3)]">military_tech</span>
+              <div className="h-1 w-6 bg-[#22c55e]/30 rounded-full blur-xs opacity-50 mt-1"></div>
             </div>
-            <div className="w-full glassmorphism rounded-2xl p-7 shadow-xl border-t-[6px] border-[#46A040] relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.025]">
+            <div className="w-full glassmorphism rounded-2xl p-7 shadow-xl border-t-[6px] border-[#22c55e] relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.025] animate-pulse-glow-green">
               {/* Decorative background rank */}
-              <div className="absolute -right-6 -bottom-6 text-[100px] font-black font-display text-[#46A040]/5 pointer-events-none select-none">2</div>
+              <div className="absolute -right-6 -bottom-6 text-[100px] font-black font-display text-[#22c55e]/5 pointer-events-none select-none">2</div>
 
               {/* Profile Image & Badge */}
               <div className="flex flex-col items-center text-center">
@@ -302,18 +331,18 @@ export const GlobalRanking: React.FC = () => {
                     alt="Rank 2 Avatar"
                     className="w-20 h-20 rounded-full object-cover green-border"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p2.name)}&background=46A040&color=fff`;
+                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p2.name)}&background=22c55e&color=fff`;
                     }}
                   />
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#46A040] text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-md">2</div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#22c55e] text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-md">2</div>
                 </div>
 
-                <h3 id="p2-name" className="font-display font-bold text-lg text-[#46A040]">{p2.name}</h3>
+                <h3 id="p2-name" className="font-display font-bold text-lg text-[#22c55e]">{p2.name}</h3>
 
                 {/* Stats breakdown */}
                 <div className="w-full mt-6 pt-4 border-t border-gray-100 text-center">
                   <span className="block text-caption text-text-muted font-semibold uppercase">Score</span>
-                  <span id="p2-points" className="font-display font-black text-[#46A040] text-lg">{p2.points}</span>
+                  <span id="p2-points" className="font-display font-black text-[#22c55e] text-lg">{p2.points}</span>
                 </div>
               </div>
             </div>
@@ -360,13 +389,13 @@ export const GlobalRanking: React.FC = () => {
           <div className="flex flex-col items-center order-3 animate-float-medium" style={{ animationDelay: '1s' }}>
             {/* Floating Badge for Top 3 (Blue) */}
             <div className="text-brand-blue animate-crown mb-2 relative z-10 flex flex-col items-center" style={{ animationDelay: '0.6s' }}>
-              <span className="material-symbols-outlined text-[30px] icon-fill text-[#12284C] drop-shadow-[0_4px_8px_rgba(18,40,76,0.2)]">workspace_premium</span>
-              <div className="h-1 w-5 bg-[#12284C]/30 rounded-full blur-xs opacity-40 mt-1"></div>
+              <span className="material-symbols-outlined text-[30px] icon-fill text-[#3b82f6] drop-shadow-[0_4px_8px_rgba(59,130,246,0.3)]">workspace_premium</span>
+              <div className="h-1 w-5 bg-[#3b82f6]/30 rounded-full blur-xs opacity-40 mt-1"></div>
             </div>
 
-            <div className="w-full glassmorphism rounded-2xl p-5 shadow-md border-t-[5px] border-[#12284C] relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-100">
+            <div className="w-full glassmorphism rounded-2xl p-5 shadow-md border-t-[5px] border-[#3b82f6] relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-100 animate-pulse-glow-blue">
               {/* Decorative background rank */}
-              <div className="absolute -right-6 -bottom-6 text-[100px] font-black font-display text-[#12284C]/5 pointer-events-none select-none">3</div>
+              <div className="absolute -right-6 -bottom-6 text-[100px] font-black font-display text-[#3b82f6]/5 pointer-events-none select-none">3</div>
 
               {/* Profile Image & Badge */}
               <div className="flex flex-col items-center text-center">
@@ -376,17 +405,17 @@ export const GlobalRanking: React.FC = () => {
                     alt="Rank 3 Avatar"
                     className="w-16 h-16 rounded-full object-cover blue-border"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p3.name)}&background=12284C&color=fff`;
+                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p3.name)}&background=3b82f6&color=fff`;
                     }}
                   />
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#12284C] text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs border-2 border-white shadow-md">3</div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#3b82f6] text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs border-2 border-white shadow-md">3</div>
                 </div>
 
-                <h3 id="p3-name" className="font-display font-bold text-md text-[#12284C]">{p3.name}</h3>
+                <h3 id="p3-name" className="font-display font-bold text-md text-[#3b82f6]">{p3.name}</h3>
                 {/* Stats breakdown */}
                 <div className="w-full mt-6 pt-4 border-t border-gray-100 text-center">
                   <span className="block text-caption text-text-muted font-semibold uppercase">Score</span>
-                  <span id="p3-points" className="font-display font-black text-[#12284C] text-md">{p3.points}</span>
+                  <span id="p3-points" className="font-display font-black text-[#3b82f6] text-md">{p3.points}</span>
                 </div>
               </div>
             </div>
@@ -413,7 +442,7 @@ export const GlobalRanking: React.FC = () => {
                 <div className="flex flex-col">
                   <span className="text-[10px] text-primary font-black uppercase tracking-wider">Your Stats</span>
                   <h2 className="font-display font-extrabold text-white text-lg md:text-xl tracking-tight leading-tight">
-                    {user?.name ? `${user.name} (You)` : "Khách (Guest)"}
+                    {user?.name ? `${user.name}` : "Guest"}
                   </h2>
                   {/* Simplified horizontal badges for Rank and Score */}
                   <div className="flex items-center gap-2 mt-1.5">
@@ -431,12 +460,12 @@ export const GlobalRanking: React.FC = () => {
               {user ? (
                 <div className="flex-grow max-w-sm w-full">
                   {!userStats ? (
-                    <div className="text-white/70 text-xs">Đang tải thông số của bạn...</div>
+                    <div className="text-white/70 text-xs">Loading your stats...</div>
                   ) : userStats.rank === 1 ? (
                     <>
                       <div className="flex justify-between items-center text-xs text-white/80 font-bold mb-1.5">
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">military_tech</span> Đang dẫn đầu bảng xếp hạng!
+                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">military_tech</span> Leading the leaderboard!
                         </span>
                         <span className="text-primary font-black">Top Rank</span>
                       </div>
@@ -444,16 +473,16 @@ export const GlobalRanking: React.FC = () => {
                         <div className="h-full bg-gradient-to-r from-[#ff6000] to-[#ff8c42] rounded-full shadow-[0_0_8px_rgba(243,111,33,0.5)]" style={{ width: '100%' }}></div>
                       </div>
                       <p className="text-[11px] text-white/60 mt-1.5 italic">
-                        Bạn đang là Rank #1 trên bảng xếp hạng! Tiếp tục duy trì phong độ nhé.
+                        You are Rank #1 on the leaderboard! Keep up the great work.
                       </p>
                     </>
                   ) : userStats.rank > 1 ? (
                     <>
                       <div className="flex justify-between items-center text-xs text-white/80 font-bold mb-1.5">
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">arrow_circle_up</span> Vượt mặt hạng tiếp theo
+                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">arrow_circle_up</span> Surpass the next rank
                         </span>
-                        <span className="text-primary font-black">{userStats.pointsToNextRank.toLocaleString()} pts nữa</span>
+                        <span className="text-primary font-black">{userStats.pointsToNextRank.toLocaleString()} pts to go</span>
                       </div>
                       {/* Custom sleek progress bar */}
                       <div className="w-full h-2 bg-white/15 rounded-full overflow-hidden p-0.5">
@@ -463,29 +492,29 @@ export const GlobalRanking: React.FC = () => {
                         ></div>
                       </div>
                       <p className="text-[11px] text-white/60 mt-1.5 italic">
-                        Cần {userStats.pointsToNextRank.toLocaleString()} pts để vượt qua #{userStats.rank - 1} {userStats.nextRankUserName}! Giải thêm bài để thăng hạng.
+                        Need {userStats.pointsToNextRank.toLocaleString()} pts to surpass #{userStats.rank - 1} {userStats.nextRankUserName}! Solve more problems to rank up.
                       </p>
                     </>
                   ) : (
                     <>
                       <div className="flex justify-between items-center text-xs text-white/80 font-bold mb-1.5">
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">pending</span> Chưa có thứ hạng
+                          <span className="material-symbols-outlined text-[14px] text-primary icon-fill">pending</span> Not ranked yet
                         </span>
-                        <span className="text-white/60 font-black">Chưa xếp hạng</span>
+                        <span className="text-white/60 font-black">Unranked</span>
                       </div>
                       <div className="w-full h-2 bg-white/15 rounded-full overflow-hidden p-0.5">
                         <div className="h-full bg-gray-500" style={{ width: '0%' }}></div>
                       </div>
                       <p className="text-[11px] text-white/60 mt-1.5 italic">
-                        Bạn chưa có điểm số trên bảng xếp hạng. Hãy giải các bài tập luyện để bắt đầu tranh hạng nhé!
+                        You don't have a score on the leaderboard yet. Solve practice problems to start competing!
                       </p>
                     </>
                   )}
                 </div>
               ) : (
                 <div className="flex-grow max-w-sm w-full text-white/70 text-xs font-medium">
-                  Đăng nhập để xem vị trí của bạn trên bảng xếp hạng và theo dõi tiến trình học tập!
+                  Log in to view your position on the leaderboard and track your learning progress!
                 </div>
               )}
 
@@ -496,7 +525,7 @@ export const GlobalRanking: React.FC = () => {
                     to="/problems"
                     className="inline-flex items-center justify-center gap-2 w-full md:w-auto bg-primary hover:bg-primary-hover text-white font-bold text-xs tracking-wide uppercase px-5 py-2.5 rounded-xl transition-all duration-300 shadow-md shadow-primary/20 group"
                   >
-                    Luyện Tập Ngay!
+                    Practice Now!
                     <span className="material-symbols-outlined text-xs group-hover:translate-x-0.5 transition-transform">swords</span>
                   </Link>
                 ) : (
@@ -504,7 +533,7 @@ export const GlobalRanking: React.FC = () => {
                     to="/login"
                     className="inline-flex items-center justify-center gap-2 w-full md:w-auto bg-primary hover:bg-primary-hover text-white font-bold text-xs tracking-wide uppercase px-5 py-2.5 rounded-xl transition-all duration-300 shadow-md shadow-primary/20 group"
                   >
-                    Đăng Nhập
+                    Log In
                     <span className="material-symbols-outlined text-xs group-hover:translate-x-0.5 transition-transform">login</span>
                   </Link>
                 )}
@@ -530,7 +559,7 @@ export const GlobalRanking: React.FC = () => {
             </div>
           ) : tableUsers.length === 0 ? (
             <div className="text-center py-16 text-text-muted">
-              Không tìm thấy đối thủ nào.
+              No competitors found.
             </div>
           ) : (
             <>
@@ -544,40 +573,48 @@ export const GlobalRanking: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody id="leaderboard-list" className="text-body-md font-body text-text-main divide-y divide-gray-100">
-                    {paginatedUsers.map((u) => (
-                      <tr
-                        key={u.name}
-                        className="hover:bg-surface-gray/50 transition-colors group cursor-pointer ranking-row"
-                        data-name={u.name}
-                      >
-                        <td className="p-4 text-center font-bold text-text-muted group-hover:text-text-main text-lg w-20">
-                          <div className="flex flex-col items-center justify-center">
-                            <span>{u.rank}</span>
-                            <span className="text-[10px] text-slate-400 font-bold flex items-center gap-0.5">▬</span>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-4">
-                            <img
-                              src={u.avatar}
-                              alt="User Avatar"
-                              className="w-12 h-12 rounded-full object-cover border border-outline-variant/50"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=cbd5e1&color=64748b`;
-                              }}
-                            />
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-text-main group-hover:text-primary transition-colors">{u.name}</span>
+                    {paginatedUsers.map((u) => {
+                      const isCurrentUser = user && (String(u.userId) === String(user.id) || u.name === user.name);
+                      return (
+                        <tr
+                          key={u.name}
+                          className={`hover:bg-surface-gray/50 transition-colors group cursor-pointer ranking-row ${isCurrentUser ? 'current-user-row' : ''}`}
+                          data-name={u.name}
+                        >
+                          <td className="p-4 text-center font-bold text-text-muted group-hover:text-text-main text-lg w-20">
+                            <div className="flex flex-col items-center justify-center">
+                              <span>{u.rank}</span>
+                              <span className="text-[10px] text-slate-400 font-bold flex items-center gap-0.5">▬</span>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-4">
+                              <img
+                                src={u.avatar}
+                                alt="User Avatar"
+                                className="w-12 h-12 rounded-full object-cover border border-outline-variant/50"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=cbd5e1&color=64748b`;
+                                }}
+                              />
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-text-main group-hover:text-primary transition-colors">{u.name}</span>
+                                  {isCurrentUser && (
+                                    <span className="bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.5 rounded text-[10px] font-black uppercase">
+                                      You
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="p-4 text-right pr-8 font-bold text-brand-blue text-lg">
-                          {u.points.toLocaleString()} <span className="text-xs text-text-muted font-normal">pts</span>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="p-4 text-right pr-8 font-bold text-brand-blue text-lg">
+                            {u.points.toLocaleString()} <span className="text-xs text-text-muted font-normal">pts</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
