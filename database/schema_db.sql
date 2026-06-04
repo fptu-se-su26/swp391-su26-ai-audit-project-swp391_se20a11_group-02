@@ -1644,7 +1644,7 @@ CREATE TABLE public.problems (
                                  problem_scope public.problem_scope NOT NULL,
                                  difficulty public.problem_difficulty DEFAULT 'MEDIUM'::public.problem_difficulty,
                                  is_active boolean DEFAULT true NOT NULL,
-                                 created_by_teacher_id integer NOT NULL,
+                                 created_by integer NOT NULL,
                                  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
                                  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
                                  total_testcase integer DEFAULT 0 NOT NULL,
@@ -3223,7 +3223,7 @@ CREATE INDEX idx_problem_testcases_problem_id ON public.problem_testcases USING 
 -- Name: idx_problems_created_by; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX idx_problems_created_by ON public.problems USING btree (created_by_teacher_id);
+CREATE INDEX idx_problems_created_by ON public.problems USING btree (created_by);
 
 
 --
@@ -3576,7 +3576,7 @@ ALTER TABLE ONLY public.payout_requests
 --
 
 ALTER TABLE ONLY public.problems
-    ADD CONSTRAINT fk_problems_instructors FOREIGN KEY (created_by_teacher_id) REFERENCES public.instructors(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_problems_users FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -3937,7 +3937,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 4. Insert Online Judge Problems
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (1, 'Two Sum', 
         '<p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to <code>target</code>.</p><p>You may assume that each input would have <b>exactly one solution</b>, and you may not use the same element twice.</p><p>You can return the answer in any order.</p>',
         '<p>An array of integers <code>nums</code> and an integer <code>target</code>.</p>',
@@ -3961,7 +3961,7 @@ VALUES (1, 'Two Sum',
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (2, 'Add Two Numbers', 
         '<p>You are given two <b>non-empty</b> linked lists representing two non-negative integers. The digits are stored in <b>reverse order</b>, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.</p><p>You may assume the two numbers do not contain any leading zero, except the number 0 itself.</p>',
         '<p>Two linked lists <code>l1</code> and <code>l2</code>.</p>',
@@ -3994,7 +3994,7 @@ VALUES (2, 'Add Two Numbers',
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (3, 'Longest Substring Without Repeating Characters', 
         '<p>Given a string <code>s</code>, find the length of the <b>longest substring</b> without repeating characters.</p>',
         '<p>A string <code>s</code>.</p>',
@@ -4020,7 +4020,7 @@ VALUES (3, 'Longest Substring Without Repeating Characters',
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (4, 'Target Sum Triplet 1', '<p>Solve the classic programming challenge related to <b>Two Pointers</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Two Pointers.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 4', 'Output result example 4', '<p>Think about using Two Pointers concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
         Arrays.sort(nums);
@@ -4049,7 +4049,7 @@ VALUES (4, 'Target Sum Triplet 1', '<p>Solve the classic programming challenge r
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (5, 'Optimal Knapsack Selection 1', '<p>Solve the classic programming challenge related to <b>Dynamic Programming</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Dynamic Programming.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 5', 'Output result example 5', '<p>Think about using Dynamic Programming concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int knapsack(int[] weights, int[] values, int capacity) {
         int n = weights.length;
@@ -4068,7 +4068,7 @@ VALUES (5, 'Optimal Knapsack Selection 1', '<p>Solve the classic programming cha
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (6, 'Min Operations Greedy Path 1', '<p>Solve the classic programming challenge related to <b>Greedy</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Greedy.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 6', 'Output result example 6', '<p>Think about using Greedy concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int minOperations(int[] nums) {
         int operations = 0;
@@ -4084,7 +4084,7 @@ VALUES (6, 'Min Operations Greedy Path 1', '<p>Solve the classic programming cha
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (7, 'Binary Tree Path Max 1', '<p>Solve the classic programming challenge related to <b>Tree</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Tree.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 7', 'Output result example 7', '<p>Think about using Tree concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     private int maxSum = Integer.MIN_VALUE;
     public int maxPathSum(TreeNode root) {
@@ -4102,7 +4102,7 @@ VALUES (7, 'Binary Tree Path Max 1', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (8, 'Shortest Route Cost 1', '<p>Solve the classic programming challenge related to <b>Graph</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Graph.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 8', 'Output result example 8', '<p>Think about using Graph concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int shortestPath(int[][] graph, int src, int dest) {
         int n = graph.length;
@@ -4128,7 +4128,7 @@ VALUES (8, 'Shortest Route Cost 1', '<p>Solve the classic programming challenge 
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (9, 'Merge Sorting Arrays 1', '<p>Solve the classic programming challenge related to <b>Sorting</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Sorting.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 9', 'Output result example 9', '<p>Think about using Sorting concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public void mergeSort(int[] arr, int l, int r) {
         if (l < r) {
@@ -4159,7 +4159,7 @@ VALUES (9, 'Merge Sorting Arrays 1', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (10, 'Range Binary Search 2', '<p>Solve the classic programming challenge related to <b>Binary Search</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Binary Search.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 10', 'Output result example 10', '<p>Think about using Binary Search concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int[] searchRange(int[] nums, int target) {
         int[] result = new int[]{-1, -1};
@@ -4186,7 +4186,7 @@ VALUES (10, 'Range Binary Search 2', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (11, 'Valid Parentheses Nesting 2', '<p>Solve the classic programming challenge related to <b>Stack</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Stack.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 11', 'Output result example 11', '<p>Think about using Stack concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public boolean isValid(String s) {
         Stack<Character> stack = new Stack<>();
@@ -4206,7 +4206,7 @@ VALUES (11, 'Valid Parentheses Nesting 2', '<p>Solve the classic programming cha
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (12, 'Sliding Window Queue 2', '<p>Solve the classic programming challenge related to <b>Queue</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Queue.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 12', 'Output result example 12', '<p>Think about using Queue concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int[] maxSlidingWindow(int[] nums, int k) {
         if (nums == null || nums.length == 0) return new int[0];
@@ -4231,7 +4231,7 @@ VALUES (12, 'Sliding Window Queue 2', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (13, 'Minimum Subarray Sum 2', '<p>Solve the classic programming challenge related to <b>Array</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Array.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 13', 'Output result example 13', '<p>Think about using Array concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int minSubArrayLen(int target, int[] nums) {
         int n = nums.length;
@@ -4249,7 +4249,7 @@ VALUES (13, 'Minimum Subarray Sum 2', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (14, 'Reverse Substring 2', '<p>Solve the classic programming challenge related to <b>String</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of String.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 14', 'Output result example 14', '<p>Think about using String concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public String reverseParentheses(String s) {
         Stack<StringBuilder> stack = new Stack<>();
@@ -4270,7 +4270,7 @@ VALUES (14, 'Reverse Substring 2', '<p>Solve the classic programming challenge r
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (15, 'Anagram Pairs 2', '<p>Solve the classic programming challenge related to <b>Hash Table</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Hash Table.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 15', 'Output result example 15', '<p>Think about using Hash Table concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public List<List<String>> groupAnagrams(String[] strs) {
         if (strs == null || strs.length == 0) return new ArrayList<>();
@@ -4287,7 +4287,7 @@ VALUES (15, 'Anagram Pairs 2', '<p>Solve the classic programming challenge relat
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (16, 'Factorial Prime Factorization 2', '<p>Solve the classic programming challenge related to <b>Math</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Math.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 16', 'Output result example 16', '<p>Think about using Math concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public Map<Integer, Integer> primeFactors(int n) {
         Map<Integer, Integer> factors = new HashMap<>();
@@ -4308,7 +4308,7 @@ VALUES (16, 'Factorial Prime Factorization 2', '<p>Solve the classic programming
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (17, 'Target Sum Triplet 2', '<p>Solve the classic programming challenge related to <b>Two Pointers</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Two Pointers.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 17', 'Output result example 17', '<p>Think about using Two Pointers concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
         Arrays.sort(nums);
@@ -4337,7 +4337,7 @@ VALUES (17, 'Target Sum Triplet 2', '<p>Solve the classic programming challenge 
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (18, 'Optimal Knapsack Selection 2', '<p>Solve the classic programming challenge related to <b>Dynamic Programming</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Dynamic Programming.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 18', 'Output result example 18', '<p>Think about using Dynamic Programming concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int knapsack(int[] weights, int[] values, int capacity) {
         int n = weights.length;
@@ -4356,7 +4356,7 @@ VALUES (18, 'Optimal Knapsack Selection 2', '<p>Solve the classic programming ch
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (19, 'Min Operations Greedy Path 2', '<p>Solve the classic programming challenge related to <b>Greedy</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Greedy.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 19', 'Output result example 19', '<p>Think about using Greedy concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int minOperations(int[] nums) {
         int operations = 0;
@@ -4372,7 +4372,7 @@ VALUES (19, 'Min Operations Greedy Path 2', '<p>Solve the classic programming ch
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (20, 'Binary Tree Path Max 3', '<p>Solve the classic programming challenge related to <b>Tree</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Tree.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 20', 'Output result example 20', '<p>Think about using Tree concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     private int maxSum = Integer.MIN_VALUE;
     public int maxPathSum(TreeNode root) {
@@ -4390,7 +4390,7 @@ VALUES (20, 'Binary Tree Path Max 3', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (21, 'Shortest Route Cost 3', '<p>Solve the classic programming challenge related to <b>Graph</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Graph.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 21', 'Output result example 21', '<p>Think about using Graph concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int shortestPath(int[][] graph, int src, int dest) {
         int n = graph.length;
@@ -4416,7 +4416,7 @@ VALUES (21, 'Shortest Route Cost 3', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (22, 'Merge Sorting Arrays 3', '<p>Solve the classic programming challenge related to <b>Sorting</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Sorting.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 22', 'Output result example 22', '<p>Think about using Sorting concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public void mergeSort(int[] arr, int l, int r) {
         if (l < r) {
@@ -4447,7 +4447,7 @@ VALUES (22, 'Merge Sorting Arrays 3', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (23, 'Range Binary Search 3', '<p>Solve the classic programming challenge related to <b>Binary Search</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Binary Search.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 23', 'Output result example 23', '<p>Think about using Binary Search concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int[] searchRange(int[] nums, int target) {
         int[] result = new int[]{-1, -1};
@@ -4474,7 +4474,7 @@ VALUES (23, 'Range Binary Search 3', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (24, 'Valid Parentheses Nesting 3', '<p>Solve the classic programming challenge related to <b>Stack</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Stack.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 24', 'Output result example 24', '<p>Think about using Stack concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public boolean isValid(String s) {
         Stack<Character> stack = new Stack<>();
@@ -4494,7 +4494,7 @@ VALUES (24, 'Valid Parentheses Nesting 3', '<p>Solve the classic programming cha
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (25, 'Sliding Window Queue 3', '<p>Solve the classic programming challenge related to <b>Queue</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Queue.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 25', 'Output result example 25', '<p>Think about using Queue concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int[] maxSlidingWindow(int[] nums, int k) {
         if (nums == null || nums.length == 0) return new int[0];
@@ -4519,7 +4519,7 @@ VALUES (25, 'Sliding Window Queue 3', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (26, 'Minimum Subarray Sum 3', '<p>Solve the classic programming challenge related to <b>Array</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Array.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 26', 'Output result example 26', '<p>Think about using Array concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int minSubArrayLen(int target, int[] nums) {
         int n = nums.length;
@@ -4537,7 +4537,7 @@ VALUES (26, 'Minimum Subarray Sum 3', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (27, 'Reverse Substring 3', '<p>Solve the classic programming challenge related to <b>String</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of String.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 27', 'Output result example 27', '<p>Think about using String concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public String reverseParentheses(String s) {
         Stack<StringBuilder> stack = new Stack<>();
@@ -4558,7 +4558,7 @@ VALUES (27, 'Reverse Substring 3', '<p>Solve the classic programming challenge r
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (28, 'Anagram Pairs 3', '<p>Solve the classic programming challenge related to <b>Hash Table</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Hash Table.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 28', 'Output result example 28', '<p>Think about using Hash Table concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public List<List<String>> groupAnagrams(String[] strs) {
         if (strs == null || strs.length == 0) return new ArrayList<>();
@@ -4575,7 +4575,7 @@ VALUES (28, 'Anagram Pairs 3', '<p>Solve the classic programming challenge relat
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (29, 'Factorial Prime Factorization 3', '<p>Solve the classic programming challenge related to <b>Math</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Math.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 29', 'Output result example 29', '<p>Think about using Math concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public Map<Integer, Integer> primeFactors(int n) {
         Map<Integer, Integer> factors = new HashMap<>();
@@ -4596,7 +4596,7 @@ VALUES (29, 'Factorial Prime Factorization 3', '<p>Solve the classic programming
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (30, 'Target Sum Triplet 4', '<p>Solve the classic programming challenge related to <b>Two Pointers</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Two Pointers.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 30', 'Output result example 30', '<p>Think about using Two Pointers concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
         Arrays.sort(nums);
@@ -4625,7 +4625,7 @@ VALUES (30, 'Target Sum Triplet 4', '<p>Solve the classic programming challenge 
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (31, 'Optimal Knapsack Selection 4', '<p>Solve the classic programming challenge related to <b>Dynamic Programming</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Dynamic Programming.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 31', 'Output result example 31', '<p>Think about using Dynamic Programming concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int knapsack(int[] weights, int[] values, int capacity) {
         int n = weights.length;
@@ -4644,7 +4644,7 @@ VALUES (31, 'Optimal Knapsack Selection 4', '<p>Solve the classic programming ch
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (32, 'Min Operations Greedy Path 4', '<p>Solve the classic programming challenge related to <b>Greedy</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Greedy.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 32', 'Output result example 32', '<p>Think about using Greedy concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int minOperations(int[] nums) {
         int operations = 0;
@@ -4660,7 +4660,7 @@ VALUES (32, 'Min Operations Greedy Path 4', '<p>Solve the classic programming ch
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (33, 'Binary Tree Path Max 4', '<p>Solve the classic programming challenge related to <b>Tree</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Tree.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 33', 'Output result example 33', '<p>Think about using Tree concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     private int maxSum = Integer.MIN_VALUE;
     public int maxPathSum(TreeNode root) {
@@ -4678,7 +4678,7 @@ VALUES (33, 'Binary Tree Path Max 4', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (34, 'Shortest Route Cost 4', '<p>Solve the classic programming challenge related to <b>Graph</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Graph.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 34', 'Output result example 34', '<p>Think about using Graph concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int shortestPath(int[][] graph, int src, int dest) {
         int n = graph.length;
@@ -4704,7 +4704,7 @@ VALUES (34, 'Shortest Route Cost 4', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (35, 'Merge Sorting Arrays 4', '<p>Solve the classic programming challenge related to <b>Sorting</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Sorting.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 35', 'Output result example 35', '<p>Think about using Sorting concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public void mergeSort(int[] arr, int l, int r) {
         if (l < r) {
@@ -4735,7 +4735,7 @@ VALUES (35, 'Merge Sorting Arrays 4', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (36, 'Range Binary Search 4', '<p>Solve the classic programming challenge related to <b>Binary Search</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Binary Search.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 36', 'Output result example 36', '<p>Think about using Binary Search concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int[] searchRange(int[] nums, int target) {
         int[] result = new int[]{-1, -1};
@@ -4762,7 +4762,7 @@ VALUES (36, 'Range Binary Search 4', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (37, 'Valid Parentheses Nesting 4', '<p>Solve the classic programming challenge related to <b>Stack</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Stack.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 37', 'Output result example 37', '<p>Think about using Stack concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public boolean isValid(String s) {
         Stack<Character> stack = new Stack<>();
@@ -4782,7 +4782,7 @@ VALUES (37, 'Valid Parentheses Nesting 4', '<p>Solve the classic programming cha
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (38, 'Sliding Window Queue 4', '<p>Solve the classic programming challenge related to <b>Queue</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Queue.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 38', 'Output result example 38', '<p>Think about using Queue concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int[] maxSlidingWindow(int[] nums, int k) {
         if (nums == null || nums.length == 0) return new int[0];
@@ -4807,7 +4807,7 @@ VALUES (38, 'Sliding Window Queue 4', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (39, 'Minimum Subarray Sum 4', '<p>Solve the classic programming challenge related to <b>Array</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Array.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 39', 'Output result example 39', '<p>Think about using Array concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int minSubArrayLen(int target, int[] nums) {
         int n = nums.length;
@@ -4825,7 +4825,7 @@ VALUES (39, 'Minimum Subarray Sum 4', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (40, 'Reverse Substring 5', '<p>Solve the classic programming challenge related to <b>String</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of String.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 40', 'Output result example 40', '<p>Think about using String concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public String reverseParentheses(String s) {
         Stack<StringBuilder> stack = new Stack<>();
@@ -4846,7 +4846,7 @@ VALUES (40, 'Reverse Substring 5', '<p>Solve the classic programming challenge r
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (41, 'Anagram Pairs 5', '<p>Solve the classic programming challenge related to <b>Hash Table</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Hash Table.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 41', 'Output result example 41', '<p>Think about using Hash Table concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public List<List<String>> groupAnagrams(String[] strs) {
         if (strs == null || strs.length == 0) return new ArrayList<>();
@@ -4863,7 +4863,7 @@ VALUES (41, 'Anagram Pairs 5', '<p>Solve the classic programming challenge relat
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (42, 'Factorial Prime Factorization 5', '<p>Solve the classic programming challenge related to <b>Math</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Math.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 42', 'Output result example 42', '<p>Think about using Math concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public Map<Integer, Integer> primeFactors(int n) {
         Map<Integer, Integer> factors = new HashMap<>();
@@ -4884,7 +4884,7 @@ VALUES (42, 'Factorial Prime Factorization 5', '<p>Solve the classic programming
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (43, 'Target Sum Triplet 5', '<p>Solve the classic programming challenge related to <b>Two Pointers</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Two Pointers.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 43', 'Output result example 43', '<p>Think about using Two Pointers concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
         Arrays.sort(nums);
@@ -4913,7 +4913,7 @@ VALUES (43, 'Target Sum Triplet 5', '<p>Solve the classic programming challenge 
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (44, 'Optimal Knapsack Selection 5', '<p>Solve the classic programming challenge related to <b>Dynamic Programming</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Dynamic Programming.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 44', 'Output result example 44', '<p>Think about using Dynamic Programming concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int knapsack(int[] weights, int[] values, int capacity) {
         int n = weights.length;
@@ -4932,7 +4932,7 @@ VALUES (44, 'Optimal Knapsack Selection 5', '<p>Solve the classic programming ch
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (45, 'Min Operations Greedy Path 5', '<p>Solve the classic programming challenge related to <b>Greedy</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Greedy.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 45', 'Output result example 45', '<p>Think about using Greedy concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int minOperations(int[] nums) {
         int operations = 0;
@@ -4948,7 +4948,7 @@ VALUES (45, 'Min Operations Greedy Path 5', '<p>Solve the classic programming ch
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (46, 'Binary Tree Path Max 5', '<p>Solve the classic programming challenge related to <b>Tree</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Tree.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 46', 'Output result example 46', '<p>Think about using Tree concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     private int maxSum = Integer.MIN_VALUE;
     public int maxPathSum(TreeNode root) {
@@ -4966,7 +4966,7 @@ VALUES (46, 'Binary Tree Path Max 5', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (47, 'Shortest Route Cost 5', '<p>Solve the classic programming challenge related to <b>Graph</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Graph.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 47', 'Output result example 47', '<p>Think about using Graph concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int shortestPath(int[][] graph, int src, int dest) {
         int n = graph.length;
@@ -4992,7 +4992,7 @@ VALUES (47, 'Shortest Route Cost 5', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (48, 'Merge Sorting Arrays 5', '<p>Solve the classic programming challenge related to <b>Sorting</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Sorting.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 48', 'Output result example 48', '<p>Think about using Sorting concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public void mergeSort(int[] arr, int l, int r) {
         if (l < r) {
@@ -5023,7 +5023,7 @@ VALUES (48, 'Merge Sorting Arrays 5', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (49, 'Range Binary Search 5', '<p>Solve the classic programming challenge related to <b>Binary Search</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Binary Search.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 49', 'Output result example 49', '<p>Think about using Binary Search concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int[] searchRange(int[] nums, int target) {
         int[] result = new int[]{-1, -1};
@@ -5050,7 +5050,7 @@ VALUES (49, 'Range Binary Search 5', '<p>Solve the classic programming challenge
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (50, 'Valid Parentheses Nesting 6', '<p>Solve the classic programming challenge related to <b>Stack</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Stack.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 50', 'Output result example 50', '<p>Think about using Stack concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public boolean isValid(String s) {
         Stack<Character> stack = new Stack<>();
@@ -5070,7 +5070,7 @@ VALUES (50, 'Valid Parentheses Nesting 6', '<p>Solve the classic programming cha
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (51, 'Sliding Window Queue 6', '<p>Solve the classic programming challenge related to <b>Queue</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Queue.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 51', 'Output result example 51', '<p>Think about using Queue concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int[] maxSlidingWindow(int[] nums, int k) {
         if (nums == null || nums.length == 0) return new int[0];
@@ -5095,7 +5095,7 @@ VALUES (51, 'Sliding Window Queue 6', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (52, 'Minimum Subarray Sum 6', '<p>Solve the classic programming challenge related to <b>Array</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Array.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 52', 'Output result example 52', '<p>Think about using Array concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public int minSubArrayLen(int target, int[] nums) {
         int n = nums.length;
@@ -5113,7 +5113,7 @@ VALUES (52, 'Minimum Subarray Sum 6', '<p>Solve the classic programming challeng
 }')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by_teacher_id, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
 VALUES (53, 'Reverse Substring 6', '<p>Solve the classic programming challenge related to <b>String</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of String.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 53', 'Output result example 53', '<p>Think about using String concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
     public String reverseParentheses(String s) {
         Stack<StringBuilder> stack = new Stack<>();
