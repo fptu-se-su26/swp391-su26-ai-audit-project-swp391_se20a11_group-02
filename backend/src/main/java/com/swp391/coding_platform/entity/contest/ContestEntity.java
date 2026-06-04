@@ -67,4 +67,5 @@ public class ContestEntity {
 
     @Column(name = "fts_document", columnDefinition = "tsvector", insertable = false, updatable = false)
     String ftsDocument;
+
 }
