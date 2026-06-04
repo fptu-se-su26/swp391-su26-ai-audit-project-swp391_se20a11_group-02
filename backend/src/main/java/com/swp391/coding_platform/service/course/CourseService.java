@@ -2,17 +2,27 @@ package com.swp391.coding_platform.service.course;
 
 import com.swp391.coding_platform.dto.request.CourseSearchRequest;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
+import com.swp391.coding_platform.dto.response.CourseDetailResponse;
+import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
+import com.swp391.coding_platform.exception.AppException;
+import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
 import com.swp391.coding_platform.entity.course.CourseEntity;
+import com.swp391.coding_platform.entity.course.ChapterEntity;
 import com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity;
 import com.swp391.coding_platform.entity.enums.EnrollmentStatus;
 import com.swp391.coding_platform.repository.course.CourseRepository;
+import com.swp391.coding_platform.repository.course.ChapterRepository;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
 import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
 import com.swp391.coding_platform.repository.progress.LessonProgressRepository;
+import com.swp391.coding_platform.repository.course.CourseReviewRepository;
 import com.swp391.coding_platform.repository.specification.CourseSpecification;
 import com.swp391.coding_platform.util.ProgressUtils;
+import com.swp391.coding_platform.dto.response.CourseReviewDto;
+import com.swp391.coding_platform.dto.response.CourseReviewStatsResponse;
+import com.swp391.coding_platform.entity.course.CourseReviewEntity;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,6 +45,8 @@ public class CourseService {
     CompletedLessonCountRepository completedLessonCountRepository;
     LessonProgressRepository lessonProgressRepository;
     EnrollmentRepository enrollmentRepository;
+    ChapterRepository chapterRepository;
+    CourseReviewRepository courseReviewRepository;
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
@@ -122,5 +134,70 @@ public class CourseService {
         return completedLessonsCountEntity != null ? completedLessonsCountEntity.getCompletedLessonsCount() : 0;
     }
 
+    public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
+        CourseEntity courseEntity = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
+        CourseDetailResponse response = courseMapper.toCourseDetailResponse(courseEntity);
+
+        if (userId != null) {
+            boolean isEnrolled = isEnrollCourseById(courseId, userId);
+            response.setEnrolled(isEnrolled);
+
+            if (isEnrolled) {
+                int completeLessons = getCompleteLessons(courseId, userId);
+                int totalLesson = courseEntity.getTotalLessons() != null ? courseEntity.getTotalLessons() : 0;
+                response.setProgressPercentage(ProgressUtils.calculatePercentage(completeLessons, totalLesson));
+            } else {
+                response.setProgressPercentage(0);
+            }
+        } else {
+            response.setEnrolled(false);
+            response.setProgressPercentage(0);
+        }
+
+        return response;
+    }
+
+    public List<CurriculumChapterResponse> getCourseCurriculum(Long courseId) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
+        List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+
+        return chapters.stream()
+                .map(courseMapper::toCurriculumChapterResponse)
+                .collect(Collectors.toList());
+    }
+
+    public CourseReviewStatsResponse getCourseReviews(Long courseId, Pageable pageable) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
+        CourseEntity course = courseRepository.findById(courseId).orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        Page<CourseReviewEntity> reviewPage = courseReviewRepository.findByCourseIdOrderByCreatedAtDesc(courseId, pageable);
+        Page<CourseReviewDto> reviewDtoPage = reviewPage.map(courseMapper::toCourseReviewDto);
+
+        List<Object[]> starCounts = courseReviewRepository.countStarsByCourseId(courseId);
+        Map<Integer, Long> starDistribution = new HashMap<>();
+        // Initialize all stars with 0
+        for (int i = 1; i <= 5; i++) {
+            starDistribution.put(i, 0L);
+        }
+        for (Object[] row : starCounts) {
+            Integer star = (Integer) row[0];
+            Long count = ((Number) row[1]).longValue();
+            starDistribution.put(star, count);
+        }
+
+        return CourseReviewStatsResponse.builder()
+                .averageRating(course.getAverageRating())
+                .totalReviews(course.getTotalReviews())
+                .starDistribution(starDistribution)
+                .reviews(PageResponse.from(reviewDtoPage))
+                .build();
+    }
 }

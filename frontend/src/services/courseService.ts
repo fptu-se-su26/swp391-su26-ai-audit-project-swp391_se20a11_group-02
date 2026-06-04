@@ -677,3 +677,122 @@ export const fetchCourses = async (params: CourseSearchRequestParams): Promise<P
   const data: ApiResponse<PageResponse<CourseListItemResponse>> = await response.json();
   return data.result;
 };
+
+export interface CourseDetailResponse {
+  id: number;
+  title: string;
+  thumbnailUrl: string;
+  shortDescription: string;
+  longDescription: string;
+  whatYouLearn?: string;
+  courseHighlight?: string;
+  technologyTool?: string;
+  prerequisites?: string;
+  targetAudience?: string;
+  completionBenefits?: string;
+  price: number;
+  averageRating: number;
+  totalReviews: number;
+  totalEnrolled: number;
+  totalLessons: number;
+  totalQuizzes: number;
+  totalVideos: number;
+  enrolled: boolean;
+  progressPercentage: number;
+  instructorName: string;
+  instructorTitle?: string;
+  instructorBio?: string;
+  instructorAvatarUrl?: string;
+  categoryName?: string;
+  type?: string;
+}
+
+export const fetchCourseDetail = async (id: number | string): Promise<CourseDetailResponse> => {
+  const response = await fetch(`${BASE_URL}/courses/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải chi tiết khóa học');
+  }
+
+  const data: ApiResponse<CourseDetailResponse> = await response.json();
+  return data.result;
+};
+
+export interface CurriculumLessonResponse {
+  id: number;
+  title: string;
+  isTrial: boolean;
+  orderIndex: number;
+  videoUrl?: string;
+  type: 'video' | 'coding' | 'reading';
+}
+
+export interface CurriculumChapterResponse {
+  id: number;
+  title: string;
+  orderIndex: number;
+  lessons: CurriculumLessonResponse[];
+}
+
+export const fetchCourseCurriculum = async (id: number | string): Promise<CurriculumChapterResponse[]> => {
+  const response = await fetch(`${BASE_URL}/courses/${id}/curriculum`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải chương trình học');
+  }
+
+  const data: ApiResponse<CurriculumChapterResponse[]> = await response.json();
+  return data.result;
+};
+
+export interface CourseReviewDto {
+  id: number;
+  content: string;
+  star: number;
+  displayName: string;
+  avatarUrl?: string;
+  createdAt: string;
+}
+
+export interface CourseReviewStatsResponse {
+  averageRating: number;
+  totalReviews: number;
+  starDistribution: Record<number, number>;
+  reviews: PageResponse<CourseReviewDto>;
+}
+
+export const fetchCourseReviews = async (id: number | string, page: number = 0, size: number = 10): Promise<CourseReviewStatsResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('page', page.toString());
+  queryParams.append('size', size.toString());
+
+  const response = await fetch(`${BASE_URL}/courses/${id}/reviews?${queryParams.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải đánh giá khóa học');
+  }
+
+  const data: ApiResponse<CourseReviewStatsResponse> = await response.json();
+  return data.result;
+};
