@@ -4,8 +4,8 @@ import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.DashboardStatsResponse;
 import com.swp391.coding_platform.dto.response.UserActivityResponse;
+import com.swp391.coding_platform.dto.response.ProblemSubmissionResponse;
 import com.swp391.coding_platform.service.user.DashboardService;
-import com.swp391.coding_platform.service.user.UserActivityService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -26,7 +26,6 @@ import java.util.List;
 public class DashboardController {
 
     DashboardService dashboardService;
-    UserActivityService userActivityService;
 
     @GetMapping("/dashboard-stats")
     public ResponseEntity<ApiResponse<DashboardStatsResponse>> getDashboardStats(@AuthenticationPrincipal Jwt jwt) {
@@ -58,7 +57,7 @@ public class DashboardController {
             if (idClaim != null) userId = idClaim.intValue();
         }
 
-        UserActivityResponse result = userActivityService.getUserActivitiesByYear(userId, year);
+        UserActivityResponse result = dashboardService.getUserActivitiesByYear(userId, year);
 
         return ResponseEntity.ok(ApiResponse.<UserActivityResponse>builder()
                 .status(200)
@@ -85,6 +84,27 @@ public class DashboardController {
                 .status(200)
                 .code(1000)
                 .message("Get enrolled courses successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/done-problems")
+    public ResponseEntity<ApiResponse<List<ProblemSubmissionResponse>>> getDoneProblems(
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Integer userId = null;
+        if(jwt != null){
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) userId = idClaim.intValue();
+        }
+
+        List<ProblemSubmissionResponse> result = dashboardService.getDoneProblems(userId);
+
+        return ResponseEntity.ok(ApiResponse.<List<ProblemSubmissionResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Get done problems successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());

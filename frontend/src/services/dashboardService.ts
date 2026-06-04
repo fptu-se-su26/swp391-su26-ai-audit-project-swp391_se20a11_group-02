@@ -32,6 +32,17 @@ export interface CourseListItemResponse {
     instructorName: string;
 }
 
+export interface ProblemSubmissionResponse {
+    problemId: number;
+    problemTitle: string;
+    status: string;
+    lang: string;
+    runtime: string;
+    memory: string;
+    time: string;
+    statusClass: string;
+}
+
 export const dashboardService = {
   async getDashboardStats(): Promise<DashboardStatsResponse> {
     const response = await fetch(`${BASE_URL}/me/dashboard-stats`, {
@@ -79,6 +90,23 @@ export const dashboardService = {
     
     if (!response.ok) {
       throw new Error('Failed to fetch enrolled courses');
+    }
+    
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getDoneProblems(): Promise<ProblemSubmissionResponse[]> {
+    const response = await fetch(`${BASE_URL}/me/done-problems`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch done problems');
     }
     
     const data = await response.json();

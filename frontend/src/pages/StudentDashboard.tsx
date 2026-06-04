@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse } from '../services/dashboardService';
+import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type ProblemSubmissionResponse } from '../services/dashboardService';
+import { problemService, type ProblemListItem } from '../services/problemService';
 
 // Mock datasets exactly as they are in the HTML
 const initialMyCourses = [
@@ -103,12 +104,7 @@ const initialMyCourses = [
   }
 ];
 
-const suggestedProblems = [
-  { id: '2', title: '2. Add Two Numbers', tags: ['Linked List', 'Math'], difficulty: 'Medium', score: 20, acceptance: '43.2%', total: '8,342,912' },
-  { id: '4', title: '4. Median of Two Sorted Arrays', tags: ['Array', 'Binary Search'], difficulty: 'Hard', score: 30, acceptance: '40.5%', total: '3,542,109' },
-  { id: '7', title: '7. Reverse Integer', tags: ['Math'], difficulty: 'Medium', score: 20, acceptance: '28.4%', total: '6,342,110' },
-  { id: '8', title: '8. String to Integer (atoi)', tags: ['String'], difficulty: 'Medium', score: 20, acceptance: '17.2%', total: '4,551,932' }
-];
+
 
 const participatedContests = [
   { name: 'Weekly Algorithm Sprint #45', date: 'Oct 24, 2026', rank: '124 / 2450', score: '350 pts' },
@@ -189,12 +185,7 @@ const contestHistoryData = [
   }
 ];
 
-const suggestedCourses = [
-  { title: 'Web Development Bootcamp 2024', author: 'Tim Berners-Lee', price: '$29.99', thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBJyORKWLp748TXseYyDhN53kvX6pZ4KFcscGLQ7cUxMIn7tMLeYeeOMPkwRBYN-DtN_I-uagbYLxNqiPVzeeRSHN_eEpbOKKCuipy6kriMB5t_3x17QVJWb9Vtud7BfdexPZ7C1Lr3hBjWiLj7uPb3xeWiSiWQVa9eSiawc4i9NDjvBttSrqSqFMZYnShy86b3VS-BDUs3zdMFUNviGGwyXK_YoQtPna6HDktIc31wWKH597aPjX_fAB2iQQLZ_dmqzevaMhf4YSA' },
-  { title: 'Agile Methodologies & Team Collaboration', author: 'Margaret Hamilton', price: '$45.00', thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDdvixWa0Ipwk8rpkKX9qeh70ObUfCXLKvpj-YiwNray1_KAAFszoBui24Ha5IX5zIpJViO099pDhWAxT3dKXpJdRmfuy4ZW6iQN8BLm3frArTM5XU7TUWvyOCkvSGLA9AfugrWrTIyT17MWXQcti61jfHeYi_WDq9GzmiekKYQP1qNFPWTGo6eeaAUGx9CSffdxfhGqEwBshZz4CW0PiHg8Qf1eQI8hvcRX48BR59xCF--PVVN2CKbczyFRlaxcKcCsd-994gWFnc' },
-  { title: 'Advanced Database Design', author: 'E.F. Codd', price: '$35.00', thumbnail: 'https://images.unsplash.com/photo-1587620962725-abab7fe55159?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60' },
-  { title: 'Intro to Machine Learning', author: 'Andrew Ng', price: '$55.00', thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgy50UMGsrfiNlaMOGS5hIFfEB9ALLj2hHwL19FjiPxHtPdmdzDshyKCd9cxUE55L1IPGibJJ8XxYWvIOtq6nCmPgaCFoPxxlN64_OwyPrZocxC4bEzFtpL_km1YmpuA-CN4fUVjD5gO2NI7mdCoim7_CAT7njSdYphWceJpEIiRp5PAaZrqeglhZ4z73HAhMVJI5rSTTAUK3BmjBzHCR2ivCNvmKAvTRSv0bZDvGjfSB2GENwq1duU8S0jsS3Bgtxt-P5YEUi6M8' }
-];
+
 
 const initialExercises = [
   { name: 'Two Sum', difficulty: 'Easy', difficultyClass: 'bg-green-50 text-brand-green border border-green-150', submissions: '1,245', completed: true },
@@ -344,6 +335,9 @@ export const StudentDashboard: React.FC = () => {
   const [myCourses, setMyCourses] = useState<CourseListItemResponse[]>([]);
   const [myCoursesFilter, setMyCoursesFilter] = useState<'all' | 'ongoing' | 'completed'>('all');
 
+  // Completed Practice Problems states
+  const [completedProblems, setCompletedProblems] = useState<ProblemSubmissionResponse[]>([]);
+
   // Contest History tab states
   const [contestFilter, setContestFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'ended'>('all');
 
@@ -418,6 +412,17 @@ export const StudentDashboard: React.FC = () => {
     if (user && (activeTab === 'dashboard' || activeTab === 'my-courses')) {
       dashboardService.getEnrolledCourses()
         .then(setMyCourses)
+        .catch(console.error);
+    }
+  }, [user, activeTab]);
+
+  // Fetch Completed Practice Problems
+  useEffect(() => {
+    if (user && activeTab === 'dashboard') {
+      dashboardService.getDoneProblems()
+        .then(data => {
+          setCompletedProblems(data);
+        })
         .catch(console.error);
     }
   }, [user, activeTab]);
@@ -1047,39 +1052,12 @@ export const StudentDashboard: React.FC = () => {
               </div>
             </section>
 
-            {/* Suggested Courses */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">explore</span>
-                  Suggested for You
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {suggestedCourses.map((c, idx) => (
-                  <article key={idx} className="bg-surface rounded-xl overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer group">
-                    <div className="h-[140px] bg-brand-blue relative overflow-hidden flex items-center justify-center">
-                      <img src={c.thumbnail} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-bold text-text-main text-base line-clamp-2 mb-1 group-hover:text-primary transition-colors">{c.title}</h3>
-                      <p className="text-sm text-text-muted mb-4">{c.author}</p>
-                      <div className="mt-auto flex items-end justify-between">
-                        <span className="font-bold text-primary text-lg">{c.price}</span>
-                        <button className="bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-md hover:bg-primary-hover transition-colors">Enroll</button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            {/* Suggested Practice Problems */}
+            {/* Completed Practice Problems */}
             <section className="pb-10 flex flex-col gap-6 w-full">
               <div className="flex justify-between items-center border-b border-gray-200 pb-2">
                 <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">code</span>
-                  Suggested Practice Problems
+                  Completed Practice Problems
                 </h2>
                 <Link className="text-sm font-semibold text-primary hover:text-primary-hover transition-colors flex items-center gap-1" to="/problems">
                   View All <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -1090,36 +1068,46 @@ export const StudentDashboard: React.FC = () => {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-surface-gray border-b border-gray-100 text-text-muted font-bold text-sm uppercase tracking-wider">
-                        <th className="p-4 pl-6 font-semibold min-w-[300px]">Title</th>
-                        <th className="p-4 font-semibold w-32">Difficulty</th>
-                        <th className="p-4 font-semibold w-24 text-right">Score</th>
-                        <th className="p-4 font-semibold w-32 text-right">Acceptance</th>
-                        <th className="p-4 font-semibold w-40 text-right pr-6">Total</th>
+                        <th className="p-4 pl-6 font-semibold w-16 text-center">Status</th>
+                        <th className="p-4 font-semibold w-[40%]">Title</th>
+                        <th className="p-4 font-semibold w-[12%]">Language</th>
+                        <th className="p-4 font-semibold w-[10%] text-right">Runtime</th>
+                        <th className="p-4 font-semibold w-[10%] text-right">Memory</th>
+                        <th className="p-4 font-semibold w-[20%] text-right pr-6">Submitted At</th>
                       </tr>
                     </thead>
                     <tbody className="text-sm font-medium text-text-main divide-y divide-gray-100">
-                      {suggestedProblems.map((p, idx) => (
-                        <tr key={idx} className="hover:bg-surface-gray/50 transition-colors group cursor-pointer" onClick={() => navigate(`/problems/${p.id}`)}>
-                          <td className="p-4 pl-6">
-                            <span className="font-bold text-text-main group-hover:text-primary transition-colors text-base">{p.title}</span>
-                            <div className="text-xs text-text-muted mt-1 flex gap-2">
-                              {p.tags.map((t, tIdx) => (
-                                <span key={tIdx} className="bg-surface-gray px-1.5 py-0.5 rounded text-text-muted border border-gray-200">{t}</span>
-                              ))}
-                            </div>
+                      {completedProblems.map((p, index) => (
+                        <tr key={index} className="hover:bg-surface-gray/50 transition-colors group cursor-pointer" onClick={() => navigate(`/problems/${p.problemId}`)}>
+                          <td className="p-4 pl-6 text-center">
+                            {p.status === 'Accepted' ? (
+                              <span className="material-symbols-outlined text-[20px] text-brand-green" title={p.status}>
+                                check_circle
+                              </span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[20px] text-red-600" title={p.status}>
+                                cancel
+                              </span>
+                            )}
                           </td>
                           <td className="p-4">
-                            <span className={`font-bold px-2 py-1 rounded ${
-                              p.difficulty === 'Hard' ? 'text-red-600 bg-red-50' : 'text-orange-500 bg-orange-50'
-                            }`}>
-                              {p.difficulty}
-                            </span>
+                            <span className="font-bold text-text-main group-hover:text-primary transition-colors text-base">{p.problemId}. {p.problemTitle}</span>
                           </td>
-                          <td className="p-4 text-right font-mono text-sm">{p.score}</td>
-                          <td className="p-4 text-right">{p.acceptance}</td>
-                          <td className="p-4 text-right pr-6 font-mono text-sm">{p.total}</td>
+                          <td className="p-4">
+                            <span className="font-medium text-text-muted">{p.lang}</span>
+                          </td>
+                          <td className="p-4 text-right font-mono text-sm">{p.runtime}</td>
+                          <td className="p-4 text-right font-mono text-sm">{p.memory}</td>
+                          <td className="p-4 text-right pr-6 font-mono text-sm text-text-muted">{p.time}</td>
                         </tr>
                       ))}
+                      {completedProblems.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-text-muted">
+                            You haven't completed any problems yet. Start practicing now!
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
