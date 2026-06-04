@@ -73,7 +73,7 @@ export const Contests: React.FC = () => {
     };
 
     const delayDebounceFn = setTimeout(() => {
-      fetchContests();
+      void fetchContests();
     }, 400);
 
     return () => clearTimeout(delayDebounceFn);
@@ -107,7 +107,10 @@ export const Contests: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
-    fetchBannerAndStats();
+    const timer = setTimeout(() => {
+      void fetchBannerAndStats();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchBannerAndStats]);
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -183,35 +186,6 @@ export const Contests: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContestTitle, setModalContestTitle] = useState('');
   const [modalTicketId, setModalTicketId] = useState('');
-
-  const handleBannerRegister = async (contestId: number, contestTitle: string) => {
-    if (!user) {
-      alert("Please log in to register for the contest.");
-      return;
-    }
-    try {
-      const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contestId}/register`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setModalContestTitle(contestTitle);
-        const randomNum = Math.floor(1000 + Math.random() * 9000);
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const randomChar = chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
-        setModalTicketId(`NS-${randomNum}-${randomChar}`);
-        setIsModalOpen(true);
-
-        // Re-fetch banner and stats to reflect registered state
-        fetchBannerAndStats();
-      } else {
-        alert(data.message || "Failed to register for the contest.");
-      }
-    } catch (error) {
-      console.error("Error registering for contest:", error);
-    }
-  };
 
   // Image fallback handler
   const handleAvatarError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -324,68 +298,66 @@ export const Contests: React.FC = () => {
         </div>
 
         {/* Countdown & Action Box */}
-        <div className="relative z-10 w-full lg:w-96 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 flex flex-col gap-5 items-center text-center shadow-2xl">
-          <div className="w-full">
-            <h4 className="text-[10px] font-bold text-primary-light uppercase tracking-wider mb-3">
-              {timeLeft.isLive ? 'Contest is Live' : 'Clash Begins In'}
-            </h4>
-            {/* Countdown Clock */}
-            {timeLeft.isLive ? (
-              <span className="text-brand-green font-bold text-xl uppercase tracking-widest flex items-center justify-center gap-1.5 animate-pulse">
-                <span className="w-2.5 h-2.5 rounded-full bg-brand-green"></span> Contest is LIVE!
-              </span>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <div className="flex flex-col items-center bg-brand-blue/60 border border-white/10 rounded-xl p-2.5 min-w-[64px]">
-                  <span className="text-2xl font-black font-display text-white">{timeLeft.days}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Days</span>
-                </div>
-                <span className="text-xl font-bold text-primary/80 animate-pulse">:</span>
-                <div className="flex flex-col items-center bg-brand-blue/60 border border-white/10 rounded-xl p-2.5 min-w-[64px]">
-                  <span className="text-2xl font-black font-display text-white">{timeLeft.hours}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Hours</span>
-                </div>
-                <span className="text-xl font-bold text-primary/80 animate-pulse">:</span>
-                <div className="flex flex-col items-center bg-brand-blue/60 border border-white/10 rounded-xl p-2.5 min-w-[64px]">
-                  <span className="text-2xl font-black font-display text-white">{timeLeft.mins}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Mins</span>
-                </div>
-                <span className="text-xl font-bold text-primary/80 animate-pulse">:</span>
-                <div className="flex flex-col items-center bg-brand-blue/60 border border-white/10 rounded-xl p-2.5 min-w-[64px]">
-                  <span className="text-2xl font-black font-display text-primary">{timeLeft.secs}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Secs</span>
-                </div>
-              </div>
-            )}
+        <div className="relative z-10 w-full lg:w-96 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 flex flex-col gap-5 justify-center items-center text-center shadow-2xl">
+          {/* 1. Registration Competitors Count */}
+          <div className="w-full flex justify-center items-center text-sm font-semibold text-white/70">
+            <span className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[18px]">groups</span>
+              <span>{(bannerContest?.participantCount || 0).toLocaleString()} Competitors Joined</span>
+            </span>
           </div>
 
-          {/* Registration Competitors Count */}
-          <div className="w-full flex flex-col gap-2">
-            <div className="flex justify-center items-center text-xs font-semibold text-white/70">
-              <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px]">groups</span>
-                <span>{(bannerContest?.participantCount || 0).toLocaleString()} Competitors Joined</span>
-              </span>
+          {/* 2. Countdown Clock or Live Indicator */}
+          {bannerContest && (
+            <div className="w-full flex flex-col items-center gap-3">
+              <h4 className="text-xs md:text-sm font-extrabold text-white/80 uppercase tracking-widest">
+                {timeLeft.isLive ? 'Contest is Live' : 'Contest Begin In'}
+              </h4>
+              {timeLeft.isLive ? (
+                <span className="text-brand-green font-bold text-lg uppercase tracking-widest flex items-center justify-center gap-1.5 animate-pulse">
+                  <span className="w-2.5 h-2.5 rounded-full bg-brand-green"></span> Contest is LIVE!
+                </span>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  {/* Days */}
+                  <div className="flex flex-col items-center justify-center bg-[#12284C] border border-white/10 rounded-2xl w-16 h-20 shadow-md">
+                    <span className="text-2xl md:text-3xl font-extrabold font-display text-white">{timeLeft.days}</span>
+                    <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold mt-1">Days</span>
+                  </div>
+                  <span className="text-xl font-bold text-white/30 animate-pulse">:</span>
+                  
+                  {/* Hours */}
+                  <div className="flex flex-col items-center justify-center bg-[#12284C] border border-white/10 rounded-2xl w-16 h-20 shadow-md">
+                    <span className="text-2xl md:text-3xl font-extrabold font-display text-white">{timeLeft.hours}</span>
+                    <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold mt-1">Hours</span>
+                  </div>
+                  <span className="text-xl font-bold text-white/30 animate-pulse">:</span>
+                  
+                  {/* Mins */}
+                  <div className="flex flex-col items-center justify-center bg-[#12284C] border border-white/10 rounded-2xl w-16 h-20 shadow-md">
+                    <span className="text-2xl md:text-3xl font-extrabold font-display text-white">{timeLeft.mins}</span>
+                    <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold mt-1">Mins</span>
+                  </div>
+                  <span className="text-xl font-bold text-white/30 animate-pulse">:</span>
+                  
+                  {/* Secs */}
+                  <div className="flex flex-col items-center justify-center bg-[#12284C] border border-white/10 rounded-2xl w-16 h-20 shadow-md">
+                    <span className="text-2xl md:text-3xl font-extrabold font-display text-[#f36f21]">{timeLeft.secs}</span>
+                    <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold mt-1">Secs</span>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* Action Button */}
+          {/* 3. Action Button: Enter Arena Now */}
           {bannerContest ? (
-            bannerContest.isUserRegistered ? (
-              <button 
-                disabled 
-                className="w-full py-4 px-6 rounded-xl bg-brand-green text-white font-extrabold text-base transition-all shadow-lg flex items-center justify-center gap-2"
-              >
-                Registered ✔
-              </button>
-            ) : (
-              <button 
-                onClick={() => handleBannerRegister(bannerContest.id, bannerContest.title)} 
-                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-primary to-orange-500 hover:from-primary-hover hover:to-orange-600 text-white font-extrabold text-base transition-all transform hover:-translate-y-0.5 active:translate-y-0 shadow-lg pulse-glow-orange flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined font-bold">how_to_reg</span> Register For Free
-              </button>
-            )
+            <Link 
+              to={`/contests/${bannerContest.id}`} 
+              className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-brand-green to-green-600 hover:from-green-600 hover:to-green-700 text-white font-extrabold text-base transition-all transform hover:-translate-y-0.5 active:translate-y-0 shadow-lg pulse-glow-green flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined font-bold">login</span> Enter Arena Now
+            </Link>
           ) : (
             <button 
               disabled

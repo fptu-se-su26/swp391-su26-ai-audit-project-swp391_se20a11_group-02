@@ -43,6 +43,6 @@ public interface ContestRepository extends JpaRepository<ContestEntity, Integer>
     @Query("SELECT c FROM ContestEntity c WHERE c.status = :status ORDER BY c.startTime DESC")
     Page<ContestEntity> findOngoingContests(@Param("status") ContestStatus status, Pageable pageable);
 
-    @Query("SELECT c FROM ContestEntity c WHERE c.status = :status ORDER BY c.startTime ASC")
+    @Query("SELECT c FROM ContestEntity c WHERE c.status = :status AND c.startTime > CURRENT_TIMESTAMP ORDER BY c.startTime ASC")
     Page<ContestEntity> findUpcomingContests(@Param("status") ContestStatus status, Pageable pageable);
 }
