@@ -27,4 +27,7 @@ public class ProblemDescriptionResponse {
     String status;
     String acceptance;
     Integer totalSolved;
+    
+    @com.fasterxml.jackson.annotation.JsonProperty("source_code")
+    String sourceCode;
 }
