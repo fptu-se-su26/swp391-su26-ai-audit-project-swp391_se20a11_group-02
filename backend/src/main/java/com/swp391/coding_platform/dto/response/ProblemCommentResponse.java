@@ -1,5 +1,6 @@
 package com.swp391.coding_platform.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -14,8 +15,8 @@ import java.util.List;
 public class ProblemCommentResponse {
     Integer id;
     String author;
-    String avatarInitials;
-    String avatarBg;
+    @JsonProperty("avatar_url")
+    String avatarUrl;
     String text;
     String time;
     Instant createdAt;

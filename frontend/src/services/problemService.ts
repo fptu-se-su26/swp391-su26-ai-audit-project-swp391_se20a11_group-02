@@ -27,6 +27,7 @@ export interface ProblemDetail {
   status: 'solved' | 'unsolved' | 'attempted';
   acceptance: string;
   totalSolved: number;
+  source_code?: string;
 }
 
 export interface ProblemSolution {
@@ -55,8 +56,7 @@ export interface SubmitResponse {
 export interface ProblemComment {
   id: number;
   author: string;
-  avatarInitials: string;
-  avatarBg: string;
+  avatar_url?: string;
   text: string;
   time: string;
   createdAt: string;

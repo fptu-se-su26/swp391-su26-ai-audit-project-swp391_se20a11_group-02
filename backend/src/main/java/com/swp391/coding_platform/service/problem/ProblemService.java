@@ -118,11 +118,19 @@ public class ProblemService {
         Map<String, String> templates = generateTemplates(problem.getTitle());
 
         String status = "unsolved";
+        String sourceCode = null;
         if (userId != null) {
             List<ProblemSubmissionEntity> subs = problemSubmissionRepository.findByUserIdAndProblemId(userId.intValue(), id);
             if (!subs.isEmpty()) {
-                boolean solved = subs.stream().anyMatch(s -> s.getVerdict() == OjVerdict.ACCEPTED);
-                status = solved ? "solved" : "attempted";
+                subs.sort(Comparator.comparing(ProblemSubmissionEntity::getSubmittedAt).reversed());
+                Optional<ProblemSubmissionEntity> acceptedOpt = subs.stream().filter(s -> s.getVerdict() == OjVerdict.ACCEPTED).findFirst();
+                if (acceptedOpt.isPresent()) {
+                    status = "solved";
+                    sourceCode = acceptedOpt.get().getSourceCode();
+                } else {
+                    status = "attempted";
+                    sourceCode = subs.get(0).getSourceCode();
+                }
             }
         }
 
@@ -155,6 +163,7 @@ public class ProblemService {
                 .status(status)
                 .acceptance(acceptance)
                 .totalSolved(totalSolved)
+                .sourceCode(sourceCode)
                 .build();
     }
 
@@ -187,7 +196,8 @@ public class ProblemService {
     }
 
     public List<ProblemCommentResponse> getComments(Integer problemId) {
-        List<ProblemCommentEntity> topComments = problemCommentRepository.findByProblemIdAndParentIsNullOrderByCreatedAtDesc(problemId);
+        List<ProblemCommentEntity> topComments =
+                problemCommentRepository.findByProblemIdAndParentIsNullOrderByCreatedAtDesc(problemId);
         return topComments.stream().map(this::mapCommentToResponse).toList();
     }
 
@@ -225,32 +235,13 @@ public class ProblemService {
     private ProblemCommentResponse mapCommentToResponse(ProblemCommentEntity entity) {
         String author = entity.getUser().getDisplayname() != null ? entity.getUser().getDisplayname() : entity.getUser().getUsername();
 
-        String initials = "";
-        if (author != null && !author.isBlank()) {
-            String[] parts = author.trim().split("\\s+");
-            if (parts.length >= 2) {
-                initials = (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
-            } else if (parts[0].length() >= 2) {
-                initials = parts[0].substring(0, 2).toUpperCase();
-            } else {
-                initials = parts[0].substring(0, 1).toUpperCase();
-            }
-        } else {
-            initials = "ME";
-        }
-
-        String[] bgClasses = {"bg-brand-blue", "bg-brand-green", "bg-orange-500", "bg-purple-500", "bg-red-500", "bg-teal-500"};
-        int idx = Math.abs(entity.getUser().getId().hashCode()) % bgClasses.length;
-        String avatarBg = bgClasses[idx];
-
         List<ProblemCommentResponse> replies = entity.getReplies() != null ?
                 entity.getReplies().stream().map(this::mapCommentToResponse).toList() : Collections.emptyList();
 
         return ProblemCommentResponse.builder()
                 .id(entity.getId())
                 .author(author)
-                .avatarInitials(initials)
-                .avatarBg(avatarBg)
+                .avatarUrl(entity.getUser().getAvatarurl())
                 .text(entity.getContent())
                 .time(formatTimeAgo(entity.getCreatedAt()))
                 .createdAt(entity.getCreatedAt())
