@@ -1644,7 +1644,7 @@ CREATE TABLE public.problems (
                                  problem_scope public.problem_scope NOT NULL,
                                  difficulty public.problem_difficulty DEFAULT 'MEDIUM'::public.problem_difficulty,
                                  is_active boolean DEFAULT true NOT NULL,
-                                 created_by_teacher_id integer NOT NULL,
+                                 created_by integer NOT NULL,
                                  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
                                  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
                                  total_testcase integer DEFAULT 0 NOT NULL,
@@ -2003,7 +2003,7 @@ CREATE TABLE public.users (
     email character varying(255) NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     status character varying(255) DEFAULT 'ACTIVE'::public.status_active_locked,
-    score double precision DEFAULT 0.0 NOT NULL
+    score integer DEFAULT 0 NOT NULL
 );
 
 
@@ -3223,7 +3223,7 @@ CREATE INDEX idx_problem_testcases_problem_id ON public.problem_testcases USING 
 -- Name: idx_problems_created_by; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX idx_problems_created_by ON public.problems USING btree (created_by_teacher_id);
+CREATE INDEX idx_problems_created_by ON public.problems USING btree (created_by);
 
 
 --
@@ -3576,7 +3576,7 @@ ALTER TABLE ONLY public.payout_requests
 --
 
 ALTER TABLE ONLY public.problems
-    ADD CONSTRAINT fk_problems_instructors FOREIGN KEY (created_by_teacher_id) REFERENCES public.instructors(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_problems_users FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -3862,4 +3862,1554 @@ CREATE INDEX idx_user_activities_user_date ON public.user_daily_activities(user_
 --
 
 
+
+
+--
+-- Data Seeding by Antigravity AI
+--
+
+
+-- 1. Insert teacher user if not exists
+INSERT INTO public.users (id, username, password_hash, displayname, avatarurl, email, created_at, status, score)
+VALUES (1, 'admin_teacher', '$2a$12$e8yQOplZ.pL7c3b/n7U..OshcM6yL3/2w0l/Jb7vGv1Yc7809W9Oq', 'System Teacher', NULL, 'teacher@nonstopcoding.com', CURRENT_TIMESTAMP, 'ACTIVE', 0.0)
+ON CONFLICT (id) DO NOTHING;
+
+
+-- 2. Insert instructor if not exists
+INSERT INTO public.instructors (id, user_id, full_name, major, bio, created_at, status)
+VALUES (1, 1, 'System Teacher', 'Computer Science', 'System generated seeder instructor account.', CURRENT_TIMESTAMP, 'ACTIVE')
+ON CONFLICT (id) DO NOTHING;
+
+
+-- 3. Insert problem tags
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (1, 'Array', 'array', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (2, 'String', 'string', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (3, 'Hash Table', 'hash-table', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (4, 'Math', 'math', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (5, 'Two Pointers', 'two-pointers', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (6, 'Dynamic Programming', 'dynamic-programming', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (7, 'Greedy', 'greedy', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (8, 'Tree', 'tree', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (9, 'Graph', 'graph', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (10, 'Sorting', 'sorting', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (11, 'Binary Search', 'binary-search', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (12, 'Stack', 'stack', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problem_tags (id, name, slug, created_at, updated_at)
+VALUES (13, 'Queue', 'queue', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. Insert Online Judge Problems
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (1, 'Two Sum', 
+        '<p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to <code>target</code>.</p><p>You may assume that each input would have <b>exactly one solution</b>, and you may not use the same element twice.</p><p>You can return the answer in any order.</p>',
+        '<p>An array of integers <code>nums</code> and an integer <code>target</code>.</p>',
+        '<p>Indices of the two numbers that sum to <code>target</code>.</p>',
+        '<p><code>2 <= nums.length <= 10<sup>4</sup></code></p><p><code>-10<sup>9</sup> <= nums[i] <= 10<sup>9</sup></code></p><p><code>-10<sup>9</sup> <= target <= 10<sup>9</sup></code></p><p>Only one valid answer exists.</p>',
+        'nums = [2,7,11,15], target = 9',
+        '[0,1]',
+        '<p>A really brute force way would be to search for all possible pairs of numbers but that would be slow. Can you think of something faster using a Hash Map?</p>',
+        'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            if (map.containsKey(complement)) {
+                return new int[] { map.get(complement), i };
+            }
+            map.put(nums[i], i);
+        }
+        return new int[] {};
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (2, 'Add Two Numbers', 
+        '<p>You are given two <b>non-empty</b> linked lists representing two non-negative integers. The digits are stored in <b>reverse order</b>, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.</p><p>You may assume the two numbers do not contain any leading zero, except the number 0 itself.</p>',
+        '<p>Two linked lists <code>l1</code> and <code>l2</code>.</p>',
+        '<p>The sum represented as a linked list.</p>',
+        '<p>The number of nodes in each linked list is in the range <code>[1, 100]</code>.</p><p><code>0 <= Node.val <= 9</code></p>',
+        'l1 = [2,4,3], l2 = [5,6,4]',
+        '[7,0,8]',
+        '<p>Simulate the addition node by node, keeping track of the carry-over value.</p>',
+        'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode dummyHead = new ListNode(0);
+        ListNode curr = dummyHead;
+        int carry = 0;
+        while (l1 != null || l2 != null || carry != 0) {
+            int sum = carry;
+            if (l1 != null) {
+                sum += l1.val;
+                l1 = l1.next;
+            }
+            if (l2 != null) {
+                sum += l2.val;
+                l2 = l2.next;
+            }
+            carry = sum / 10;
+            curr.next = new ListNode(sum % 10);
+            curr = curr.next;
+        }
+        return dummyHead.next;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (3, 'Longest Substring Without Repeating Characters', 
+        '<p>Given a string <code>s</code>, find the length of the <b>longest substring</b> without repeating characters.</p>',
+        '<p>A string <code>s</code>.</p>',
+        '<p>The length of the longest substring.</p>',
+        '<p><code>0 <= s.length <= 5 * 10<sup>4</sup></code></p><p><code>s</code> consists of English letters, digits, symbols and spaces.</p>',
+        's = "abcabcbb"',
+        '3',
+        '<p>Use a sliding window approach with two pointers to keep track of the current substring.</p>',
+        'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        int n = s.length();
+        int ans = 0;
+        Map<Character, Integer> map = new HashMap<>();
+        for (int j = 0, i = 0; j < n; j++) {
+            if (map.containsKey(s.charAt(j))) {
+                i = Math.max(map.get(s.charAt(j)), i);
+            }
+            ans = Math.max(ans, j - i + 1);
+            map.put(s.charAt(j), j + 1);
+        }
+        return ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (4, 'Target Sum Triplet 1', '<p>Solve the classic programming challenge related to <b>Two Pointers</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Two Pointers.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 4', 'Output result example 4', '<p>Think about using Two Pointers concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        for (int i = 0; i < nums.length - 2 && nums[i] <= 0; ++i) {
+            if (i == 0 || nums[i - 1] != nums[i]) {
+                twoSumII(nums, i, res);
+            }
+        }
+        return res;
+    }
+    private void twoSumII(int[] nums, int i, List<List<Integer>> res) {
+        int lo = i + 1, hi = nums.length - 1;
+        while (lo < hi) {
+            int sum = nums[i] + nums[lo] + nums[hi];
+            if (sum < 0) {
+                ++lo;
+            } else if (sum > 0) {
+                --hi;
+            } else {
+                res.add(Arrays.asList(nums[i], nums[lo++], nums[hi--]));
+                while (lo < hi && nums[lo] == nums[lo - 1]) ++lo;
+            }
+        }
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (5, 'Optimal Knapsack Selection 1', '<p>Solve the classic programming challenge related to <b>Dynamic Programming</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Dynamic Programming.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 5', 'Output result example 5', '<p>Think about using Dynamic Programming concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int knapsack(int[] weights, int[] values, int capacity) {
+        int n = weights.length;
+        int[][] dp = new int[n + 1][capacity + 1];
+        for (int i = 1; i <= n; i++) {
+            for (int w = 1; w <= capacity; w++) {
+                if (weights[i - 1] <= w) {
+                    dp[i][w] = Math.max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w]);
+                } else {
+                    dp[i][w] = dp[i - 1][w];
+                }
+            }
+        }
+        return dp[n][capacity];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (6, 'Min Operations Greedy Path 1', '<p>Solve the classic programming challenge related to <b>Greedy</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Greedy.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 6', 'Output result example 6', '<p>Think about using Greedy concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int minOperations(int[] nums) {
+        int operations = 0;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] <= nums[i - 1]) {
+                int diff = nums[i - 1] - nums[i] + 1;
+                nums[i] += diff;
+                operations += diff;
+            }
+        }
+        return operations;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (7, 'Binary Tree Path Max 1', '<p>Solve the classic programming challenge related to <b>Tree</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Tree.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 7', 'Output result example 7', '<p>Think about using Tree concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    private int maxSum = Integer.MIN_VALUE;
+    public int maxPathSum(TreeNode root) {
+        maxGain(root);
+        return maxSum;
+    }
+    private int maxGain(TreeNode node) {
+        if (node == null) return 0;
+        int leftGain = Math.max(maxGain(node.left), 0);
+        int rightGain = Math.max(maxGain(node.right), 0);
+        int priceNewpath = node.val + leftGain + rightGain;
+        maxSum = Math.max(maxSum, priceNewpath);
+        return node.val + Math.max(leftGain, rightGain);
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (8, 'Shortest Route Cost 1', '<p>Solve the classic programming challenge related to <b>Graph</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Graph.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 8', 'Output result example 8', '<p>Think about using Graph concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int shortestPath(int[][] graph, int src, int dest) {
+        int n = graph.length;
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = 0;
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[1] - b[1]);
+        pq.offer(new int[]{src, 0});
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int u = curr[0];
+            int d = curr[1];
+            if (d > dist[u]) continue;
+            for (int v = 0; v < n; v++) {
+                if (graph[u][v] != 0 && dist[u] + graph[u][v] < dist[v]) {
+                    dist[v] = dist[u] + graph[u][v];
+                    pq.offer(new int[]{v, dist[v]});
+                }
+            }
+        }
+        return dist[dest] == Integer.MAX_VALUE ? -1 : dist[dest];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (9, 'Merge Sorting Arrays 1', '<p>Solve the classic programming challenge related to <b>Sorting</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Sorting.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 9', 'Output result example 9', '<p>Think about using Sorting concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public void mergeSort(int[] arr, int l, int r) {
+        if (l < r) {
+            int m = l + (r - l) / 2;
+            mergeSort(arr, l, m);
+            mergeSort(arr, m + 1, r);
+            merge(arr, l, m, r);
+        }
+    }
+    private void merge(int[] arr, int l, int m, int r) {
+        int n1 = m - l + 1;
+        int n2 = r - m;
+        int[] L = new int[n1];
+        int[] R = new int[n2];
+        System.arraycopy(arr, l, L, 0, n1);
+        System.arraycopy(arr, m + 1, R, 0, n2);
+        int i = 0, j = 0, k = l;
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+            }
+        }
+        while (i < n1) arr[k++] = L[i++];
+        while (j < n2) arr[k++] = R[j++];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (10, 'Range Binary Search 2', '<p>Solve the classic programming challenge related to <b>Binary Search</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Binary Search.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 10', 'Output result example 10', '<p>Think about using Binary Search concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        int[] result = new int[]{-1, -1};
+        result[0] = findBound(nums, target, true);
+        result[1] = findBound(nums, target, false);
+        return result;
+    }
+    private int findBound(int[] nums, int target, boolean isFirst) {
+        int l = 0, r = nums.length - 1, ans = -1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (nums[mid] == target) {
+                ans = mid;
+                if (isFirst) r = mid - 1;
+                else l = mid + 1;
+            } else if (nums[mid] < target) {
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (11, 'Valid Parentheses Nesting 2', '<p>Solve the classic programming challenge related to <b>Stack</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Stack.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 11', 'Output result example 11', '<p>Think about using Stack concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        for (char c : s.toCharArray()) {
+            if (c == ''('' || c == ''{'' || c == ''['') {
+                stack.push(c);
+            } else {
+                if (stack.isEmpty()) return false;
+                char top = stack.pop();
+                if (c == '')'' && top != ''('') return false;
+                if (c == ''}'' && top != ''{'') return false;
+                if (c == '']'' && top != ''['') return false;
+            }
+        }
+        return stack.isEmpty();
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (12, 'Sliding Window Queue 2', '<p>Solve the classic programming challenge related to <b>Queue</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Queue.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 12', 'Output result example 12', '<p>Think about using Queue concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        if (nums == null || nums.length == 0) return new int[0];
+        int n = nums.length;
+        int[] r = new int[n - k + 1];
+        int ri = 0;
+        Deque<Integer> q = new ArrayDeque<>();
+        for (int i = 0; i < nums.length; i++) {
+            while (!q.isEmpty() && q.peek() < i - k + 1) {
+                q.poll();
+            }
+            while (!q.isEmpty() && nums[q.peekLast()] < nums[i]) {
+                q.pollLast();
+            }
+            q.offer(i);
+            if (i >= k - 1) {
+                r[ri++] = nums[q.peek()];
+            }
+        }
+        return r;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (13, 'Minimum Subarray Sum 2', '<p>Solve the classic programming challenge related to <b>Array</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Array.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 13', 'Output result example 13', '<p>Think about using Array concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int minSubArrayLen(int target, int[] nums) {
+        int n = nums.length;
+        int ans = Integer.MAX_VALUE;
+        int left = 0, sum = 0;
+        for (int i = 0; i < n; i++) {
+            sum += nums[i];
+            while (sum >= target) {
+                ans = Math.min(ans, i + 1 - left);
+                sum -= nums[left++];
+            }
+        }
+        return ans == Integer.MAX_VALUE ? 0 : ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (14, 'Reverse Substring 2', '<p>Solve the classic programming challenge related to <b>String</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of String.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 14', 'Output result example 14', '<p>Think about using String concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public String reverseParentheses(String s) {
+        Stack<StringBuilder> stack = new Stack<>();
+        StringBuilder curr = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            if (c == ''('') {
+                stack.push(curr);
+                curr = new StringBuilder();
+            } else if (c == '')'') {
+                curr.reverse();
+                curr = stack.pop().append(curr);
+            } else {
+                curr.append(c);
+            }
+        }
+        return curr.toString();
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (15, 'Anagram Pairs 2', '<p>Solve the classic programming challenge related to <b>Hash Table</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Hash Table.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 15', 'Output result example 15', '<p>Think about using Hash Table concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        if (strs == null || strs.length == 0) return new ArrayList<>();
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            char[] ca = s.toCharArray();
+            Arrays.sort(ca);
+            String key = String.valueOf(ca);
+            if (!map.containsKey(key)) map.put(key, new ArrayList<>());
+            map.get(key).add(s);
+        }
+        return new ArrayList<>(map.values());
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (16, 'Factorial Prime Factorization 2', '<p>Solve the classic programming challenge related to <b>Math</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Math.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 16', 'Output result example 16', '<p>Think about using Math concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public Map<Integer, Integer> primeFactors(int n) {
+        Map<Integer, Integer> factors = new HashMap<>();
+        for (int i = 2; i <= n; i++) {
+            int temp = i;
+            for (int j = 2; j * j <= temp; j++) {
+                while (temp % j == 0) {
+                    factors.put(j, factors.getOrDefault(j, 0) + 1);
+                    temp /= j;
+                }
+            }
+            if (temp > 1) {
+                factors.put(temp, factors.getOrDefault(temp, 0) + 1);
+            }
+        }
+        return factors;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (17, 'Target Sum Triplet 2', '<p>Solve the classic programming challenge related to <b>Two Pointers</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Two Pointers.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 17', 'Output result example 17', '<p>Think about using Two Pointers concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        for (int i = 0; i < nums.length - 2 && nums[i] <= 0; ++i) {
+            if (i == 0 || nums[i - 1] != nums[i]) {
+                twoSumII(nums, i, res);
+            }
+        }
+        return res;
+    }
+    private void twoSumII(int[] nums, int i, List<List<Integer>> res) {
+        int lo = i + 1, hi = nums.length - 1;
+        while (lo < hi) {
+            int sum = nums[i] + nums[lo] + nums[hi];
+            if (sum < 0) {
+                ++lo;
+            } else if (sum > 0) {
+                --hi;
+            } else {
+                res.add(Arrays.asList(nums[i], nums[lo++], nums[hi--]));
+                while (lo < hi && nums[lo] == nums[lo - 1]) ++lo;
+            }
+        }
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (18, 'Optimal Knapsack Selection 2', '<p>Solve the classic programming challenge related to <b>Dynamic Programming</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Dynamic Programming.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 18', 'Output result example 18', '<p>Think about using Dynamic Programming concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int knapsack(int[] weights, int[] values, int capacity) {
+        int n = weights.length;
+        int[][] dp = new int[n + 1][capacity + 1];
+        for (int i = 1; i <= n; i++) {
+            for (int w = 1; w <= capacity; w++) {
+                if (weights[i - 1] <= w) {
+                    dp[i][w] = Math.max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w]);
+                } else {
+                    dp[i][w] = dp[i - 1][w];
+                }
+            }
+        }
+        return dp[n][capacity];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (19, 'Min Operations Greedy Path 2', '<p>Solve the classic programming challenge related to <b>Greedy</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Greedy.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 19', 'Output result example 19', '<p>Think about using Greedy concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int minOperations(int[] nums) {
+        int operations = 0;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] <= nums[i - 1]) {
+                int diff = nums[i - 1] - nums[i] + 1;
+                nums[i] += diff;
+                operations += diff;
+            }
+        }
+        return operations;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (20, 'Binary Tree Path Max 3', '<p>Solve the classic programming challenge related to <b>Tree</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Tree.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 20', 'Output result example 20', '<p>Think about using Tree concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    private int maxSum = Integer.MIN_VALUE;
+    public int maxPathSum(TreeNode root) {
+        maxGain(root);
+        return maxSum;
+    }
+    private int maxGain(TreeNode node) {
+        if (node == null) return 0;
+        int leftGain = Math.max(maxGain(node.left), 0);
+        int rightGain = Math.max(maxGain(node.right), 0);
+        int priceNewpath = node.val + leftGain + rightGain;
+        maxSum = Math.max(maxSum, priceNewpath);
+        return node.val + Math.max(leftGain, rightGain);
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (21, 'Shortest Route Cost 3', '<p>Solve the classic programming challenge related to <b>Graph</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Graph.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 21', 'Output result example 21', '<p>Think about using Graph concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int shortestPath(int[][] graph, int src, int dest) {
+        int n = graph.length;
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = 0;
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[1] - b[1]);
+        pq.offer(new int[]{src, 0});
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int u = curr[0];
+            int d = curr[1];
+            if (d > dist[u]) continue;
+            for (int v = 0; v < n; v++) {
+                if (graph[u][v] != 0 && dist[u] + graph[u][v] < dist[v]) {
+                    dist[v] = dist[u] + graph[u][v];
+                    pq.offer(new int[]{v, dist[v]});
+                }
+            }
+        }
+        return dist[dest] == Integer.MAX_VALUE ? -1 : dist[dest];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (22, 'Merge Sorting Arrays 3', '<p>Solve the classic programming challenge related to <b>Sorting</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Sorting.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 22', 'Output result example 22', '<p>Think about using Sorting concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public void mergeSort(int[] arr, int l, int r) {
+        if (l < r) {
+            int m = l + (r - l) / 2;
+            mergeSort(arr, l, m);
+            mergeSort(arr, m + 1, r);
+            merge(arr, l, m, r);
+        }
+    }
+    private void merge(int[] arr, int l, int m, int r) {
+        int n1 = m - l + 1;
+        int n2 = r - m;
+        int[] L = new int[n1];
+        int[] R = new int[n2];
+        System.arraycopy(arr, l, L, 0, n1);
+        System.arraycopy(arr, m + 1, R, 0, n2);
+        int i = 0, j = 0, k = l;
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+            }
+        }
+        while (i < n1) arr[k++] = L[i++];
+        while (j < n2) arr[k++] = R[j++];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (23, 'Range Binary Search 3', '<p>Solve the classic programming challenge related to <b>Binary Search</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Binary Search.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 23', 'Output result example 23', '<p>Think about using Binary Search concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        int[] result = new int[]{-1, -1};
+        result[0] = findBound(nums, target, true);
+        result[1] = findBound(nums, target, false);
+        return result;
+    }
+    private int findBound(int[] nums, int target, boolean isFirst) {
+        int l = 0, r = nums.length - 1, ans = -1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (nums[mid] == target) {
+                ans = mid;
+                if (isFirst) r = mid - 1;
+                else l = mid + 1;
+            } else if (nums[mid] < target) {
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (24, 'Valid Parentheses Nesting 3', '<p>Solve the classic programming challenge related to <b>Stack</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Stack.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 24', 'Output result example 24', '<p>Think about using Stack concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        for (char c : s.toCharArray()) {
+            if (c == ''('' || c == ''{'' || c == ''['') {
+                stack.push(c);
+            } else {
+                if (stack.isEmpty()) return false;
+                char top = stack.pop();
+                if (c == '')'' && top != ''('') return false;
+                if (c == ''}'' && top != ''{'') return false;
+                if (c == '']'' && top != ''['') return false;
+            }
+        }
+        return stack.isEmpty();
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (25, 'Sliding Window Queue 3', '<p>Solve the classic programming challenge related to <b>Queue</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Queue.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 25', 'Output result example 25', '<p>Think about using Queue concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        if (nums == null || nums.length == 0) return new int[0];
+        int n = nums.length;
+        int[] r = new int[n - k + 1];
+        int ri = 0;
+        Deque<Integer> q = new ArrayDeque<>();
+        for (int i = 0; i < nums.length; i++) {
+            while (!q.isEmpty() && q.peek() < i - k + 1) {
+                q.poll();
+            }
+            while (!q.isEmpty() && nums[q.peekLast()] < nums[i]) {
+                q.pollLast();
+            }
+            q.offer(i);
+            if (i >= k - 1) {
+                r[ri++] = nums[q.peek()];
+            }
+        }
+        return r;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (26, 'Minimum Subarray Sum 3', '<p>Solve the classic programming challenge related to <b>Array</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Array.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 26', 'Output result example 26', '<p>Think about using Array concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int minSubArrayLen(int target, int[] nums) {
+        int n = nums.length;
+        int ans = Integer.MAX_VALUE;
+        int left = 0, sum = 0;
+        for (int i = 0; i < n; i++) {
+            sum += nums[i];
+            while (sum >= target) {
+                ans = Math.min(ans, i + 1 - left);
+                sum -= nums[left++];
+            }
+        }
+        return ans == Integer.MAX_VALUE ? 0 : ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (27, 'Reverse Substring 3', '<p>Solve the classic programming challenge related to <b>String</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of String.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 27', 'Output result example 27', '<p>Think about using String concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public String reverseParentheses(String s) {
+        Stack<StringBuilder> stack = new Stack<>();
+        StringBuilder curr = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            if (c == ''('') {
+                stack.push(curr);
+                curr = new StringBuilder();
+            } else if (c == '')'') {
+                curr.reverse();
+                curr = stack.pop().append(curr);
+            } else {
+                curr.append(c);
+            }
+        }
+        return curr.toString();
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (28, 'Anagram Pairs 3', '<p>Solve the classic programming challenge related to <b>Hash Table</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Hash Table.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 28', 'Output result example 28', '<p>Think about using Hash Table concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        if (strs == null || strs.length == 0) return new ArrayList<>();
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            char[] ca = s.toCharArray();
+            Arrays.sort(ca);
+            String key = String.valueOf(ca);
+            if (!map.containsKey(key)) map.put(key, new ArrayList<>());
+            map.get(key).add(s);
+        }
+        return new ArrayList<>(map.values());
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (29, 'Factorial Prime Factorization 3', '<p>Solve the classic programming challenge related to <b>Math</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Math.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 29', 'Output result example 29', '<p>Think about using Math concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public Map<Integer, Integer> primeFactors(int n) {
+        Map<Integer, Integer> factors = new HashMap<>();
+        for (int i = 2; i <= n; i++) {
+            int temp = i;
+            for (int j = 2; j * j <= temp; j++) {
+                while (temp % j == 0) {
+                    factors.put(j, factors.getOrDefault(j, 0) + 1);
+                    temp /= j;
+                }
+            }
+            if (temp > 1) {
+                factors.put(temp, factors.getOrDefault(temp, 0) + 1);
+            }
+        }
+        return factors;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (30, 'Target Sum Triplet 4', '<p>Solve the classic programming challenge related to <b>Two Pointers</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Two Pointers.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 30', 'Output result example 30', '<p>Think about using Two Pointers concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        for (int i = 0; i < nums.length - 2 && nums[i] <= 0; ++i) {
+            if (i == 0 || nums[i - 1] != nums[i]) {
+                twoSumII(nums, i, res);
+            }
+        }
+        return res;
+    }
+    private void twoSumII(int[] nums, int i, List<List<Integer>> res) {
+        int lo = i + 1, hi = nums.length - 1;
+        while (lo < hi) {
+            int sum = nums[i] + nums[lo] + nums[hi];
+            if (sum < 0) {
+                ++lo;
+            } else if (sum > 0) {
+                --hi;
+            } else {
+                res.add(Arrays.asList(nums[i], nums[lo++], nums[hi--]));
+                while (lo < hi && nums[lo] == nums[lo - 1]) ++lo;
+            }
+        }
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (31, 'Optimal Knapsack Selection 4', '<p>Solve the classic programming challenge related to <b>Dynamic Programming</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Dynamic Programming.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 31', 'Output result example 31', '<p>Think about using Dynamic Programming concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int knapsack(int[] weights, int[] values, int capacity) {
+        int n = weights.length;
+        int[][] dp = new int[n + 1][capacity + 1];
+        for (int i = 1; i <= n; i++) {
+            for (int w = 1; w <= capacity; w++) {
+                if (weights[i - 1] <= w) {
+                    dp[i][w] = Math.max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w]);
+                } else {
+                    dp[i][w] = dp[i - 1][w];
+                }
+            }
+        }
+        return dp[n][capacity];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (32, 'Min Operations Greedy Path 4', '<p>Solve the classic programming challenge related to <b>Greedy</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Greedy.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 32', 'Output result example 32', '<p>Think about using Greedy concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int minOperations(int[] nums) {
+        int operations = 0;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] <= nums[i - 1]) {
+                int diff = nums[i - 1] - nums[i] + 1;
+                nums[i] += diff;
+                operations += diff;
+            }
+        }
+        return operations;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (33, 'Binary Tree Path Max 4', '<p>Solve the classic programming challenge related to <b>Tree</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Tree.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 33', 'Output result example 33', '<p>Think about using Tree concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    private int maxSum = Integer.MIN_VALUE;
+    public int maxPathSum(TreeNode root) {
+        maxGain(root);
+        return maxSum;
+    }
+    private int maxGain(TreeNode node) {
+        if (node == null) return 0;
+        int leftGain = Math.max(maxGain(node.left), 0);
+        int rightGain = Math.max(maxGain(node.right), 0);
+        int priceNewpath = node.val + leftGain + rightGain;
+        maxSum = Math.max(maxSum, priceNewpath);
+        return node.val + Math.max(leftGain, rightGain);
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (34, 'Shortest Route Cost 4', '<p>Solve the classic programming challenge related to <b>Graph</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Graph.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 34', 'Output result example 34', '<p>Think about using Graph concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int shortestPath(int[][] graph, int src, int dest) {
+        int n = graph.length;
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = 0;
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[1] - b[1]);
+        pq.offer(new int[]{src, 0});
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int u = curr[0];
+            int d = curr[1];
+            if (d > dist[u]) continue;
+            for (int v = 0; v < n; v++) {
+                if (graph[u][v] != 0 && dist[u] + graph[u][v] < dist[v]) {
+                    dist[v] = dist[u] + graph[u][v];
+                    pq.offer(new int[]{v, dist[v]});
+                }
+            }
+        }
+        return dist[dest] == Integer.MAX_VALUE ? -1 : dist[dest];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (35, 'Merge Sorting Arrays 4', '<p>Solve the classic programming challenge related to <b>Sorting</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Sorting.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 35', 'Output result example 35', '<p>Think about using Sorting concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public void mergeSort(int[] arr, int l, int r) {
+        if (l < r) {
+            int m = l + (r - l) / 2;
+            mergeSort(arr, l, m);
+            mergeSort(arr, m + 1, r);
+            merge(arr, l, m, r);
+        }
+    }
+    private void merge(int[] arr, int l, int m, int r) {
+        int n1 = m - l + 1;
+        int n2 = r - m;
+        int[] L = new int[n1];
+        int[] R = new int[n2];
+        System.arraycopy(arr, l, L, 0, n1);
+        System.arraycopy(arr, m + 1, R, 0, n2);
+        int i = 0, j = 0, k = l;
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+            }
+        }
+        while (i < n1) arr[k++] = L[i++];
+        while (j < n2) arr[k++] = R[j++];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (36, 'Range Binary Search 4', '<p>Solve the classic programming challenge related to <b>Binary Search</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Binary Search.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 36', 'Output result example 36', '<p>Think about using Binary Search concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        int[] result = new int[]{-1, -1};
+        result[0] = findBound(nums, target, true);
+        result[1] = findBound(nums, target, false);
+        return result;
+    }
+    private int findBound(int[] nums, int target, boolean isFirst) {
+        int l = 0, r = nums.length - 1, ans = -1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (nums[mid] == target) {
+                ans = mid;
+                if (isFirst) r = mid - 1;
+                else l = mid + 1;
+            } else if (nums[mid] < target) {
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (37, 'Valid Parentheses Nesting 4', '<p>Solve the classic programming challenge related to <b>Stack</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Stack.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 37', 'Output result example 37', '<p>Think about using Stack concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        for (char c : s.toCharArray()) {
+            if (c == ''('' || c == ''{'' || c == ''['') {
+                stack.push(c);
+            } else {
+                if (stack.isEmpty()) return false;
+                char top = stack.pop();
+                if (c == '')'' && top != ''('') return false;
+                if (c == ''}'' && top != ''{'') return false;
+                if (c == '']'' && top != ''['') return false;
+            }
+        }
+        return stack.isEmpty();
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (38, 'Sliding Window Queue 4', '<p>Solve the classic programming challenge related to <b>Queue</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Queue.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 38', 'Output result example 38', '<p>Think about using Queue concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        if (nums == null || nums.length == 0) return new int[0];
+        int n = nums.length;
+        int[] r = new int[n - k + 1];
+        int ri = 0;
+        Deque<Integer> q = new ArrayDeque<>();
+        for (int i = 0; i < nums.length; i++) {
+            while (!q.isEmpty() && q.peek() < i - k + 1) {
+                q.poll();
+            }
+            while (!q.isEmpty() && nums[q.peekLast()] < nums[i]) {
+                q.pollLast();
+            }
+            q.offer(i);
+            if (i >= k - 1) {
+                r[ri++] = nums[q.peek()];
+            }
+        }
+        return r;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (39, 'Minimum Subarray Sum 4', '<p>Solve the classic programming challenge related to <b>Array</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Array.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 39', 'Output result example 39', '<p>Think about using Array concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int minSubArrayLen(int target, int[] nums) {
+        int n = nums.length;
+        int ans = Integer.MAX_VALUE;
+        int left = 0, sum = 0;
+        for (int i = 0; i < n; i++) {
+            sum += nums[i];
+            while (sum >= target) {
+                ans = Math.min(ans, i + 1 - left);
+                sum -= nums[left++];
+            }
+        }
+        return ans == Integer.MAX_VALUE ? 0 : ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (40, 'Reverse Substring 5', '<p>Solve the classic programming challenge related to <b>String</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of String.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 40', 'Output result example 40', '<p>Think about using String concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public String reverseParentheses(String s) {
+        Stack<StringBuilder> stack = new Stack<>();
+        StringBuilder curr = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            if (c == ''('') {
+                stack.push(curr);
+                curr = new StringBuilder();
+            } else if (c == '')'') {
+                curr.reverse();
+                curr = stack.pop().append(curr);
+            } else {
+                curr.append(c);
+            }
+        }
+        return curr.toString();
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (41, 'Anagram Pairs 5', '<p>Solve the classic programming challenge related to <b>Hash Table</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Hash Table.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 41', 'Output result example 41', '<p>Think about using Hash Table concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        if (strs == null || strs.length == 0) return new ArrayList<>();
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            char[] ca = s.toCharArray();
+            Arrays.sort(ca);
+            String key = String.valueOf(ca);
+            if (!map.containsKey(key)) map.put(key, new ArrayList<>());
+            map.get(key).add(s);
+        }
+        return new ArrayList<>(map.values());
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (42, 'Factorial Prime Factorization 5', '<p>Solve the classic programming challenge related to <b>Math</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Math.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 42', 'Output result example 42', '<p>Think about using Math concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public Map<Integer, Integer> primeFactors(int n) {
+        Map<Integer, Integer> factors = new HashMap<>();
+        for (int i = 2; i <= n; i++) {
+            int temp = i;
+            for (int j = 2; j * j <= temp; j++) {
+                while (temp % j == 0) {
+                    factors.put(j, factors.getOrDefault(j, 0) + 1);
+                    temp /= j;
+                }
+            }
+            if (temp > 1) {
+                factors.put(temp, factors.getOrDefault(temp, 0) + 1);
+            }
+        }
+        return factors;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (43, 'Target Sum Triplet 5', '<p>Solve the classic programming challenge related to <b>Two Pointers</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Two Pointers.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 43', 'Output result example 43', '<p>Think about using Two Pointers concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        for (int i = 0; i < nums.length - 2 && nums[i] <= 0; ++i) {
+            if (i == 0 || nums[i - 1] != nums[i]) {
+                twoSumII(nums, i, res);
+            }
+        }
+        return res;
+    }
+    private void twoSumII(int[] nums, int i, List<List<Integer>> res) {
+        int lo = i + 1, hi = nums.length - 1;
+        while (lo < hi) {
+            int sum = nums[i] + nums[lo] + nums[hi];
+            if (sum < 0) {
+                ++lo;
+            } else if (sum > 0) {
+                --hi;
+            } else {
+                res.add(Arrays.asList(nums[i], nums[lo++], nums[hi--]));
+                while (lo < hi && nums[lo] == nums[lo - 1]) ++lo;
+            }
+        }
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (44, 'Optimal Knapsack Selection 5', '<p>Solve the classic programming challenge related to <b>Dynamic Programming</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Dynamic Programming.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 44', 'Output result example 44', '<p>Think about using Dynamic Programming concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int knapsack(int[] weights, int[] values, int capacity) {
+        int n = weights.length;
+        int[][] dp = new int[n + 1][capacity + 1];
+        for (int i = 1; i <= n; i++) {
+            for (int w = 1; w <= capacity; w++) {
+                if (weights[i - 1] <= w) {
+                    dp[i][w] = Math.max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w]);
+                } else {
+                    dp[i][w] = dp[i - 1][w];
+                }
+            }
+        }
+        return dp[n][capacity];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (45, 'Min Operations Greedy Path 5', '<p>Solve the classic programming challenge related to <b>Greedy</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Greedy.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 45', 'Output result example 45', '<p>Think about using Greedy concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int minOperations(int[] nums) {
+        int operations = 0;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] <= nums[i - 1]) {
+                int diff = nums[i - 1] - nums[i] + 1;
+                nums[i] += diff;
+                operations += diff;
+            }
+        }
+        return operations;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (46, 'Binary Tree Path Max 5', '<p>Solve the classic programming challenge related to <b>Tree</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Tree.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 46', 'Output result example 46', '<p>Think about using Tree concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    private int maxSum = Integer.MIN_VALUE;
+    public int maxPathSum(TreeNode root) {
+        maxGain(root);
+        return maxSum;
+    }
+    private int maxGain(TreeNode node) {
+        if (node == null) return 0;
+        int leftGain = Math.max(maxGain(node.left), 0);
+        int rightGain = Math.max(maxGain(node.right), 0);
+        int priceNewpath = node.val + leftGain + rightGain;
+        maxSum = Math.max(maxSum, priceNewpath);
+        return node.val + Math.max(leftGain, rightGain);
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (47, 'Shortest Route Cost 5', '<p>Solve the classic programming challenge related to <b>Graph</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Graph.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 47', 'Output result example 47', '<p>Think about using Graph concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int shortestPath(int[][] graph, int src, int dest) {
+        int n = graph.length;
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = 0;
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[1] - b[1]);
+        pq.offer(new int[]{src, 0});
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int u = curr[0];
+            int d = curr[1];
+            if (d > dist[u]) continue;
+            for (int v = 0; v < n; v++) {
+                if (graph[u][v] != 0 && dist[u] + graph[u][v] < dist[v]) {
+                    dist[v] = dist[u] + graph[u][v];
+                    pq.offer(new int[]{v, dist[v]});
+                }
+            }
+        }
+        return dist[dest] == Integer.MAX_VALUE ? -1 : dist[dest];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (48, 'Merge Sorting Arrays 5', '<p>Solve the classic programming challenge related to <b>Sorting</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Sorting.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 48', 'Output result example 48', '<p>Think about using Sorting concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public void mergeSort(int[] arr, int l, int r) {
+        if (l < r) {
+            int m = l + (r - l) / 2;
+            mergeSort(arr, l, m);
+            mergeSort(arr, m + 1, r);
+            merge(arr, l, m, r);
+        }
+    }
+    private void merge(int[] arr, int l, int m, int r) {
+        int n1 = m - l + 1;
+        int n2 = r - m;
+        int[] L = new int[n1];
+        int[] R = new int[n2];
+        System.arraycopy(arr, l, L, 0, n1);
+        System.arraycopy(arr, m + 1, R, 0, n2);
+        int i = 0, j = 0, k = l;
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+            }
+        }
+        while (i < n1) arr[k++] = L[i++];
+        while (j < n2) arr[k++] = R[j++];
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (49, 'Range Binary Search 5', '<p>Solve the classic programming challenge related to <b>Binary Search</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Binary Search.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 49', 'Output result example 49', '<p>Think about using Binary Search concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        int[] result = new int[]{-1, -1};
+        result[0] = findBound(nums, target, true);
+        result[1] = findBound(nums, target, false);
+        return result;
+    }
+    private int findBound(int[] nums, int target, boolean isFirst) {
+        int l = 0, r = nums.length - 1, ans = -1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (nums[mid] == target) {
+                ans = mid;
+                if (isFirst) r = mid - 1;
+                else l = mid + 1;
+            } else if (nums[mid] < target) {
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (50, 'Valid Parentheses Nesting 6', '<p>Solve the classic programming challenge related to <b>Stack</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Stack.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 50', 'Output result example 50', '<p>Think about using Stack concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        for (char c : s.toCharArray()) {
+            if (c == ''('' || c == ''{'' || c == ''['') {
+                stack.push(c);
+            } else {
+                if (stack.isEmpty()) return false;
+                char top = stack.pop();
+                if (c == '')'' && top != ''('') return false;
+                if (c == ''}'' && top != ''{'') return false;
+                if (c == '']'' && top != ''['') return false;
+            }
+        }
+        return stack.isEmpty();
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (51, 'Sliding Window Queue 6', '<p>Solve the classic programming challenge related to <b>Queue</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Queue.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 51', 'Output result example 51', '<p>Think about using Queue concepts to optimize your solution.</p>', 'PRACTICE', 'EASY', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        if (nums == null || nums.length == 0) return new int[0];
+        int n = nums.length;
+        int[] r = new int[n - k + 1];
+        int ri = 0;
+        Deque<Integer> q = new ArrayDeque<>();
+        for (int i = 0; i < nums.length; i++) {
+            while (!q.isEmpty() && q.peek() < i - k + 1) {
+                q.poll();
+            }
+            while (!q.isEmpty() && nums[q.peekLast()] < nums[i]) {
+                q.pollLast();
+            }
+            q.offer(i);
+            if (i >= k - 1) {
+                r[ri++] = nums[q.peek()];
+            }
+        }
+        return r;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (52, 'Minimum Subarray Sum 6', '<p>Solve the classic programming challenge related to <b>Array</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of Array.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 52', 'Output result example 52', '<p>Think about using Array concepts to optimize your solution.</p>', 'PRACTICE', 'MEDIUM', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public int minSubArrayLen(int target, int[] nums) {
+        int n = nums.length;
+        int ans = Integer.MAX_VALUE;
+        int left = 0, sum = 0;
+        for (int i = 0; i < n; i++) {
+            sum += nums[i];
+            while (sum >= target) {
+                ans = Math.min(ans, i + 1 - left);
+                sum -= nums[left++];
+            }
+        }
+        return ans == Integer.MAX_VALUE ? 0 : ans;
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.problems (id, title, description, input_description, output_description, constraints, example_input, example_output, hint, problem_scope, difficulty, is_active, created_by, created_at, updated_at, total_testcase, time_limit_ms, memory_limit_kb, is_public, total_submission, total_accepted, score, solutions)
+VALUES (53, 'Reverse Substring 6', '<p>Solve the classic programming challenge related to <b>String</b>.</p><p>Given a structured input of size <code>N</code>, your goal is to find the optimal result conforming to the constraints.</p><p>Write an efficient algorithm to achieve this.</p>', '<p>Standard input representation of String.</p>', '<p>Optimal result according to the problem statement.</p>', '<p><code>1 <= N <= 10<sup>5</sup></code></p><p>Time limit: 2.0s</p>', 'Input data example 53', 'Output result example 53', '<p>Think about using String concepts to optimize your solution.</p>', 'PRACTICE', 'HARD', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 2, 2000, 128000, true, 0, 0, 100.00, 'class Solution {
+    public String reverseParentheses(String s) {
+        Stack<StringBuilder> stack = new Stack<>();
+        StringBuilder curr = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            if (c == ''('') {
+                stack.push(curr);
+                curr = new StringBuilder();
+            } else if (c == '')'') {
+                curr.reverse();
+                curr = stack.pop().append(curr);
+            } else {
+                curr.append(c);
+            }
+        }
+        return curr.toString();
+    }
+}')
+ON CONFLICT (id) DO NOTHING;
+
+-- 5. Insert Problem Testcases
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (1, '2 7 11 15\n9', '0 1', 1, '56e55bff-805a-4ef5-b4a9-45cae10f44de');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (1, '3 2 4\n6', '1 2', 2, 'fb747377-c42c-467a-b607-026cf50158d9');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (1, '3 3\n6', '0 1', 3, '1f75a5a6-4ce4-464b-80f0-ea95e4579369');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (2, '2 4 3\n5 6 4', '7 0 8', 1, '6b87abeb-e60a-4882-bec3-c5b4341a0c3d');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (3, 'abcabcbb', '3', 1, '30469450-9517-4df4-bd82-1efbf0ff1d4a');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (3, 'bbbbb', '1', 2, '46e7f890-a8c0-48a6-bf27-f450ff7df463');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (4, 'Test input 1 for problem 4', 'Expected output 1 for problem 4', 1, '00020c22-69d7-4150-bee0-3a97f16d86ce');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (4, 'Test input 2 for problem 4', 'Expected output 2 for problem 4', 2, 'cad6360f-7ed7-4feb-9c50-e3363116079a');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (5, 'Test input 1 for problem 5', 'Expected output 1 for problem 5', 1, '6ed1eaa8-c864-46ec-9969-138a953fa474');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (5, 'Test input 2 for problem 5', 'Expected output 2 for problem 5', 2, '10a82eaf-500b-4bd0-9aa5-8bb0f4d39748');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (6, 'Test input 1 for problem 6', 'Expected output 1 for problem 6', 1, '8ae14525-5589-41af-a4d5-a9d89ef1e622');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (6, 'Test input 2 for problem 6', 'Expected output 2 for problem 6', 2, 'a23aa821-4cfb-4022-97b5-551987149bc0');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (7, 'Test input 1 for problem 7', 'Expected output 1 for problem 7', 1, 'f2df4afe-0780-4ba5-a3ce-7920b20203fc');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (7, 'Test input 2 for problem 7', 'Expected output 2 for problem 7', 2, 'a8158fc4-cc4b-4c4e-8683-506fa2cb30ca');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (8, 'Test input 1 for problem 8', 'Expected output 1 for problem 8', 1, '725de0e0-72ff-4af9-a11f-2232748070cd');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (8, 'Test input 2 for problem 8', 'Expected output 2 for problem 8', 2, '30ff655c-6722-449d-a006-2f179100e534');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (9, 'Test input 1 for problem 9', 'Expected output 1 for problem 9', 1, '86052149-8c9e-4a41-93b4-e2b7a8b89853');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (9, 'Test input 2 for problem 9', 'Expected output 2 for problem 9', 2, '64ce7489-c645-4799-b816-f4532beb485f');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (10, 'Test input 1 for problem 10', 'Expected output 1 for problem 10', 1, 'a142a788-deff-43fb-9226-beab4305f6f3');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (10, 'Test input 2 for problem 10', 'Expected output 2 for problem 10', 2, 'bdc16804-9b3c-416f-833d-2fdf3ec7fb09');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (11, 'Test input 1 for problem 11', 'Expected output 1 for problem 11', 1, '5f6f7a17-2f06-4f71-82c4-626268fdb74b');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (11, 'Test input 2 for problem 11', 'Expected output 2 for problem 11', 2, '67ae1678-aa7a-445e-8202-2c50b4248cfa');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (12, 'Test input 1 for problem 12', 'Expected output 1 for problem 12', 1, '5f2af079-3ed9-44eb-b0f1-be7ad33bb001');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (12, 'Test input 2 for problem 12', 'Expected output 2 for problem 12', 2, '5d0e8906-bb25-4476-853c-3a2e33586954');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (13, 'Test input 1 for problem 13', 'Expected output 1 for problem 13', 1, '6ffdc93e-31d2-406a-8175-b0986a50d4f4');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (13, 'Test input 2 for problem 13', 'Expected output 2 for problem 13', 2, '243edb55-2cb6-49c9-b7af-dae29aafa70d');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (14, 'Test input 1 for problem 14', 'Expected output 1 for problem 14', 1, '2f3a7ca2-c681-494f-90b9-463264eabf4a');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (14, 'Test input 2 for problem 14', 'Expected output 2 for problem 14', 2, '417a8c1a-9976-4cd7-a78e-04555acb2927');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (15, 'Test input 1 for problem 15', 'Expected output 1 for problem 15', 1, '02be235d-0cd4-4e40-a10e-718d7fd3eecc');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (15, 'Test input 2 for problem 15', 'Expected output 2 for problem 15', 2, '418cceac-5c7c-4481-add2-34db497f399e');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (16, 'Test input 1 for problem 16', 'Expected output 1 for problem 16', 1, '79bd00aa-34b1-4f13-8079-7511282b0ab8');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (16, 'Test input 2 for problem 16', 'Expected output 2 for problem 16', 2, '1012fae8-d97a-47b6-b58c-a5b7cd6c2eae');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (17, 'Test input 1 for problem 17', 'Expected output 1 for problem 17', 1, '672d7fe9-2443-4c93-9f61-f9cec91f7ae5');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (17, 'Test input 2 for problem 17', 'Expected output 2 for problem 17', 2, 'a0ad91ff-9a90-463f-91cd-6c1852828d5e');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (18, 'Test input 1 for problem 18', 'Expected output 1 for problem 18', 1, 'eb16329d-9ff3-4bd6-96df-ceb50ba96ba5');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (18, 'Test input 2 for problem 18', 'Expected output 2 for problem 18', 2, 'c44dcf73-3f0f-431d-ae20-a659969b3b84');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (19, 'Test input 1 for problem 19', 'Expected output 1 for problem 19', 1, 'aad44f09-34f1-432d-91d8-445d9e1d06a1');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (19, 'Test input 2 for problem 19', 'Expected output 2 for problem 19', 2, 'd97fe672-836c-4ff3-a959-fbeb9fa0822a');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (20, 'Test input 1 for problem 20', 'Expected output 1 for problem 20', 1, 'c4097c1d-7347-4e6e-b0b6-dec169af1250');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (20, 'Test input 2 for problem 20', 'Expected output 2 for problem 20', 2, '8c719ffb-d090-44ca-bd4a-3957a39d50a6');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (21, 'Test input 1 for problem 21', 'Expected output 1 for problem 21', 1, '8b8c54de-b1f1-4f69-bfe7-33cc3df3ebfe');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (21, 'Test input 2 for problem 21', 'Expected output 2 for problem 21', 2, '2fa85115-8a80-4de0-a834-152081929a63');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (22, 'Test input 1 for problem 22', 'Expected output 1 for problem 22', 1, '1093ef44-8abc-4717-9802-af11482d7748');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (22, 'Test input 2 for problem 22', 'Expected output 2 for problem 22', 2, '11ef6be6-6aad-43ac-b0a4-c27ee63463a7');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (23, 'Test input 1 for problem 23', 'Expected output 1 for problem 23', 1, '018db8d0-f564-4420-a041-08a2a7c7c5d2');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (23, 'Test input 2 for problem 23', 'Expected output 2 for problem 23', 2, '7fde535e-ce90-4865-b5ed-e1f5f93d49c6');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (24, 'Test input 1 for problem 24', 'Expected output 1 for problem 24', 1, '6902f09d-a6d6-4e0c-8c7b-3005e5fe13c8');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (24, 'Test input 2 for problem 24', 'Expected output 2 for problem 24', 2, '872ec995-6456-4fb5-a9a7-7871809693ff');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (25, 'Test input 1 for problem 25', 'Expected output 1 for problem 25', 1, '733d521b-999b-4af9-acdd-f006c4248b2b');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (25, 'Test input 2 for problem 25', 'Expected output 2 for problem 25', 2, '305a747b-e3a3-4898-a92d-7587b1fad86b');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (26, 'Test input 1 for problem 26', 'Expected output 1 for problem 26', 1, '872bece6-d6e3-464c-8960-065a92bb3623');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (26, 'Test input 2 for problem 26', 'Expected output 2 for problem 26', 2, 'f5c4bcf1-821e-4d3b-b765-8edd171ba106');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (27, 'Test input 1 for problem 27', 'Expected output 1 for problem 27', 1, 'eda2bab4-fba5-462e-9c05-dcd3bbc724ee');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (27, 'Test input 2 for problem 27', 'Expected output 2 for problem 27', 2, 'd75cbd69-e4e2-4f93-9767-d0682263aaa0');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (28, 'Test input 1 for problem 28', 'Expected output 1 for problem 28', 1, '161b9079-fffd-44bc-bd45-98bb656e641f');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (28, 'Test input 2 for problem 28', 'Expected output 2 for problem 28', 2, '90d85b99-445a-4b14-a2aa-9ada76a235e4');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (29, 'Test input 1 for problem 29', 'Expected output 1 for problem 29', 1, '0629f2d5-23cf-423c-9572-90ef0451a23c');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (29, 'Test input 2 for problem 29', 'Expected output 2 for problem 29', 2, '19169f2f-e087-4f8e-817a-fe4bba2901a1');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (30, 'Test input 1 for problem 30', 'Expected output 1 for problem 30', 1, '5f33c5c8-fc0d-4443-ab67-ecdc4519edda');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (30, 'Test input 2 for problem 30', 'Expected output 2 for problem 30', 2, 'c60ac60a-698b-4432-b67e-ac04855d3699');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (31, 'Test input 1 for problem 31', 'Expected output 1 for problem 31', 1, 'dc3cc884-94e8-4c20-87a2-647d0b209f85');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (31, 'Test input 2 for problem 31', 'Expected output 2 for problem 31', 2, 'ed398300-0785-4a85-a84c-31b126a14875');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (32, 'Test input 1 for problem 32', 'Expected output 1 for problem 32', 1, 'ef9ca941-1c13-4951-851f-f4279dc1fd12');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (32, 'Test input 2 for problem 32', 'Expected output 2 for problem 32', 2, '92ebbecd-a50a-4b04-9a60-8d4365ac7ce0');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (33, 'Test input 1 for problem 33', 'Expected output 1 for problem 33', 1, '720ab83a-0073-42df-ae47-3c18f12219a9');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (33, 'Test input 2 for problem 33', 'Expected output 2 for problem 33', 2, '7e0dbee3-43f6-49d0-aec2-9f37baa6bc2d');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (34, 'Test input 1 for problem 34', 'Expected output 1 for problem 34', 1, 'b102cb65-b432-47b9-852a-2db481735266');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (34, 'Test input 2 for problem 34', 'Expected output 2 for problem 34', 2, '0a54984b-5c1d-4113-91ab-bdf0344d7bb9');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (35, 'Test input 1 for problem 35', 'Expected output 1 for problem 35', 1, '3a794c4e-4513-4a09-8807-2311ed963685');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (35, 'Test input 2 for problem 35', 'Expected output 2 for problem 35', 2, '7839b8eb-54d5-46b2-b0db-21a9f1a83fb9');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (36, 'Test input 1 for problem 36', 'Expected output 1 for problem 36', 1, '2854eb2a-9317-4c39-be5b-fe60fa7aac1c');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (36, 'Test input 2 for problem 36', 'Expected output 2 for problem 36', 2, 'd0b9cb0a-03df-48db-a7cb-c7b76d4cfdac');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (37, 'Test input 1 for problem 37', 'Expected output 1 for problem 37', 1, '4f869f57-3c3f-4d17-a0ef-ea71dc1c2808');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (37, 'Test input 2 for problem 37', 'Expected output 2 for problem 37', 2, '8562d15f-0631-4d27-adc8-a7d8721349e2');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (38, 'Test input 1 for problem 38', 'Expected output 1 for problem 38', 1, '41ef5b01-0d60-42cb-b814-9b4b19029ec2');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (38, 'Test input 2 for problem 38', 'Expected output 2 for problem 38', 2, '70b582fd-41bf-4eff-bd25-093804b49ff7');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (39, 'Test input 1 for problem 39', 'Expected output 1 for problem 39', 1, '320fb61c-28e6-4644-9220-a94e0f4a879a');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (39, 'Test input 2 for problem 39', 'Expected output 2 for problem 39', 2, '1e413131-48fc-47a6-9078-361d8fa7cda1');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (40, 'Test input 1 for problem 40', 'Expected output 1 for problem 40', 1, '1696d988-4f28-48c0-a678-4ed258b7a39e');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (40, 'Test input 2 for problem 40', 'Expected output 2 for problem 40', 2, 'c35a66c5-a269-4984-b455-7e9ff1507dcc');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (41, 'Test input 1 for problem 41', 'Expected output 1 for problem 41', 1, 'd5a40491-bb38-4a77-8813-d1c60ad25c6a');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (41, 'Test input 2 for problem 41', 'Expected output 2 for problem 41', 2, '22bdfe91-d33c-49b4-bc83-0d5147fdd391');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (42, 'Test input 1 for problem 42', 'Expected output 1 for problem 42', 1, 'cd102ace-2cf6-4a5a-af1e-0e2b8e2bdb44');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (42, 'Test input 2 for problem 42', 'Expected output 2 for problem 42', 2, '949e706c-c396-448f-801a-42d65ace6dad');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (43, 'Test input 1 for problem 43', 'Expected output 1 for problem 43', 1, 'c8bb8d05-cf0f-41d3-96ed-417714b8f7ce');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (43, 'Test input 2 for problem 43', 'Expected output 2 for problem 43', 2, '237f75e6-bb53-47ec-ba4f-c78ed581e364');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (44, 'Test input 1 for problem 44', 'Expected output 1 for problem 44', 1, 'f16b879d-c7de-42a4-954c-f047e647851a');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (44, 'Test input 2 for problem 44', 'Expected output 2 for problem 44', 2, 'e035246e-a887-4d56-a3d8-e8c679ad30f0');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (45, 'Test input 1 for problem 45', 'Expected output 1 for problem 45', 1, '9cfe22a3-d0c1-4e48-8a51-8cb0b46b84c0');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (45, 'Test input 2 for problem 45', 'Expected output 2 for problem 45', 2, 'ea955ecc-aacc-4e65-a655-728f59772949');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (46, 'Test input 1 for problem 46', 'Expected output 1 for problem 46', 1, '5bf0bdf3-7cbc-41c8-a225-f570c034a50d');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (46, 'Test input 2 for problem 46', 'Expected output 2 for problem 46', 2, 'e268c7e9-4a5d-4ecd-a448-d69ae98957f1');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (47, 'Test input 1 for problem 47', 'Expected output 1 for problem 47', 1, '4ab7083e-dea5-4078-b9c0-2df5fb213eaf');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (47, 'Test input 2 for problem 47', 'Expected output 2 for problem 47', 2, 'e5b2caa9-6727-43b0-a145-2013d2f57064');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (48, 'Test input 1 for problem 48', 'Expected output 1 for problem 48', 1, 'cdadf59a-f493-40f9-a7b9-31ff40a0c4af');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (48, 'Test input 2 for problem 48', 'Expected output 2 for problem 48', 2, '5dcc6691-e50f-489d-ad08-82640090cb20');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (49, 'Test input 1 for problem 49', 'Expected output 1 for problem 49', 1, '8d79dcf8-63cc-4f1f-9f76-672652d5ce37');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (49, 'Test input 2 for problem 49', 'Expected output 2 for problem 49', 2, '0344f0c2-d537-4698-8e55-79ee3223a169');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (50, 'Test input 1 for problem 50', 'Expected output 1 for problem 50', 1, '1f9d0da7-c060-4074-8ce3-fc2b39376230');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (50, 'Test input 2 for problem 50', 'Expected output 2 for problem 50', 2, 'ff7d8702-7cab-401d-8e0e-b5d6901fcb01');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (51, 'Test input 1 for problem 51', 'Expected output 1 for problem 51', 1, '9907a9f6-6215-42a1-94e2-edfc8e2dda56');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (51, 'Test input 2 for problem 51', 'Expected output 2 for problem 51', 2, '24e4d6b7-4d09-46e8-9844-b793e272598a');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (52, 'Test input 1 for problem 52', 'Expected output 1 for problem 52', 1, 'c071c063-d22c-43e7-b955-d1af11b02d2b');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (52, 'Test input 2 for problem 52', 'Expected output 2 for problem 52', 2, '49422936-605c-4eb4-bcf2-2aa8293a2741');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (53, 'Test input 1 for problem 53', 'Expected output 1 for problem 53', 1, '14468f64-67fc-4515-a521-1e6249d84b11');
+INSERT INTO public.problem_testcases (problem_id, input_data, expected_output, order_index, token) VALUES (53, 'Test input 2 for problem 53', 'Expected output 2 for problem 53', 2, 'c0064521-94f2-4a18-812e-a15ebca975fa');
+
+-- 6. Insert Problem Tag Mappings
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (1, 1);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (1, 3);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (2, 4);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (3, 2);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (3, 3);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (3, 5);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (4, 5);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (5, 6);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (6, 7);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (7, 8);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (8, 9);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (9, 10);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (10, 11);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (11, 12);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (12, 13);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (13, 1);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (14, 2);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (15, 3);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (16, 4);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (17, 5);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (18, 6);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (19, 7);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (20, 8);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (21, 9);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (22, 10);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (23, 11);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (24, 12);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (25, 13);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (26, 1);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (27, 2);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (28, 3);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (29, 4);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (30, 5);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (31, 6);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (32, 7);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (33, 8);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (34, 9);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (35, 10);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (36, 11);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (37, 12);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (38, 13);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (39, 1);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (40, 2);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (41, 3);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (42, 4);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (43, 5);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (44, 6);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (45, 7);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (46, 8);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (47, 9);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (48, 10);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (49, 11);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (50, 12);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (51, 13);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (52, 1);
+INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (53, 2);
+
+-- 7. Sync database sequences
+SELECT setval('public.users_id_seq', COALESCE((SELECT MAX(id)+1 FROM public.users), 1), false);
+SELECT setval('public.instructors_id_seq', COALESCE((SELECT MAX(id)+1 FROM public.instructors), 1), false);
+SELECT setval('public.problem_tags_id_seq', COALESCE((SELECT MAX(id)+1 FROM public.problem_tags), 1), false);
+SELECT setval('public.problems_id_seq', COALESCE((SELECT MAX(id)+1 FROM public.problems), 1), false);
+SELECT setval('public.problem_testcases_id_seq', COALESCE((SELECT MAX(id)+1 FROM public.problem_testcases), 1), false);
+SELECT setval('public.problem_tag_mappings_id_seq', COALESCE((SELECT MAX(id)+1 FROM public.problem_tag_mappings), 1), false);
+
+-- Insert Auto-generated practice problems seed data
+DO $$
+DECLARE
+    p_id INT;
+    tag1_id INT;
+    tag2_id INT;
+    tag3_id INT;
+    i INT;
+    j INT;
+    creator_id INT;
+BEGIN
+    -- Insert mock users for global rankings
+    IF NOT EXISTS (SELECT 1 FROM public.users WHERE username = 'alex_coder') THEN
+        INSERT INTO public.users (username, password_hash, displayname, avatarurl, email, created_at, status, score)
+        VALUES ('alex_coder', '$2a$12$e8yQOplZ.pL7c3b/n7U..OshcM6yL3/2w0l/Jb7vGv1Yc7809W9Oq', 'Alex Coder', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Alex', 'alex@nonstopcoding.com', CURRENT_TIMESTAMP, 'ACTIVE', 1250.0);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.users WHERE username = 'bob_prog') THEN
+        INSERT INTO public.users (username, password_hash, displayname, avatarurl, email, created_at, status, score)
+        VALUES ('bob_prog', '$2a$12$e8yQOplZ.pL7c3b/n7U..OshcM6yL3/2w0l/Jb7vGv1Yc7809W9Oq', 'Bob Programmer', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Bob', 'bob@nonstopcoding.com', CURRENT_TIMESTAMP, 'ACTIVE', 980.0);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.users WHERE username = 'charlie_dev') THEN
+        INSERT INTO public.users (username, password_hash, displayname, avatarurl, email, created_at, status, score)
+        VALUES ('charlie_dev', '$2a$12$e8yQOplZ.pL7c3b/n7U..OshcM6yL3/2w0l/Jb7vGv1Yc7809W9Oq', 'Charlie Dev', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Charlie', 'charlie@nonstopcoding.com', CURRENT_TIMESTAMP, 'ACTIVE', 850.0);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.users WHERE username = 'daniel_algo') THEN
+        INSERT INTO public.users (username, password_hash, displayname, avatarurl, email, created_at, status, score)
+        VALUES ('daniel_algo', '$2a$12$e8yQOplZ.pL7c3b/n7U..OshcM6yL3/2w0l/Jb7vGv1Yc7809W9Oq', 'Daniel Algorithm', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Daniel', 'daniel@nonstopcoding.com', CURRENT_TIMESTAMP, 'ACTIVE', 600.0);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.users WHERE username = 'eva_tech') THEN
+        INSERT INTO public.users (username, password_hash, displayname, avatarurl, email, created_at, status, score)
+        VALUES ('eva_tech', '$2a$12$e8yQOplZ.pL7c3b/n7U..OshcM6yL3/2w0l/Jb7vGv1Yc7809W9Oq', 'Eva Tech', 'https://api.dicebear.com/7.x/adventurer/svg?seed=Eva', 'eva@nonstopcoding.com', CURRENT_TIMESTAMP, 'ACTIVE', 450.0);
+    END IF;
+
+    -- Get a user ID to associate with the problems
+    SELECT id INTO creator_id FROM public.users LIMIT 1;
+    
+    -- If no user is found, default to 1
+    IF creator_id IS NULL THEN
+        creator_id := 1; 
+    END IF;
+
+    -- Insert tags if not exists, and get their IDs. 
+    SELECT id INTO tag1_id FROM public.problem_tags WHERE slug = 'practice-array';
+    IF tag1_id IS NULL THEN
+        INSERT INTO public.problem_tags (name, slug) VALUES ('Practice Array', 'practice-array') RETURNING id INTO tag1_id;
+    END IF;
+
+    SELECT id INTO tag2_id FROM public.problem_tags WHERE slug = 'practice-math';
+    IF tag2_id IS NULL THEN
+        INSERT INTO public.problem_tags (name, slug) VALUES ('Practice Math', 'practice-math') RETURNING id INTO tag2_id;
+    END IF;
+
+    SELECT id INTO tag3_id FROM public.problem_tags WHERE slug = 'practice-string';
+    IF tag3_id IS NULL THEN
+        INSERT INTO public.problem_tags (name, slug) VALUES ('Practice String', 'practice-string') RETURNING id INTO tag3_id;
+    END IF;
+
+    -- Loop to insert 10 problems
+    FOR i IN 1..10 LOOP
+        INSERT INTO public.problems (
+            title, description, input_description, output_description,
+            constraints, example_input, example_output, hint,
+            problem_scope, difficulty, is_active, created_by,
+            total_testcase, time_limit_ms, memory_limit_kb, is_public, score
+        ) VALUES (
+            'Auto Practice Problem ' || i,
+            '<p>This is an auto-generated practice problem ' || i || '. Solve it optimally to improve your algorithmic skills.</p>',
+            '<p>First line contains an integer N.</p>',
+            '<p>Output the computed result.</p>',
+            '<p>1 <= N <= 10^5</p>',
+            '5\n1 2 3 4 5',
+            '15',
+            '<p>Try to use O(N) time complexity.</p>',
+            'PRACTICE', 'EASY', true, creator_id,
+            10, 2000, 128000, true, 100.00
+        ) RETURNING id INTO p_id;
+
+        -- Map tags to the problem
+        IF i % 3 = 0 THEN
+            INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (p_id, tag1_id);
+        ELSIF i % 3 = 1 THEN
+            INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (p_id, tag2_id);
+        ELSE
+            INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (p_id, tag3_id);
+            INSERT INTO public.problem_tag_mappings (problem_id, tag_id) VALUES (p_id, tag1_id);
+        END IF;
+
+        -- Insert 10 testcases for this problem
+        FOR j IN 1..10 LOOP
+            INSERT INTO public.problem_testcases (
+                problem_id, input_data, expected_output, order_index
+            ) VALUES (
+                p_id,
+                'Input for testcase ' || j || ' (Problem ' || i || ')',
+                'Expected output for testcase ' || j || ' (Problem ' || i || ')',
+                j
+            );
+        END LOOP;
+    END LOOP;
+END $$;
 

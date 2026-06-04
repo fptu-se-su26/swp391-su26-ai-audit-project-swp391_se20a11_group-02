@@ -1,4 +1,4 @@
-package com.swp391.coding_platform.repository;
+package com.swp391.coding_platform.repository.payment;
 
 import com.swp391.coding_platform.entity.cart.CartEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

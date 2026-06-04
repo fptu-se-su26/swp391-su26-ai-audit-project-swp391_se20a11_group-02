@@ -14,7 +14,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "user_daily_activities", schema = "public")
+@Table(name = "user_daily_activities", schema = "public", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "activity_date"})
+})
 public class UserDailyActivityEntity {
 
     @Id

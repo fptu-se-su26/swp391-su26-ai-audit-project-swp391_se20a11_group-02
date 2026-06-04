@@ -1,4 +1,4 @@
-package com.swp391.coding_platform.repository;
+package com.swp391.coding_platform.repository.course;
 
 import com.swp391.coding_platform.entity.course.CourseReviewEntity;
 import org.springframework.data.domain.Page;
