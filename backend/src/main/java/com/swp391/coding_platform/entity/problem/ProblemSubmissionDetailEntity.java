@@ -33,7 +33,7 @@ public class ProblemSubmissionDetailEntity {
     String token;
 
     @Column(name = "execution_time")
-    Double executionTime;
+    Integer executionTime;
 
     @Column(name = "memory_used")
     Integer memoryUsed;

@@ -195,7 +195,7 @@ public class DashboardService {
                 else if (s.getLanguageId() == 4) langStr = "JavaScript";
             }
 
-            String runtimeStr = s.getExecutionTime() != null ? String.format(Locale.US, "%.1f ms", s.getExecutionTime()) : "N/A";
+            String runtimeStr = s.getExecutionTime() != null ? String.format(Locale.US, "%.1f ms", (double) s.getExecutionTime()) : "N/A";
             String memoryStr = s.getMemoryUsed() != null ? String.format(Locale.US, "%.1f MB", s.getMemoryUsed() / 1024.0) : "N/A";
             String timeStr = formatter.format(s.getSubmittedAt());
             String statusClass = s.getVerdict() == OjVerdict.ACCEPTED ? "text-brand-green" : "text-red-600";

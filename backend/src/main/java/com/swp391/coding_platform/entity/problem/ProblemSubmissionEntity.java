@@ -1,5 +1,7 @@
 package com.swp391.coding_platform.entity.problem;
 
+import com.swp391.coding_platform.entity.contest.ContestEntity;
+import com.swp391.coding_platform.entity.course.LessonEntity;
 import com.swp391.coding_platform.entity.enums.OjVerdict;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import jakarta.persistence.*;
@@ -31,11 +33,13 @@ public class ProblemSubmissionEntity {
     @JoinColumn(name = "user_id", nullable = false)
     UserEntity user;
 
-    @Column(name = "lesson_id")
-    Integer lessonId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lesson_id")
+    LessonEntity lesson;
 
-    @Column(name = "contest_id")
-    Integer contestId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contest_id")
+    ContestEntity contest;
 
     @Column(name = "language_id", nullable = false)
     Integer languageId;
@@ -44,7 +48,7 @@ public class ProblemSubmissionEntity {
     String sourceCode;
 
     @Column(name = "execution_time")
-    Double executionTime;
+    Integer executionTime;
 
     @Column(name = "memory_used")
     Integer memoryUsed;

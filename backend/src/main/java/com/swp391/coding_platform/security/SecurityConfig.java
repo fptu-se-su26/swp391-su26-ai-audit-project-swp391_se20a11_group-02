@@ -56,7 +56,7 @@ public class SecurityConfig {
 
                         // 4. Các API Webhook / Callback từ hệ thống bên thứ 3
                         .requestMatchers("/payment/success.html", "/payment/cancel.html", "/payment/webhook").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/online-judge/submissions", "/online-judge/submissions/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT,  "/online-judge/submissions/**").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/online-judge/webhooks/**").permitAll()
                 
 

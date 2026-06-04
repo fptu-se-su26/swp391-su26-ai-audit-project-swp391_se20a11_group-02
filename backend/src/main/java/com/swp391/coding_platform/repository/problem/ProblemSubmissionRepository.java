@@ -1,6 +1,7 @@
 package com.swp391.coding_platform.repository.problem;
 
 import com.swp391.coding_platform.entity.problem.ProblemSubmissionEntity;
+import com.swp391.coding_platform.entity.enums.OjVerdict;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,8 @@ import java.util.List;
 
 @Repository
 public interface ProblemSubmissionRepository extends JpaRepository<ProblemSubmissionEntity, Integer> {
+    long countByUserIdAndProblemIdAndVerdict(Integer userId, Integer problemId, OjVerdict verdict);
+
     List<ProblemSubmissionEntity> findByUserIdAndProblemId(Integer userId, Integer problemId);
 
     List<ProblemSubmissionEntity> findByUserId(Integer userId);

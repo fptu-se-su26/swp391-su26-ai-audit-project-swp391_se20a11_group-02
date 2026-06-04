@@ -42,7 +42,7 @@ public class ProblemService {
     ProblemCommentRepository problemCommentRepository;
     UserRepository userRepository;
 
-    public List<ProblemListItemResponse> getProblems(Long userId) {
+    public List<ProblemListItemResponse> getProblems(Integer userId) {
         List<ProblemEntity> problems = problemRepository.findByProblemScopeInAndIsActiveTrue(
                 List.of(ProblemScope.PRACTICE, ProblemScope.SHARED)
         );
@@ -76,17 +76,10 @@ public class ProblemService {
         return problems.stream().map(problem -> {
             List<String> tags = tagsByProblemId.getOrDefault(problem.getId(), Collections.emptyList());
 
-            String acceptance = "0.0%";
-            if (problem.getTotalSubmission() != null && problem.getTotalSubmission() > 0) {
-                double rate = (problem.getTotalAccepted() * 100.0) / problem.getTotalSubmission();
-                acceptance = String.format(Locale.US, "%.1f%%", rate);
-            }
-
-            String status = "unsolved";
+            boolean isSolved = false;
             List<ProblemSubmissionEntity> subs = finalSubmissions.getOrDefault(problem.getId(), Collections.emptyList());
             if (!subs.isEmpty()) {
-                boolean solved = subs.stream().anyMatch(s -> s.getVerdict() == OjVerdict.ACCEPTED);
-                status = solved ? "solved" : "attempted";
+                isSolved = subs.stream().anyMatch(s -> s.getVerdict() == OjVerdict.ACCEPTED);
             }
 
             String difficultyStr = "Medium";
@@ -101,14 +94,14 @@ public class ProblemService {
                     .difficulty(difficultyStr)
                     .tags(tags)
                     .score(problem.getScore() != null ? problem.getScore().intValue() : 0)
-                    .acceptance(acceptance)
-                    .totalSolved(problem.getTotalAccepted() != null ? problem.getTotalAccepted() : 0)
-                    .status(status)
+                    .totalSubmission(problem.getTotalSubmission() != null ? problem.getTotalSubmission() : 0)
+                    .totalAccepted(problem.getTotalAccepted() != null ? problem.getTotalAccepted() : 0)
+                    .isSolved(isSolved)
                     .build();
         }).toList();
     }
 
-    public ProblemDescriptionResponse getProblemDescription(Integer id, Long userId) {
+    public ProblemDescriptionResponse getProblemDescription(Integer id, Integer userId) {
         ProblemEntity problem = problemRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
@@ -202,7 +195,7 @@ public class ProblemService {
     }
 
     @Transactional
-    public ProblemCommentResponse addComment(Integer problemId, Long userId, CreateCommentRequest request) {
+    public ProblemCommentResponse addComment(Integer problemId, Integer userId, CreateCommentRequest request) {
         if (userId == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
@@ -262,7 +255,7 @@ public class ProblemService {
         return days + " " + (days == 1 ? "day" : "days") + " ago";
     }
 
-    public ProblemSolutionResponse getProblemSolution(Integer id, Long userId) {
+    public ProblemSolutionResponse getProblemSolution(Integer id, Integer userId) {
         if (userId == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }

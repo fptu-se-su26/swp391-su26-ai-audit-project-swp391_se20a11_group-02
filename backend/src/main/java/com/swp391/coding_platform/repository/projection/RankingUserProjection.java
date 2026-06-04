@@ -1,4 +1,4 @@
-package com.swp391.coding_platform.repository.user;
+package com.swp391.coding_platform.repository.projection;
 
 public interface RankingUserProjection {
     Integer getUserId();

@@ -3,12 +3,14 @@ import { Link, useParams } from 'react-router-dom';
 import { problemService } from '../services/problemService';
 import type { ProblemDetail, SubmitResponse, ProblemComment } from '../services/problemService';
 import { useApp } from '../context/AppContext';
+import SockJS from 'sockjs-client';
+import { Stomp } from '@stomp/stompjs';
 
 export const SolveProblem: React.FC = () => {
   const { user } = useApp();
   const { id } = useParams<{ id: string }>();
 
-  const [activeTab, setActiveTab] = useState<'description' | 'discussion' | 'solutions' | 'submissions'>(() => {
+  const [activeTab, setActiveTab] = useState<'description' | 'discussion' | 'solutions' | 'submissions' | 'result'>(() => {
     const savedTab = sessionStorage.getItem('solveProblemActiveTab');
     const savedId = sessionStorage.getItem('solveProblemActiveId');
     if (savedId === id && savedTab) {
@@ -16,6 +18,14 @@ export const SolveProblem: React.FC = () => {
     }
     return 'description';
   });
+
+  const [testcasesLogs, setTestcasesLogs] = useState<any[]>([]);
+  const [overallResult, setOverallResult] = useState<any>(null);
+  const [expandedTestcases, setExpandedTestcases] = useState<{[key: number]: boolean}>({});
+
+  const toggleTestcaseDetails = (testcaseId: number) => {
+    setExpandedTestcases(prev => ({ ...prev, [testcaseId]: !prev[testcaseId] }));
+  };
 
   useEffect(() => {
     if (id) {
@@ -26,7 +36,73 @@ export const SolveProblem: React.FC = () => {
 
   const [leftWidth, setLeftWidth] = useState<number>(50);
   const [isResizing, setIsResizing] = useState<boolean>(false);
-  const [selectedLang, setSelectedLang] = useState<string>('Java');
+  const [selectedLangId, setSelectedLangId] = useState<number>(62); // Java default
+  const [codeCache, setCodeCache] = useState<Record<number, string>>({});
+
+  const SUPPORTED_LANGUAGES = [
+    {"id":54,"name":"C++ (GCC 9.2.0)"},
+    {"id":62,"name":"Java (OpenJDK 13.0.1)"},
+    {"id":71,"name":"Python (3.8.1)"},
+    {"id":63,"name":"JavaScript (Node.js 12.14.0)"},
+    {"id":50,"name":"C (GCC 9.2.0)"},
+    {"id":60,"name":"Go (1.13.5)"},
+    {"id":51,"name":"C# (Mono 6.6.0.161)"},
+    {"id":74,"name":"TypeScript (3.7.4)"},
+    {"id":68,"name":"PHP (7.4.1)"},
+    {"id":72,"name":"Ruby (2.7.0)"},
+    {"id":73,"name":"Rust (1.40.0)"},
+    {"id":45,"name":"Assembly (NASM 2.14.02)"},
+    {"id":46,"name":"Bash (5.0.0)"},
+    {"id":47,"name":"Basic (FBC 1.07.1)"},
+    {"id":75,"name":"C (Clang 7.0.1)"},
+    {"id":76,"name":"C++ (Clang 7.0.1)"},
+    {"id":48,"name":"C (GCC 7.4.0)"},
+    {"id":52,"name":"C++ (GCC 7.4.0)"},
+    {"id":49,"name":"C (GCC 8.3.0)"},
+    {"id":53,"name":"C++ (GCC 8.3.0)"},
+    {"id":86,"name":"Clojure (1.10.1)"},
+    {"id":77,"name":"COBOL (GnuCOBOL 2.2)"},
+    {"id":55,"name":"Common Lisp (SBCL 2.0.0)"},
+    {"id":56,"name":"D (DMD 2.089.1)"},
+    {"id":57,"name":"Elixir (1.9.4)"},
+    {"id":58,"name":"Erlang (OTP 22.2)"},
+    {"id":44,"name":"Executable"},
+    {"id":87,"name":"F# (.NET Core SDK 3.1.202)"},
+    {"id":59,"name":"Fortran (GFortran 9.2.0)"},
+    {"id":88,"name":"Groovy (3.0.3)"},
+    {"id":61,"name":"Haskell (GHC 8.8.1)"},
+    {"id":78,"name":"Kotlin (1.3.70)"},
+    {"id":64,"name":"Lua (5.3.5)"},
+    {"id":89,"name":"Multi-file program"},
+    {"id":79,"name":"Objective-C (Clang 7.0.1)"},
+    {"id":65,"name":"OCaml (4.09.0)"},
+    {"id":66,"name":"Octave (5.1.0)"},
+    {"id":67,"name":"Pascal (FPC 3.0.4)"},
+    {"id":85,"name":"Perl (5.28.1)"},
+    {"id":43,"name":"Plain Text"},
+    {"id":69,"name":"Prolog (GNU Prolog 1.4.5)"},
+    {"id":70,"name":"Python (2.7.17)"},
+    {"id":80,"name":"R (4.0.0)"},
+    {"id":81,"name":"Scala (2.13.2)"},
+    {"id":82,"name":"SQL (SQLite 3.27.2)"},
+    {"id":83,"name":"Swift (5.2.3)"},
+    {"id":84,"name":"Visual Basic.Net (vbnc 0.0.0.5943)"}
+  ];
+
+  const getTemplateForLang = (langId: number, templates: {[key: string]: string} | undefined) => {
+    if (!templates) return '';
+    const lang = SUPPORTED_LANGUAGES.find(l => l.id === langId);
+    if (!lang) return '';
+    const name = lang.name;
+    if (name.includes('Java (')) return templates['Java'] || '';
+    if (name.includes('Python')) return templates['Python 3'] || templates['Python'] || '';
+    if (name.includes('C++')) return templates['C++'] || '';
+    if (name.includes('C (')) return templates['C'] || '';
+    if (name.includes('JavaScript') || name.includes('TypeScript')) return templates['JavaScript'] || '';
+    if (name.includes('C#')) return templates['C#'] || '';
+    const baseName = name.split(' ')[0];
+    return templates[baseName] || '';
+  };
 
   // Problem detail states
   const [problem, setProblem] = useState<ProblemDetail | null>(null);
@@ -42,9 +118,9 @@ export const SolveProblem: React.FC = () => {
       .then(data => {
         setProblem(data);
         if (data.templates) {
-          const defaultLang = Object.keys(data.templates)[0] || 'Java';
-          setSelectedLang(defaultLang);
-          setCodeHtml(data.source_code || data.templates[defaultLang] || '');
+          const defaultLangId = 62; 
+          setSelectedLangId(defaultLangId);
+          setCodeHtml(data.source_code || getTemplateForLang(defaultLangId, data.templates) || '');
         }
         setLoading(false);
       })
@@ -64,27 +140,38 @@ export const SolveProblem: React.FC = () => {
 
   // Handle changing language
   const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const lang = e.target.value;
-    setSelectedLang(lang);
-    if (problem && problem.templates) {
-      const defaultCode = problem.templates[lang] || '';
-      setCodeHtml(defaultCode);
-      const editor = document.getElementById('code-editor');
-      if (editor) {
-        editor.innerHTML = defaultCode;
-      }
+    const newLangId = Number(e.target.value);
+    
+    // Save current code
+    const editor = document.getElementById('code-editor');
+    if (editor) {
+      setCodeCache(prev => ({ ...prev, [selectedLangId]: editor.innerText }));
+    }
+
+    setSelectedLangId(newLangId);
+    
+    // Load cached code or template
+    const restoredCode = codeCache[newLangId] !== undefined ? codeCache[newLangId] : getTemplateForLang(newLangId, problem?.templates);
+    setCodeHtml(restoredCode);
+    if (editor) {
+      editor.innerText = restoredCode;
     }
   };
 
   // Handle Reset Code
   const handleResetCode = () => {
     if (problem && problem.templates) {
-      const defaultCode = problem.templates[selectedLang] || '';
+      const defaultCode = getTemplateForLang(selectedLangId, problem.templates);
       setCodeHtml(defaultCode);
       const editor = document.getElementById('code-editor');
       if (editor) {
-        editor.innerHTML = defaultCode;
+        editor.innerText = defaultCode;
       }
+      setCodeCache(prev => {
+        const next = { ...prev };
+        delete next[selectedLangId];
+        return next;
+      });
     }
   };
 
@@ -211,38 +298,54 @@ export const SolveProblem: React.FC = () => {
   const [showSuccessOverlay, setShowSuccessOverlay] = useState<boolean>(false);
   const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
 
+  const fetchSubmissionsAfterDelay = () => {
+    setTimeout(() => {
+      if (id) problemService.fetchProblemSubmissions(id).then(setSubmissions).catch(console.error);
+    }, 1000);
+  };
+
   const handleSubmit = () => {
     if (!id) return;
     setIsSubmitting(true);
+    setTestcasesLogs([]);
+    setOverallResult(null);
+    setExpandedTestcases({});
     const editorElement = document.getElementById('code-editor');
     const sourceCode = editorElement ? (editorElement as HTMLElement).innerText : '';
 
-    problemService.submitSolution(id, selectedLang, sourceCode)
+    problemService.submitSolution(id, selectedLangId, sourceCode)
       .then(result => {
-        setIsSubmitting(false);
-        setSubmitResult(result);
-        if (result.verdict === 'ACCEPTED') {
-          setShowSuccessOverlay(true);
-          setProblem(prev => prev ? { ...prev, status: 'solved' } : null);
-        } else if (problem && problem.status === 'unsolved') {
-          setProblem(prev => prev ? { ...prev, status: 'attempted' } : null);
+        setActiveTab('result');
+        if (user && user.id) {
+          const socket = new SockJS('http://localhost:8080/nonstopcoding/ws');
+          const stompClient = Stomp.over(socket);
+          stompClient.debug = () => {};
+          
+          stompClient.connect({}, () => {
+            stompClient.subscribe(`/topic/submissions/${user.id}`, (message) => {
+              const payload = JSON.parse(message.body);
+              if (payload.testcaseId) {
+                 setTestcasesLogs(prev => {
+                   if (prev.find(p => p.testcaseId === payload.testcaseId)) return prev;
+                   return [...prev, payload];
+                 });
+                 if (payload.overallVerdict && payload.overallVerdict !== 'PENDING' && payload.overallVerdict !== 'PROCESSING') {
+                   setOverallResult(payload);
+                   setIsSubmitting(false);
+                   stompClient.disconnect();
+                   fetchSubmissionsAfterDelay();
+                 }
+              } else if (payload.overallVerdict) {
+                 setOverallResult(payload);
+                 setIsSubmitting(false);
+                 stompClient.disconnect();
+                 fetchSubmissionsAfterDelay();
+              }
+            });
+          });
+        } else {
+          setIsSubmitting(false);
         }
-
-        const now = new Date();
-        const timestamp = now.toISOString().replace('T', ' ').substring(0, 19);
-        setSubmissions([
-          {
-            status: result.verdict === 'ACCEPTED' ? 'Accepted' : result.verdict.replace(/_/g, ' '),
-            lang: selectedLang,
-            runtime: `${result.runtime.toFixed(1)} ms`,
-            memory: `${(result.memory / 1024).toFixed(1)} MB`,
-            time: timestamp,
-            statusClass: result.verdict === 'ACCEPTED' ? 'text-brand-green' : 'text-red-600'
-          },
-          ...submissions
-        ]);
-
-        setActiveTab('submissions');
       })
       .catch(err => {
         setIsSubmitting(false);
@@ -250,7 +353,7 @@ export const SolveProblem: React.FC = () => {
       });
   };
 
-  const getTabClass = (tab: 'description' | 'discussion' | 'solutions' | 'submissions') => {
+  const getTabClass = (tab: 'description' | 'discussion' | 'solutions' | 'submissions' | 'result') => {
     return activeTab === tab
       ? "py-3 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap outline-none"
       : "py-3 text-sm font-medium text-text-muted hover:text-text-main whitespace-nowrap border-b-2 border-transparent outline-none";
@@ -351,7 +454,7 @@ export const SolveProblem: React.FC = () => {
             <p className="text-sm text-text-muted">Your solution passed {submitResult.passedTestcases}/{submitResult.totalTestcases} test cases successfully.</p>
             <div className="bg-surface-gray p-3 rounded-md font-mono text-xs text-left space-y-1">
               <div><strong>Status:</strong> <span className="text-brand-green">Accepted</span></div>
-              <div><strong>Language:</strong> {selectedLang}</div>
+              <div><strong>Language:</strong> {SUPPORTED_LANGUAGES.find(l => l.id === selectedLangId)?.name || 'Unknown'}</div>
               <div><strong>Runtime:</strong> {submitResult.runtime.toFixed(1)} ms</div>
               <div><strong>Memory:</strong> {(submitResult.memory / 1024).toFixed(1)} MB</div>
             </div>
@@ -400,6 +503,7 @@ export const SolveProblem: React.FC = () => {
             <button className={getTabClass('discussion')} onClick={() => setActiveTab('discussion')}>Discussion</button>
             <button className={getTabClass('solutions')} onClick={() => setActiveTab('solutions')}>Solutions</button>
             <button className={getTabClass('submissions')} onClick={() => setActiveTab('submissions')}>Submissions</button>
+            <button className={getTabClass('result')} onClick={() => setActiveTab('result')}>Test Result</button>
           </div>
 
           {/* Tab Contents */}
@@ -672,6 +776,91 @@ export const SolveProblem: React.FC = () => {
               </div>
             )}
 
+            {/* Result Tab */}
+            {activeTab === 'result' && (
+              <div id="tab-result" className="block space-y-4 pb-12">
+                <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+                  <h2 className="text-xl font-bold text-brand-blue">Test Result</h2>
+                  {overallResult ? (
+                    <div className="text-sm font-medium text-text-muted">{overallResult.totalTestcases} Testcases</div>
+                  ) : testcasesLogs.length > 0 ? (
+                    <div className="text-sm font-medium text-text-muted">{testcasesLogs[testcasesLogs.length - 1]?.processedTestcases || 0} / {testcasesLogs[testcasesLogs.length - 1]?.totalTestcases || 0} Testcases Processed</div>
+                  ) : isSubmitting ? (
+                    <div className="text-sm font-medium text-warning-color animate-pulse">Running...</div>
+                  ) : null}
+                </div>
+
+                {overallResult && (
+                  <div className={`p-4 rounded-lg border shadow-sm mb-6 ${overallResult.overallVerdict === 'ACCEPTED' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                    <h3 className={`font-bold text-lg mb-2 ${overallResult.overallVerdict === 'ACCEPTED' ? 'text-brand-green' : 'text-red-600'}`}>
+                      {overallResult.overallVerdict === 'ACCEPTED' ? 'Accepted' : overallResult.overallVerdict.replace(/_/g, ' ')}
+                    </h3>
+                    <div className="flex gap-6 text-sm text-text-main">
+                      <div><span className="text-text-muted font-medium">Runtime:</span> {overallResult.executionTimeMs?.toFixed(1) || 0} ms</div>
+                      <div><span className="text-text-muted font-medium">Memory:</span> {(overallResult.memoryUsedKb / 1024).toFixed(1) || 0} MB</div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {testcasesLogs.map((log, index) => {
+                    const isExpanded = expandedTestcases[log.testcaseId] || false;
+                    const isSuccess = log.testcaseVerdict === 'ACCEPTED';
+                    return (
+                      <div key={log.testcaseId} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                        <div 
+                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => toggleTestcaseDetails(log.testcaseId)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${isSuccess ? 'bg-brand-green' : 'bg-red-500'}`}>
+                              <span className="material-symbols-outlined text-[16px]">{isSuccess ? 'check' : 'close'}</span>
+                            </div>
+                            <span className="font-bold text-text-main text-sm">Testcase {index + 1}</span>
+                          </div>
+                          <button className="text-sm font-semibold text-primary hover:text-primary-hover">
+                            {isExpanded ? 'Hide Details' : 'View Details'}
+                          </button>
+                        </div>
+                        
+                        {isExpanded && (
+                          <div className="p-4 border-t border-gray-100 space-y-4 bg-gray-50/50">
+                            <div>
+                              <div className="text-xs font-bold text-text-muted uppercase mb-1.5 tracking-wider">Input</div>
+                              <div className="bg-surface-gray border border-gray-200 rounded p-3 font-mono text-sm text-text-main whitespace-pre-wrap">{log.input ? log.input.replace(/\\n/g, '\n') : 'N/A'}</div>
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-text-muted uppercase mb-1.5 tracking-wider">Expected Output</div>
+                              <div className="bg-green-50 border border-green-200 rounded p-3 font-mono text-sm text-brand-green whitespace-pre-wrap">{log.expectedOutput ? log.expectedOutput.replace(/\\n/g, '\n') : 'N/A'}</div>
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-text-muted uppercase mb-1.5 tracking-wider">Actual Output</div>
+                              <div className={`border rounded p-3 font-mono text-sm whitespace-pre-wrap ${isSuccess ? 'bg-surface-gray border-gray-200 text-text-main' : 'bg-red-50 border-red-200 text-red-600'}`}>{log.actualOutput ? log.actualOutput.replace(/\\n/g, '\n') : 'N/A'}</div>
+                            </div>
+                            {log.compileOutput && (
+                                <div>
+                                    <div className="text-xs font-bold text-text-muted uppercase mb-1.5 tracking-wider">Compile/Error Output</div>
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded p-3 font-mono text-sm text-yellow-700 whitespace-pre-wrap">{log.compileOutput.replace(/\\n/g, '\n')}</div>
+                                </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {isSubmitting && testcasesLogs.length === 0 && (
+                    <div className="py-12 flex flex-col items-center justify-center text-text-muted">
+                      <svg className="animate-spin h-8 w-8 text-primary mb-3" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span className="font-semibold text-sm">Evaluating your code against test cases...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
 
           </div>
         </div>
@@ -690,12 +879,12 @@ export const SolveProblem: React.FC = () => {
           <div className="flex items-center justify-between p-2 bg-surface border-b border-gray-200 shrink-0">
             <div className="flex items-center gap-2">
               <select
-                value={selectedLang}
+                value={selectedLangId}
                 onChange={handleLangChange}
                 className="bg-surface-gray border border-gray-300 text-text-main text-sm rounded-md focus:ring-primary focus:border-primary block px-3 py-1.5 font-medium cursor-pointer outline-none"
               >
-                {problem.templates && Object.keys(problem.templates).map(lang => (
-                  <option key={lang} value={lang}>{lang}</option>
+                {SUPPORTED_LANGUAGES.map(lang => (
+                  <option key={lang.id} value={lang.id}>{lang.name}</option>
                 ))}
               </select>
             </div>

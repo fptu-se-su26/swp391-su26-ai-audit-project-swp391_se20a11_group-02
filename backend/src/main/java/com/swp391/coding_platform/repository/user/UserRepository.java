@@ -1,7 +1,9 @@
 package com.swp391.coding_platform.repository.user;
 
 import com.swp391.coding_platform.entity.user.UserEntity;
+import com.swp391.coding_platform.repository.projection.RankingUserProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -11,6 +13,9 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
+        @Modifying
+        @Query("UPDATE UserEntity u SET u.score = COALESCE(u.score, 0) + :score WHERE u.id = :userId")
+        void incrementUserScore(@Param("userId") Integer userId, @Param("score") Integer score);
         Optional<UserEntity> findByUsername(String username);
 
         boolean existsByUsername(String username);

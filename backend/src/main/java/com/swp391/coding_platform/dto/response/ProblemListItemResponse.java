@@ -16,7 +16,7 @@ public class ProblemListItemResponse {
     String difficulty;
     List<String> tags;
     Integer score;
-    String acceptance;
-    Integer totalSolved;
-    String status; // "solved", "unsolved", "attempted"
+    Integer totalSubmission;
+    Integer totalAccepted;
+    Boolean isSolved;
 }
