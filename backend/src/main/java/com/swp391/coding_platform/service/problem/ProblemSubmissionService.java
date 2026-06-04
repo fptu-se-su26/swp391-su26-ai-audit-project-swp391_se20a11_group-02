@@ -40,79 +40,79 @@ public class ProblemSubmissionService {
     ProblemTestcaseRepository problemTestcaseRepository;
     ProblemSubmissionDetailRepository problemSubmissionDetailRepository;
 
-    @Transactional
-    public SubmitResponse submitProblem(Integer id, Long userId, SubmitRequest request) {
-        if (userId == null) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        }
-
-        ProblemEntity problem = problemRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
-
-        UserEntity user = userRepository.findById(userId.intValue())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-        List<ProblemTestcaseEntity> testcases = problemTestcaseRepository.findByProblemIdOrderByOrderIndexAsc(id);
-
-        int languageId = 1; // Default to Java
-        String lang = request.getLanguage() != null ? request.getLanguage().toLowerCase() : "";
-        if (lang.contains("python")) {
-            languageId = 2;
-        } else if (lang.contains("c++") || lang.contains("cpp")) {
-            languageId = 3;
-        } else if (lang.contains("javascript") || lang.contains("js")) {
-            languageId = 4;
-        }
-
-        double executionTime = 1.0 + Math.random() * 5.0; // 1-6 ms
-        int memoryUsed = 40000 + (int) (Math.random() * 5000); // 40-45 MB
-
-        ProblemSubmissionEntity submission = ProblemSubmissionEntity.builder()
-                .problem(problem)
-                .user(user)
-                .languageId(languageId)
-                .sourceCode(request.getSourceCode())
-                .executionTime(executionTime)
-                .memoryUsed(memoryUsed)
-                .score(problem.getScore())
-                .submittedAt(Instant.now())
-                .verdict(OjVerdict.ACCEPTED)
-                .isPlagiarized(false)
-                .build();
-
-        problemSubmissionRepository.save(submission);
-
-        for (ProblemTestcaseEntity tc : testcases) {
-            ProblemSubmissionDetailEntity detail = ProblemSubmissionDetailEntity.builder()
-                    .submission(submission)
-                    .testcase(tc)
-                    .token(tc.getToken())
-                    .executionTime(executionTime / (testcases.isEmpty() ? 1 : testcases.size()))
-                    .memoryUsed(memoryUsed)
-                    .verdict(OjVerdict.ACCEPTED)
-                    .stdout("Testcase Output: SUCCESS")
-                    .stderr("")
-                    .compileOutput("Compilation successful")
-                    .createdAt(Instant.now())
-                    .build();
-
-            problemSubmissionDetailRepository.save(detail);
-        }
-
-        problem.setTotalSubmission(problem.getTotalSubmission() != null ? problem.getTotalSubmission() + 1 : 1);
-        problem.setTotalAccepted(problem.getTotalAccepted() != null ? problem.getTotalAccepted() + 1 : 1);
-        problemRepository.save(problem);
-
-        int totalCount = testcases.isEmpty() ? 1 : testcases.size();
-
-        return SubmitResponse.builder()
-                .verdict(OjVerdict.ACCEPTED.name())
-                .runtime(executionTime)
-                .memory(memoryUsed)
-                .passedTestcases(totalCount)
-                .totalTestcases(totalCount)
-                .build();
-    }
+//    @Transactional
+//    public SubmitResponse submitProblem(Integer id, Long userId, SubmitRequest request) {
+//        if (userId == null) {
+//            throw new AppException(ErrorCode.UNAUTHENTICATED);
+//        }
+//
+//        ProblemEntity problem = problemRepository.findById(id)
+//                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+//
+//        UserEntity user = userRepository.findById(userId.intValue())
+//                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+//
+//        List<ProblemTestcaseEntity> testcases = problemTestcaseRepository.findByProblemIdOrderByOrderIndexAsc(id);
+//
+//        int languageId = 1; // Default to Java
+//        String lang = request.getLanguage() != null ? request.getLanguage().toLowerCase() : "";
+//        if (lang.contains("python")) {
+//            languageId = 2;
+//        } else if (lang.contains("c++") || lang.contains("cpp")) {
+//            languageId = 3;
+//        } else if (lang.contains("javascript") || lang.contains("js")) {
+//            languageId = 4;
+//        }
+//
+//        double executionTime = 1.0 + Math.random() * 5.0; // 1-6 ms
+//        int memoryUsed = 40000 + (int) (Math.random() * 5000); // 40-45 MB
+//
+//        ProblemSubmissionEntity submission = ProblemSubmissionEntity.builder()
+//                .problem(problem)
+//                .user(user)
+//                .languageId(languageId)
+//                .sourceCode(request.getSourceCode())
+//                .executionTime(executionTime)
+//                .memoryUsed(memoryUsed)
+//                .score(problem.getScore())
+//                .submittedAt(Instant.now())
+//                .verdict(OjVerdict.ACCEPTED)
+//                .isPlagiarized(false)
+//                .build();
+//
+//        problemSubmissionRepository.save(submission);
+//
+//        for (ProblemTestcaseEntity tc : testcases) {
+//            ProblemSubmissionDetailEntity detail = ProblemSubmissionDetailEntity.builder()
+//                    .submission(submission)
+//                    .testcase(tc)
+//                    .token(tc.getToken())
+//                    .executionTime(executionTime / (testcases.isEmpty() ? 1 : testcases.size()))
+//                    .memoryUsed(memoryUsed)
+//                    .verdict(OjVerdict.ACCEPTED)
+//                    .stdout("Testcase Output: SUCCESS")
+//                    .stderr("")
+//                    .compileOutput("Compilation successful")
+//                    .createdAt(Instant.now())
+//                    .build();
+//
+//            problemSubmissionDetailRepository.save(detail);
+//        }
+//
+//        problem.setTotalSubmission(problem.getTotalSubmission() != null ? problem.getTotalSubmission() + 1 : 1);
+//        problem.setTotalAccepted(problem.getTotalAccepted() != null ? problem.getTotalAccepted() + 1 : 1);
+//        problemRepository.save(problem);
+//
+//        int totalCount = testcases.isEmpty() ? 1 : testcases.size();
+//
+//        return SubmitResponse.builder()
+//                .verdict(OjVerdict.ACCEPTED.name())
+//                .runtime(executionTime)
+//                .memory(memoryUsed)
+//                .passedTestcases(totalCount)
+//                .totalTestcases(totalCount)
+//                .build();
+//    }
 
     public List<ProblemSubmissionResponse> getSubmissions(Integer problemId, Long userId) {
         if (userId == null) {
