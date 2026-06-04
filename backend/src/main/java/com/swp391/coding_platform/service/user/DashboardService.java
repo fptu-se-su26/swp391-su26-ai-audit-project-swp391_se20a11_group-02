@@ -12,14 +12,19 @@ import com.swp391.coding_platform.mapper.CourseMapper;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
 import com.swp391.coding_platform.repository.payment.WalletRepository;
 import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
+import com.swp391.coding_platform.repository.user.UserDailyActivityRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
+import com.swp391.coding_platform.dto.response.UserActivityResponse;
 import com.swp391.coding_platform.util.ProgressUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+    
+
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +40,7 @@ public class DashboardService {
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
     private final CompletedLessonCountRepository completedLessonCountRepository;
+    private final UserDailyActivityRepository activityRepository;
     private final CourseMapper courseMapper;
 
     public DashboardStatsResponse getDashboardStats(Integer userId) {
@@ -139,5 +145,20 @@ public class DashboardService {
             response.setProgressPercentage(progress);
             return response;
         }).toList();
+    }
+
+    public UserActivityResponse getUserActivitiesByYear(Integer userId, int year) {
+        List<LocalDate> activeDates = activityRepository.findActiveDatesByYear(userId, year);
+        Integer maxStreak = activityRepository.getMaxStreak(userId);
+        Number currentStreakNum = activityRepository.getCurrentValidStreak(userId);
+        Integer currentStreak = currentStreakNum != null ? currentStreakNum.intValue() : 0;
+
+        return UserActivityResponse.builder()
+                .userId(userId)
+                .year(year)
+                .maxStreak(maxStreak != null ? maxStreak : 0)
+                .currentStreak(currentStreak)
+                .activeDates(activeDates)
+                .build();
     }
 }
