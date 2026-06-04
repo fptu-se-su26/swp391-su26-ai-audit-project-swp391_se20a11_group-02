@@ -25,9 +25,6 @@ import java.util.List;
 public class ProblemController {
 
     ProblemService problemService;
-    ProblemDescriptionService problemDescriptionService;
-    ProblemDiscussionService problemDiscussionService;
-    ProblemSolutionService problemSolutionService;
     ProblemSubmissionService problemSubmissionService;
 
     // 1. Problem List API
@@ -62,7 +59,7 @@ public class ProblemController {
             userId = jwt.getClaim("userId");
         }
 
-        ProblemDescriptionResponse result = problemDescriptionService.getProblemDescription(id, userId);
+        ProblemDescriptionResponse result = problemService.getProblemDescription(id, userId);
 
         return ResponseEntity.ok(ApiResponse.<ProblemDescriptionResponse>builder()
                 .status(200)
@@ -78,7 +75,7 @@ public class ProblemController {
     public ResponseEntity<ApiResponse<List<ProblemCommentResponse>>> getDiscussion(
             @PathVariable Integer id) {
 
-        List<ProblemCommentResponse> result = problemDiscussionService.getComments(id);
+        List<ProblemCommentResponse> result = problemService.getComments(id);
 
         return ResponseEntity.ok(ApiResponse.<List<ProblemCommentResponse>>builder()
                 .status(200)
@@ -100,7 +97,7 @@ public class ProblemController {
             userId = jwt.getClaim("userId");
         }
 
-        ProblemCommentResponse result = problemDiscussionService.addComment(id, userId, request);
+        ProblemCommentResponse result = problemService.addComment(id, userId, request);
 
         return ResponseEntity.ok(ApiResponse.<ProblemCommentResponse>builder()
                 .status(200)
@@ -122,7 +119,7 @@ public class ProblemController {
             userId = jwt.getClaim("userId");
         }
 
-        ProblemSolutionResponse result = problemSolutionService.getProblemSolution(id, userId);
+        ProblemSolutionResponse result = problemService.getProblemSolution(id, userId);
 
         return ResponseEntity.ok(ApiResponse.<ProblemSolutionResponse>builder()
                 .status(200)

@@ -2,7 +2,7 @@ package com.swp391.coding_platform.entity.problem;
 
 import com.swp391.coding_platform.entity.enums.ProblemDifficulty;
 import com.swp391.coding_platform.entity.enums.ProblemScope;
-import com.swp391.coding_platform.entity.instructor.InstructorEntity;
+import com.swp391.coding_platform.entity.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -62,8 +62,8 @@ public class ProblemEntity {
     Boolean isActive = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "created_by_teacher_id", nullable = false)
-    InstructorEntity createdByTeacher;
+    @JoinColumn(name = "created_by", nullable = false)
+    UserEntity createdBy;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
