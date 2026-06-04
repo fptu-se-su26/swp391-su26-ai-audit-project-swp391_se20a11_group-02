@@ -12,7 +12,9 @@ import java.util.List;
 @Repository
 public interface ProblemSubmissionRepository extends JpaRepository<ProblemSubmissionEntity, Integer> {
     List<ProblemSubmissionEntity> findByUserIdAndProblemId(Integer userId, Integer problemId);
+
     List<ProblemSubmissionEntity> findByUserId(Integer userId);
+
     List<ProblemSubmissionEntity> findByUserIdAndProblemIdIn(Integer userId, List<Integer> problemIds);
 
     @Query("SELECT p FROM ProblemSubmissionEntity p JOIN FETCH p.problem WHERE p.user.id = :userId ORDER BY p.submittedAt DESC")

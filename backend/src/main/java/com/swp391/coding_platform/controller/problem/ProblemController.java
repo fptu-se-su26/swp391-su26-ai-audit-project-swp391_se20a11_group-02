@@ -130,6 +130,29 @@ public class ProblemController {
                 .build());
     }
 
+    // // 5. Submission APIs
+    // @PostMapping("/{id}/submit")
+    // public ResponseEntity<ApiResponse<SubmitResponse>> submitProblem(
+    // @PathVariable Integer id,
+    // @AuthenticationPrincipal Jwt jwt,
+    // @Valid @RequestBody SubmitRequest request) {
+    //
+    // Long userId = null;
+    // if (jwt != null) {
+    // userId = jwt.getClaim("userId");
+    // }
+    //
+    // SubmitResponse result = problemSubmissionService.submitProblem(id, userId,
+    // request);
+    //
+    // return ResponseEntity.ok(ApiResponse.<SubmitResponse>builder()
+    // .status(200)
+    // .code(1000)
+    // .message("Submit solution successfully")
+    // .result(result)
+    // .timestamp(Instant.now().toString())
+    // .build());
+    // }
 
     @GetMapping("/{id}/submissions")
     public ResponseEntity<ApiResponse<List<ProblemSubmissionResponse>>> getSubmissions(

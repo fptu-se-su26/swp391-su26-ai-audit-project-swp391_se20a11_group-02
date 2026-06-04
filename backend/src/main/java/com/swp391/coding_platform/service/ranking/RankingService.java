@@ -24,7 +24,7 @@ public class RankingService {
     public List<RankingUserResponse> getGlobalRankings(String filter) {
         List<RankingUserProjection> projections = userRepository.getGlobalRankingList();
         List<RankingUserResponse> responses = new ArrayList<>();
-        
+
         for (int i = 0; i < projections.size(); i++) {
             RankingUserProjection p = projections.get(i);
             double points = p.getPoints() != null ? p.getPoints() : 0.0;
@@ -48,7 +48,7 @@ public class RankingService {
 
         List<RankingUserProjection> allRankings = userRepository.getGlobalRankingList();
         double points = 0.0;
-        
+
         for (RankingUserProjection p : allRankings) {
             if (p.getUserId().equals(userId)) {
                 points = p.getPoints() != null ? p.getPoints() : 0.0;

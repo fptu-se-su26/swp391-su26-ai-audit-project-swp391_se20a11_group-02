@@ -2,10 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type ProblemSubmissionResponse } from '../services/dashboardService';
-import { problemService, type ProblemListItem } from '../services/problemService';
 
 // Mock datasets exactly as they are in the HTML
-const initialMyCourses = [
+export const initialMyCourses = [
   {
     id: 'java-adv',
     title: 'Java Fundamentals to Advanced',
@@ -430,13 +429,13 @@ export const StudentDashboard: React.FC = () => {
   const ongoingScrollRef = useRef<HTMLDivElement>(null);
   const completedScrollRef = useRef<HTMLDivElement>(null);
 
-  const scrollLeft = (ref: React.RefObject<HTMLDivElement>) => {
+  const scrollLeft = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
       ref.current.scrollBy({ left: -ref.current.offsetWidth, behavior: 'smooth' });
     }
   };
 
-  const scrollRight = (ref: React.RefObject<HTMLDivElement>) => {
+  const scrollRight = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
       ref.current.scrollBy({ left: ref.current.offsetWidth, behavior: 'smooth' });
     }
@@ -453,7 +452,6 @@ export const StudentDashboard: React.FC = () => {
   };
 
   const renderCourseCard = (course: CourseListItemResponse, isCompleted: boolean) => {
-    const isFree = course.price === 0;
     
     return (
       <article 
