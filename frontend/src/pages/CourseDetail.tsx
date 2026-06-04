@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { fetchCourseDetail, fetchCourseCurriculum, fetchCourseReviews, type CourseDetailResponse, type CurriculumChapterResponse, type CourseReviewStatsResponse } from '../services/courseService';
 
@@ -22,7 +22,8 @@ export const CourseDetail: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
-  const { addToCart } = useApp();
+  const { addToCart, user } = useApp();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadDetail = async () => {
@@ -78,6 +79,10 @@ export const CourseDetail: React.FC = () => {
   };
 
   const handleAddToCart = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     if (course) {
       addToCart(course.id.toString());
       setSuccessMessage('Course added to cart successfully!');

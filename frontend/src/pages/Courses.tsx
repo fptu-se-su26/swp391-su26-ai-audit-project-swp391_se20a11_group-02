@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { fetchCourses, type CourseListItemResponse, type CourseSearchRequestParams } from '../services/courseService';
 import { useApp } from '../context/AppContext';
 
 export const Courses: React.FC = () => {
-  const { cart, addToCart } = useApp();
+  const { cart, addToCart, user } = useApp();
+  const navigate = useNavigate();
   // Filter and Sort states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -773,6 +774,10 @@ export const Courses: React.FC = () => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                if (!user) {
+                  navigate('/login');
+                  return;
+                }
                 addToCart(course.id.toString());
                 setSuccessMessage('Course added to cart successfully!');
                 setTimeout(() => setSuccessMessage(''), 3000);
