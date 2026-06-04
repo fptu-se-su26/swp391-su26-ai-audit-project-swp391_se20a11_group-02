@@ -17,7 +17,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
-import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -39,7 +38,7 @@ public class SecurityConfig {
     final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, UserActivityFilter userActivityFilter) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -51,7 +50,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google").permitAll()
 
                         // 3. Các API Public để xem dữ liệu (Giới hạn HTTP GET)
-                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}", "/contests", "/rankings").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}", "/contests").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/problems", "/api/problems/*/description", "/api/problems/*/discussion").permitAll()
                         .requestMatchers("/online-judge/problems/practice").permitAll()
 
                         // 4. Các API Webhook / Callback từ hệ thống bên thứ 3
@@ -75,8 +75,7 @@ public class SecurityConfig {
                         )
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler)
-                )
-                .addFilterAfter(userActivityFilter, BearerTokenAuthenticationFilter.class);
+                );
 
         return http.build();
     }
