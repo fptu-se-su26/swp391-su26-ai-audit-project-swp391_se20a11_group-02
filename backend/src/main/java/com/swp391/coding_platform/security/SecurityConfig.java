@@ -51,7 +51,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google").permitAll()
 
                         // 3. Các API Public để xem dữ liệu (Giới hạn HTTP GET)
-                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}", "/contests", "/contests/banner", "/contests/{contestId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/contests", "/contests/banner", "/contests/{contestId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/problems").permitAll()
                         .requestMatchers("/online-judge/problems/practice").permitAll()
 
@@ -59,7 +60,7 @@ public class SecurityConfig {
                         .requestMatchers("/payment/success.html", "/payment/cancel.html", "/payment/webhook").permitAll()
                         .requestMatchers(HttpMethod.PUT,  "/online-judge/submissions/**").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/online-judge/webhooks/**").permitAll()
-                
+
 
                         // 5. WebSocket & System
                         .requestMatchers("/test-ws.html", "/test-ws-gen.html", "/ws/**").permitAll()
@@ -120,11 +121,11 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Cấu hình các domain frontend được phép gọi API
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173")); 
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         // Áp dụng cấu hình CORS này cho toàn bộ endpoint (/**)
         source.registerCorsConfiguration("/**", configuration);
