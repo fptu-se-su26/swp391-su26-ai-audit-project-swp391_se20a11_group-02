@@ -9,6 +9,7 @@ export interface ProblemListItem {
   totalSubmission: number;
   totalAccepted: number;
   isSolved: boolean;
+  status: 'solved' | 'unsolved' | 'attempted';
 }
 
 export interface ProblemDetail {

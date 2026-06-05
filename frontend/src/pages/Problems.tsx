@@ -344,9 +344,14 @@ export const Problems: React.FC = () => {
                   className="hover:bg-surface-gray/50 transition-colors group cursor-pointer"
                 >
                   <td className="p-4 pl-6 text-center">
-                    {prob.isSolved && (
+                    {prob.status === 'solved' && (
                       <span className="material-symbols-outlined text-[20px] text-brand-green">
                         check_circle
+                      </span>
+                    )}
+                    {prob.status === 'attempted' && (
+                      <span className="material-symbols-outlined text-[20px] text-red-500">
+                        cancel
                       </span>
                     )}
                   </td>

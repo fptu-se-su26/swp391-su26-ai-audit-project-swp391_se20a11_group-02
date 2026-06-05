@@ -19,4 +19,5 @@ public class ProblemListItemResponse {
     Integer totalSubmission;
     Integer totalAccepted;
     Boolean isSolved;
+    String status;
 }
