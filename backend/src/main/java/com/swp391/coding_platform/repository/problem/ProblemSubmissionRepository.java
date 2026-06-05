@@ -22,4 +22,10 @@ public interface ProblemSubmissionRepository extends JpaRepository<ProblemSubmis
 
     @Query("SELECT p FROM ProblemSubmissionEntity p JOIN FETCH p.problem WHERE p.user.id = :userId ORDER BY p.submittedAt DESC")
     List<ProblemSubmissionEntity> findSubmissionsWithProblemByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT p.verdict, COUNT(p.id) " +
+           "FROM ProblemSubmissionEntity p " +
+           "WHERE p.user.id = :userId " +
+           "GROUP BY p.verdict")
+    List<Object[]> countVerdictsByUserId(@Param("userId") Integer userId);
 }

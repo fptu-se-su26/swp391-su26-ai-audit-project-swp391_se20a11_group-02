@@ -45,8 +45,8 @@ export default {
         "margin-desktop": "64px"
       },
       fontFamily: {
-        headline: ["Outfit", "sans-serif"],
-        display: ["Outfit", "sans-serif"],
+        headline: ["Plus Jakarta Sans", "sans-serif"],
+        display: ["Plus Jakarta Sans", "sans-serif"],
         body: ["Inter", "sans-serif"],
         label: ["Inter", "sans-serif"]
       },
