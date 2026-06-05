@@ -32,4 +32,6 @@ public interface ProblemSubmissionDetailRepository extends JpaRepository<Problem
             "FROM ProblemSubmissionDetailEntity d " +
             "WHERE d.submission.id = :submissionId")
     Optional<SubmissionMaxStats> findMaxStatsBySubmissionId(@Param("submissionId") Integer submissionId);
+
+    long countBySubmissionId(Integer submissionId);
 }
