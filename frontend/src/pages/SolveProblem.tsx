@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { problemService } from '../services/problemService';
-import type { ProblemDetail, SubmitResponse, ProblemComment } from '../services/problemService';
+import type { ProblemDetail, ProblemComment } from '../services/problemService';
 import { useApp } from '../context/AppContext';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
@@ -245,9 +245,6 @@ export const SolveProblem: React.FC = () => {
 
   // Submit flow states
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showSuccessOverlay, setShowSuccessOverlay] = useState<boolean>(false);
-  const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
-
   const fetchSubmissionsAfterDelay = () => {
     setTimeout(() => {
       if (id) {
@@ -269,7 +266,7 @@ export const SolveProblem: React.FC = () => {
     const sourceCode = editorElement ? (editorElement as HTMLElement).innerText : '';
 
     problemService.submitSolution(id, selectedLangId, sourceCode)
-      .then(result => {
+      .then(() => {
         setActiveTab('result');
         if (user && user.id) {
           const socket = new SockJS('http://localhost:8080/nonstopcoding/ws');
@@ -399,29 +396,6 @@ export const SolveProblem: React.FC = () => {
             display: none;
         }
       `}} />
-
-      {/* Success Modal overlay */}
-      {showSuccessOverlay && submitResult && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full border border-gray-200 text-center shadow-lg space-y-4 animate-fade-in">
-            <span className="material-symbols-outlined text-[48px] text-brand-green">check_circle</span>
-            <h3 className="font-bold text-lg text-text-main">Solution Accepted!</h3>
-            <p className="text-sm text-text-muted">Your solution passed {submitResult.passedTestcases}/{submitResult.totalTestcases} test cases successfully.</p>
-            <div className="bg-surface-gray p-3 rounded-md font-mono text-xs text-left space-y-1">
-              <div><strong>Status:</strong> <span className="text-brand-green">Accepted</span></div>
-              <div><strong>Language:</strong> {SUPPORTED_LANGUAGES.find(l => l.id === selectedLangId)?.name || 'Unknown'}</div>
-              <div><strong>Runtime:</strong> {submitResult.runtime.toFixed(1)} ms</div>
-              <div><strong>Memory:</strong> {(submitResult.memory / 1024).toFixed(1)} MB</div>
-            </div>
-            <button
-              onClick={() => setShowSuccessOverlay(false)}
-              className="w-full py-2 bg-brand-green hover:bg-[#3d8c38] text-white rounded font-bold text-sm transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Back button row */}
       <div className="px-4 py-2 bg-surface border-b border-gray-200 flex items-center justify-between shrink-0 h-12">

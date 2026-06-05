@@ -110,7 +110,7 @@ export const ShoppingCart: React.FC = () => {
     removeFromCart(id);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cartItems.length === 0) {
       setErrorMessage('Your cart is empty.');
       setSuccessMessage('');
@@ -128,7 +128,7 @@ export const ShoppingCart: React.FC = () => {
       return;
     }
 
-    const success = checkoutCart(finalTotal, cartItems.map(item => ({ id: item.id, title: item.title, price: item.price })));
+    const success = await checkoutCart(finalTotal, cartItems.map(item => ({ id: item.id, title: item.title, price: item.price })));
     if (success) {
       setSuccessMessage('Checkout successful! Courses have been added to your account.');
       setErrorMessage('');
