@@ -735,22 +735,39 @@ export const Courses: React.FC = () => {
   function renderCardBottom(course: CourseListItemResponse) {
     const isFree = course.price === 0;
 
-    return (
-      <div className="mt-auto pt-3 border-t border-gray-100 flex flex-col gap-2">
-        {course.enrolled && course.progressPercentage !== undefined && (
+    if (course.enrolled) {
+      const progress = course.progressPercentage || 0;
+      return (
+        <div className="mt-auto pt-3 border-t border-gray-100 flex flex-col gap-3">
           <div className="w-full flex flex-col gap-1 text-left">
             <div className="flex justify-between text-[10px] font-bold text-brand-blue">
               <span>Progress</span>
-              <span>{course.progressPercentage}%</span>
+              <span>{progress}%</span>
             </div>
             <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
               <div 
                 className="bg-brand-green h-full transition-all duration-300"
-                style={{ width: `${course.progressPercentage}%` }}
+                style={{ width: `${progress}%` }}
               ></div>
             </div>
           </div>
-        )}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate('/dashboard');
+            }}
+            className="w-full py-2 bg-primary hover:bg-primary-hover text-white font-bold text-xs rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span>Continue Learning</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-auto pt-3 border-t border-gray-100 flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex flex-col text-left">
             {isFree ? (
@@ -761,11 +778,7 @@ export const Courses: React.FC = () => {
               </span>
             )}
           </div>
-          {course.enrolled ? (
-            <span className="bg-brand-blue-light text-brand-blue font-extrabold text-[10px] px-2 py-1 rounded shadow-sm">
-              Enrolled
-            </span>
-          ) : isFree ? (
+          {isFree ? (
             <span className="bg-brand-green/10 text-brand-green font-extrabold text-[10px] px-2 py-1 rounded shadow-sm">
               Get Free
             </span>
@@ -786,7 +799,7 @@ export const Courses: React.FC = () => {
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm ${
                 cart.includes(course.id.toString())
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  : 'bg-primary text-white hover:bg-orange-600 hover:scale-105 hover:shadow-md'
+                  : 'bg-primary text-white hover:bg-orange-600 hover:scale-105 hover:shadow-md cursor-pointer'
               }`}
               title={cart.includes(course.id.toString()) ? 'In Cart' : 'Add to cart'}
             >
