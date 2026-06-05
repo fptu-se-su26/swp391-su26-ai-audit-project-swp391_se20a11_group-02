@@ -32,15 +32,12 @@ export interface CourseListItemResponse {
     instructorName: string;
 }
 
-export interface ProblemSubmissionResponse {
-    problemId: number;
-    problemTitle: string;
-    status: string;
-    lang: string;
-    runtime: string;
-    memory: string;
-    time: string;
-    statusClass: string;
+export interface SubmissionStatisticResponse {
+    totalSubmissions: number;
+    totalAccepted: number;
+    totalWrongAnswer: number;
+    totalTimeLimitExceeded: number;
+    totalMemoryLimitExceeded: number;
 }
 
 export const dashboardService = {
@@ -96,8 +93,8 @@ export const dashboardService = {
     return data.result;
   },
 
-  async getDoneProblems(): Promise<ProblemSubmissionResponse[]> {
-    const response = await fetch(`${BASE_URL}/me/done-problems`, {
+  async getSubmissionStatistics(): Promise<SubmissionStatisticResponse> {
+    const response = await fetch(`${BASE_URL}/me/submission-statistics`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -106,7 +103,7 @@ export const dashboardService = {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to fetch done problems');
+      throw new Error('Failed to fetch submission statistics');
     }
     
     const data = await response.json();

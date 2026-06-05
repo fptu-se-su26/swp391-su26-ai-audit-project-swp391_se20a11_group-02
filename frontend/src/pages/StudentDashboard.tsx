@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type ProblemSubmissionResponse } from '../services/dashboardService';
+import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type SubmissionStatisticResponse } from '../services/dashboardService';
 
 // Mock datasets exactly as they are in the HTML
 export const initialMyCourses = [
@@ -334,8 +334,8 @@ export const StudentDashboard: React.FC = () => {
   const [myCourses, setMyCourses] = useState<CourseListItemResponse[]>([]);
   const [myCoursesFilter, setMyCoursesFilter] = useState<'all' | 'ongoing' | 'completed'>('all');
 
-  // Completed Practice Problems states
-  const [completedProblems, setCompletedProblems] = useState<ProblemSubmissionResponse[]>([]);
+  // Submission Statistics states
+  const [submissionStats, setSubmissionStats] = useState<SubmissionStatisticResponse | null>(null);
 
   // Contest History tab states
   const [contestFilter, setContestFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'ended'>('all');
@@ -415,12 +415,12 @@ export const StudentDashboard: React.FC = () => {
     }
   }, [user, activeTab]);
 
-  // Fetch Completed Practice Problems
+  // Fetch Submission Statistics
   useEffect(() => {
     if (user && activeTab === 'dashboard') {
-      dashboardService.getDoneProblems()
+      dashboardService.getSubmissionStatistics()
         .then(data => {
-          setCompletedProblems(data);
+          setSubmissionStats(data);
         })
         .catch(console.error);
     }
@@ -960,6 +960,104 @@ export const StudentDashboard: React.FC = () => {
               </div>
             </section>
 
+            {/* Submission Statistics */}
+            <section className="flex flex-col gap-6 w-full">
+              <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">bar_chart</span>
+                  Practice Submission Statistics
+                </h2>
+                <Link className="text-sm font-semibold text-primary hover:text-primary-hover transition-colors flex items-center gap-1" to="/problems">
+                  Go to Practice <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="bg-surface rounded-xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="text-text-muted text-sm font-semibold flex items-center gap-1.5 z-10">
+                    <span className="material-symbols-outlined text-[18px]">publish</span>
+                    Total Submissions
+                  </div>
+                  <div className="text-3xl font-display font-black text-brand-blue z-10">
+                    {submissionStats?.totalSubmissions || 0}
+                  </div>
+                </div>
+                
+                <div className="bg-surface rounded-xl border border-green-100 p-5 shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="text-green-600 text-sm font-semibold flex items-center gap-1.5 z-10">
+                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                    Accepted
+                  </div>
+                  <div className="flex items-baseline gap-2 z-10">
+                    <div className="text-3xl font-display font-black text-green-600">
+                      {submissionStats?.totalAccepted || 0}
+                    </div>
+                    {submissionStats && submissionStats.totalSubmissions > 0 && (
+                      <div className="text-xs font-bold px-2 py-0.5 rounded-md bg-green-100 text-green-700">
+                        {((submissionStats.totalAccepted * 100) / submissionStats.totalSubmissions).toFixed(1)}% Rate
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-surface rounded-xl border border-red-100 p-5 shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="text-red-500 text-sm font-semibold flex items-center gap-1.5 z-10">
+                    <span className="material-symbols-outlined text-[18px]">cancel</span>
+                    Wrong Answer
+                  </div>
+                  <div className="flex items-baseline gap-2 z-10">
+                    <div className="text-3xl font-display font-black text-red-500">
+                      {submissionStats?.totalWrongAnswer || 0}
+                    </div>
+                    {submissionStats && submissionStats.totalSubmissions > 0 && (
+                      <div className="text-xs font-bold px-2 py-0.5 rounded-md bg-red-100 text-red-700">
+                        {((submissionStats.totalWrongAnswer * 100) / submissionStats.totalSubmissions).toFixed(1)}% Rate
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-surface rounded-xl border border-orange-100 p-5 shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="text-orange-500 text-sm font-semibold flex items-center gap-1.5 z-10">
+                    <span className="material-symbols-outlined text-[18px]">timer</span>
+                    Time Limit (TLE)
+                  </div>
+                  <div className="flex items-baseline gap-2 z-10">
+                    <div className="text-3xl font-display font-black text-orange-500">
+                      {submissionStats?.totalTimeLimitExceeded || 0}
+                    </div>
+                    {submissionStats && submissionStats.totalSubmissions > 0 && (
+                      <div className="text-xs font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-700">
+                        {((submissionStats.totalTimeLimitExceeded * 100) / submissionStats.totalSubmissions).toFixed(1)}% Rate
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-surface rounded-xl border border-purple-100 p-5 shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="text-purple-600 text-sm font-semibold flex items-center gap-1.5 z-10">
+                    <span className="material-symbols-outlined text-[18px]">memory</span>
+                    Memory Limit (MLE)
+                  </div>
+                  <div className="flex items-baseline gap-2 z-10">
+                    <div className="text-3xl font-display font-black text-purple-600">
+                      {submissionStats?.totalMemoryLimitExceeded || 0}
+                    </div>
+                    {submissionStats && submissionStats.totalSubmissions > 0 && (
+                      <div className="text-xs font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-700">
+                        {((submissionStats.totalMemoryLimitExceeded * 100) / submissionStats.totalSubmissions).toFixed(1)}% Rate
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* Ongoing Courses */}
             <section className="relative">
               <div className="flex items-center justify-between mb-4">
@@ -1004,7 +1102,7 @@ export const StudentDashboard: React.FC = () => {
             </section>
 
             {/* Participated Contests */}
-            <section>
+            <section className="pb-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
                   <span className="material-symbols-outlined text-brand-blue-light">emoji_events</span>
@@ -1044,68 +1142,6 @@ export const StudentDashboard: React.FC = () => {
                           <td className="px-6 py-4 text-right">{c.score.split(' ')[0]} <span className="text-text-muted">pts</span></td>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </section>
-
-            {/* Completed Practice Problems */}
-            <section className="pb-10 flex flex-col gap-6 w-full">
-              <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">code</span>
-                  Completed Practice Problems
-                </h2>
-                <Link className="text-sm font-semibold text-primary hover:text-primary-hover transition-colors flex items-center gap-1" to="/problems">
-                  View All <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                </Link>
-              </div>
-              <div className="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-surface-gray border-b border-gray-100 text-text-muted font-bold text-sm uppercase tracking-wider">
-                        <th className="p-4 pl-6 font-semibold w-16 text-center">Status</th>
-                        <th className="p-4 font-semibold w-[40%]">Title</th>
-                        <th className="p-4 font-semibold w-[12%]">Language</th>
-                        <th className="p-4 font-semibold w-[10%] text-right">Runtime</th>
-                        <th className="p-4 font-semibold w-[10%] text-right">Memory</th>
-                        <th className="p-4 font-semibold w-[20%] text-right pr-6">Submitted At</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm font-medium text-text-main divide-y divide-gray-100">
-                      {completedProblems.map((p, index) => (
-                        <tr key={index} className="hover:bg-surface-gray/50 transition-colors group cursor-pointer" onClick={() => navigate(`/problems/${p.problemId}`)}>
-                          <td className="p-4 pl-6 text-center">
-                            {p.status === 'Accepted' ? (
-                              <span className="material-symbols-outlined text-[20px] text-brand-green" title={p.status}>
-                                check_circle
-                              </span>
-                            ) : (
-                              <span className="material-symbols-outlined text-[20px] text-red-600" title={p.status}>
-                                cancel
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            <span className="font-bold text-text-main group-hover:text-primary transition-colors text-base">{p.problemId}. {p.problemTitle}</span>
-                          </td>
-                          <td className="p-4">
-                            <span className="font-medium text-text-muted">{p.lang}</span>
-                          </td>
-                          <td className="p-4 text-right font-mono text-sm">{p.runtime}</td>
-                          <td className="p-4 text-right font-mono text-sm">{p.memory}</td>
-                          <td className="p-4 text-right pr-6 font-mono text-sm text-text-muted">{p.time}</td>
-                        </tr>
-                      ))}
-                      {completedProblems.length === 0 && (
-                        <tr>
-                          <td colSpan={6} className="p-8 text-center text-text-muted">
-                            You haven't completed any problems yet. Start practicing now!
-                          </td>
-                        </tr>
-                      )}
                     </tbody>
                   </table>
                 </div>
