@@ -79,7 +79,7 @@ public class CourseService {
                     .toList();
 
             // 4. Lấy danh sách các Course ID mà user đã mua trong số các ID trên (QUERY 2)
-            enrolledCourseIds = enrollmentRepository.findEnrolledCourseIdsByUserIdAndCourseIds(userId, currentCourseIds, List.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED));
+            enrolledCourseIds = enrollmentRepository.findEnrolledCourseIdsByUserIdAndCourseIds(userId.intValue(), currentCourseIds, List.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED));
 
             // 5. Nếu user có mua ít nhất 1 khóa, tiến hành lấy tiến độ (QUERY 3)
             if (!enrolledCourseIds.isEmpty()) {
