@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 import { fetchCart, addToCartApi, removeFromCartApi, clearCartApi } from '../services/cartService';
 import { checkoutApi } from '../services/orderService';
+import { dashboardService } from '../services/dashboardService';
+import { paymentService } from '../services/paymentService';
 
 export interface User {
   id: string;
@@ -69,6 +71,7 @@ interface AppContextType {
     contestId?: string
   ) => Promise<CodeSubmission>;
   registerForContest: (contestId: string) => void;
+  refreshBalance: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -285,7 +288,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!success) return false;
 
     // Deduct money
-    setUser(prev => prev ? { ...prev, walletBalance: prev.walletBalance - totalPrice } : null);
+    await refreshBalance();
 
     // Enroll in all checkout courses
     const courseIdStrs = courseItems.map(c => c.id);
@@ -373,6 +376,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const refreshBalance = async () => {
+    if (!user) return;
+    try {
+      const currentBalance = await paymentService.getBalance();
+      setUser(prev => {
+        if (!prev) return prev;
+        const updatedUser = { ...prev, walletBalance: currentBalance };
+        localStorage.setItem('user_info', JSON.stringify(updatedUser));
+        return updatedUser;
+      });
+    } catch (error) {
+      console.error("Failed to refresh balance", error);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -395,6 +413,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         checkoutCart,
         submitCodeSolution,
         registerForContest,
+        refreshBalance,
       }}
     >
       {children}

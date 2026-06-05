@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type SubmissionStatisticResponse } from '../services/dashboardService';
+import { paymentService } from '../services/paymentService';
 
 // Mock datasets exactly as they are in the HTML
 export const initialMyCourses = [
@@ -315,7 +316,7 @@ const problemData: Record<string, ProblemDetail> = {
 };
 
 export const StudentDashboard: React.FC = () => {
-  const { user } = useApp();
+  const { user, refreshBalance } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -367,7 +368,11 @@ export const StudentDashboard: React.FC = () => {
   const [depositAmount, setDepositAmount] = useState<string>('');
   const [qrGenerated, setQrGenerated] = useState<boolean>(false);
   const [paymentStatus, setPaymentStatus] = useState<string>('');
-  const [paymentStatusClass, setPaymentStatusClass] = useState<string>('');
+  const [paymentDetails, setPaymentDetails] = useState<{accountNumber: string, accountName: string, bin: string} | null>(null);
+  const [paymentStatusClass, setPaymentStatusClass] = useState<string>('hidden');
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [initialBalance, setInitialBalance] = useState<number | null>(null);
   const [showDepositToast, setShowDepositToast] = useState<boolean>(false);
 
   // Synchronize Tab with Location Hash
@@ -383,6 +388,51 @@ export const StudentDashboard: React.FC = () => {
       setActiveTab('dashboard');
     }
   }, [location.hash]);
+
+  // Poll balance if QR code is displayed
+  useEffect(() => {
+    let intervalId: any;
+    if (qrCodeUrl && initialBalance !== null) {
+       intervalId = setInterval(async () => {
+         try {
+           const newBalance = await paymentService.getBalance();
+           if (newBalance > initialBalance) {
+             setPaymentStatus('Payment Successful! Your balance has been updated.');
+             setPaymentStatusClass('bg-green-50 text-green-700 block border border-green-200');
+             setQrCodeUrl(null);
+             await refreshBalance(); // Sync context with new balance
+             clearInterval(intervalId);
+           }
+         } catch(e) {}
+       }, 3000);
+    }
+    return () => clearInterval(intervalId);
+  }, [qrCodeUrl, initialBalance, refreshBalance]);
+
+  // Handle PayOS Payment Redirect Callback (in case user opens web portal)
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const code = queryParams.get('code');
+    const cancel = queryParams.get('cancel');
+
+    if (code) {
+      setActiveTab('deposit');
+      setIsWalletOpen(true);
+      setQrGenerated(true);
+
+      if (cancel === 'true' || code !== '00') {
+        setPaymentStatus('Payment Cancelled or Failed.');
+        setPaymentStatusClass('bg-error-container text-on-error-container block');
+      } else {
+        setPaymentStatus('Payment Successful: Transaction recorded!');
+        setPaymentStatusClass('bg-green-50 text-green-700 block border border-green-200');
+        refreshBalance(); // Fetch new balance from backend after deposit
+      }
+
+      // Clear query params and restore the hash to #deposit
+      navigate('#deposit', { replace: true });
+    }
+  }, [location.search, navigate]);
 
   // Fetch Dashboard Stats
   useEffect(() => {
@@ -635,33 +685,48 @@ export const StudentDashboard: React.FC = () => {
   };
 
   // Deposit Actions
-  const handleGenerateQR = () => {
-    if (depositAmount && Number(depositAmount) > 0) {
-      setQrGenerated(true);
-      setPaymentStatus('Pending...');
-      setPaymentStatusClass('bg-surface-variant text-surface-navy block');
-
-      setTimeout(() => {
-        const success = Math.random() > 0.3;
-        if (success) {
-          setPaymentStatus('Success: Transaction recorded!');
-          setPaymentStatusClass('bg-tertiary-container text-on-tertiary-container block');
-        } else {
-          setPaymentStatus('Failed: Try again.');
-          setPaymentStatusClass('bg-error-container text-on-error-container block');
-        }
-      }, 3000);
-    } else {
+  const handleGenerateQR = async () => {
+    const amountNum = Number(depositAmount);
+    if (!depositAmount || isNaN(amountNum) || amountNum < 2000) {
+      alert("Please enter a valid amount. Minimum deposit is 2,000 VND.");
       const input = document.getElementById('deposit-amount');
       if (input) input.focus();
+      return;
+    }
+
+    try {
+      setPaymentStatus('Generating payment link...');
+      setPaymentStatusClass('bg-surface-variant text-surface-navy block');
+      setQrGenerated(true); // Show a loading visual placeholder
+      setInitialBalance(user?.walletBalance || 0);
+
+      const result = await paymentService.createDepositLink(amountNum);
+      
+      if (result && result.qrCode) {
+        setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(result.qrCode)}`);
+        setCheckoutUrl(result.checkoutUrl);
+        setPaymentDetails({ accountNumber: result.accountNumber, accountName: result.accountName, bin: result.bin });
+        setPaymentStatus('PLEASE SCAN THE QR CODE USING YOUR BANKING APP');
+        setPaymentStatusClass('bg-red-50 text-red-700 block border border-red-200');
+      } else if (result && result.checkoutUrl) {
+        // Fallback to redirect if qrCode is missing
+        window.location.href = result.checkoutUrl;
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      setPaymentStatus('Failed to connect to payment gateway.');
+      setPaymentStatusClass('bg-error-container text-on-error-container block');
     }
   };
 
-  const handleCopyTransferContent = () => {
-    navigator.clipboard.writeText('HJDASBKASDSASĐ').then(() => {
-      setShowDepositToast(true);
-      setTimeout(() => setShowDepositToast(false), 3000);
-    });
+  const handleCancelQR = () => {
+    setQrGenerated(false);
+    setQrCodeUrl(null);
+    setCheckoutUrl(null);
+    setPaymentStatus('');
+    setPaymentStatusClass('hidden');
+    setPaymentDetails(null);
+    setDepositAmount('');
   };
 
 
@@ -2108,7 +2173,7 @@ export const StudentDashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">2,500,000 ₫</p>
+                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
                 </div>
               </div>
             </div>
@@ -2206,7 +2271,7 @@ export const StudentDashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">2,500,000 ₫</p>
+                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
                 </div>
               </div>
             </div>
@@ -2214,23 +2279,26 @@ export const StudentDashboard: React.FC = () => {
             {/* Deposit Grid */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
               {/* Transfer details */}
-              <div className="md:col-span-7 lg:col-span-7 bg-surface-container-lowest shadow-[0_4px_20px_rgba(26,54,93,0.08)] rounded-xl p-6 md:p-8 flex flex-col gap-6 hover:-translate-y-1 transition-transform duration-300">
+              <div className="md:col-span-6 lg:col-span-6 bg-surface-container-lowest shadow-[0_4px_20px_rgba(26,54,93,0.08)] rounded-xl p-6 md:p-8 flex flex-col gap-6 hover:-translate-y-1 transition-transform duration-300">
                 <div className="flex items-center gap-2 border-b border-outline-variant pb-4">
                   <span className="material-symbols-outlined text-primary fill-icon text-3xl">account_balance</span>
                   <h2 className="font-headline-md text-headline-md text-brand-blue">Transfer Details</h2>
                 </div>
                 <div className="flex flex-col gap-4 font-semibold">
-                  <div className="flex flex-col gap-1">
-                    <span className="font-label-md text-label-md text-text-muted font-normal">Bank Name</span>
-                    <span className="font-body-md text-body-md font-bold text-brand-blue">MB Bank</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-surface-container-lowest shadow-sm p-4 rounded-xl border border-outline-variant hover:border-primary transition-colors">
+                      <span className="font-label-md text-label-md text-text-muted font-normal block mb-1">Bank Name</span>
+                      <span className="font-body-md text-body-md font-bold text-brand-blue flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-primary">account_balance</span> MB Bank</span>
+                    </div>
+                    <div className="bg-surface-container-lowest shadow-sm p-4 rounded-xl border border-outline-variant hover:border-primary transition-colors">
+                      <span className="font-label-md text-label-md text-text-muted font-normal block mb-1">Account Name</span>
+                      <span className="font-body-md text-body-md font-bold text-brand-blue flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis" title="VO NGOC THANH"><span className="material-symbols-outlined text-[18px] text-primary">person</span> VO NGOC THANH</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="font-label-md text-label-md text-text-muted font-normal">Account Number</span>
-                    <span className="font-body-md text-body-md font-bold text-brand-blue tracking-wider">0763769325</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="font-label-md text-label-md text-text-muted font-normal">Account Name</span>
-                    <span className="font-body-md text-body-md font-bold text-brand-blue">VO NGOC THANH</span>
+                  <div className="bg-surface-container-lowest shadow-sm p-4 rounded-xl border border-outline-variant hover:border-primary transition-colors relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                    <span className="font-label-md text-label-md text-text-muted font-normal block mb-1">Account Number</span>
+                    <span className="font-headline-sm text-headline-sm font-bold text-primary tracking-widest block">{paymentDetails?.accountNumber || '---'}</span>
                   </div>
                   
                   <div className="flex flex-col gap-2 mt-2">
@@ -2256,25 +2324,12 @@ export const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1 mt-2">
-                    <span className="font-label-md text-label-md text-text-muted font-normal">Transfer Content</span>
-                    <div className="bg-primary-light rounded-lg p-4 flex justify-between items-center border border-primary-light/50">
-                      <span className="font-body-md text-body-md font-bold text-primary tracking-wide">HJDASBKASDSASĐ</span>
-                      <button 
-                        onClick={handleCopyTransferContent}
-                        aria-label="Copy transfer content" 
-                        className="text-primary hover:text-primary-hover hover:bg-white/50 p-2 rounded transition-colors flex items-center justify-center bg-transparent border-none cursor-pointer"
-                      >
-                        <span className="material-symbols-outlined">content_copy</span>
-                      </button>
-                    </div>
-                    <p className="font-caption text-caption text-text-muted mt-1 font-normal">* Please include exact content for automatic processing.</p>
-                  </div>
+
                 </div>
               </div>
 
               {/* QR Code Column */}
-              <div className="md:col-span-5 lg:col-span-5 bg-surface-container-lowest shadow-[0_4px_20px_rgba(26,54,93,0.08)] rounded-xl p-6 md:p-8 flex flex-col items-center justify-center gap-6 hover:-translate-y-1 transition-transform duration-300 relative">
+              <div className="md:col-span-6 lg:col-span-6 bg-surface-container-lowest shadow-[0_4px_20px_rgba(26,54,93,0.08)] rounded-xl p-6 md:p-8 flex flex-col items-center justify-center gap-6 hover:-translate-y-1 transition-transform duration-300 relative border-t-4 border-t-red-500">
                 {!qrGenerated ? (
                   <div className="text-center px-4 py-12 flex flex-col items-center justify-center w-full h-full">
                     <span className="material-symbols-outlined text-text-muted opacity-30 text-[80px] mb-4">qr_code_2</span>
@@ -2283,16 +2338,33 @@ export const StudentDashboard: React.FC = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-6 w-full animate-fade-in">
                     <div className="w-64 h-64 border-2 border-dashed border-outline-variant rounded-xl flex items-center justify-center bg-surface relative overflow-hidden group cursor-pointer">
-                      <div className="absolute inset-0 bg-surface-gray opacity-0 group-hover:opacity-10 transition-opacity"></div>
-                      <span className="material-symbols-outlined text-text-muted opacity-50" style={{ fontSize: '64px' }}>qr_code_scanner</span>
-                      <div className="absolute bottom-4 text-center w-full">
-                        <span className="font-caption text-caption text-text-muted">Placeholder</span>
+                      {qrCodeUrl ? (
+                        <img src={qrCodeUrl} alt="Payment QR Code" className="w-full h-full object-contain p-2" />
+                      ) : paymentStatus.includes('Successful') ? (
+                        <div className="w-full h-full flex items-center justify-center bg-white rounded-xl">
+                          <span className="material-symbols-outlined text-green-500 text-[80px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 bg-surface-gray opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                          <span className="material-symbols-outlined text-text-muted opacity-50" style={{ fontSize: '64px' }}>qr_code_scanner</span>
+                          <div className="absolute bottom-4 text-center w-full">
+                            <span className="font-caption text-caption text-text-muted">Loading QR...</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {!paymentStatus.includes('Successful') && (
+                      <div className="text-center px-4">
+                        <p className="font-body-lg text-body-lg text-red-600 font-bold uppercase tracking-wide">Scan this QR code with your banking app</p>
+                        <button 
+                          onClick={handleCancelQR} 
+                          className="mt-4 px-6 py-2 rounded-lg font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors border border-red-200 cursor-pointer"
+                        >
+                          Cancel Payment
+                        </button>
                       </div>
-                    </div>
-                    <div className="text-center px-4">
-                      <p className="font-body-md text-body-md text-brand-blue font-bold">Scan this QR code with your banking app.</p>
-                      <p className="font-caption text-caption text-text-muted mt-1">Fast and secure direct transfer.</p>
-                    </div>
+                    )}
                     {paymentStatus && (
                       <div className={`mt-4 py-2 px-4 rounded-lg font-label-md text-label-md font-bold text-center w-full ${paymentStatusClass}`}>
                         {paymentStatus}
@@ -2329,7 +2401,7 @@ export const StudentDashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">2,500,000 ₫</p>
+                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
                 </div>
               </div>
             </div>
