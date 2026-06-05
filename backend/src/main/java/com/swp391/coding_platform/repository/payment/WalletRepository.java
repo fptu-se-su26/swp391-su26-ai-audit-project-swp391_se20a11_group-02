@@ -11,10 +11,10 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface WalletRepository extends JpaRepository<WalletEntity, Long> {
+public interface WalletRepository extends JpaRepository<WalletEntity, Integer> {
     Optional<WalletEntity> findByUserId(Integer userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT w FROM WalletEntity w WHERE w.user.id = :userId")
-    Optional<WalletEntity> findByUserIdWithLock(@Param("userId") Long userId);
+    Optional<WalletEntity> findByUserIdWithLock(@Param("userId") Integer userId);
 }

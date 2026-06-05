@@ -676,21 +676,27 @@ export const CourseDetail: React.FC = () => {
               </div>
               <div className="p-6">
                 {/* Pricing Section */}
-                <div className="flex items-end gap-3 mb-6">
-                  {course.price === 0 ? (
-                    <span className="text-3xl font-extrabold text-brand-green">Free</span>
-                  ) : (
-                    <span className="text-3xl font-extrabold text-text-main">
-                      {course.price.toLocaleString('vi-VN')}đ
-                    </span>
-                  )}
-                </div>
+                {!course.enrolled && (
+                  <div className="flex items-end gap-3 mb-6">
+                    {course.price === 0 ? (
+                      <span className="text-3xl font-extrabold text-brand-green">Free</span>
+                    ) : (
+                      <span className="text-3xl font-extrabold text-text-main">
+                        {course.price.toLocaleString('vi-VN')}đ
+                      </span>
+                    )}
+                  </div>
+                )}
                 {/* Action Buttons */}
                 <div className="space-y-3 mb-6">
                   {course.enrolled ? (
-                    <span className="w-full block py-4 bg-brand-green text-white text-center font-bold rounded-xl shadow-md cursor-default">
-                      You are enrolled
-                    </span>
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white text-center font-bold rounded-xl shadow-md cursor-pointer hover:bg-primary-hover transition-all font-body"
+                    >
+                      <span>Continue Learning</span>
+                      <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                    </button>
                   ) : isAddedToCart ? (
                     <Link
                       to="/shopping-cart"

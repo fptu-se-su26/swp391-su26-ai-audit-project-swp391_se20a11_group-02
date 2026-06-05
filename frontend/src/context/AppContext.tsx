@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 import { fetchCart, addToCartApi, removeFromCartApi, clearCartApi } from '../services/cartService';
+import { checkoutApi } from '../services/orderService';
 
 export interface User {
   id: string;
@@ -59,7 +60,7 @@ interface AppContextType {
   addToCart: (courseId: string) => void;
   removeFromCart: (courseId: string) => void;
   clearCart: () => void;
-  checkoutCart: (totalPrice: number, courseItems: { id: string; title: string; price: number }[]) => boolean;
+  checkoutCart: (totalPrice: number, courseItems: { id: string; title: string; price: number }[]) => Promise<boolean>;
   submitCodeSolution: (
     problemId: string,
     problemTitle: string,
@@ -276,15 +277,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const checkoutCart = (totalPrice: number, courseItems: { id: string; title: string; price: number }[]): boolean => {
+  const checkoutCart = async (totalPrice: number, courseItems: { id: string; title: string; price: number }[]): Promise<boolean> => {
     if (!user || user.walletBalance < totalPrice) return false;
+
+    const courseIds = courseItems.map(c => Number(c.id));
+    const success = await checkoutApi(courseIds);
+    if (!success) return false;
 
     // Deduct money
     setUser(prev => prev ? { ...prev, walletBalance: prev.walletBalance - totalPrice } : null);
 
     // Enroll in all checkout courses
-    const courseIds = courseItems.map(c => c.id);
-    setEnrolledCourses(prev => [...new Set([...prev, ...courseIds])]);
+    const courseIdStrs = courseItems.map(c => c.id);
+    setEnrolledCourses(prev => [...new Set([...prev, ...courseIdStrs])]);
 
     // Create payment transaction records
     const newPayments = courseItems.map(item => ({
