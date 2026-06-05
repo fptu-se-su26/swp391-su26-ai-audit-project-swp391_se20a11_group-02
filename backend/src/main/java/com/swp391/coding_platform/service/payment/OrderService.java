@@ -116,7 +116,7 @@ public class OrderService {
         // 10. Save WalletTransaction
         WalletTransactionEntity transaction = WalletTransactionEntity.builder()
                 .wallet(wallet)
-                .amount(totalAmount.negate()) // Negative amount for purchase
+                .amount(totalAmount) // Positive amount as enforced by DB constraint
                 .type(TransactionType.BUY_COURSE)
                 .status(StatusTransaction.SUCCESS)
                 .order(order)
