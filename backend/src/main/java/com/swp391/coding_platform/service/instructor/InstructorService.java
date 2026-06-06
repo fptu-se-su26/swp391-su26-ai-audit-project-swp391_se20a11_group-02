@@ -34,8 +34,7 @@ public class InstructorService {
     private final EnrollmentRepository enrollmentRepository;
     private final PayoutRequestRepository payoutRequestRepository;
 
-    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-            .withZone(ZoneId.of("UTC"));
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
             
     private static final DateTimeFormatter FRIENDLY_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")
             .withZone(ZoneId.of("UTC"));
