@@ -6,6 +6,32 @@ export interface ApiResponse<T> {
   result: T;
 }
 
+export interface PurchaseItemResponse {
+  courseId: number;
+  courseTitle: string;
+  instructorName: string;
+  priceAtPurchase: number;
+}
+
+export interface PurchaseHistoryResponse {
+  orderId: number;
+  totalAmount: number;
+  status: string;
+  purchaseDate: string;
+  items: PurchaseItemResponse[];
+}
+
+export interface PageResponse<T> {
+  page: number;
+  size: number;
+  numberOfElements: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  content: T[];
+}
+
 const getHeaders = () => {
   return {
     'Content-Type': 'application/json',
@@ -32,5 +58,29 @@ export const checkoutApi = async (courseIds: number[]): Promise<boolean> => {
   } catch (error) {
     console.error("Failed to checkout:", error);
     return false;
+  }
+};
+
+export const getPurchaseHistory = async (page: number = 0, size: number = 10): Promise<PageResponse<PurchaseHistoryResponse>> => {
+  try {
+    const response = await fetch(`${BASE_URL}/orders/purchase-history?page=${page}&size=${size}`, {
+      method: 'GET',
+      headers: getHeaders(),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error fetching purchase history: ${response.statusText}`);
+    }
+
+    const data: ApiResponse<PageResponse<PurchaseHistoryResponse>> = await response.json();
+    if (data.code === 1000) {
+      return data.result;
+    } else {
+      throw new Error(data.message || 'Error fetching purchase history');
+    }
+  } catch (error) {
+    console.error("Failed to fetch purchase history:", error);
+    throw error;
   }
 };

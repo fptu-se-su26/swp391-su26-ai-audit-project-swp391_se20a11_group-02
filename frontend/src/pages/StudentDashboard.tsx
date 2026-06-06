@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type SubmissionStatisticResponse } from '../services/dashboardService';
 import { paymentService } from '../services/paymentService';
+import { getPurchaseHistory, type PurchaseHistoryResponse } from '../services/orderService';
 
 const TX_TYPE_OPTIONS = [
   { value: '', label: 'All Types', bg: 'bg-gray-100 text-gray-700' },
@@ -374,6 +375,16 @@ export const StudentDashboard: React.FC = () => {
 
   // Deposit Tab States
   const [depositAmount, setDepositAmount] = useState<string>('');
+
+  const formatAmount = (val: string) => {
+    const clean = val.replace(/\D/g, '');
+    if (!clean) return '';
+    return clean.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  const handleAmountChange = (val: string) => {
+    setDepositAmount(formatAmount(val));
+  };
   const [qrGenerated, setQrGenerated] = useState<boolean>(false);
   const [paymentStatus, setPaymentStatus] = useState<string>('');
   const [paymentDetails, setPaymentDetails] = useState<{transactionCode?: string, accountNumber: string, accountName: string, bin: string} | null>(null);
@@ -398,6 +409,15 @@ export const StudentDashboard: React.FC = () => {
   const [paymentTxTotalElements, setPaymentTxTotalElements] = useState<number>(0);
   const [isPaymentTxLoading, setIsPaymentTxLoading] = useState<boolean>(false);
 
+  // Purchase History States
+  const [purchaseHistory, setPurchaseHistory] = useState<PurchaseHistoryResponse[]>([]);
+  const [purchaseHistoryPage, setPurchaseHistoryPage] = useState<number>(0);
+  const [purchaseHistoryTotalPages, setPurchaseHistoryTotalPages] = useState<number>(1);
+  const [purchaseHistoryTotalElements, setPurchaseHistoryTotalElements] = useState<number>(0);
+  const [isPurchaseHistoryLoading, setIsPurchaseHistoryLoading] = useState<boolean>(false);
+
+  const [txSubTab, setTxSubTab] = useState<'internal' | 'banking'>('internal');
+
   const [isTxTypeDropdownOpen, setIsTxTypeDropdownOpen] = useState(false);
   const txTypeDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -415,7 +435,7 @@ export const StudentDashboard: React.FC = () => {
 
   // Fetch Wallet Transactions
   useEffect(() => {
-    if (user && activeTab === 'wallet-transaction') {
+    if (user && activeTab === 'wallet-transaction' && txSubTab === 'internal') {
       setIsWalletTxLoading(true);
       paymentService.getWalletTransactions(walletTxPage, 10, selectedTxType)
         .then(res => {
@@ -427,7 +447,39 @@ export const StudentDashboard: React.FC = () => {
         .catch(console.error)
         .finally(() => setIsWalletTxLoading(false));
     }
-  }, [user, activeTab, walletTxPage, selectedTxType]);
+  }, [user, activeTab, walletTxPage, selectedTxType, txSubTab]);
+
+  // Fetch Payment Transactions
+  useEffect(() => {
+    if (user && activeTab === 'wallet-transaction' && txSubTab === 'banking') {
+      setIsPaymentTxLoading(true);
+      paymentService.getPaymentTransactions(paymentTxPage, 10, '')
+        .then(res => {
+          setPaymentTransactions(res.content || []);
+          setPaymentTxTotalPages(res.totalPages || 1);
+          setPaymentTxTotalElements(res.totalElements || 0);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(console.error)
+        .finally(() => setIsPaymentTxLoading(false));
+    }
+  }, [user, activeTab, paymentTxPage, txSubTab]);
+
+  // Fetch Purchase History
+  useEffect(() => {
+    if (user && activeTab === 'purchase-history') {
+      setIsPurchaseHistoryLoading(true);
+      getPurchaseHistory(purchaseHistoryPage, 10)
+        .then(res => {
+          setPurchaseHistory(res.content || []);
+          setPurchaseHistoryTotalPages(res.totalPages || 1);
+          setPurchaseHistoryTotalElements(res.totalElements || 0);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(console.error)
+        .finally(() => setIsPurchaseHistoryLoading(false));
+    }
+  }, [user, activeTab, purchaseHistoryPage]);
 
   // Fetch Payment Transactions
   useEffect(() => {
@@ -448,9 +500,17 @@ export const StudentDashboard: React.FC = () => {
   // Synchronize Tab with Location Hash
   useEffect(() => {
     const hash = location.hash.replace('#', '');
-    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'contest-history'];
+    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history'];
     if (hash && validTabs.includes(hash)) {
-      setActiveTab(hash);
+      if (hash === 'payment-transaction') {
+        setActiveTab('wallet-transaction');
+        setTxSubTab('banking');
+      } else {
+        setActiveTab(hash);
+        if (hash === 'wallet-transaction') {
+          setTxSubTab('internal');
+        }
+      }
       if (['wallet-transaction', 'deposit', 'payment-transaction'].includes(hash)) {
         setIsWalletOpen(true);
         refreshBalance().catch(console.error);
@@ -757,9 +817,10 @@ export const StudentDashboard: React.FC = () => {
 
   // Deposit Actions
   const handleGenerateQR = async () => {
-    const amountNum = Number(depositAmount);
+    const rawAmount = depositAmount.replace(/\./g, '');
+    const amountNum = Number(rawAmount);
     if (!depositAmount || isNaN(amountNum) || amountNum < 2000) {
-      alert("Please enter a valid amount. Minimum deposit is 2,000 VND.");
+      alert("Vui lòng nhập số tiền hợp lệ. Số tiền nạp tối thiểu là 2.000 VND.");
       const input = document.getElementById('deposit-amount');
       if (input) input.focus();
       return;
@@ -810,6 +871,18 @@ export const StudentDashboard: React.FC = () => {
     setPaymentStatusClass('hidden');
     setPaymentDetails(null);
     setDepositAmount('');
+  };
+
+  const handleCopyAccountNumber = () => {
+    const acctNum = paymentDetails?.accountNumber;
+    if (acctNum) {
+      navigator.clipboard.writeText(acctNum)
+        .then(() => {
+          _setShowDepositToast(true);
+          setTimeout(() => _setShowDepositToast(false), 2000);
+        })
+        .catch(console.error);
+    }
   };
 
 
@@ -913,7 +986,7 @@ export const StudentDashboard: React.FC = () => {
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-              <span className="sidebar-text hidden md:inline">Wallet Transaction</span>
+              <span className="sidebar-text hidden md:inline">Transaction History</span>
             </button>
             <button 
               onClick={() => handleTabChange('deposit')} 
@@ -926,19 +999,20 @@ export const StudentDashboard: React.FC = () => {
               <span className="material-symbols-outlined text-[18px]">download</span>
               <span className="sidebar-text hidden md:inline">Deposit</span>
             </button>
-            <button 
-              onClick={() => handleTabChange('payment-transaction')} 
-              className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg font-medium text-left transition-colors ${
-                activeTab === 'payment-transaction'
-                  ? 'text-primary font-bold bg-primary-light/20 border border-primary/10'
-                  : 'text-text-muted hover:text-primary hover:bg-surface-gray/50'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">history</span>
-              <span className="sidebar-text hidden md:inline">Payment Transaction</span>
-            </button>
           </div>
         </div>
+
+        <button 
+          onClick={() => handleTabChange('purchase-history')} 
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left ${
+            activeTab === 'purchase-history'
+              ? 'bg-primary-light/20 text-primary font-bold border border-primary/10'
+              : 'text-text-main hover:bg-surface-gray hover:text-primary'
+          }`}
+        >
+          <span className="material-symbols-outlined">shopping_bag</span>
+          <span className="sidebar-text hidden md:inline">Purchase History</span>
+        </button>
       </aside>
 
       {/* Main Content Dashboard Layout Container */}
@@ -2246,9 +2320,8 @@ export const StudentDashboard: React.FC = () => {
             {/* Header subnavs & Balance */}
             <div className="flex flex-col md:flex-row justify-between items-center border-b border-surface-container mb-2 pb-2 md:pb-0 gap-4">
               <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
-                <button onClick={() => handleTabChange('wallet-transaction')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Wallet Transaction</button>
+                <button onClick={() => handleTabChange('wallet-transaction')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Transaction History</button>
                 <button onClick={() => handleTabChange('deposit')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Deposit</button>
-                <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
                 <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
@@ -2261,164 +2334,281 @@ export const StudentDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Wallet Transactions Table */}
-            <div className="bg-surface rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.08)] overflow-hidden border border-surface-container mb-12">
-              <div className="p-6 border-b border-surface-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h2 className="font-headline-md text-headline-md text-surface-navy">Internal Transactions</h2>
-                  <p className="font-body-md text-body-md text-text-muted mt-1">History of course purchases, contest rewards, and other platform activities.</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 relative" ref={txTypeDropdownRef}>
-                  <span className="text-sm font-semibold text-text-muted">Filter Type:</span>
-                  <button
-                    type="button"
-                    onClick={() => setIsTxTypeDropdownOpen(!isTxTypeDropdownOpen)}
-                    className="flex items-center justify-between gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 min-w-[170px] hover:border-primary transition-all text-sm font-semibold text-text-main shadow-sm cursor-pointer outline-none"
-                  >
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${TX_TYPE_OPTIONS.find(o => o.value === selectedTxType)?.bg || 'bg-gray-100 text-gray-700'}`}>
-                      {TX_TYPE_OPTIONS.find(o => o.value === selectedTxType)?.label || 'All Types'}
-                    </span>
-                    <span className="material-symbols-outlined text-text-muted text-lg transition-transform duration-200" style={{ transform: isTxTypeDropdownOpen ? 'rotate(180deg)' : 'none' }}>
-                      keyboard_arrow_down
-                    </span>
-                  </button>
-
-                  {isTxTypeDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1.5 z-50 animate-fade-in flex flex-col gap-1">
-                      {TX_TYPE_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => {
-                            setSelectedTxType(opt.value);
-                            setWalletTxPage(0);
-                            setIsTxTypeDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center px-3 py-1.5 hover:bg-gray-50 transition-colors text-left border-none cursor-pointer bg-transparent"
-                        >
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${opt.bg}`}>
-                            {opt.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="overflow-x-auto min-h-[530px]">
-                <table className="w-full text-left border-collapse min-w-[800px]">
-                  <thead>
-                    <tr className="bg-surface-gray border-b border-surface-container text-text-muted font-label-md text-label-md uppercase tracking-wider">
-                      <th className="p-4 pl-6 font-semibold">Date</th>
-                      <th className="p-4 font-semibold">Type</th>
-                      <th className="p-4 font-semibold text-right">Amount</th>
-                      <th className="p-4 font-semibold text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-body-md font-body-md text-text-main divide-y divide-surface-container font-semibold">
-                    {isWalletTxLoading ? (
-                      <tr>
-                        <td colSpan={4} className="p-8 text-center text-text-muted font-normal">
-                          Loading transactions...
-                        </td>
-                      </tr>
-                    ) : walletTransactions.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="p-8 text-center text-text-muted font-normal">
-                          No transactions found.
-                        </td>
-                      </tr>
-                    ) : (
-                      walletTransactions.map((tx, index) => {
-                        const isAddition = ['DEPOSIT', 'AWARD', 'REFUND'].includes(tx.type);
-                        
-                        const renderTypeBadge = (type: string) => {
-                          switch (type) {
-                            case 'DEPOSIT':
-                              return <span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Deposit</span>;
-                            case 'BUY_COURSE':
-                              return <span className="bg-red-100 text-red-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Buy Course</span>;
-                            case 'REFUND':
-                              return <span className="bg-purple-100 text-purple-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Refund</span>;
-                            case 'AWARD':
-                              return <span className="bg-amber-100 text-amber-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Award</span>;
-                            default:
-                              return <span className="bg-gray-100 text-gray-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">{type}</span>;
-                          }
-                        };
-
-                        const renderStatus = (status: string) => {
-                          switch (status) {
-                            case 'SUCCESS':
-                              return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span>;
-                            case 'FAILED':
-                              return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-red-600">cancel</span> Failed</span>;
-                            case 'PENDING':
-                            default:
-                              return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-yellow-600">hourglass_empty</span> Pending</span>;
-                          }
-                        };
-
-                        return (
-                          <tr key={index} className="hover:bg-surface-gray/50 transition-colors">
-                            <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">
-                              {new Date(tx.date).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </td>
-                            <td className="p-4">{renderTypeBadge(tx.type)}</td>
-                            <td className={`p-4 text-right font-bold ${isAddition ? 'text-brand-green' : 'text-red-600'}`}>
-                              {isAddition ? '+' : '-'}{tx.amount.toLocaleString('vi-VN')} ₫
-                            </td>
-                            <td className="p-4 text-right">{renderStatus(tx.status)}</td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-4 border-t border-surface-container flex items-center justify-between">
-                <span className="text-sm text-text-muted font-medium">
-                  Showing {walletTransactions.length > 0 ? walletTxPage * 10 + 1 : 0} to {walletTxPage * 10 + walletTransactions.length} of {walletTxTotalElements} entries
-                </span>
-                <div className="flex gap-1">
-                  <button 
-                    type="button"
-                    disabled={walletTxPage === 0}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setWalletTxPage(prev => Math.max(prev - 1, 0));
-                    }}
-                    className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50 disabled:pointer-events-none"
-                  >
-                    <span className="material-symbols-outlined text-sm">chevron_left</span>
-                  </button>
-                  {Array.from({ length: walletTxTotalPages }, (_, i) => (
-                    <button 
-                      type="button"
-                      key={i}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setWalletTxPage(i);
-                      }}
-                      className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium ${walletTxPage === i ? 'bg-primary text-white' : 'border border-gray-200 text-text-muted hover:bg-surface-gray hover:text-primary'}`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                  <button 
-                    type="button"
-                    disabled={walletTxPage >= walletTxTotalPages - 1}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setWalletTxPage(prev => Math.min(prev + 1, walletTxTotalPages - 1));
-                    }}
-                    className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50 disabled:pointer-events-none"
-                  >
-                    <span className="material-symbols-outlined text-sm">chevron_right</span>
-                  </button>
-                </div>
+            {/* Segmented Control for Internal vs Banking */}
+            <div className="flex justify-start">
+              <div className="flex bg-surface-gray/50 p-1 rounded-xl border border-surface-container">
+                <button
+                  onClick={() => setTxSubTab('internal')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    txSubTab === 'internal'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-text-muted hover:text-text-main'
+                  }`}
+                >
+                  Internal Ledger
+                </button>
+                <button
+                  onClick={() => setTxSubTab('banking')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    txSubTab === 'banking'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-text-muted hover:text-text-main'
+                  }`}
+                >
+                  Banking/Gateways
+                </button>
               </div>
             </div>
+
+            {txSubTab === 'internal' ? (
+              /* Wallet Transactions Table (Internal Ledger) */
+              <div className="bg-surface rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.08)] overflow-hidden border border-surface-container mb-12">
+                <div className="p-6 border-b border-surface-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h2 className="font-headline-md text-headline-md text-surface-navy">Internal Transactions</h2>
+                    <p className="font-body-md text-body-md text-text-muted mt-1">History of course purchases, contest rewards, and other platform activities.</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 relative" ref={txTypeDropdownRef}>
+                    <span className="text-sm font-semibold text-text-muted">Filter Type:</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsTxTypeDropdownOpen(!isTxTypeDropdownOpen)}
+                      className="flex items-center justify-between gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 min-w-[170px] hover:border-primary transition-all text-sm font-semibold text-text-main shadow-sm cursor-pointer outline-none"
+                    >
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${TX_TYPE_OPTIONS.find(o => o.value === selectedTxType)?.bg || 'bg-gray-100 text-gray-700'}`}>
+                        {TX_TYPE_OPTIONS.find(o => o.value === selectedTxType)?.label || 'All Types'}
+                      </span>
+                      <span className="material-symbols-outlined text-text-muted text-lg transition-transform duration-200" style={{ transform: isTxTypeDropdownOpen ? 'rotate(180deg)' : 'none' }}>
+                        keyboard_arrow_down
+                      </span>
+                    </button>
+
+                    {isTxTypeDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1.5 z-50 animate-fade-in flex flex-col gap-1">
+                        {TX_TYPE_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              setSelectedTxType(opt.value);
+                              setWalletTxPage(0);
+                              setIsTxTypeDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center px-3 py-1.5 hover:bg-gray-50 transition-colors text-left border-none cursor-pointer bg-transparent"
+                          >
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${opt.bg}`}>
+                              {opt.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="overflow-x-auto min-h-[530px]">
+                  <table className="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                      <tr className="bg-surface-gray border-b border-surface-container text-text-muted font-label-md text-label-md uppercase tracking-wider">
+                        <th className="p-4 pl-6 font-semibold">Date</th>
+                        <th className="p-4 font-semibold">Type</th>
+                        <th className="p-4 font-semibold text-right">Amount</th>
+                        <th className="p-4 font-semibold text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-body-md font-body-md text-text-main divide-y divide-surface-container font-semibold">
+                      {isWalletTxLoading ? (
+                        <tr>
+                          <td colSpan={4} className="p-8 text-center text-text-muted font-normal">
+                            Loading transactions...
+                          </td>
+                        </tr>
+                      ) : walletTransactions.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="p-8 text-center text-text-muted font-normal">
+                            No transactions found.
+                          </td>
+                        </tr>
+                      ) : (
+                        walletTransactions.map((tx, index) => {
+                          const isAddition = ['DEPOSIT', 'AWARD', 'REFUND'].includes(tx.type);
+                          
+                          const renderTypeBadge = (type: string) => {
+                            switch (type) {
+                              case 'DEPOSIT':
+                                return <span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Deposit</span>;
+                              case 'BUY_COURSE':
+                                return <span className="bg-red-100 text-red-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Buy Course</span>;
+                              case 'REFUND':
+                                return <span className="bg-purple-100 text-purple-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Refund</span>;
+                              case 'AWARD':
+                                return <span className="bg-amber-100 text-amber-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Award</span>;
+                              default:
+                                return <span className="bg-gray-100 text-gray-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">{type}</span>;
+                            }
+                          };
+
+                          const renderStatus = (status: string) => {
+                            switch (status) {
+                              case 'SUCCESS':
+                                return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span>;
+                              case 'FAILED':
+                                return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-red-600">cancel</span> Failed</span>;
+                              case 'PENDING':
+                              default:
+                                return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-yellow-600">hourglass_empty</span> Pending</span>;
+                            }
+                          };
+
+                          return (
+                            <tr key={index} className="hover:bg-surface-gray/50 transition-colors">
+                              <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">
+                                {new Date(tx.date).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </td>
+                              <td className="p-4">{renderTypeBadge(tx.type)}</td>
+                              <td className={`p-4 text-right font-bold ${isAddition ? 'text-brand-green' : 'text-red-600'}`}>
+                                {isAddition ? '+' : '-'}{tx.amount.toLocaleString('vi-VN')} ₫
+                              </td>
+                              <td className="p-4 text-right">{renderStatus(tx.status)}</td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="p-4 border-t border-surface-container flex items-center justify-between">
+                  <span className="text-sm text-text-muted font-medium">
+                    Showing {walletTransactions.length > 0 ? walletTxPage * 10 + 1 : 0} to {walletTxPage * 10 + walletTransactions.length} of {walletTxTotalElements} entries
+                  </span>
+                  <div className="flex gap-1">
+                    <button 
+                      type="button"
+                      disabled={walletTxPage === 0}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setWalletTxPage(prev => Math.max(prev - 1, 0));
+                      }}
+                      className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50 disabled:pointer-events-none"
+                    >
+                      <span className="material-symbols-outlined text-sm">chevron_left</span>
+                    </button>
+                    {Array.from({ length: walletTxTotalPages }, (_, i) => (
+                      <button 
+                        type="button"
+                        key={i}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setWalletTxPage(i);
+                        }}
+                        className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium ${walletTxPage === i ? 'bg-primary text-white' : 'border border-gray-200 text-text-muted hover:bg-surface-gray hover:text-primary'}`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                    <button 
+                      type="button"
+                      disabled={walletTxPage >= walletTxTotalPages - 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setWalletTxPage(prev => Math.min(prev + 1, walletTxTotalPages - 1));
+                      }}
+                      className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50 disabled:pointer-events-none"
+                    >
+                      <span className="material-symbols-outlined text-sm">chevron_right</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Payment Transactions Table (Banking Ledger) */
+              <div className="bg-surface rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.08)] overflow-hidden border border-surface-container mb-12">
+                <div className="p-6 border-b border-surface-container">
+                  <h2 className="font-headline-md text-headline-md text-surface-navy">Banking Transactions</h2>
+                  <p className="font-body-md text-body-md text-text-muted mt-1">Fiat deposits and withdrawals records.</p>
+                </div>
+                <div className="overflow-x-auto min-h-[530px]">
+                  <table className="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                      <tr className="bg-surface-gray border-b border-surface-container text-text-muted font-label-md text-label-md uppercase tracking-wider">
+                        <th className="p-4 pl-6 font-semibold">Date</th>
+                        <th className="p-4 font-semibold">Transaction Code</th>
+                        <th className="p-4 font-semibold">Type</th>
+                        <th className="p-4 font-semibold text-right">Amount</th>
+                        <th className="p-4 font-semibold text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-body-md font-body-md text-text-main divide-y divide-surface-container font-semibold">
+                      {isPaymentTxLoading ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-text-muted">Loading transactions...</td>
+                        </tr>
+                      ) : paymentTransactions.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-text-muted">No payment transactions found.</td>
+                        </tr>
+                      ) : (
+                        paymentTransactions.map((tx, index) => (
+                          <tr key={index} className="hover:bg-surface-gray/50 transition-colors">
+                            <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal font-mono text-sm">
+                              {new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                            <td className="p-4 font-mono text-sm">{tx.transactionCode}</td>
+                            <td className="p-4">
+                              <span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">
+                                {tx.type}
+                              </span>
+                            </td>
+                            <td className="p-4 text-right text-brand-green font-bold">+{tx.amount.toLocaleString('vi-VN')} ₫</td>
+                            <td className="p-4 text-right">
+                              {tx.status === 'SUCCESS' && <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Success</span>}
+                              {tx.status === 'PENDING' && <span className="text-orange-500 text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px]">schedule</span> Pending</span>}
+                              {tx.status === 'FAILED' && <span className="text-red-600 text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px]">cancel</span> Failed</span>}
+                              {tx.status === 'CANCELLED' && <span className="text-red-600 text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px]">do_not_disturb_on</span> Cancelled</span>}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                {paymentTxTotalPages > 0 && (
+                  <div className="p-4 border-t border-surface-container flex items-center justify-between bg-surface">
+                    <span className="text-sm text-text-muted font-medium">
+                      Showing {paymentTxPage * 10 + 1} to {Math.min((paymentTxPage + 1) * 10, paymentTxTotalElements)} of {paymentTxTotalElements} entries
+                    </span>
+                    <div className="flex gap-1">
+                      <button 
+                        onClick={() => setPaymentTxPage(p => Math.max(0, p - 1))}
+                        disabled={paymentTxPage === 0}
+                        className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-sm">chevron_left</span>
+                      </button>
+                      {Array.from({ length: paymentTxTotalPages }, (_, i) => i).map(pageNum => (
+                        <button
+                          key={pageNum}
+                          onClick={() => setPaymentTxPage(pageNum)}
+                          className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium ${
+                            paymentTxPage === pageNum 
+                              ? 'bg-primary text-white' 
+                              : 'border border-gray-200 text-text-muted hover:bg-surface-gray hover:text-primary'
+                          }`}
+                        >
+                          {pageNum + 1}
+                        </button>
+                      ))}
+                      <button 
+                        onClick={() => setPaymentTxPage(p => Math.min(paymentTxTotalPages - 1, p + 1))}
+                        disabled={paymentTxPage >= paymentTxTotalPages - 1}
+                        className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-sm">chevron_right</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -2428,9 +2618,8 @@ export const StudentDashboard: React.FC = () => {
             {/* Header subnavs & Balance */}
             <div className="flex flex-col md:flex-row justify-between items-center border-b border-surface-container mb-2 pb-2 md:pb-0 gap-4">
               <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
-                <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Wallet Transaction</button>
+                <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Transaction History</button>
                 <button onClick={() => handleTabChange('deposit')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Deposit</button>
-                <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
                 <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
@@ -2444,96 +2633,177 @@ export const StudentDashboard: React.FC = () => {
             </div>
 
             {/* Deposit Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-12">
               {/* Transfer details */}
-              <div className="md:col-span-6 lg:col-span-6 bg-surface-container-lowest shadow-[0_4px_20px_rgba(26,54,93,0.08)] rounded-xl p-6 md:p-8 flex flex-col gap-6 hover:-translate-y-1 transition-transform duration-300">
-                <div className="flex items-center gap-2 border-b border-outline-variant pb-4">
-                  <span className="material-symbols-outlined text-primary fill-icon text-3xl">account_balance</span>
-                  <h2 className="font-headline-md text-headline-md text-brand-blue">Transfer Details</h2>
+              <div className="md:col-span-6 lg:col-span-6 bg-surface-container-lowest shadow-[0_6px_24px_rgba(26,54,93,0.06)] rounded-2xl p-6 md:p-8 flex flex-col gap-6 hover:shadow-[0_8px_30px_rgba(26,54,93,0.12)] transition-all duration-300 border border-surface-container">
+                <div className="flex items-center gap-3 border-b border-surface-container pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary-light/35 flex items-center justify-center text-primary">
+                    <span className="material-symbols-outlined text-2xl">account_balance</span>
+                  </div>
+                  <div>
+                    <h2 className="font-display font-black text-xl text-[#12284C]">Transfer Details</h2>
+                    <p className="text-xs text-text-muted mt-0.5">Please transfer matching resources using details below.</p>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-4 font-semibold">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-surface-container-lowest shadow-sm p-4 rounded-xl border border-outline-variant hover:border-primary transition-colors">
-                      <span className="font-label-md text-label-md text-text-muted font-normal block mb-1">Bank Name</span>
-                      <span className="font-body-md text-body-md font-bold text-brand-blue flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-primary">account_balance</span> MB Bank</span>
+
+                <div className="flex flex-col gap-6">
+                  {/* Virtual Bank Card */}
+                  <div className="relative bg-gradient-to-br from-[#12284C] via-[#1A365D] to-[#F36F21]/20 p-8 rounded-2xl shadow-md overflow-hidden text-white flex flex-col justify-between min-h-[220px] border border-white/10">
+                    {/* Background overlay design */}
+                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/15 rounded-full blur-2xl pointer-events-none"></div>
+                    <div className="absolute -left-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-xl pointer-events-none"></div>
+
+                    {/* Card Top */}
+                    <div className="flex justify-between items-start relative z-10">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-white/80 text-2xl">account_balance</span>
+                        <span className="font-display font-black tracking-wider text-sm">MB BANK</span>
+                      </div>
+                      <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded uppercase tracking-wider backdrop-blur-sm">Fast 24/7</span>
                     </div>
-                    <div className="bg-surface-container-lowest shadow-sm p-4 rounded-xl border border-outline-variant hover:border-primary transition-colors">
-                      <span className="font-label-md text-label-md text-text-muted font-normal block mb-1">Account Name</span>
-                      <span className="font-body-md text-body-md font-bold text-brand-blue flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis" title="VO NGOC THANH"><span className="material-symbols-outlined text-[18px] text-primary">person</span> VO NGOC THANH</span>
+
+                    {/* Card Middle (Monospace Account Number) */}
+                    <div className="flex items-center justify-between bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-xl mt-3 relative z-10">
+                      <div>
+                        <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold block mb-0.5">Account Number</span>
+                        <span className="font-mono text-lg font-bold tracking-widest text-white block">
+                          {paymentDetails?.accountNumber || '•••• •••• ••••'}
+                        </span>
+                      </div>
+                      {paymentDetails?.accountNumber && (
+                        <button 
+                          type="button"
+                          onClick={handleCopyAccountNumber}
+                          className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/25 border border-white/20 flex items-center justify-center transition-colors cursor-pointer text-white shadow-sm"
+                          title="Copy Account Number"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">content_copy</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Card Bottom */}
+                    <div className="flex justify-between items-end mt-3 relative z-10">
+                      <div>
+                        <span className="text-[9px] uppercase tracking-wider text-white/60 font-semibold block mb-0.5">Account Holder</span>
+                        <span className="text-base font-bold tracking-wide text-white uppercase">
+                          {paymentDetails?.accountName || 'VO NGOC THANH'}
+                        </span>
+                      </div>
+                      <div className="w-8 h-6 bg-white/10 rounded-md border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                        <span className="material-symbols-outlined text-white/40 text-sm">contactless</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="bg-surface-container-lowest shadow-sm p-4 rounded-xl border border-outline-variant hover:border-primary transition-colors relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-                    <span className="font-label-md text-label-md text-text-muted font-normal block mb-1">Account Number</span>
-                    <span className="font-headline-sm text-headline-sm font-bold text-primary tracking-widest block">{paymentDetails?.accountNumber || '---'}</span>
-                  </div>
-                  
-                  <div className="flex flex-col gap-2 mt-2">
-                    <label className="font-label-md text-label-md text-text-muted font-normal" htmlFor="deposit-amount">Amount to Deposit (VND)</label>
-                    <div className="relative flex flex-col gap-4">
+
+                  {/* Input form */}
+                  <div className="flex flex-col gap-4 mt-2">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-semibold text-text-main" htmlFor="deposit-amount">Amount to Deposit (VND)</label>
                       <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-medium">₫</span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold text-sm">₫</span>
                         <input 
                           value={depositAmount}
-                          onChange={(e) => setDepositAmount(e.target.value)}
-                          className="w-full pl-8 pr-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-2 focus:ring-primary-light focus:outline-none transition-all font-body-md text-body-md text-brand-blue" 
+                          onChange={(e) => handleAmountChange(e.target.value)}
+                          className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-2 focus:ring-primary-light focus:outline-none transition-all font-mono text-base font-bold text-[#12284C]" 
                           id="deposit-amount" 
-                          placeholder="500,000" 
-                          type="number" 
+                          placeholder="500.000" 
+                          type="text" 
+                          inputMode="numeric"
                         />
                       </div>
-                      <button 
-                        onClick={handleGenerateQR}
-                        className="w-full md:w-auto self-start px-6 bg-primary hover:bg-primary-hover text-white rounded-lg py-3 font-label-md text-label-md font-bold shadow-sm transition-all duration-200 border-none cursor-pointer"
-                      >
-                        Generate Payment QR
-                      </button>
                     </div>
+
+                    {/* Quick Amount Selector */}
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-xs text-text-muted font-medium">Quick Select Amount:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {[50000, 100000, 200000, 500000, 1000000].map((amount) => (
+                          <button
+                            key={amount}
+                            type="button"
+                            onClick={() => handleAmountChange(amount.toString())}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold border border-surface-container bg-surface-gray/50 text-[#12284C] hover:border-primary hover:text-primary transition-all duration-200 cursor-pointer"
+                          >
+                            +{amount.toLocaleString('vi-VN')} ₫
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={handleGenerateQR}
+                      className="w-full mt-2 bg-primary hover:bg-primary-hover text-white rounded-xl py-3.5 font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-none"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">qr_code_2</span>
+                      Generate Payment QR
+                    </button>
                   </div>
-
-
                 </div>
               </div>
 
               {/* QR Code Column */}
-              <div className="md:col-span-6 lg:col-span-6 bg-surface-container-lowest shadow-[0_4px_20px_rgba(26,54,93,0.08)] rounded-xl p-6 md:p-8 flex flex-col items-center justify-center gap-6 hover:-translate-y-1 transition-transform duration-300 relative border-t-4 border-t-red-500">
+              <div className="md:col-span-6 lg:col-span-6 bg-surface-container-lowest shadow-[0_6px_24px_rgba(26,54,93,0.06)] rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center gap-6 hover:shadow-[0_8px_30px_rgba(26,54,93,0.12)] transition-all duration-300 relative border border-surface-container">
                 {!qrGenerated ? (
-                  <div className="text-center px-4 py-12 flex flex-col items-center justify-center w-full h-full">
-                    <span className="material-symbols-outlined text-text-muted opacity-30 text-[80px] mb-4">qr_code_2</span>
-                    <p className="font-body-md text-body-md text-text-muted font-medium">Enter amount to generate your unique QR code.</p>
+                  <div className="text-center px-4 py-16 flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-surface-container rounded-2xl bg-surface-container-lowest/50">
+                    <span className="material-symbols-outlined text-text-muted opacity-25 text-[72px] mb-4">qr_code_2</span>
+                    <p className="font-semibold text-text-main text-base mb-1">QR Code Display</p>
+                    <p className="text-sm text-text-muted max-w-[280px] font-normal leading-relaxed">Enter an amount on the left and generate a QR code to scan and complete payment.</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-6 w-full animate-fade-in">
-                    <div className="w-64 h-64 border-2 border-dashed border-outline-variant rounded-xl flex items-center justify-center bg-surface relative overflow-hidden group cursor-pointer">
+                    {/* Laser Scanner Style Style Tag */}
+                    <style dangerouslySetInnerHTML={{__html: `
+                      @keyframes laser-sweep {
+                        0% { top: 0%; opacity: 0; }
+                        10% { opacity: 1; }
+                        90% { opacity: 1; }
+                        100% { top: 100%; opacity: 0; }
+                      }
+                      .animate-laser {
+                        animation: laser-sweep 2.5s infinite linear;
+                      }
+                    `}} />
+
+                    <div className="w-64 h-64 border border-surface-container rounded-2xl flex items-center justify-center bg-white shadow-inner relative overflow-hidden group p-3">
                       {qrCodeUrl ? (
-                        <img src={qrCodeUrl} alt="Payment QR Code" className="w-full h-full object-contain p-2" />
+                        <>
+                          {/* Laser line overlay */}
+                          <div className="absolute left-0 right-0 h-0.5 bg-primary/80 shadow-[0_0_8px_#F36F21] animate-laser z-10 pointer-events-none"></div>
+                          <img src={qrCodeUrl} alt="Payment QR Code" className="w-full h-full object-contain" />
+                        </>
                       ) : paymentStatus.includes('Successful') ? (
-                        <div className="w-full h-full flex items-center justify-center bg-white rounded-xl">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-white rounded-2xl animate-fade-in">
                           <span className="material-symbols-outlined text-green-500 text-[80px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                          <span className="text-sm font-bold text-green-600 mt-2">Success!</span>
                         </div>
                       ) : (
-                        <>
-                          <div className="absolute inset-0 bg-surface-gray opacity-0 group-hover:opacity-10 transition-opacity"></div>
-                          <span className="material-symbols-outlined text-text-muted opacity-50" style={{ fontSize: '64px' }}>qr_code_scanner</span>
-                          <div className="absolute bottom-4 text-center w-full">
-                            <span className="font-caption text-caption text-text-muted">Loading QR...</span>
-                          </div>
-                        </>
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <span className="material-symbols-outlined text-text-muted animate-spin text-[36px]">sync</span>
+                          <span className="text-xs text-text-muted font-semibold">Generating QR...</span>
+                        </div>
                       )}
                     </div>
                     {!paymentStatus.includes('Successful') && (
                       <div className="text-center px-4">
-                        <p className="font-body-lg text-body-lg text-red-600 font-bold uppercase tracking-wide">Scan this QR code with your banking app</p>
+                        <div className="flex items-center justify-center gap-2 text-primary font-bold text-sm tracking-wide uppercase mb-1">
+                          <span className="material-symbols-outlined text-[18px] animate-pulse">qr_code_scanner</span>
+                          Scan with your banking app
+                        </div>
+                        <p className="text-xs text-text-muted max-w-[280px] mx-auto font-normal leading-relaxed">
+                          Scan the QR code to auto-fill payment details and complete your deposit instantly.
+                        </p>
                         <button 
                           onClick={handleCancelQR} 
-                          className="mt-4 px-6 py-2 rounded-lg font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors border border-red-200 cursor-pointer"
+                          className="mt-6 px-6 py-2 rounded-xl font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors border border-red-150 cursor-pointer flex items-center justify-center gap-1.5 mx-auto text-sm shadow-sm"
                         >
-                          Cancel Payment
+                          <span className="material-symbols-outlined text-[18px]">cancel</span>
+                          Cancel Deposit
                         </button>
                       </div>
                     )}
                     {paymentStatus && (
-                      <div className={`mt-4 py-2 px-4 rounded-lg font-label-md text-label-md font-bold text-center w-full ${paymentStatusClass}`}>
+                      <div className={`mt-4 py-3 px-4 rounded-xl font-bold text-xs tracking-wider text-center w-full uppercase shadow-sm border ${paymentStatusClass}`}>
                         {paymentStatus}
                       </div>
                     )}
@@ -2552,37 +2822,101 @@ export const StudentDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Tab: Payment Transaction */}
-        {activeTab === 'payment-transaction' && (
+        {/* Tab: Purchase History */}
+        {activeTab === 'purchase-history' && (
           <div className="flex flex-col gap-6 animate-fade-in">
-            {/* Header subnavs & Balance */}
-            <div className="flex flex-col md:flex-row justify-between items-center border-b border-surface-container mb-2 pb-2 md:pb-0 gap-4">
-              <div className="flex h-12 gap-6 overflow-x-auto hide-scrollbar whitespace-nowrap w-full md:w-auto">
-                <button onClick={() => handleTabChange('wallet-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Wallet Transaction</button>
-                <button onClick={() => handleTabChange('deposit')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Deposit</button>
-                <button onClick={() => handleTabChange('payment-transaction')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Payment Transaction</button>
+            {/* Header Title */}
+            <div className="mb-4">
+              <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-3 shadow-sm relative z-10">
+                <span className="material-symbols-outlined text-xs">shopping_bag</span> Order Center
               </div>
-              <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
-                <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-                  <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
-                </div>
-                <div>
-                  <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-green-600 font-mono leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
-                </div>
-              </div>
+              <h1 className="text-3xl font-display font-black leading-tight text-[#12284C]">
+                Purchase History
+              </h1>
+              <p className="font-body-md text-body-md text-text-muted mt-1">Keep track of your course investments, invoices and payments.</p>
             </div>
 
-            {/* Payment Transactions Table */}
+            {/* Purchase History Table */}
             <div className="bg-surface rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.08)] overflow-hidden border border-surface-container mb-12">
               <div className="p-6 border-b border-surface-container">
-                <h2 className="font-headline-md text-headline-md text-surface-navy">Banking Transactions</h2>
-                <p className="font-body-md text-body-md text-text-muted mt-1">Fiat deposits and withdrawals records.</p>
+                <h2 className="font-headline-md text-headline-md text-surface-navy">Course Purchases</h2>
+                <p className="font-body-md text-body-md text-text-muted mt-1">View all the courses you have purchased and their details.</p>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[800px]">
+              <div className="overflow-x-auto min-h-[530px]">
+                <table className="w-full text-left border-collapse min-w-[700px]">
                   <thead>
                     <tr className="bg-surface-gray border-b border-surface-container text-text-muted font-label-md text-label-md uppercase tracking-wider">
+                      <th className="p-4 pl-6 font-semibold w-[40%]">Order Details</th>
+                      <th className="p-4 pl-12 font-semibold text-left w-[20%]">Total Amount</th>
+                      <th className="p-4 font-semibold text-left w-[20%]">Date</th>
+                      <th className="p-4 pr-6 font-semibold text-left w-[20%]">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-body-md font-body-md text-text-main divide-y divide-surface-container font-semibold">
+                    {isPurchaseHistoryLoading ? (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-text-muted">Loading purchases...</td>
+                      </tr>
+                    ) : purchaseHistory.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-text-muted">No purchases found.</td>
+                      </tr>
+                    ) : (
+                      purchaseHistory.map((order, index) => (
+                        <tr key={index} className="hover:bg-surface-gray/30 transition-colors duration-150 group">
+                          <td className="p-4 pl-6 transition-shadow duration-75 group-hover:shadow-[inset_0_2px_0_#F36F21,inset_0_-2px_0_#F36F21,inset_2px_0_0_#F36F21]">
+                            <div className="flex flex-col gap-2 my-1">
+                              {order.items.map(item => (
+                                <div key={item.courseId} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm transition-colors">
+                                  <div className="flex flex-col gap-1.5">
+                                    <span className="font-bold text-primary text-sm line-clamp-2">{item.courseTitle}</span>
+                                    <div className="flex items-center gap-2 text-xs text-text-muted font-medium">
+                                      <span className="inline-flex items-center gap-1 bg-surface-gray px-2 py-0.5 rounded-md">
+                                        <span className="material-symbols-outlined text-[13px]">person</span>
+                                        {item.instructorName}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="text-right shrink-0 ml-4">
+                                    <span className="font-bold text-brand-blue text-sm">{item.priceAtPurchase.toLocaleString('vi-VN')} ₫</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="p-4 pl-12 text-left transition-shadow duration-75 group-hover:shadow-[inset_0_2px_0_#F36F21,inset_0_-2px_0_#F36F21]">
+                            <div className="flex flex-col items-start">
+                              <span className="text-lg font-black text-green-600">{order.totalAmount.toLocaleString('vi-VN')} ₫</span>
+                              <span className="text-[11px] text-text-muted font-medium mt-0.5 uppercase tracking-wider">{order.items.length} item{order.items.length > 1 ? 's' : ''}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-left transition-shadow duration-75 group-hover:shadow-[inset_0_2px_0_#F36F21,inset_0_-2px_0_#F36F21]">
+                            <div className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-lg">
+                              <span className="material-symbols-outlined text-text-muted text-[18px]">calendar_month</span>
+                              <span className="text-text-main font-semibold text-sm whitespace-nowrap">
+                                {new Date(order.purchaseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-4 pr-6 text-left transition-shadow duration-75 group-hover:shadow-[inset_0_2px_0_#F36F21,inset_0_-2px_0_#F36F21,inset_-2px_0_0_#F36F21]">
+                            {order.status === 'COMPLETED' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                                <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                                Completed
+                              </span>
+                            )}
+                            {order.status === 'PENDING' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                                <span className="material-symbols-outlined text-[14px]">schedule</span>
+                                Pending
+                              </span>
+                            )}
+                            {order.status === 'FAILED' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                                <span className="material-symbols-outlined text-[14px]">cancel</span>
+                                Failed
+                              </span>
+                            )}
                       <th className="p-4 pl-6 font-semibold">Date</th>
                       <th className="p-4 font-semibold">Transaction Code</th>
                       <th className="p-4 font-semibold">Type</th>
@@ -2624,6 +2958,29 @@ export const StudentDashboard: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination */}
+              {purchaseHistoryTotalPages > 1 && (
+                <div className="p-4 border-t border-surface-container flex items-center justify-between">
+                  <span className="text-sm text-text-muted">
+                    Showing {purchaseHistory.length > 0 ? purchaseHistoryPage * 10 + 1 : 0} to {purchaseHistoryPage * 10 + purchaseHistory.length} of {purchaseHistoryTotalElements} entries
+                  </span>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => setPurchaseHistoryPage(p => Math.max(0, p - 1))}
+                      disabled={purchaseHistoryPage === 0}
+                      className="w-8 h-8 rounded border border-surface-container flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-sm">chevron_left</span>
+                    </button>
+                    {Array.from({length: purchaseHistoryTotalPages}).map((_, pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setPurchaseHistoryPage(pageNum)}
+                        className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium transition-colors cursor-pointer border ${
+                          purchaseHistoryPage === pageNum
+                            ? 'bg-primary text-white border-primary'
+                            : 'border-surface-container text-text-main hover:bg-surface-gray'
               
               {paymentTxTotalPages > 0 && (
                 <div className="p-4 border-t border-surface-container flex items-center justify-between bg-surface">
@@ -2652,6 +3009,10 @@ export const StudentDashboard: React.FC = () => {
                         {pageNum + 1}
                       </button>
                     ))}
+                    <button 
+                      onClick={() => setPurchaseHistoryPage(p => Math.min(purchaseHistoryTotalPages - 1, p + 1))}
+                      disabled={purchaseHistoryPage >= purchaseHistoryTotalPages - 1}
+                      className="w-8 h-8 rounded border border-surface-container flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50 cursor-pointer"
 
                     <button 
                       onClick={() => setPaymentTxPage(p => Math.min(paymentTxTotalPages - 1, p + 1))}

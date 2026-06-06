@@ -3,6 +3,9 @@ package com.swp391.coding_platform.service.payment;
 
 import com.swp391.coding_platform.dto.request.OrderCheckoutRequest;
 import com.swp391.coding_platform.dto.response.OrderCheckoutResponse;
+import com.swp391.coding_platform.dto.response.PageResponse;
+import com.swp391.coding_platform.dto.response.PurchaseHistoryResponse;
+import com.swp391.coding_platform.dto.response.PurchaseItemResponse;
 import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.course.EnrollmentEntity;
 import com.swp391.coding_platform.entity.enums.*;
@@ -23,6 +26,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -141,6 +147,44 @@ public class OrderService {
                 .orderId(order.getId())
                 .totalAmount(totalAmount)
                 .status(order.getStatus())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PurchaseHistoryResponse> getPurchaseHistory(Integer userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<OrderEntity> orderPage = orderRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, OrderStatus.COMPLETED, pageable);
+
+        List<PurchaseHistoryResponse> content = orderPage.getContent().stream()
+                .map(order -> {
+                    List<PurchaseItemResponse> items = order.getOrderItems().stream()
+                            .map(item -> PurchaseItemResponse.builder()
+                                    .courseId(item.getCourse().getId().intValue())
+                                    .courseTitle(item.getCourse().getTitle())
+                                    .instructorName(item.getCourse().getInstructor() != null ? item.getCourse().getInstructor().getFullName() : "N/A")
+                                    .priceAtPurchase(item.getPrice())
+                                    .build())
+                            .toList();
+
+                    return PurchaseHistoryResponse.builder()
+                            .orderId(order.getId())
+                            .totalAmount(order.getTotalAmount())
+                            .status(order.getStatus())
+                            .purchaseDate(order.getCreatedAt())
+                            .items(items)
+                            .build();
+                })
+                .toList();
+
+        return PageResponse.<PurchaseHistoryResponse>builder()
+                .content(content)
+                .page(orderPage.getNumber())
+                .size(orderPage.getSize())
+                .numberOfElements(orderPage.getNumberOfElements())
+                .totalElements(orderPage.getTotalElements())
+                .totalPages(orderPage.getTotalPages())
+                .first(orderPage.isFirst())
+                .last(orderPage.isLast())
                 .build();
     }
 }
