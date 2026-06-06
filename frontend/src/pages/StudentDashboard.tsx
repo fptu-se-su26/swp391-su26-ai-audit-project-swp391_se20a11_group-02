@@ -372,7 +372,47 @@ export const StudentDashboard: React.FC = () => {
   const [paymentStatusClass, setPaymentStatusClass] = useState<string>('hidden');
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [initialBalance, setInitialBalance] = useState<number | null>(null);
-  const [showDepositToast] = useState<boolean>(false);
+  const [showDepositToast, _setShowDepositToast] = useState<boolean>(false);
+  const [_checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+
+  // Wallet Transactions States
+  const [walletTransactions, setWalletTransactions] = useState<any[]>([]);
+  const [walletTxPage, setWalletTxPage] = useState<number>(0);
+  const [walletTxTotalPages, setWalletTxTotalPages] = useState<number>(1);
+  const [walletTxTotalElements, setWalletTxTotalElements] = useState<number>(0);
+  const [isWalletTxLoading, setIsWalletTxLoading] = useState<boolean>(false);
+  const [selectedTxType, setSelectedTxType] = useState<string>('');
+
+  const [isTxTypeDropdownOpen, setIsTxTypeDropdownOpen] = useState(false);
+  const txTypeDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (txTypeDropdownRef.current && !txTypeDropdownRef.current.contains(event.target as Node)) {
+        setIsTxTypeDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Fetch Wallet Transactions
+  useEffect(() => {
+    if (user && activeTab === 'wallet-transaction') {
+      setIsWalletTxLoading(true);
+      paymentService.getWalletTransactions(walletTxPage, 10, selectedTxType)
+        .then(res => {
+          setWalletTransactions(res.content || []);
+          setWalletTxTotalPages(res.totalPages || 1);
+          setWalletTxTotalElements(res.totalElements || 0);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(console.error)
+        .finally(() => setIsWalletTxLoading(false));
+    }
+  }, [user, activeTab, walletTxPage, selectedTxType]);
 
   // Synchronize Tab with Location Hash
   useEffect(() => {
