@@ -2,7 +2,6 @@ package com.swp391.coding_platform.controller.instructor;
 
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.InstructorCourseResponse;
-import com.swp391.coding_platform.dto.response.InstructorRevenueResponse;
 import com.swp391.coding_platform.service.instructor.InstructorService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -47,37 +46,6 @@ public class InstructorController {
                 .status(200)
                 .code(1000)
                 .message("Fetched instructor courses successfully")
-                .result(result)
-                .timestamp(Instant.now().toString())
-                .build());
-    }
-
-    @GetMapping("/revenue")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
-    public ResponseEntity<ApiResponse<InstructorRevenueResponse>> getRevenueData(
-            @AuthenticationPrincipal Jwt jwt,
-            @org.springframework.web.bind.annotation.RequestParam(value = "filter", defaultValue = "this-month") String filter,
-            @org.springframework.web.bind.annotation.RequestParam(value = "startDate", required = false) String startDate,
-            @org.springframework.web.bind.annotation.RequestParam(value = "endDate", required = false) String endDate,
-            @org.springframework.web.bind.annotation.RequestParam(value = "trendTimeframe", defaultValue = "12m") String trendTimeframe) {
-        Integer userId = null;
-        if (jwt != null) {
-            Number idClaim = jwt.getClaim("userId");
-            if (idClaim != null) {
-                userId = idClaim.intValue();
-            }
-        }
-
-        if (userId == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        InstructorRevenueResponse result = instructorService.getRevenueData(userId, filter, startDate, endDate, trendTimeframe);
-
-        return ResponseEntity.ok(ApiResponse.<InstructorRevenueResponse>builder()
-                .status(200)
-                .code(1000)
-                .message("Fetched instructor revenue data successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());

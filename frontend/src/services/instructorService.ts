@@ -64,15 +64,13 @@ export interface CourseRegistrationsItem {
   count: number;
 }
 
-export interface InstructorRevenueResponse {
+export interface InstructorRevenueSummary {
   totalGrossRevenue: number;
   totalNetRevenue: number;
   totalActualTakeHome: number;
-  salesHistory: SalesHistoryItem[];
-  recentRegistrations: RecentRegistration[];
-  payoutHistory: PayoutHistoryItem[];
-  courseBreakdown: CourseBreakdownItem[];
-  monthlyChartData: MonthlyChartItem[];
+}
+
+export interface InstructorCourseRegistrationsResponse {
   courseRegistrations: CourseRegistrationsItem[];
   totalTrendRegistrations: number;
 }
@@ -95,12 +93,144 @@ export const instructorService = {
     return data.result;
   },
 
-  async getRevenueData(filter?: string, startDate?: string, endDate?: string, trendTimeframe?: string): Promise<InstructorRevenueResponse> {
-    let url = `${BASE_URL}/instructor/revenue`;
+  async getRevenueSummary(filter?: string, startDate?: string, endDate?: string): Promise<InstructorRevenueSummary> {
+    let url = `${BASE_URL}/instructor/revenue/summary`;
     const params = new URLSearchParams();
     if (filter) params.append('filter', filter);
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
+
+    const queryString = params.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch instructor revenue summary');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getSalesHistory(filter?: string, startDate?: string, endDate?: string): Promise<SalesHistoryItem[]> {
+    let url = `${BASE_URL}/instructor/revenue/sales-history`;
+    const params = new URLSearchParams();
+    if (filter) params.append('filter', filter);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    const queryString = params.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch instructor sales history');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getRecentRegistrations(): Promise<RecentRegistration[]> {
+    const response = await fetch(`${BASE_URL}/instructor/revenue/recent-registrations`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch instructor recent registrations');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getPayoutHistory(): Promise<PayoutHistoryItem[]> {
+    const response = await fetch(`${BASE_URL}/instructor/revenue/payout-history`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch instructor payout history');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getCourseBreakdown(filter?: string, startDate?: string, endDate?: string): Promise<CourseBreakdownItem[]> {
+    let url = `${BASE_URL}/instructor/revenue/course-breakdown`;
+    const params = new URLSearchParams();
+    if (filter) params.append('filter', filter);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    const queryString = params.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch instructor course breakdown');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getMonthlyChartData(): Promise<MonthlyChartItem[]> {
+    const response = await fetch(`${BASE_URL}/instructor/revenue/chart-data`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch instructor monthly chart data');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getCourseRegistrations(trendTimeframe?: string): Promise<InstructorCourseRegistrationsResponse> {
+    let url = `${BASE_URL}/instructor/revenue/course-registrations`;
+    const params = new URLSearchParams();
     if (trendTimeframe) params.append('trendTimeframe', trendTimeframe);
 
     const queryString = params.toString();
@@ -117,7 +247,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch instructor revenue data');
+      throw new Error('Failed to fetch instructor course registrations trend');
     }
 
     const data = await response.json();

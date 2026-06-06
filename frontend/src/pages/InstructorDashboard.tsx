@@ -582,8 +582,6 @@ export const InstructorDashboard: React.FC = () => {
   const [backendMonthlyChartData, setBackendMonthlyChartData] = useState<any[]>([]);
   const [courseRegistrationsState, setCourseRegistrationsState] = useState<any[]>([]);
   const [totalTrendRegistrationsState, setTotalTrendRegistrationsState] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [loadingRevenue, setLoadingRevenue] = useState<boolean>(true);
 
   const [revenueFilter, setRevenueFilter] = useState<string>('this-month');
   const [customStartDate, setCustomStartDate] = useState<string>('');
@@ -595,7 +593,6 @@ export const InstructorDashboard: React.FC = () => {
   useEffect(() => {
     const fetchInstructorCourses = async () => {
       try {
-        setLoading(true);
         const coursesData = await instructorService.getCourses();
         setInstructorCourses(coursesData);
         if (coursesData && coursesData.length > 0) {
@@ -603,8 +600,6 @@ export const InstructorDashboard: React.FC = () => {
         }
       } catch (err) {
         console.error("Failed to load instructor courses:", err);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -614,31 +609,64 @@ export const InstructorDashboard: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
-    const fetchRevenueData = async () => {
+    const fetchGeneralRevenueData = async () => {
       try {
-        setLoadingRevenue(true);
-        const revData = await instructorService.getRevenueData(revenueFilter, appliedStartDate, appliedEndDate, trendTimeframe);
-        setTransactions(revData.salesHistory || []);
-        setRegistrations(revData.recentRegistrations || []);
-        setPayouts(revData.payoutHistory || []);
-        setTotalActualTakeHome(revData.totalActualTakeHome || 0);
-        setTotalGrossRevenue(revData.totalGrossRevenue || 0);
-        setTotalNetRevenue(revData.totalNetRevenue || 0);
-        setCourseBreakdown(revData.courseBreakdown || []);
-        setBackendMonthlyChartData(revData.monthlyChartData || []);
-        setCourseRegistrationsState(revData.courseRegistrations || []);
-        setTotalTrendRegistrationsState(revData.totalTrendRegistrations || 0);
+        const [recentRegs, payoutLogs, chartData] = await Promise.all([
+          instructorService.getRecentRegistrations(),
+          instructorService.getPayoutHistory(),
+          instructorService.getMonthlyChartData()
+        ]);
+        setRegistrations(recentRegs || []);
+        setPayouts(payoutLogs || []);
+        setBackendMonthlyChartData(chartData || []);
       } catch (err) {
-        console.error("Failed to load instructor revenue data:", err);
-      } finally {
-        setLoadingRevenue(false);
+        console.error("Failed to load general revenue data:", err);
       }
     };
 
     if (user) {
-      fetchRevenueData();
+      fetchGeneralRevenueData();
     }
-  }, [user, revenueFilter, appliedStartDate, appliedEndDate, trendTimeframe]);
+  }, [user]);
+
+  useEffect(() => {
+    const fetchFilteredRevenueData = async () => {
+      try {
+        const [summary, sales, breakdown] = await Promise.all([
+          instructorService.getRevenueSummary(revenueFilter, appliedStartDate, appliedEndDate),
+          instructorService.getSalesHistory(revenueFilter, appliedStartDate, appliedEndDate),
+          instructorService.getCourseBreakdown(revenueFilter, appliedStartDate, appliedEndDate)
+        ]);
+        setTotalGrossRevenue(summary?.totalGrossRevenue || 0);
+        setTotalNetRevenue(summary?.totalNetRevenue || 0);
+        setTotalActualTakeHome(summary?.totalActualTakeHome || 0);
+        setTransactions(sales || []);
+        setCourseBreakdown(breakdown || []);
+      } catch (err) {
+        console.error("Failed to load filtered revenue data:", err);
+      }
+    };
+
+    if (user) {
+      fetchFilteredRevenueData();
+    }
+  }, [user, revenueFilter, appliedStartDate, appliedEndDate]);
+
+  useEffect(() => {
+    const fetchTrendData = async () => {
+      try {
+        const trendRes = await instructorService.getCourseRegistrations(trendTimeframe);
+        setCourseRegistrationsState(trendRes?.courseRegistrations || []);
+        setTotalTrendRegistrationsState(trendRes?.totalTrendRegistrations || 0);
+      } catch (err) {
+        console.error("Failed to load trend data:", err);
+      }
+    };
+
+    if (user) {
+      fetchTrendData();
+    }
+  }, [user, trendTimeframe]);
 
 
   const [courseSubTab, setCourseSubTab] = useState<'all' | 'published' | 'review' | 'draft'>('all');
@@ -814,7 +842,6 @@ export const InstructorDashboard: React.FC = () => {
   const [isAllPayoutsModalOpen, setIsAllPayoutsModalOpen] = useState<boolean>(false);
   const [enrollmentPage, setEnrollmentPage] = useState<number>(1);
 
-  const filteredTransactions = transactions;
   const displayedTakeHome = totalActualTakeHome;
   const earningsBreakdown = courseBreakdown;
   const monthlyChartData = backendMonthlyChartData;

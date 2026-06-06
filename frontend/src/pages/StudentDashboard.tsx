@@ -371,9 +371,8 @@ export const StudentDashboard: React.FC = () => {
   const [paymentDetails, setPaymentDetails] = useState<{accountNumber: string, accountName: string, bin: string} | null>(null);
   const [paymentStatusClass, setPaymentStatusClass] = useState<string>('hidden');
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
-  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [initialBalance, setInitialBalance] = useState<number | null>(null);
-  const [showDepositToast, setShowDepositToast] = useState<boolean>(false);
+  const [showDepositToast] = useState<boolean>(false);
 
   // Synchronize Tab with Location Hash
   useEffect(() => {
@@ -704,7 +703,6 @@ export const StudentDashboard: React.FC = () => {
       
       if (result && result.qrCode) {
         setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(result.qrCode)}`);
-        setCheckoutUrl(result.checkoutUrl);
         setPaymentDetails({ accountNumber: result.accountNumber, accountName: result.accountName, bin: result.bin });
         setPaymentStatus('PLEASE SCAN THE QR CODE USING YOUR BANKING APP');
         setPaymentStatusClass('bg-red-50 text-red-700 block border border-red-200');
@@ -722,7 +720,6 @@ export const StudentDashboard: React.FC = () => {
   const handleCancelQR = () => {
     setQrGenerated(false);
     setQrCodeUrl(null);
-    setCheckoutUrl(null);
     setPaymentStatus('');
     setPaymentStatusClass('hidden');
     setPaymentDetails(null);
