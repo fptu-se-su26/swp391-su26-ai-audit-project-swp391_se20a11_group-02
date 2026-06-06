@@ -86,4 +86,27 @@ public class PaymentController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
+
+    @PostMapping("/payment/cancel/{transactionCode}")
+    public ResponseEntity<ApiResponse<Void>> cancelPayment(
+            @AuthenticationPrincipal Jwt jwt,
+            @org.springframework.web.bind.annotation.PathVariable String transactionCode) {
+
+        Integer userId = null;
+        if (jwt != null) {
+            Number userIdNum = jwt.getClaim("userId");
+            if (userIdNum != null) {
+                userId = userIdNum.intValue();
+            }
+        }
+        
+        paymentService.cancelPayment(userId, transactionCode);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Payment cancelled successfully")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }

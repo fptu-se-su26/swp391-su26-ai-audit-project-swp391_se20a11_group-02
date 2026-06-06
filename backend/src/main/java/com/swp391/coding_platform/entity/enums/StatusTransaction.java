@@ -3,5 +3,6 @@ package com.swp391.coding_platform.entity.enums;
 public enum StatusTransaction {
     SUCCESS,
     FAILED,
-    PENDING
+    PENDING,
+    CANCELLED
 }

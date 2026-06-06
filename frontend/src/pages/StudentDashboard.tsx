@@ -376,7 +376,7 @@ export const StudentDashboard: React.FC = () => {
   const [depositAmount, setDepositAmount] = useState<string>('');
   const [qrGenerated, setQrGenerated] = useState<boolean>(false);
   const [paymentStatus, setPaymentStatus] = useState<string>('');
-  const [paymentDetails, setPaymentDetails] = useState<{accountNumber: string, accountName: string, bin: string} | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState<{transactionCode?: string, accountNumber: string, accountName: string, bin: string} | null>(null);
   const [paymentStatusClass, setPaymentStatusClass] = useState<string>('hidden');
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [_checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
@@ -390,6 +390,13 @@ export const StudentDashboard: React.FC = () => {
   const [walletTxTotalElements, setWalletTxTotalElements] = useState<number>(0);
   const [isWalletTxLoading, setIsWalletTxLoading] = useState<boolean>(false);
   const [selectedTxType, setSelectedTxType] = useState<string>('');
+
+  // Payment Transactions States
+  const [paymentTransactions, setPaymentTransactions] = useState<any[]>([]);
+  const [paymentTxPage, setPaymentTxPage] = useState<number>(0);
+  const [paymentTxTotalPages, setPaymentTxTotalPages] = useState<number>(1);
+  const [paymentTxTotalElements, setPaymentTxTotalElements] = useState<number>(0);
+  const [isPaymentTxLoading, setIsPaymentTxLoading] = useState<boolean>(false);
 
   const [isTxTypeDropdownOpen, setIsTxTypeDropdownOpen] = useState(false);
   const txTypeDropdownRef = useRef<HTMLDivElement>(null);
@@ -421,6 +428,22 @@ export const StudentDashboard: React.FC = () => {
         .finally(() => setIsWalletTxLoading(false));
     }
   }, [user, activeTab, walletTxPage, selectedTxType]);
+
+  // Fetch Payment Transactions
+  useEffect(() => {
+    if (user && activeTab === 'payment-transaction') {
+      setIsPaymentTxLoading(true);
+      paymentService.getPaymentTransactions(paymentTxPage, 10, '')
+        .then(res => {
+          setPaymentTransactions(res.content || []);
+          setPaymentTxTotalPages(res.totalPages || 1);
+          setPaymentTxTotalElements(res.totalElements || 0);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(console.error)
+        .finally(() => setIsPaymentTxLoading(false));
+    }
+  }, [user, activeTab, paymentTxPage]);
 
   // Synchronize Tab with Location Hash
   useEffect(() => {
@@ -753,7 +776,12 @@ export const StudentDashboard: React.FC = () => {
       if (result && result.qrCode) {
         setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(result.qrCode)}`);
         setCheckoutUrl(result.checkoutUrl);
-        setPaymentDetails({ accountNumber: result.accountNumber, accountName: result.accountName, bin: result.bin });
+        setPaymentDetails({ 
+          transactionCode: result.transactionCode,
+          accountNumber: result.accountNumber, 
+          accountName: result.accountName, 
+          bin: result.bin 
+        });
         setPaymentStatus('PLEASE SCAN THE QR CODE USING YOUR BANKING APP');
         setPaymentStatusClass('bg-red-50 text-red-700 block border border-red-200');
       } else if (result && result.checkoutUrl) {
@@ -767,7 +795,14 @@ export const StudentDashboard: React.FC = () => {
     }
   };
 
-  const handleCancelQR = () => {
+  const handleCancelQR = async () => {
+    if (paymentDetails?.transactionCode) {
+      try {
+        await paymentService.cancelPayment(paymentDetails.transactionCode);
+      } catch (error) {
+        console.error("Failed to cancel payment via API", error);
+      }
+    }
     setQrGenerated(false);
     setQrCodeUrl(null);
     setCheckoutUrl(null);
@@ -2549,81 +2584,85 @@ export const StudentDashboard: React.FC = () => {
                   <thead>
                     <tr className="bg-surface-gray border-b border-surface-container text-text-muted font-label-md text-label-md uppercase tracking-wider">
                       <th className="p-4 pl-6 font-semibold">Date</th>
-                      <th className="p-4 font-semibold">Transaction ID</th>
-                      <th className="p-4 font-semibold">Method</th>
+                      <th className="p-4 font-semibold">Transaction Code</th>
                       <th className="p-4 font-semibold">Type</th>
                       <th className="p-4 font-semibold text-right">Amount</th>
                       <th className="p-4 font-semibold text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody className="text-body-md font-body-md text-text-main divide-y divide-surface-container font-semibold">
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal font-mono text-sm">10 May 2026, 16:45</td>
-                      <td className="p-4 font-mono text-sm">TXN-9847291</td>
-                      <td className="p-4 flex items-center gap-2">
-                        <img src="https://img.icons8.com/color/48/000000/bank-building.png" alt="Bank" className="w-5 h-5" />
-                        MB Bank
-                      </td>
-                      <td className="p-4"><span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Deposit</span></td>
-                      <td className="p-4 text-right text-brand-green font-bold">+1,000,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal font-mono text-sm">02 May 2026, 10:10</td>
-                      <td className="p-4 font-mono text-sm">TXN-1294857</td>
-                      <td className="p-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-gray-400 text-[18px]">credit_card</span>
-                        Vietcombank
-                      </td>
-                      <td className="p-4"><span className="bg-purple-100 text-purple-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Withdrawal</span></td>
-                      <td className="p-4 text-right text-text-main font-bold">2,000,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-orange-500 text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px]">schedule</span> Pending</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal font-mono text-sm">20 Apr 2026, 14:22</td>
-                      <td className="p-4 font-mono text-sm">TXN-4927581</td>
-                      <td className="p-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-gray-400 text-[18px]">account_balance</span>
-                        BIDV
-                      </td>
-                      <td className="p-4"><span className="bg-purple-100 text-purple-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Withdrawal</span></td>
-                      <td className="p-4 text-right text-text-main font-bold">3,500,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal font-mono text-sm">15 Mar 2026, 09:05</td>
-                      <td className="p-4 font-mono text-sm">TXN-8573921</td>
-                      <td className="p-4 flex items-center gap-2">
-                        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Icon-VNPAY-QR.png" alt="VNPay" className="w-5 h-5 object-contain" />
-                        VNPay
-                      </td>
-                      <td className="p-4"><span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Deposit</span></td>
-                      <td className="p-4 text-right text-brand-green font-bold">+500,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal font-mono text-sm">05 Feb 2026, 21:40</td>
-                      <td className="p-4 font-mono text-sm">TXN-1029485</td>
-                      <td className="p-4 flex items-center gap-2">
-                        <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="Momo" className="w-5 h-5 object-contain" />
-                        Momo E-Wallet
-                      </td>
-                      <td className="p-4"><span className="bg-purple-100 text-purple-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Withdrawal</span></td>
-                      <td className="p-4 text-right text-text-main font-bold">1,000,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-red-600 text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px]">cancel</span> Failed</span></td>
-                    </tr>
+                    {isPaymentTxLoading ? (
+                      <tr>
+                        <td colSpan={5} className="p-8 text-center text-text-muted">Loading transactions...</td>
+                      </tr>
+                    ) : paymentTransactions.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-8 text-center text-text-muted">No payment transactions found.</td>
+                      </tr>
+                    ) : (
+                      paymentTransactions.map((tx, index) => (
+                        <tr key={index} className="hover:bg-surface-gray/50 transition-colors">
+                          <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal font-mono text-sm">
+                            {new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="p-4 font-mono text-sm">{tx.transactionCode}</td>
+                          <td className="p-4">
+                            <span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">
+                              {tx.type}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right text-brand-green font-bold">+{tx.amount.toLocaleString('vi-VN')} ₫</td>
+                          <td className="p-4 text-right">
+                            {tx.status === 'SUCCESS' && <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Success</span>}
+                            {tx.status === 'PENDING' && <span className="text-orange-500 text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px]">schedule</span> Pending</span>}
+                            {tx.status === 'FAILED' && <span className="text-red-600 text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px]">cancel</span> Failed</span>}
+                            {tx.status === 'CANCELLED' && <span className="text-red-600 text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px]">do_not_disturb_on</span> Cancelled</span>}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
-              <div className="p-4 border-t border-surface-container flex items-center justify-between">
-                <span className="text-sm text-text-muted font-medium">Showing 1 to 5 of 12 entries</span>
-                <div className="flex gap-1">
-                  <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50"><span className="material-symbols-outlined text-sm">chevron_left</span></button>
-                  <button className="w-8 h-8 rounded bg-primary text-white flex items-center justify-center text-sm font-medium">1</button>
-                  <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray hover:text-primary text-sm font-medium">2</button>
-                  <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray"><span className="material-symbols-outlined text-sm">chevron_right</span></button>
+              
+              {paymentTxTotalPages > 0 && (
+                <div className="p-4 border-t border-surface-container flex items-center justify-between bg-surface">
+                  <span className="text-sm text-text-muted font-medium">
+                    Showing {paymentTxPage * 10 + 1} to {Math.min((paymentTxPage + 1) * 10, paymentTxTotalElements)} of {paymentTxTotalElements} entries
+                  </span>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => setPaymentTxPage(p => Math.max(0, p - 1))}
+                      disabled={paymentTxPage === 0}
+                      className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-sm">chevron_left</span>
+                    </button>
+                    
+                    {Array.from({ length: paymentTxTotalPages }, (_, i) => i).map(pageNum => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setPaymentTxPage(pageNum)}
+                        className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium ${
+                          paymentTxPage === pageNum 
+                            ? 'bg-primary text-white' 
+                            : 'border border-gray-200 text-text-muted hover:bg-surface-gray hover:text-primary'
+                        }`}
+                      >
+                        {pageNum + 1}
+                      </button>
+                    ))}
+
+                    <button 
+                      onClick={() => setPaymentTxPage(p => Math.min(paymentTxTotalPages - 1, p + 1))}
+                      disabled={paymentTxPage >= paymentTxTotalPages - 1}
+                      className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-sm">chevron_right</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}
