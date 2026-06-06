@@ -492,6 +492,18 @@ const timeToMinutes = (timeStr?: string): number => {
   return hrs * 60 + mins + secs / 60;
 };
 
+// Helper to calculate total penalty in minutes under ICPC rules
+const calculateTeamPenalty = (team: Team): number => {
+  let penaltySum = 0;
+  Object.values(team.submissions).forEach((sub) => {
+    if (sub.status === 'accepted' || sub.status === 'first_solve') {
+      const minutes = Math.floor(timeToMinutes(sub.time));
+      penaltySum += minutes + sub.penalty * 20;
+    }
+  });
+  return penaltySum;
+};
+
 // 10 Distinct Premium Colors for the Top 10 Teams
 const TEAM_COLORS = [
   '#3b82f6', // Rank 1: Blue
@@ -919,7 +931,7 @@ export const ContestRanking: React.FC = () => {
                   <th className="p-4 font-bold w-12 text-center sticky left-0 bg-surface-gray z-25 shadow-[1px_0_0_#e2e8f0]">#</th>
                   <th className="p-4 font-bold sticky left-[48px] bg-surface-gray z-25 min-w-[250px] w-[250px] max-w-[250px] text-left shadow-[1px_0_0_#e2e8f0]">User</th>
                   <th className="p-2 font-bold w-20 whitespace-nowrap">AC / Total</th>
-                  <th className="p-2 font-bold w-28 border-r border-gray-200">Total Time</th>
+                  <th className="p-2 font-bold w-28 border-r border-gray-200">Pen</th>
                   <th className="p-3 font-semibold w-[80px]" title="Problem A">A</th>
                   <th className="p-3 font-semibold w-[80px]" title="Problem B">B</th>
                   <th className="p-3 font-semibold w-[80px]" title="Problem C">C</th>
@@ -948,7 +960,7 @@ export const ContestRanking: React.FC = () => {
                       {team.solved} / {team.totalAttempts}
                     </td>
                     <td className="p-4 text-center text-text-muted font-mono border-r border-gray-200">
-                      {team.totalTime}
+                      {calculateTeamPenalty(team)}
                     </td>
                     {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map((key) =>
                       renderSubmissionCell(team.submissions[key], key)

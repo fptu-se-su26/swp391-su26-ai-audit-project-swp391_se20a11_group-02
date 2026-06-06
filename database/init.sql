@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict MyalPC8db2c8obsqEWFRG6Rxct7Z2PzZKlrY41qer7Zmm8fzMyNEbUriXs9izA8
+\restrict xlDJh4Y6uqybzBLM2A4BbZry9fywDNSMTJHUMoHeVmweZo604DNOMo2iTHNAKzO
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
 
--- Started on 2026-06-04 22:36:28
+-- Started on 2026-06-05 15:13:39
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -32,7 +32,7 @@ CREATE SCHEMA public;
 ALTER SCHEMA public OWNER TO pg_database_owner;
 
 --
--- TOC entry 5757 (class 0 OID 0)
+-- TOC entry 5767 (class 0 OID 0)
 -- Dependencies: 5
 -- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: pg_database_owner
 --
@@ -54,6 +54,21 @@ CREATE TYPE public.contest_status AS ENUM (
 
 
 ALTER TYPE public.contest_status OWNER TO postgres;
+
+--
+-- TOC entry 1133 (class 1247 OID 20294)
+-- Name: conteststatus; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.conteststatus AS ENUM (
+    'CANCELLED',
+    'ENDED',
+    'RUNNING',
+    'UPCOMING'
+);
+
+
+ALTER TYPE public.conteststatus OWNER TO postgres;
 
 --
 -- TOC entry 971 (class 1247 OID 18548)
@@ -257,6 +272,20 @@ CREATE TYPE public.scoring_rule AS ENUM (
 ALTER TYPE public.scoring_rule OWNER TO postgres;
 
 --
+-- TOC entry 1130 (class 1247 OID 20285)
+-- Name: scoringrule; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.scoringrule AS ENUM (
+    'CUSTOM',
+    'ICPC',
+    'IOI'
+);
+
+
+ALTER TYPE public.scoringrule OWNER TO postgres;
+
+--
 -- TOC entry 944 (class 1247 OID 18473)
 -- Name: status_active_locked; Type: TYPE; Schema: public; Owner: postgres
 --
@@ -352,7 +381,7 @@ CREATE SEQUENCE public.cart_items_id_seq
 ALTER SEQUENCE public.cart_items_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5758 (class 0 OID 0)
+-- TOC entry 5768 (class 0 OID 0)
 -- Dependencies: 245
 -- Name: cart_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -392,7 +421,7 @@ CREATE SEQUENCE public.carts_id_seq
 ALTER SEQUENCE public.carts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5759 (class 0 OID 0)
+-- TOC entry 5769 (class 0 OID 0)
 -- Dependencies: 243
 -- Name: carts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -433,7 +462,7 @@ CREATE SEQUENCE public.categories_id_seq
 ALTER SEQUENCE public.categories_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5760 (class 0 OID 0)
+-- TOC entry 5770 (class 0 OID 0)
 -- Dependencies: 249
 -- Name: categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -475,7 +504,7 @@ CREATE SEQUENCE public.chapters_id_seq
 ALTER SEQUENCE public.chapters_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5761 (class 0 OID 0)
+-- TOC entry 5771 (class 0 OID 0)
 -- Dependencies: 257
 -- Name: chapters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -555,7 +584,7 @@ CREATE SEQUENCE public.contest_id_seq
 ALTER SEQUENCE public.contest_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5762 (class 0 OID 0)
+-- TOC entry 5772 (class 0 OID 0)
 -- Dependencies: 291
 -- Name: contest_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -595,7 +624,7 @@ CREATE SEQUENCE public.contest_participants_id_seq
 ALTER SEQUENCE public.contest_participants_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5763 (class 0 OID 0)
+-- TOC entry 5773 (class 0 OID 0)
 -- Dependencies: 293
 -- Name: contest_participants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -642,7 +671,7 @@ CREATE SEQUENCE public.contest_problem_attempts_id_seq
 ALTER SEQUENCE public.contest_problem_attempts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5764 (class 0 OID 0)
+-- TOC entry 5774 (class 0 OID 0)
 -- Dependencies: 297
 -- Name: contest_problem_attempts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -682,7 +711,7 @@ CREATE SEQUENCE public.contest_problems_id_seq
 ALTER SEQUENCE public.contest_problems_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5765 (class 0 OID 0)
+-- TOC entry 5775 (class 0 OID 0)
 -- Dependencies: 283
 -- Name: contest_problems_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -726,7 +755,7 @@ CREATE SEQUENCE public.contest_rankings_id_seq
 ALTER SEQUENCE public.contest_rankings_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5766 (class 0 OID 0)
+-- TOC entry 5776 (class 0 OID 0)
 -- Dependencies: 295
 -- Name: contest_rankings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -765,7 +794,7 @@ CREATE SEQUENCE public.course_category_mappings_id_seq
 ALTER SEQUENCE public.course_category_mappings_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5767 (class 0 OID 0)
+-- TOC entry 5777 (class 0 OID 0)
 -- Dependencies: 251
 -- Name: course_category_mappings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -808,7 +837,7 @@ CREATE SEQUENCE public.course_reviews_id_seq
 ALTER SEQUENCE public.course_reviews_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5768 (class 0 OID 0)
+-- TOC entry 5778 (class 0 OID 0)
 -- Dependencies: 253
 -- Name: course_reviews_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -869,7 +898,7 @@ CREATE SEQUENCE public.courses_id_seq
 ALTER SEQUENCE public.courses_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5769 (class 0 OID 0)
+-- TOC entry 5779 (class 0 OID 0)
 -- Dependencies: 247
 -- Name: courses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -910,7 +939,7 @@ CREATE SEQUENCE public.enrollments_id_seq
 ALTER SEQUENCE public.enrollments_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5770 (class 0 OID 0)
+-- TOC entry 5780 (class 0 OID 0)
 -- Dependencies: 255
 -- Name: enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -954,7 +983,7 @@ CREATE SEQUENCE public.instructor_applications_id_seq
 ALTER SEQUENCE public.instructor_applications_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5771 (class 0 OID 0)
+-- TOC entry 5781 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: instructor_applications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -998,7 +1027,7 @@ CREATE SEQUENCE public.instructors_id_seq
 ALTER SEQUENCE public.instructors_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5772 (class 0 OID 0)
+-- TOC entry 5782 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: instructors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1038,7 +1067,7 @@ CREATE SEQUENCE public.invalidated_tokens_id_seq
 ALTER SEQUENCE public.invalidated_tokens_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5773 (class 0 OID 0)
+-- TOC entry 5783 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: invalidated_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1081,7 +1110,7 @@ CREATE SEQUENCE public.lesson_comments_id_seq
 ALTER SEQUENCE public.lesson_comments_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5774 (class 0 OID 0)
+-- TOC entry 5784 (class 0 OID 0)
 -- Dependencies: 261
 -- Name: lesson_comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1121,7 +1150,7 @@ CREATE SEQUENCE public.lesson_problems_id_seq
 ALTER SEQUENCE public.lesson_problems_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5775 (class 0 OID 0)
+-- TOC entry 5785 (class 0 OID 0)
 -- Dependencies: 281
 -- Name: lesson_problems_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1162,7 +1191,7 @@ CREATE SEQUENCE public.lesson_progress_id_seq
 ALTER SEQUENCE public.lesson_progress_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5776 (class 0 OID 0)
+-- TOC entry 5786 (class 0 OID 0)
 -- Dependencies: 263
 -- Name: lesson_progress_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1208,7 +1237,7 @@ CREATE SEQUENCE public.lessons_id_seq
 ALTER SEQUENCE public.lessons_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5777 (class 0 OID 0)
+-- TOC entry 5787 (class 0 OID 0)
 -- Dependencies: 259
 -- Name: lessons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1248,7 +1277,7 @@ CREATE SEQUENCE public.order_items_id_seq
 ALTER SEQUENCE public.order_items_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5778 (class 0 OID 0)
+-- TOC entry 5788 (class 0 OID 0)
 -- Dependencies: 241
 -- Name: order_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1290,7 +1319,7 @@ CREATE SEQUENCE public.orders_id_seq
 ALTER SEQUENCE public.orders_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5779 (class 0 OID 0)
+-- TOC entry 5789 (class 0 OID 0)
 -- Dependencies: 239
 -- Name: orders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1334,7 +1363,7 @@ CREATE SEQUENCE public.payment_transactions_id_seq
 ALTER SEQUENCE public.payment_transactions_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5780 (class 0 OID 0)
+-- TOC entry 5790 (class 0 OID 0)
 -- Dependencies: 237
 -- Name: payment_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1383,7 +1412,7 @@ CREATE SEQUENCE public.payout_requests_id_seq
 ALTER SEQUENCE public.payout_requests_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5781 (class 0 OID 0)
+-- TOC entry 5791 (class 0 OID 0)
 -- Dependencies: 235
 -- Name: payout_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1462,7 +1491,7 @@ CREATE SEQUENCE public.problem_submission_details_id_seq
 ALTER SEQUENCE public.problem_submission_details_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5782 (class 0 OID 0)
+-- TOC entry 5792 (class 0 OID 0)
 -- Dependencies: 287
 -- Name: problem_submission_details_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1511,7 +1540,7 @@ CREATE SEQUENCE public.problem_submissions_id_seq
 ALTER SEQUENCE public.problem_submissions_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5783 (class 0 OID 0)
+-- TOC entry 5793 (class 0 OID 0)
 -- Dependencies: 285
 -- Name: problem_submissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1550,7 +1579,7 @@ CREATE SEQUENCE public.problem_tag_mappings_id_seq
 ALTER SEQUENCE public.problem_tag_mappings_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5784 (class 0 OID 0)
+-- TOC entry 5794 (class 0 OID 0)
 -- Dependencies: 279
 -- Name: problem_tag_mappings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1593,7 +1622,7 @@ CREATE SEQUENCE public.problem_tags_id_seq
 ALTER SEQUENCE public.problem_tags_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5785 (class 0 OID 0)
+-- TOC entry 5795 (class 0 OID 0)
 -- Dependencies: 277
 -- Name: problem_tags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1635,7 +1664,7 @@ CREATE SEQUENCE public.problem_testcases_id_seq
 ALTER SEQUENCE public.problem_testcases_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5786 (class 0 OID 0)
+-- TOC entry 5796 (class 0 OID 0)
 -- Dependencies: 289
 -- Name: problem_testcases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1695,7 +1724,7 @@ CREATE SEQUENCE public.problems_id_seq
 ALTER SEQUENCE public.problems_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5787 (class 0 OID 0)
+-- TOC entry 5797 (class 0 OID 0)
 -- Dependencies: 275
 -- Name: problems_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1735,7 +1764,7 @@ CREATE SEQUENCE public.quiz_attempt_answers_id_seq
 ALTER SEQUENCE public.quiz_attempt_answers_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5788 (class 0 OID 0)
+-- TOC entry 5798 (class 0 OID 0)
 -- Dependencies: 273
 -- Name: quiz_attempt_answers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1780,7 +1809,7 @@ CREATE SEQUENCE public.quiz_attempts_id_seq
 ALTER SEQUENCE public.quiz_attempts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5789 (class 0 OID 0)
+-- TOC entry 5799 (class 0 OID 0)
 -- Dependencies: 271
 -- Name: quiz_attempts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1823,7 +1852,7 @@ CREATE SEQUENCE public.quiz_options_id_seq
 ALTER SEQUENCE public.quiz_options_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5790 (class 0 OID 0)
+-- TOC entry 5800 (class 0 OID 0)
 -- Dependencies: 269
 -- Name: quiz_options_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1865,7 +1894,7 @@ CREATE SEQUENCE public.quiz_questions_id_seq
 ALTER SEQUENCE public.quiz_questions_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5791 (class 0 OID 0)
+-- TOC entry 5801 (class 0 OID 0)
 -- Dependencies: 267
 -- Name: quiz_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1906,7 +1935,7 @@ CREATE SEQUENCE public.quizzes_id_seq
 ALTER SEQUENCE public.quizzes_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5792 (class 0 OID 0)
+-- TOC entry 5802 (class 0 OID 0)
 -- Dependencies: 265
 -- Name: quizzes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1944,7 +1973,7 @@ CREATE SEQUENCE public.roles_id_seq
 ALTER SEQUENCE public.roles_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5793 (class 0 OID 0)
+-- TOC entry 5803 (class 0 OID 0)
 -- Dependencies: 222
 -- Name: roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1985,7 +2014,7 @@ CREATE SEQUENCE public.user_daily_activities_id_seq
 ALTER SEQUENCE public.user_daily_activities_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5794 (class 0 OID 0)
+-- TOC entry 5804 (class 0 OID 0)
 -- Dependencies: 303
 -- Name: user_daily_activities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2026,7 +2055,7 @@ CREATE SEQUENCE public.user_oauth_accounts_id_seq
 ALTER SEQUENCE public.user_oauth_accounts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5795 (class 0 OID 0)
+-- TOC entry 5805 (class 0 OID 0)
 -- Dependencies: 301
 -- Name: user_oauth_accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2084,7 +2113,7 @@ CREATE SEQUENCE public.users_id_seq
 ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5796 (class 0 OID 0)
+-- TOC entry 5806 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2129,7 +2158,7 @@ CREATE SEQUENCE public.wallet_transactions_id_seq
 ALTER SEQUENCE public.wallet_transactions_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5797 (class 0 OID 0)
+-- TOC entry 5807 (class 0 OID 0)
 -- Dependencies: 233
 -- Name: wallet_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2171,7 +2200,7 @@ CREATE SEQUENCE public.wallets_id_seq
 ALTER SEQUENCE public.wallets_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5798 (class 0 OID 0)
+-- TOC entry 5808 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: wallets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -2180,7 +2209,7 @@ ALTER SEQUENCE public.wallets_id_seq OWNED BY public.wallets.id;
 
 
 --
--- TOC entry 5171 (class 2604 OID 18836)
+-- TOC entry 5181 (class 2604 OID 18836)
 -- Name: cart_items id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2188,7 +2217,7 @@ ALTER TABLE ONLY public.cart_items ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
--- TOC entry 5168 (class 2604 OID 18823)
+-- TOC entry 5178 (class 2604 OID 18823)
 -- Name: carts id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2196,7 +2225,7 @@ ALTER TABLE ONLY public.carts ALTER COLUMN id SET DEFAULT nextval('public.carts_
 
 
 --
--- TOC entry 5182 (class 2604 OID 18879)
+-- TOC entry 5192 (class 2604 OID 18879)
 -- Name: categories id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2204,7 +2233,7 @@ ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
--- TOC entry 5192 (class 2604 OID 18934)
+-- TOC entry 5202 (class 2604 OID 18934)
 -- Name: chapters id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2212,7 +2241,7 @@ ALTER TABLE ONLY public.chapters ALTER COLUMN id SET DEFAULT nextval('public.cha
 
 
 --
--- TOC entry 5250 (class 2604 OID 19198)
+-- TOC entry 5260 (class 2604 OID 19198)
 -- Name: contest id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2220,7 +2249,7 @@ ALTER TABLE ONLY public.contest ALTER COLUMN id SET DEFAULT nextval('public.cont
 
 
 --
--- TOC entry 5256 (class 2604 OID 19217)
+-- TOC entry 5266 (class 2604 OID 19217)
 -- Name: contest_participants id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2228,7 +2257,7 @@ ALTER TABLE ONLY public.contest_participants ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- TOC entry 5262 (class 2604 OID 19246)
+-- TOC entry 5272 (class 2604 OID 19246)
 -- Name: contest_problem_attempts id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2236,7 +2265,7 @@ ALTER TABLE ONLY public.contest_problem_attempts ALTER COLUMN id SET DEFAULT nex
 
 
 --
--- TOC entry 5241 (class 2604 OID 19140)
+-- TOC entry 5251 (class 2604 OID 19140)
 -- Name: contest_problems id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2244,7 +2273,7 @@ ALTER TABLE ONLY public.contest_problems ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 5258 (class 2604 OID 19228)
+-- TOC entry 5268 (class 2604 OID 19228)
 -- Name: contest_rankings id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2252,7 +2281,7 @@ ALTER TABLE ONLY public.contest_rankings ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 5185 (class 2604 OID 18894)
+-- TOC entry 5195 (class 2604 OID 18894)
 -- Name: course_category_mappings id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2260,7 +2289,7 @@ ALTER TABLE ONLY public.course_category_mappings ALTER COLUMN id SET DEFAULT nex
 
 
 --
--- TOC entry 5186 (class 2604 OID 18904)
+-- TOC entry 5196 (class 2604 OID 18904)
 -- Name: course_reviews id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2268,7 +2297,7 @@ ALTER TABLE ONLY public.course_reviews ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 5173 (class 2604 OID 19678)
+-- TOC entry 5183 (class 2604 OID 19678)
 -- Name: courses id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2276,7 +2305,7 @@ ALTER TABLE ONLY public.courses ALTER COLUMN id SET DEFAULT nextval('public.cour
 
 
 --
--- TOC entry 5189 (class 2604 OID 18920)
+-- TOC entry 5199 (class 2604 OID 18920)
 -- Name: enrollments id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2284,7 +2313,7 @@ ALTER TABLE ONLY public.enrollments ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 5139 (class 2604 OID 18689)
+-- TOC entry 5149 (class 2604 OID 18689)
 -- Name: instructor_applications id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2292,7 +2321,7 @@ ALTER TABLE ONLY public.instructor_applications ALTER COLUMN id SET DEFAULT next
 
 
 --
--- TOC entry 5143 (class 2604 OID 18705)
+-- TOC entry 5153 (class 2604 OID 18705)
 -- Name: instructors id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2300,7 +2329,7 @@ ALTER TABLE ONLY public.instructors ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 5137 (class 2604 OID 18676)
+-- TOC entry 5147 (class 2604 OID 18676)
 -- Name: invalidated_tokens id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2308,7 +2337,7 @@ ALTER TABLE ONLY public.invalidated_tokens ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
--- TOC entry 5201 (class 2604 OID 18966)
+-- TOC entry 5211 (class 2604 OID 18966)
 -- Name: lesson_comments id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2316,7 +2345,7 @@ ALTER TABLE ONLY public.lesson_comments ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 5239 (class 2604 OID 19128)
+-- TOC entry 5249 (class 2604 OID 19128)
 -- Name: lesson_problems id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2324,7 +2353,7 @@ ALTER TABLE ONLY public.lesson_problems ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 5204 (class 2604 OID 18981)
+-- TOC entry 5214 (class 2604 OID 18981)
 -- Name: lesson_progress id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2332,7 +2361,7 @@ ALTER TABLE ONLY public.lesson_progress ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 5196 (class 2604 OID 18948)
+-- TOC entry 5206 (class 2604 OID 18948)
 -- Name: lessons id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2340,7 +2369,7 @@ ALTER TABLE ONLY public.lessons ALTER COLUMN id SET DEFAULT nextval('public.less
 
 
 --
--- TOC entry 5166 (class 2604 OID 18811)
+-- TOC entry 5176 (class 2604 OID 18811)
 -- Name: order_items id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2348,7 +2377,7 @@ ALTER TABLE ONLY public.order_items ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 5161 (class 2604 OID 18797)
+-- TOC entry 5171 (class 2604 OID 18797)
 -- Name: orders id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2356,7 +2385,7 @@ ALTER TABLE ONLY public.orders ALTER COLUMN id SET DEFAULT nextval('public.order
 
 
 --
--- TOC entry 5158 (class 2604 OID 18779)
+-- TOC entry 5168 (class 2604 OID 18779)
 -- Name: payment_transactions id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2364,7 +2393,7 @@ ALTER TABLE ONLY public.payment_transactions ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- TOC entry 5154 (class 2604 OID 18755)
+-- TOC entry 5164 (class 2604 OID 18755)
 -- Name: payout_requests id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2372,7 +2401,7 @@ ALTER TABLE ONLY public.payout_requests ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 5246 (class 2604 OID 19168)
+-- TOC entry 5256 (class 2604 OID 19168)
 -- Name: problem_submission_details id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2380,7 +2409,7 @@ ALTER TABLE ONLY public.problem_submission_details ALTER COLUMN id SET DEFAULT n
 
 
 --
--- TOC entry 5242 (class 2604 OID 19151)
+-- TOC entry 5252 (class 2604 OID 19151)
 -- Name: problem_submissions id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2388,7 +2417,7 @@ ALTER TABLE ONLY public.problem_submissions ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- TOC entry 5238 (class 2604 OID 19115)
+-- TOC entry 5248 (class 2604 OID 19115)
 -- Name: problem_tag_mappings id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2396,7 +2425,7 @@ ALTER TABLE ONLY public.problem_tag_mappings ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- TOC entry 5235 (class 2604 OID 19097)
+-- TOC entry 5245 (class 2604 OID 19097)
 -- Name: problem_tags id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2404,7 +2433,7 @@ ALTER TABLE ONLY public.problem_tags ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
--- TOC entry 5249 (class 2604 OID 19182)
+-- TOC entry 5259 (class 2604 OID 19182)
 -- Name: problem_testcases id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2412,7 +2441,7 @@ ALTER TABLE ONLY public.problem_testcases ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
--- TOC entry 5222 (class 2604 OID 19066)
+-- TOC entry 5232 (class 2604 OID 19066)
 -- Name: problems id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2420,7 +2449,7 @@ ALTER TABLE ONLY public.problems ALTER COLUMN id SET DEFAULT nextval('public.pro
 
 
 --
--- TOC entry 5221 (class 2604 OID 19056)
+-- TOC entry 5231 (class 2604 OID 19056)
 -- Name: quiz_attempt_answers id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2428,7 +2457,7 @@ ALTER TABLE ONLY public.quiz_attempt_answers ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- TOC entry 5218 (class 2604 OID 19041)
+-- TOC entry 5228 (class 2604 OID 19041)
 -- Name: quiz_attempts id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2436,7 +2465,7 @@ ALTER TABLE ONLY public.quiz_attempts ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 5213 (class 2604 OID 19023)
+-- TOC entry 5223 (class 2604 OID 19023)
 -- Name: quiz_options id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2444,7 +2473,7 @@ ALTER TABLE ONLY public.quiz_options ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
--- TOC entry 5209 (class 2604 OID 19007)
+-- TOC entry 5219 (class 2604 OID 19007)
 -- Name: quiz_questions id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2452,7 +2481,7 @@ ALTER TABLE ONLY public.quiz_questions ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 5206 (class 2604 OID 18993)
+-- TOC entry 5216 (class 2604 OID 18993)
 -- Name: quizzes id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2460,7 +2489,7 @@ ALTER TABLE ONLY public.quizzes ALTER COLUMN id SET DEFAULT nextval('public.quiz
 
 
 --
--- TOC entry 5136 (class 2604 OID 18658)
+-- TOC entry 5146 (class 2604 OID 18658)
 -- Name: roles id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2468,7 +2497,7 @@ ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_
 
 
 --
--- TOC entry 5269 (class 2604 OID 19830)
+-- TOC entry 5279 (class 2604 OID 19830)
 -- Name: user_daily_activities id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2476,7 +2505,7 @@ ALTER TABLE ONLY public.user_daily_activities ALTER COLUMN id SET DEFAULT nextva
 
 
 --
--- TOC entry 5267 (class 2604 OID 19804)
+-- TOC entry 5277 (class 2604 OID 19804)
 -- Name: user_oauth_accounts id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2484,7 +2513,7 @@ ALTER TABLE ONLY public.user_oauth_accounts ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- TOC entry 5132 (class 2604 OID 18637)
+-- TOC entry 5142 (class 2604 OID 18637)
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2492,7 +2521,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 5151 (class 2604 OID 18740)
+-- TOC entry 5161 (class 2604 OID 18740)
 -- Name: wallet_transactions id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2500,7 +2529,7 @@ ALTER TABLE ONLY public.wallet_transactions ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- TOC entry 5147 (class 2604 OID 18723)
+-- TOC entry 5157 (class 2604 OID 18723)
 -- Name: wallets id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -2508,7 +2537,7 @@ ALTER TABLE ONLY public.wallets ALTER COLUMN id SET DEFAULT nextval('public.wall
 
 
 --
--- TOC entry 5337 (class 2606 OID 18842)
+-- TOC entry 5347 (class 2606 OID 18842)
 -- Name: cart_items cart_items_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2517,7 +2546,7 @@ ALTER TABLE ONLY public.cart_items
 
 
 --
--- TOC entry 5333 (class 2606 OID 18829)
+-- TOC entry 5343 (class 2606 OID 18829)
 -- Name: carts carts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2526,7 +2555,7 @@ ALTER TABLE ONLY public.carts
 
 
 --
--- TOC entry 5335 (class 2606 OID 18831)
+-- TOC entry 5345 (class 2606 OID 18831)
 -- Name: carts carts_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2535,7 +2564,7 @@ ALTER TABLE ONLY public.carts
 
 
 --
--- TOC entry 5348 (class 2606 OID 18889)
+-- TOC entry 5358 (class 2606 OID 18889)
 -- Name: categories categories_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2544,7 +2573,7 @@ ALTER TABLE ONLY public.categories
 
 
 --
--- TOC entry 5350 (class 2606 OID 18887)
+-- TOC entry 5360 (class 2606 OID 18887)
 -- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2553,7 +2582,7 @@ ALTER TABLE ONLY public.categories
 
 
 --
--- TOC entry 5361 (class 2606 OID 18943)
+-- TOC entry 5371 (class 2606 OID 18943)
 -- Name: chapters chapters_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2562,7 +2591,7 @@ ALTER TABLE ONLY public.chapters
 
 
 --
--- TOC entry 5434 (class 2606 OID 19667)
+-- TOC entry 5444 (class 2606 OID 19667)
 -- Name: completed_lessons_count completed_lessons_count_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2571,7 +2600,7 @@ ALTER TABLE ONLY public.completed_lessons_count
 
 
 --
--- TOC entry 5424 (class 2606 OID 19223)
+-- TOC entry 5434 (class 2606 OID 19223)
 -- Name: contest_participants contest_participants_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2580,7 +2609,7 @@ ALTER TABLE ONLY public.contest_participants
 
 
 --
--- TOC entry 5421 (class 2606 OID 19212)
+-- TOC entry 5431 (class 2606 OID 19212)
 -- Name: contest contest_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2589,7 +2618,7 @@ ALTER TABLE ONLY public.contest
 
 
 --
--- TOC entry 5430 (class 2606 OID 19262)
+-- TOC entry 5440 (class 2606 OID 19262)
 -- Name: contest_problem_attempts contest_problem_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2598,7 +2627,7 @@ ALTER TABLE ONLY public.contest_problem_attempts
 
 
 --
--- TOC entry 5404 (class 2606 OID 19146)
+-- TOC entry 5414 (class 2606 OID 19146)
 -- Name: contest_problems contest_problems_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2607,7 +2636,7 @@ ALTER TABLE ONLY public.contest_problems
 
 
 --
--- TOC entry 5427 (class 2606 OID 19241)
+-- TOC entry 5437 (class 2606 OID 19241)
 -- Name: contest_rankings contest_rankings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2616,7 +2645,7 @@ ALTER TABLE ONLY public.contest_rankings
 
 
 --
--- TOC entry 5352 (class 2606 OID 18899)
+-- TOC entry 5362 (class 2606 OID 18899)
 -- Name: course_category_mappings course_category_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2625,7 +2654,7 @@ ALTER TABLE ONLY public.course_category_mappings
 
 
 --
--- TOC entry 5354 (class 2606 OID 18915)
+-- TOC entry 5364 (class 2606 OID 18915)
 -- Name: course_reviews course_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2634,7 +2663,7 @@ ALTER TABLE ONLY public.course_reviews
 
 
 --
--- TOC entry 5339 (class 2606 OID 19680)
+-- TOC entry 5349 (class 2606 OID 19680)
 -- Name: courses courses_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2643,7 +2672,7 @@ ALTER TABLE ONLY public.courses
 
 
 --
--- TOC entry 5341 (class 2606 OID 18874)
+-- TOC entry 5351 (class 2606 OID 18874)
 -- Name: courses courses_thumbnail_url_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2652,7 +2681,7 @@ ALTER TABLE ONLY public.courses
 
 
 --
--- TOC entry 5343 (class 2606 OID 18872)
+-- TOC entry 5353 (class 2606 OID 18872)
 -- Name: courses courses_title_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2661,7 +2690,7 @@ ALTER TABLE ONLY public.courses
 
 
 --
--- TOC entry 5356 (class 2606 OID 18927)
+-- TOC entry 5366 (class 2606 OID 18927)
 -- Name: enrollments enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2670,7 +2699,7 @@ ALTER TABLE ONLY public.enrollments
 
 
 --
--- TOC entry 5301 (class 2606 OID 18700)
+-- TOC entry 5311 (class 2606 OID 18700)
 -- Name: instructor_applications instructor_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2679,7 +2708,7 @@ ALTER TABLE ONLY public.instructor_applications
 
 
 --
--- TOC entry 5303 (class 2606 OID 18716)
+-- TOC entry 5313 (class 2606 OID 18716)
 -- Name: instructors instructors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2688,7 +2717,7 @@ ALTER TABLE ONLY public.instructors
 
 
 --
--- TOC entry 5305 (class 2606 OID 18718)
+-- TOC entry 5315 (class 2606 OID 18718)
 -- Name: instructors instructors_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2697,7 +2726,7 @@ ALTER TABLE ONLY public.instructors
 
 
 --
--- TOC entry 5296 (class 2606 OID 18682)
+-- TOC entry 5306 (class 2606 OID 18682)
 -- Name: invalidated_tokens invalidated_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2706,7 +2735,7 @@ ALTER TABLE ONLY public.invalidated_tokens
 
 
 --
--- TOC entry 5298 (class 2606 OID 18684)
+-- TOC entry 5308 (class 2606 OID 18684)
 -- Name: invalidated_tokens invalidated_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2715,7 +2744,7 @@ ALTER TABLE ONLY public.invalidated_tokens
 
 
 --
--- TOC entry 5367 (class 2606 OID 18976)
+-- TOC entry 5377 (class 2606 OID 18976)
 -- Name: lesson_comments lesson_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2724,7 +2753,7 @@ ALTER TABLE ONLY public.lesson_comments
 
 
 --
--- TOC entry 5402 (class 2606 OID 19135)
+-- TOC entry 5412 (class 2606 OID 19135)
 -- Name: lesson_problems lesson_problems_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2733,7 +2762,7 @@ ALTER TABLE ONLY public.lesson_problems
 
 
 --
--- TOC entry 5371 (class 2606 OID 18988)
+-- TOC entry 5381 (class 2606 OID 18988)
 -- Name: lesson_progress lesson_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2742,7 +2771,7 @@ ALTER TABLE ONLY public.lesson_progress
 
 
 --
--- TOC entry 5365 (class 2606 OID 18961)
+-- TOC entry 5375 (class 2606 OID 18961)
 -- Name: lessons lessons_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2751,7 +2780,7 @@ ALTER TABLE ONLY public.lessons
 
 
 --
--- TOC entry 5331 (class 2606 OID 18818)
+-- TOC entry 5341 (class 2606 OID 18818)
 -- Name: order_items order_items_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2760,7 +2789,7 @@ ALTER TABLE ONLY public.order_items
 
 
 --
--- TOC entry 5327 (class 2606 OID 18806)
+-- TOC entry 5337 (class 2606 OID 18806)
 -- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2769,7 +2798,7 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- TOC entry 5322 (class 2606 OID 18790)
+-- TOC entry 5332 (class 2606 OID 18790)
 -- Name: payment_transactions payment_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2778,7 +2807,7 @@ ALTER TABLE ONLY public.payment_transactions
 
 
 --
--- TOC entry 5324 (class 2606 OID 18792)
+-- TOC entry 5334 (class 2606 OID 18792)
 -- Name: payment_transactions payment_transactions_transaction_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2787,7 +2816,7 @@ ALTER TABLE ONLY public.payment_transactions
 
 
 --
--- TOC entry 5315 (class 2606 OID 18770)
+-- TOC entry 5325 (class 2606 OID 18770)
 -- Name: payout_requests payout_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2796,7 +2825,7 @@ ALTER TABLE ONLY public.payout_requests
 
 
 --
--- TOC entry 5317 (class 2606 OID 18772)
+-- TOC entry 5327 (class 2606 OID 18772)
 -- Name: payout_requests payout_requests_transaction_reference_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2805,7 +2834,7 @@ ALTER TABLE ONLY public.payout_requests
 
 
 --
--- TOC entry 5451 (class 2606 OID 19864)
+-- TOC entry 5461 (class 2606 OID 19864)
 -- Name: problem_comments problem_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2814,7 +2843,7 @@ ALTER TABLE ONLY public.problem_comments
 
 
 --
--- TOC entry 5414 (class 2606 OID 19177)
+-- TOC entry 5424 (class 2606 OID 19177)
 -- Name: problem_submission_details problem_submission_details_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2823,7 +2852,7 @@ ALTER TABLE ONLY public.problem_submission_details
 
 
 --
--- TOC entry 5411 (class 2606 OID 19163)
+-- TOC entry 5421 (class 2606 OID 19163)
 -- Name: problem_submissions problem_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2832,7 +2861,7 @@ ALTER TABLE ONLY public.problem_submissions
 
 
 --
--- TOC entry 5398 (class 2606 OID 19120)
+-- TOC entry 5408 (class 2606 OID 19120)
 -- Name: problem_tag_mappings problem_tag_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2841,7 +2870,7 @@ ALTER TABLE ONLY public.problem_tag_mappings
 
 
 --
--- TOC entry 5393 (class 2606 OID 19108)
+-- TOC entry 5403 (class 2606 OID 19108)
 -- Name: problem_tags problem_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2850,7 +2879,7 @@ ALTER TABLE ONLY public.problem_tags
 
 
 --
--- TOC entry 5395 (class 2606 OID 19110)
+-- TOC entry 5405 (class 2606 OID 19110)
 -- Name: problem_tags problem_tags_slug_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2859,7 +2888,7 @@ ALTER TABLE ONLY public.problem_tags
 
 
 --
--- TOC entry 5417 (class 2606 OID 19191)
+-- TOC entry 5427 (class 2606 OID 19191)
 -- Name: problem_testcases problem_testcases_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2868,7 +2897,7 @@ ALTER TABLE ONLY public.problem_testcases
 
 
 --
--- TOC entry 5419 (class 2606 OID 19193)
+-- TOC entry 5429 (class 2606 OID 19193)
 -- Name: problem_testcases problem_testcases_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2877,7 +2906,7 @@ ALTER TABLE ONLY public.problem_testcases
 
 
 --
--- TOC entry 5391 (class 2606 OID 19092)
+-- TOC entry 5401 (class 2606 OID 19092)
 -- Name: problems problems_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2886,7 +2915,7 @@ ALTER TABLE ONLY public.problems
 
 
 --
--- TOC entry 5387 (class 2606 OID 19061)
+-- TOC entry 5397 (class 2606 OID 19061)
 -- Name: quiz_attempt_answers quiz_attempt_answers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2895,7 +2924,7 @@ ALTER TABLE ONLY public.quiz_attempt_answers
 
 
 --
--- TOC entry 5385 (class 2606 OID 19051)
+-- TOC entry 5395 (class 2606 OID 19051)
 -- Name: quiz_attempts quiz_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2904,7 +2933,7 @@ ALTER TABLE ONLY public.quiz_attempts
 
 
 --
--- TOC entry 5381 (class 2606 OID 19036)
+-- TOC entry 5391 (class 2606 OID 19036)
 -- Name: quiz_options quiz_options_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2913,7 +2942,7 @@ ALTER TABLE ONLY public.quiz_options
 
 
 --
--- TOC entry 5378 (class 2606 OID 19018)
+-- TOC entry 5388 (class 2606 OID 19018)
 -- Name: quiz_questions quiz_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2922,7 +2951,7 @@ ALTER TABLE ONLY public.quiz_questions
 
 
 --
--- TOC entry 5373 (class 2606 OID 19002)
+-- TOC entry 5383 (class 2606 OID 19002)
 -- Name: quizzes quizzes_lesson_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2931,7 +2960,7 @@ ALTER TABLE ONLY public.quizzes
 
 
 --
--- TOC entry 5375 (class 2606 OID 19000)
+-- TOC entry 5385 (class 2606 OID 19000)
 -- Name: quizzes quizzes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2940,7 +2969,7 @@ ALTER TABLE ONLY public.quizzes
 
 
 --
--- TOC entry 5290 (class 2606 OID 19635)
+-- TOC entry 5300 (class 2606 OID 19635)
 -- Name: roles roles_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2949,7 +2978,7 @@ ALTER TABLE ONLY public.roles
 
 
 --
--- TOC entry 5292 (class 2606 OID 18662)
+-- TOC entry 5302 (class 2606 OID 18662)
 -- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2958,7 +2987,7 @@ ALTER TABLE ONLY public.roles
 
 
 --
--- TOC entry 5438 (class 2606 OID 19821)
+-- TOC entry 5448 (class 2606 OID 19821)
 -- Name: user_oauth_accounts ukhvnjys5r8dgs5p107mae6cdip; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2967,7 +2996,7 @@ ALTER TABLE ONLY public.user_oauth_accounts
 
 
 --
--- TOC entry 5445 (class 2606 OID 19955)
+-- TOC entry 5455 (class 2606 OID 19955)
 -- Name: user_daily_activities ukqex64xyldm7nghim6s2t54ett; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2976,7 +3005,7 @@ ALTER TABLE ONLY public.user_daily_activities
 
 
 --
--- TOC entry 5440 (class 2606 OID 19814)
+-- TOC entry 5450 (class 2606 OID 19814)
 -- Name: user_oauth_accounts unique_provider_user; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2985,7 +3014,7 @@ ALTER TABLE ONLY public.user_oauth_accounts
 
 
 --
--- TOC entry 5436 (class 2606 OID 19788)
+-- TOC entry 5446 (class 2606 OID 19788)
 -- Name: completed_lessons_count uq_completed_lessons_count_user_course; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2994,7 +3023,7 @@ ALTER TABLE ONLY public.completed_lessons_count
 
 
 --
--- TOC entry 5400 (class 2606 OID 19122)
+-- TOC entry 5410 (class 2606 OID 19122)
 -- Name: problem_tag_mappings uq_problem_tag_mappings; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3003,7 +3032,7 @@ ALTER TABLE ONLY public.problem_tag_mappings
 
 
 --
--- TOC entry 5359 (class 2606 OID 19752)
+-- TOC entry 5369 (class 2606 OID 19752)
 -- Name: enrollments uq_user_course_enrollment; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3012,7 +3041,7 @@ ALTER TABLE ONLY public.enrollments
 
 
 --
--- TOC entry 5319 (class 2606 OID 18774)
+-- TOC entry 5329 (class 2606 OID 18774)
 -- Name: payout_requests uq_wallet_payout_period; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3021,7 +3050,7 @@ ALTER TABLE ONLY public.payout_requests
 
 
 --
--- TOC entry 5447 (class 2606 OID 19836)
+-- TOC entry 5457 (class 2606 OID 19836)
 -- Name: user_daily_activities user_daily_activities_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3030,7 +3059,7 @@ ALTER TABLE ONLY public.user_daily_activities
 
 
 --
--- TOC entry 5449 (class 2606 OID 19838)
+-- TOC entry 5459 (class 2606 OID 19838)
 -- Name: user_daily_activities user_daily_activities_unique_user_date; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3039,7 +3068,7 @@ ALTER TABLE ONLY public.user_daily_activities
 
 
 --
--- TOC entry 5442 (class 2606 OID 19812)
+-- TOC entry 5452 (class 2606 OID 19812)
 -- Name: user_oauth_accounts user_oauth_accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3048,7 +3077,7 @@ ALTER TABLE ONLY public.user_oauth_accounts
 
 
 --
--- TOC entry 5294 (class 2606 OID 18671)
+-- TOC entry 5304 (class 2606 OID 18671)
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3057,7 +3086,7 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
--- TOC entry 5284 (class 2606 OID 18653)
+-- TOC entry 5294 (class 2606 OID 18653)
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3066,7 +3095,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 5286 (class 2606 OID 18649)
+-- TOC entry 5296 (class 2606 OID 18649)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3075,7 +3104,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 5288 (class 2606 OID 18651)
+-- TOC entry 5298 (class 2606 OID 18651)
 -- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3084,7 +3113,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 5313 (class 2606 OID 18750)
+-- TOC entry 5323 (class 2606 OID 18750)
 -- Name: wallet_transactions wallet_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3093,7 +3122,7 @@ ALTER TABLE ONLY public.wallet_transactions
 
 
 --
--- TOC entry 5307 (class 2606 OID 18733)
+-- TOC entry 5317 (class 2606 OID 18733)
 -- Name: wallets wallets_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3102,7 +3131,7 @@ ALTER TABLE ONLY public.wallets
 
 
 --
--- TOC entry 5309 (class 2606 OID 18735)
+-- TOC entry 5319 (class 2606 OID 18735)
 -- Name: wallets wallets_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3111,7 +3140,7 @@ ALTER TABLE ONLY public.wallets
 
 
 --
--- TOC entry 5362 (class 1259 OID 19929)
+-- TOC entry 5372 (class 1259 OID 19929)
 -- Name: idx_chapters_course_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3119,7 +3148,7 @@ CREATE INDEX idx_chapters_course_id ON public.chapters USING btree (course_id);
 
 
 --
--- TOC entry 5422 (class 1259 OID 19631)
+-- TOC entry 5432 (class 1259 OID 19631)
 -- Name: idx_contest_fts; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3127,7 +3156,7 @@ CREATE INDEX idx_contest_fts ON public.contest USING gin (fts_document);
 
 
 --
--- TOC entry 5425 (class 1259 OID 19583)
+-- TOC entry 5435 (class 1259 OID 19583)
 -- Name: idx_contest_participants_contest_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3135,7 +3164,7 @@ CREATE INDEX idx_contest_participants_contest_id ON public.contest_participants 
 
 
 --
--- TOC entry 5431 (class 1259 OID 19585)
+-- TOC entry 5441 (class 1259 OID 19585)
 -- Name: idx_contest_problem_attempts_contest_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3143,7 +3172,7 @@ CREATE INDEX idx_contest_problem_attempts_contest_id ON public.contest_problem_a
 
 
 --
--- TOC entry 5432 (class 1259 OID 19586)
+-- TOC entry 5442 (class 1259 OID 19586)
 -- Name: idx_contest_problem_attempts_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3151,7 +3180,7 @@ CREATE INDEX idx_contest_problem_attempts_user_id ON public.contest_problem_atte
 
 
 --
--- TOC entry 5428 (class 1259 OID 19632)
+-- TOC entry 5438 (class 1259 OID 19632)
 -- Name: idx_contest_rankings_leaderboard; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3159,7 +3188,7 @@ CREATE INDEX idx_contest_rankings_leaderboard ON public.contest_rankings USING b
 
 
 --
--- TOC entry 5344 (class 1259 OID 19614)
+-- TOC entry 5354 (class 1259 OID 19614)
 -- Name: idx_courses_fts; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3167,7 +3196,7 @@ CREATE INDEX idx_courses_fts ON public.courses USING gin (fts_document);
 
 
 --
--- TOC entry 5345 (class 1259 OID 19565)
+-- TOC entry 5355 (class 1259 OID 19565)
 -- Name: idx_courses_instructor_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3175,7 +3204,7 @@ CREATE INDEX idx_courses_instructor_id ON public.courses USING btree (instructor
 
 
 --
--- TOC entry 5346 (class 1259 OID 19729)
+-- TOC entry 5356 (class 1259 OID 19729)
 -- Name: idx_courses_status; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3183,7 +3212,7 @@ CREATE INDEX idx_courses_status ON public.courses USING btree (status);
 
 
 --
--- TOC entry 5357 (class 1259 OID 19753)
+-- TOC entry 5367 (class 1259 OID 19753)
 -- Name: idx_enrollments_course_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3191,7 +3220,7 @@ CREATE INDEX idx_enrollments_course_id ON public.enrollments USING btree (course
 
 
 --
--- TOC entry 5299 (class 1259 OID 19558)
+-- TOC entry 5309 (class 1259 OID 19558)
 -- Name: idx_instructor_applications_status; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3199,7 +3228,7 @@ CREATE INDEX idx_instructor_applications_status ON public.instructor_application
 
 
 --
--- TOC entry 5368 (class 1259 OID 19774)
+-- TOC entry 5378 (class 1259 OID 19774)
 -- Name: idx_lesson_progress_course_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3207,7 +3236,7 @@ CREATE INDEX idx_lesson_progress_course_id ON public.lesson_progress USING btree
 
 
 --
--- TOC entry 5369 (class 1259 OID 19570)
+-- TOC entry 5379 (class 1259 OID 19570)
 -- Name: idx_lesson_progress_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3215,7 +3244,7 @@ CREATE INDEX idx_lesson_progress_user_id ON public.lesson_progress USING btree (
 
 
 --
--- TOC entry 5363 (class 1259 OID 19569)
+-- TOC entry 5373 (class 1259 OID 19569)
 -- Name: idx_lessons_chapter_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3223,7 +3252,7 @@ CREATE INDEX idx_lessons_chapter_id ON public.lessons USING btree (chapter_id);
 
 
 --
--- TOC entry 5328 (class 1259 OID 19563)
+-- TOC entry 5338 (class 1259 OID 19563)
 -- Name: idx_order_items_course_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3231,7 +3260,7 @@ CREATE INDEX idx_order_items_course_id ON public.order_items USING btree (course
 
 
 --
--- TOC entry 5329 (class 1259 OID 19562)
+-- TOC entry 5339 (class 1259 OID 19562)
 -- Name: idx_order_items_order_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3239,7 +3268,7 @@ CREATE INDEX idx_order_items_order_id ON public.order_items USING btree (order_i
 
 
 --
--- TOC entry 5325 (class 1259 OID 19564)
+-- TOC entry 5335 (class 1259 OID 19564)
 -- Name: idx_orders_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3247,7 +3276,7 @@ CREATE INDEX idx_orders_user_id ON public.orders USING btree (user_id);
 
 
 --
--- TOC entry 5320 (class 1259 OID 19561)
+-- TOC entry 5330 (class 1259 OID 19561)
 -- Name: idx_payment_transactions_wallet_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3255,7 +3284,7 @@ CREATE INDEX idx_payment_transactions_wallet_id ON public.payment_transactions U
 
 
 --
--- TOC entry 5412 (class 1259 OID 19582)
+-- TOC entry 5422 (class 1259 OID 19582)
 -- Name: idx_problem_submission_details_submission_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3263,7 +3292,7 @@ CREATE INDEX idx_problem_submission_details_submission_id ON public.problem_subm
 
 
 --
--- TOC entry 5405 (class 1259 OID 19580)
+-- TOC entry 5415 (class 1259 OID 19580)
 -- Name: idx_problem_submissions_contest_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3271,7 +3300,7 @@ CREATE INDEX idx_problem_submissions_contest_id ON public.problem_submissions US
 
 
 --
--- TOC entry 5406 (class 1259 OID 19578)
+-- TOC entry 5416 (class 1259 OID 19578)
 -- Name: idx_problem_submissions_problem_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3279,7 +3308,7 @@ CREATE INDEX idx_problem_submissions_problem_id ON public.problem_submissions US
 
 
 --
--- TOC entry 5407 (class 1259 OID 19633)
+-- TOC entry 5417 (class 1259 OID 19633)
 -- Name: idx_problem_submissions_time; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3287,7 +3316,7 @@ CREATE INDEX idx_problem_submissions_time ON public.problem_submissions USING br
 
 
 --
--- TOC entry 5408 (class 1259 OID 19579)
+-- TOC entry 5418 (class 1259 OID 19579)
 -- Name: idx_problem_submissions_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3295,7 +3324,7 @@ CREATE INDEX idx_problem_submissions_user_id ON public.problem_submissions USING
 
 
 --
--- TOC entry 5409 (class 1259 OID 19874)
+-- TOC entry 5419 (class 1259 OID 19874)
 -- Name: idx_problem_submissions_verdict; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3303,7 +3332,7 @@ CREATE INDEX idx_problem_submissions_verdict ON public.problem_submissions USING
 
 
 --
--- TOC entry 5396 (class 1259 OID 19123)
+-- TOC entry 5406 (class 1259 OID 19123)
 -- Name: idx_problem_tag_mappings_tag_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3311,7 +3340,7 @@ CREATE INDEX idx_problem_tag_mappings_tag_id ON public.problem_tag_mappings USIN
 
 
 --
--- TOC entry 5415 (class 1259 OID 19577)
+-- TOC entry 5425 (class 1259 OID 19577)
 -- Name: idx_problem_testcases_problem_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3319,7 +3348,7 @@ CREATE INDEX idx_problem_testcases_problem_id ON public.problem_testcases USING 
 
 
 --
--- TOC entry 5388 (class 1259 OID 19576)
+-- TOC entry 5398 (class 1259 OID 19576)
 -- Name: idx_problems_created_by; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3327,7 +3356,7 @@ CREATE INDEX idx_problems_created_by ON public.problems USING btree (created_by)
 
 
 --
--- TOC entry 5389 (class 1259 OID 19623)
+-- TOC entry 5399 (class 1259 OID 19623)
 -- Name: idx_problems_fts; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3335,7 +3364,7 @@ CREATE INDEX idx_problems_fts ON public.problems USING gin (fts_document);
 
 
 --
--- TOC entry 5382 (class 1259 OID 19575)
+-- TOC entry 5392 (class 1259 OID 19575)
 -- Name: idx_quiz_attempts_quiz_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3343,7 +3372,7 @@ CREATE INDEX idx_quiz_attempts_quiz_id ON public.quiz_attempts USING btree (quiz
 
 
 --
--- TOC entry 5383 (class 1259 OID 19574)
+-- TOC entry 5393 (class 1259 OID 19574)
 -- Name: idx_quiz_attempts_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3351,7 +3380,7 @@ CREATE INDEX idx_quiz_attempts_user_id ON public.quiz_attempts USING btree (user
 
 
 --
--- TOC entry 5379 (class 1259 OID 19573)
+-- TOC entry 5389 (class 1259 OID 19573)
 -- Name: idx_quiz_options_question_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3359,7 +3388,7 @@ CREATE INDEX idx_quiz_options_question_id ON public.quiz_options USING btree (qu
 
 
 --
--- TOC entry 5376 (class 1259 OID 19572)
+-- TOC entry 5386 (class 1259 OID 19572)
 -- Name: idx_quiz_questions_quiz_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3367,7 +3396,7 @@ CREATE INDEX idx_quiz_questions_quiz_id ON public.quiz_questions USING btree (qu
 
 
 --
--- TOC entry 5443 (class 1259 OID 19844)
+-- TOC entry 5453 (class 1259 OID 19844)
 -- Name: idx_user_activities_user_date; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3375,7 +3404,7 @@ CREATE INDEX idx_user_activities_user_date ON public.user_daily_activities USING
 
 
 --
--- TOC entry 5310 (class 1259 OID 19560)
+-- TOC entry 5320 (class 1259 OID 19560)
 -- Name: idx_wallet_transactions_order_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3383,7 +3412,7 @@ CREATE INDEX idx_wallet_transactions_order_id ON public.wallet_transactions USIN
 
 
 --
--- TOC entry 5311 (class 1259 OID 19559)
+-- TOC entry 5321 (class 1259 OID 19559)
 -- Name: idx_wallet_transactions_wallet_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -3391,7 +3420,7 @@ CREATE INDEX idx_wallet_transactions_wallet_id ON public.wallet_transactions USI
 
 
 --
--- TOC entry 5515 (class 2606 OID 19914)
+-- TOC entry 5525 (class 2606 OID 19914)
 -- Name: problem_comments fk2ejlxsd61ciq2emegbkfli3cw; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3400,7 +3429,7 @@ ALTER TABLE ONLY public.problem_comments
 
 
 --
--- TOC entry 5508 (class 2606 OID 19543)
+-- TOC entry 5518 (class 2606 OID 19543)
 -- Name: contest_problem_attempts fk_attempts_contest; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3409,7 +3438,7 @@ ALTER TABLE ONLY public.contest_problem_attempts
 
 
 --
--- TOC entry 5509 (class 2606 OID 19553)
+-- TOC entry 5519 (class 2606 OID 19553)
 -- Name: contest_problem_attempts fk_attempts_problems; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3418,7 +3447,7 @@ ALTER TABLE ONLY public.contest_problem_attempts
 
 
 --
--- TOC entry 5510 (class 2606 OID 19548)
+-- TOC entry 5520 (class 2606 OID 19548)
 -- Name: contest_problem_attempts fk_attempts_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3427,7 +3456,7 @@ ALTER TABLE ONLY public.contest_problem_attempts
 
 
 --
--- TOC entry 5464 (class 2606 OID 19323)
+-- TOC entry 5474 (class 2606 OID 19323)
 -- Name: cart_items fk_cart_items_carts; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3436,7 +3465,7 @@ ALTER TABLE ONLY public.cart_items
 
 
 --
--- TOC entry 5465 (class 2606 OID 19920)
+-- TOC entry 5475 (class 2606 OID 19920)
 -- Name: cart_items fk_cart_items_courses; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3445,7 +3474,7 @@ ALTER TABLE ONLY public.cart_items
 
 
 --
--- TOC entry 5463 (class 2606 OID 19318)
+-- TOC entry 5473 (class 2606 OID 19318)
 -- Name: carts fk_carts_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3454,7 +3483,7 @@ ALTER TABLE ONLY public.carts
 
 
 --
--- TOC entry 5467 (class 2606 OID 19343)
+-- TOC entry 5477 (class 2606 OID 19343)
 -- Name: course_category_mappings fk_cc_mappings_categories; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3463,7 +3492,7 @@ ALTER TABLE ONLY public.course_category_mappings
 
 
 --
--- TOC entry 5468 (class 2606 OID 19712)
+-- TOC entry 5478 (class 2606 OID 19712)
 -- Name: course_category_mappings fk_cc_mappings_courses; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3472,7 +3501,7 @@ ALTER TABLE ONLY public.course_category_mappings
 
 
 --
--- TOC entry 5473 (class 2606 OID 19931)
+-- TOC entry 5483 (class 2606 OID 19931)
 -- Name: chapters fk_chapters_courses; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3481,7 +3510,7 @@ ALTER TABLE ONLY public.chapters
 
 
 --
--- TOC entry 5475 (class 2606 OID 19378)
+-- TOC entry 5485 (class 2606 OID 19378)
 -- Name: lesson_comments fk_comments_lessons; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3490,7 +3519,7 @@ ALTER TABLE ONLY public.lesson_comments
 
 
 --
--- TOC entry 5476 (class 2606 OID 19388)
+-- TOC entry 5486 (class 2606 OID 19388)
 -- Name: lesson_comments fk_comments_parent; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3499,7 +3528,7 @@ ALTER TABLE ONLY public.lesson_comments
 
 
 --
--- TOC entry 5477 (class 2606 OID 19383)
+-- TOC entry 5487 (class 2606 OID 19383)
 -- Name: lesson_comments fk_comments_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3508,7 +3537,7 @@ ALTER TABLE ONLY public.lesson_comments
 
 
 --
--- TOC entry 5494 (class 2606 OID 19468)
+-- TOC entry 5504 (class 2606 OID 19468)
 -- Name: contest_problems fk_contest_problems_contest; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3517,7 +3546,7 @@ ALTER TABLE ONLY public.contest_problems
 
 
 --
--- TOC entry 5495 (class 2606 OID 19473)
+-- TOC entry 5505 (class 2606 OID 19473)
 -- Name: contest_problems fk_contest_problems_problems; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3526,7 +3555,7 @@ ALTER TABLE ONLY public.contest_problems
 
 
 --
--- TOC entry 5503 (class 2606 OID 19518)
+-- TOC entry 5513 (class 2606 OID 19518)
 -- Name: contest fk_contest_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3535,7 +3564,7 @@ ALTER TABLE ONLY public.contest
 
 
 --
--- TOC entry 5469 (class 2606 OID 19942)
+-- TOC entry 5479 (class 2606 OID 19942)
 -- Name: course_reviews fk_course_reviews_courses; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3544,7 +3573,7 @@ ALTER TABLE ONLY public.course_reviews
 
 
 --
--- TOC entry 5470 (class 2606 OID 19353)
+-- TOC entry 5480 (class 2606 OID 19353)
 -- Name: course_reviews fk_course_reviews_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3553,7 +3582,7 @@ ALTER TABLE ONLY public.course_reviews
 
 
 --
--- TOC entry 5466 (class 2606 OID 19333)
+-- TOC entry 5476 (class 2606 OID 19333)
 -- Name: courses fk_courses_instructors; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3562,7 +3591,7 @@ ALTER TABLE ONLY public.courses
 
 
 --
--- TOC entry 5471 (class 2606 OID 19755)
+-- TOC entry 5481 (class 2606 OID 19755)
 -- Name: enrollments fk_enrollments_courses; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3571,7 +3600,7 @@ ALTER TABLE ONLY public.enrollments
 
 
 --
--- TOC entry 5472 (class 2606 OID 19358)
+-- TOC entry 5482 (class 2606 OID 19358)
 -- Name: enrollments fk_enrollments_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3580,7 +3609,7 @@ ALTER TABLE ONLY public.enrollments
 
 
 --
--- TOC entry 5454 (class 2606 OID 19273)
+-- TOC entry 5464 (class 2606 OID 19273)
 -- Name: instructor_applications fk_instructor_app_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3589,7 +3618,7 @@ ALTER TABLE ONLY public.instructor_applications
 
 
 --
--- TOC entry 5455 (class 2606 OID 19278)
+-- TOC entry 5465 (class 2606 OID 19278)
 -- Name: instructors fk_instructors_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3598,7 +3627,7 @@ ALTER TABLE ONLY public.instructors
 
 
 --
--- TOC entry 5492 (class 2606 OID 19458)
+-- TOC entry 5502 (class 2606 OID 19458)
 -- Name: lesson_problems fk_lesson_problems_lessons; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3607,7 +3636,7 @@ ALTER TABLE ONLY public.lesson_problems
 
 
 --
--- TOC entry 5493 (class 2606 OID 19463)
+-- TOC entry 5503 (class 2606 OID 19463)
 -- Name: lesson_problems fk_lesson_problems_problems; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3616,7 +3645,7 @@ ALTER TABLE ONLY public.lesson_problems
 
 
 --
--- TOC entry 5474 (class 2606 OID 19373)
+-- TOC entry 5484 (class 2606 OID 19373)
 -- Name: lessons fk_lessons_chapters; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3625,7 +3654,7 @@ ALTER TABLE ONLY public.lessons
 
 
 --
--- TOC entry 5461 (class 2606 OID 19682)
+-- TOC entry 5471 (class 2606 OID 19682)
 -- Name: order_items fk_order_items_courses; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3634,7 +3663,7 @@ ALTER TABLE ONLY public.order_items
 
 
 --
--- TOC entry 5462 (class 2606 OID 19308)
+-- TOC entry 5472 (class 2606 OID 19308)
 -- Name: order_items fk_order_items_orders; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3643,7 +3672,7 @@ ALTER TABLE ONLY public.order_items
 
 
 --
--- TOC entry 5460 (class 2606 OID 19303)
+-- TOC entry 5470 (class 2606 OID 19303)
 -- Name: orders fk_orders_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3652,7 +3681,7 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- TOC entry 5504 (class 2606 OID 19523)
+-- TOC entry 5514 (class 2606 OID 19523)
 -- Name: contest_participants fk_participants_contest; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3661,7 +3690,7 @@ ALTER TABLE ONLY public.contest_participants
 
 
 --
--- TOC entry 5505 (class 2606 OID 19528)
+-- TOC entry 5515 (class 2606 OID 19528)
 -- Name: contest_participants fk_participants_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3670,7 +3699,7 @@ ALTER TABLE ONLY public.contest_participants
 
 
 --
--- TOC entry 5459 (class 2606 OID 19298)
+-- TOC entry 5469 (class 2606 OID 19298)
 -- Name: payment_transactions fk_payment_tx_wallets; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3679,7 +3708,7 @@ ALTER TABLE ONLY public.payment_transactions
 
 
 --
--- TOC entry 5458 (class 2606 OID 19293)
+-- TOC entry 5468 (class 2606 OID 19293)
 -- Name: payout_requests fk_payout_wallets; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3688,7 +3717,7 @@ ALTER TABLE ONLY public.payout_requests
 
 
 --
--- TOC entry 5489 (class 2606 OID 19956)
+-- TOC entry 5499 (class 2606 OID 19956)
 -- Name: problems fk_problems_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3697,7 +3726,7 @@ ALTER TABLE ONLY public.problems
 
 
 --
--- TOC entry 5478 (class 2606 OID 19776)
+-- TOC entry 5488 (class 2606 OID 19776)
 -- Name: lesson_progress fk_progress_courses; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3706,7 +3735,7 @@ ALTER TABLE ONLY public.lesson_progress
 
 
 --
--- TOC entry 5479 (class 2606 OID 19398)
+-- TOC entry 5489 (class 2606 OID 19398)
 -- Name: lesson_progress fk_progress_lessons; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3715,7 +3744,7 @@ ALTER TABLE ONLY public.lesson_progress
 
 
 --
--- TOC entry 5480 (class 2606 OID 19393)
+-- TOC entry 5490 (class 2606 OID 19393)
 -- Name: lesson_progress fk_progress_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3724,7 +3753,7 @@ ALTER TABLE ONLY public.lesson_progress
 
 
 --
--- TOC entry 5490 (class 2606 OID 19478)
+-- TOC entry 5500 (class 2606 OID 19478)
 -- Name: problem_tag_mappings fk_pt_mappings_problems; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3733,7 +3762,7 @@ ALTER TABLE ONLY public.problem_tag_mappings
 
 
 --
--- TOC entry 5491 (class 2606 OID 19483)
+-- TOC entry 5501 (class 2606 OID 19483)
 -- Name: problem_tag_mappings fk_pt_mappings_tags; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3742,7 +3771,7 @@ ALTER TABLE ONLY public.problem_tag_mappings
 
 
 --
--- TOC entry 5486 (class 2606 OID 19433)
+-- TOC entry 5496 (class 2606 OID 19433)
 -- Name: quiz_attempt_answers fk_qaa_attempts; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3751,7 +3780,7 @@ ALTER TABLE ONLY public.quiz_attempt_answers
 
 
 --
--- TOC entry 5487 (class 2606 OID 19443)
+-- TOC entry 5497 (class 2606 OID 19443)
 -- Name: quiz_attempt_answers fk_qaa_options; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3760,7 +3789,7 @@ ALTER TABLE ONLY public.quiz_attempt_answers
 
 
 --
--- TOC entry 5488 (class 2606 OID 19438)
+-- TOC entry 5498 (class 2606 OID 19438)
 -- Name: quiz_attempt_answers fk_qaa_questions; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3769,7 +3798,7 @@ ALTER TABLE ONLY public.quiz_attempt_answers
 
 
 --
--- TOC entry 5484 (class 2606 OID 19428)
+-- TOC entry 5494 (class 2606 OID 19428)
 -- Name: quiz_attempts fk_quiz_attempts_quizzes; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3778,7 +3807,7 @@ ALTER TABLE ONLY public.quiz_attempts
 
 
 --
--- TOC entry 5485 (class 2606 OID 19423)
+-- TOC entry 5495 (class 2606 OID 19423)
 -- Name: quiz_attempts fk_quiz_attempts_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3787,7 +3816,7 @@ ALTER TABLE ONLY public.quiz_attempts
 
 
 --
--- TOC entry 5483 (class 2606 OID 19418)
+-- TOC entry 5493 (class 2606 OID 19418)
 -- Name: quiz_options fk_quiz_options_questions; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3796,7 +3825,7 @@ ALTER TABLE ONLY public.quiz_options
 
 
 --
--- TOC entry 5482 (class 2606 OID 19413)
+-- TOC entry 5492 (class 2606 OID 19413)
 -- Name: quiz_questions fk_quiz_questions_quizzes; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3805,7 +3834,7 @@ ALTER TABLE ONLY public.quiz_questions
 
 
 --
--- TOC entry 5481 (class 2606 OID 19408)
+-- TOC entry 5491 (class 2606 OID 19408)
 -- Name: quizzes fk_quizzes_lessons; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3814,7 +3843,7 @@ ALTER TABLE ONLY public.quizzes
 
 
 --
--- TOC entry 5506 (class 2606 OID 19533)
+-- TOC entry 5516 (class 2606 OID 19533)
 -- Name: contest_rankings fk_rankings_contest; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3823,7 +3852,7 @@ ALTER TABLE ONLY public.contest_rankings
 
 
 --
--- TOC entry 5507 (class 2606 OID 19538)
+-- TOC entry 5517 (class 2606 OID 19538)
 -- Name: contest_rankings fk_rankings_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3832,7 +3861,7 @@ ALTER TABLE ONLY public.contest_rankings
 
 
 --
--- TOC entry 5500 (class 2606 OID 19508)
+-- TOC entry 5510 (class 2606 OID 19508)
 -- Name: problem_submission_details fk_sub_details_submissions; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3841,7 +3870,7 @@ ALTER TABLE ONLY public.problem_submission_details
 
 
 --
--- TOC entry 5501 (class 2606 OID 19513)
+-- TOC entry 5511 (class 2606 OID 19513)
 -- Name: problem_submission_details fk_sub_details_testcases; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3850,7 +3879,7 @@ ALTER TABLE ONLY public.problem_submission_details
 
 
 --
--- TOC entry 5496 (class 2606 OID 19503)
+-- TOC entry 5506 (class 2606 OID 19503)
 -- Name: problem_submissions fk_submissions_contest; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3859,7 +3888,7 @@ ALTER TABLE ONLY public.problem_submissions
 
 
 --
--- TOC entry 5497 (class 2606 OID 19498)
+-- TOC entry 5507 (class 2606 OID 19498)
 -- Name: problem_submissions fk_submissions_lessons; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3868,7 +3897,7 @@ ALTER TABLE ONLY public.problem_submissions
 
 
 --
--- TOC entry 5498 (class 2606 OID 19488)
+-- TOC entry 5508 (class 2606 OID 19488)
 -- Name: problem_submissions fk_submissions_problems; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3877,7 +3906,7 @@ ALTER TABLE ONLY public.problem_submissions
 
 
 --
--- TOC entry 5499 (class 2606 OID 19493)
+-- TOC entry 5509 (class 2606 OID 19493)
 -- Name: problem_submissions fk_submissions_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3886,7 +3915,7 @@ ALTER TABLE ONLY public.problem_submissions
 
 
 --
--- TOC entry 5502 (class 2606 OID 19453)
+-- TOC entry 5512 (class 2606 OID 19453)
 -- Name: problem_testcases fk_testcases_problems; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3895,7 +3924,7 @@ ALTER TABLE ONLY public.problem_testcases
 
 
 --
--- TOC entry 5513 (class 2606 OID 19815)
+-- TOC entry 5523 (class 2606 OID 19815)
 -- Name: user_oauth_accounts fk_user_oauth; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3904,7 +3933,7 @@ ALTER TABLE ONLY public.user_oauth_accounts
 
 
 --
--- TOC entry 5452 (class 2606 OID 19268)
+-- TOC entry 5462 (class 2606 OID 19268)
 -- Name: user_roles fk_user_roles_roles; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3913,7 +3942,7 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
--- TOC entry 5453 (class 2606 OID 19263)
+-- TOC entry 5463 (class 2606 OID 19263)
 -- Name: user_roles fk_user_roles_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3922,7 +3951,7 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
--- TOC entry 5457 (class 2606 OID 19288)
+-- TOC entry 5467 (class 2606 OID 19288)
 -- Name: wallet_transactions fk_wallet_tx_wallets; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3931,7 +3960,7 @@ ALTER TABLE ONLY public.wallet_transactions
 
 
 --
--- TOC entry 5456 (class 2606 OID 19283)
+-- TOC entry 5466 (class 2606 OID 19283)
 -- Name: wallets fk_wallets_users; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3940,7 +3969,7 @@ ALTER TABLE ONLY public.wallets
 
 
 --
--- TOC entry 5516 (class 2606 OID 19904)
+-- TOC entry 5526 (class 2606 OID 19904)
 -- Name: problem_comments fkbeaj9majn3i0nqrtt7f1975lk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3949,7 +3978,7 @@ ALTER TABLE ONLY public.problem_comments
 
 
 --
--- TOC entry 5511 (class 2606 OID 19794)
+-- TOC entry 5521 (class 2606 OID 19794)
 -- Name: completed_lessons_count fkilxswyivftkeso9mf0d9cta1p; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3958,7 +3987,7 @@ ALTER TABLE ONLY public.completed_lessons_count
 
 
 --
--- TOC entry 5517 (class 2606 OID 19909)
+-- TOC entry 5527 (class 2606 OID 19909)
 -- Name: problem_comments fkr2qo0k64sn9ovbgr75nw7vi2r; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3967,7 +3996,7 @@ ALTER TABLE ONLY public.problem_comments
 
 
 --
--- TOC entry 5512 (class 2606 OID 19789)
+-- TOC entry 5522 (class 2606 OID 19789)
 -- Name: completed_lessons_count fksfu0dm9pu61y2ihppu7bms7su; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3976,7 +4005,7 @@ ALTER TABLE ONLY public.completed_lessons_count
 
 
 --
--- TOC entry 5514 (class 2606 OID 19839)
+-- TOC entry 5524 (class 2606 OID 19839)
 -- Name: user_daily_activities user_daily_activities_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3984,11 +4013,11 @@ ALTER TABLE ONLY public.user_daily_activities
     ADD CONSTRAINT user_daily_activities_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
--- Completed on 2026-06-04 22:36:29
+-- Completed on 2026-06-05 15:13:39
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict MyalPC8db2c8obsqEWFRG6Rxct7Z2PzZKlrY41qer7Zmm8fzMyNEbUriXs9izA8
+\unrestrict xlDJh4Y6uqybzBLM2A4BbZry9fywDNSMTJHUMoHeVmweZo604DNOMo2iTHNAKzO
 

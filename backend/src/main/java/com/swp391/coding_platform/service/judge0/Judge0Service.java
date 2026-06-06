@@ -34,6 +34,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +62,11 @@ public class Judge0Service {
     SimpMessagingTemplate simpMessagingTemplate;
 
     StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    @Lazy
+    @NonFinal
+    Judge0Service self;
 
     @NonFinal
     @Value("${app.webhook-base-url}")
@@ -174,10 +184,34 @@ public class Judge0Service {
     @Transactional
     public void processJudge0Callback(Judge0CallbackPayload judge0CallbackPayload) {
 
-        // Lấy thông tin SubmissionDetail (bao gồm luôn Submission cha và Problem nhờ JOIN FETCH)
-        ProblemSubmissionDetailEntity submissionDetail = problemSubmissionDetailRepository
-                .findByTokenWithSubmissionAndProblem(judge0CallbackPayload.getToken())
-                .orElseThrow(() -> new AppException(ErrorCode.JUDGE0_SUBMISSION_FAILED));
+        // Bỏ qua các webhook có trạng thái trung gian (In Queue, Processing)
+        if (judge0CallbackPayload.getStatus() != null && judge0CallbackPayload.getStatus().getId() <= 2) {
+            log.info("Bỏ qua webhook trạng thái trung gian: {}", judge0CallbackPayload.getStatus().getId());
+            return;
+        }
+
+        ProblemSubmissionDetailEntity submissionDetail = null;
+        int maxRetries = 10;
+        for (int i = 0; i < maxRetries; i++) {
+            submissionDetail = problemSubmissionDetailRepository
+                    .findByTokenWithSubmissionAndProblem(judge0CallbackPayload.getToken())
+                    .orElse(null);
+            if (submissionDetail != null) {
+                break;
+            }
+            try {
+                log.warn("Token {} chưa có trong DB. Đang thử lại lần {}/{}...", judge0CallbackPayload.getToken(), i + 1, maxRetries);
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        if (submissionDetail == null) {
+            log.error("Token {} không tồn tại sau {} lần thử. Bỏ qua webhook.", judge0CallbackPayload.getToken(), maxRetries);
+            throw new AppException(ErrorCode.JUDGE0_SUBMISSION_FAILED);
+        }
 
         // Không cần truy vấn tìm Submission nữa vì đã JOIN FETCH ở trên
         ProblemSubmissionEntity submissionEntity = submissionDetail.getSubmission();
@@ -197,143 +231,144 @@ public class Judge0Service {
         
         problemSubmissionDetailRepository.save(submissionDetail);
 
-        // Kiểm tra xem ĐÃ CHẤM XONG HẾT CHƯA?
         Integer submissionId = submissionEntity.getId();
-        Integer totalTestcases = submissionEntity.getProblem().getTotalTestcase();
+        long totalTestcases = problemSubmissionDetailRepository.countBySubmissionId(submissionId);
         boolean isContestMode = submissionEntity.getContest() != null;
+        Integer userId = submissionEntity.getUser().getId();
+        Integer testcaseId = submissionDetail.getTestcase().getId();
 
-        // ==========================================
-        // 3. LOGIC REDIS ATOMIC COUNTER & SHORT-CIRCUIT
-        // ==========================================
-        String redisKey = "oj_progress:" + submissionId;
-        String failedKey = "oj_failed:" + submissionId; // Cờ đánh dấu đã có testcase sai
+        final Integer detailExecutionTime = submissionDetail.getExecutionTime();
+        final Integer detailMemoryUsed = submissionDetail.getMemoryUsed();
+        final String inputData = !isContestMode ? submissionDetail.getTestcase().getInputData() : null;
+        final String expectedOutput = !isContestMode ? submissionDetail.getTestcase().getExpectedOutput() : null;
+        final String compileOutput = !isContestMode ? submissionDetail.getCompileOutput() : null;
         
-        boolean isEarlyFinish = false;
-        
-        // SHORT-CIRCUIT (CONTEST MODE): Chốt sổ ngay lập tức nếu gặp testcase sai đầu tiên!
-        if (isContestMode && testcaseVerdict != OjVerdict.ACCEPTED) {
-            // setIfAbsent đảm bảo chỉ có 1 luồng duy nhất (lỗi đầu tiên) được quyền chốt sổ
-            Boolean isFirstFail = stringRedisTemplate.opsForValue().setIfAbsent(failedKey, "1", Duration.ofHours(1));
-            if (Boolean.TRUE.equals(isFirstFail)) {
-                isEarlyFinish = true;
-            }
+        String actualOut = submissionDetail.getStdout();
+        if ((actualOut == null || actualOut.trim().isEmpty()) && submissionDetail.getStderr() != null && !submissionDetail.getStderr().trim().isEmpty()) {
+            actualOut = submissionDetail.getStderr();
         }
+        final String actualOutput = !isContestMode ? actualOut : null;
 
-        Long processedCount = stringRedisTemplate.opsForValue().increment(redisKey);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                String redisKey = "oj_progress:" + submissionId;
+                String failedKey = "oj_failed:" + submissionId;
+                
+                boolean isEarlyFinish = false;
+                
+                if (isContestMode && testcaseVerdict != OjVerdict.ACCEPTED) {
+                    Boolean isFirstFail = stringRedisTemplate.opsForValue().setIfAbsent(failedKey, "1", Duration.ofHours(1));
+                    if (Boolean.TRUE.equals(isFirstFail)) {
+                        isEarlyFinish = true;
+                    }
+                }
 
-        // Đặt TTL 1 tiếng cho lần đếm đầu tiên đề phòng Judge0 chết giữa chừng
-        if(processedCount != null && processedCount == 1L) {
-            stringRedisTemplate.expire(redisKey, Duration.ofHours(1));
-        }
+                String token = judge0CallbackPayload.getToken();
+                Long added = stringRedisTemplate.opsForSet().add(redisKey, token);
+                
+                if (added != null && added == 1L) {
+                    stringRedisTemplate.expire(redisKey, Duration.ofHours(1));
+                }
 
-        // Chấm xong bình thường: Đủ testcase VÀ chưa từng bị chốt sổ sớm (short-circuit)
-        boolean isNormalFinish = processedCount.equals(totalTestcases.longValue()) 
-                                && Boolean.FALSE.equals(stringRedisTemplate.hasKey(failedKey));
+                Long processedCount = stringRedisTemplate.opsForSet().size(redisKey);
 
-        // Khởi tạo overallVerdict (mặc định là PENDING)
-        OjVerdict overallVerdict = OjVerdict.PENDING;
+                boolean isNormalFinish = processedCount != null && processedCount == totalTestcases 
+                                        && Boolean.FALSE.equals(stringRedisTemplate.hasKey(failedKey));
 
-        if (isEarlyFinish || isNormalFinish) {
-            if (isEarlyFinish) {
-                overallVerdict = testcaseVerdict; // Chốt ngay kết quả lỗi hiện tại
-            } else {
-                // Đã chấm xong tất cả Testcase bình thường -> Tìm lỗi đầu tiên (nếu có)
-                overallVerdict = problemSubmissionDetailRepository
-                        .findFirstBySubmissionIdAndVerdictNotOrderByTestcaseOrderIndexAsc(submissionId, OjVerdict.ACCEPTED)
-                        .map(ProblemSubmissionDetailEntity::getVerdict)
-                        .orElse(OjVerdict.ACCEPTED);
-            }
+                OjVerdict overallVerdict = OjVerdict.PENDING;
+                Integer maxTime = detailExecutionTime;
+                Integer maxMemory = detailMemoryUsed;
 
-            // Lấy thời gian và bộ nhớ sử dụng tối đa (tính đến thời điểm hiện tại)
-            var maxStats = problemSubmissionDetailRepository.findMaxStatsBySubmissionId(submissionId)
-                    .orElseThrow(() -> new AppException(ErrorCode.SUBMISSION_NOT_FOUND));
+                if (isEarlyFinish || isNormalFinish) {
+                    ProblemSubmissionEntity finalizedSubmission = self.finalizeSubmission(submissionId, testcaseVerdict, isEarlyFinish);
+                    overallVerdict = finalizedSubmission.getVerdict();
+                    maxTime = finalizedSubmission.getExecutionTime();
+                    maxMemory = finalizedSubmission.getMemoryUsed();
 
-            boolean isFirstSolve = false;
-            // Kiểm tra xem User đã từng giải đúng bài này trước đây chưa (TRƯỚC KHI lưu bản ghi hiện tại)
-            if (overallVerdict == OjVerdict.ACCEPTED) {
-                long pastAcceptedCount = problemSubmissionRepository.countByUserIdAndProblemIdAndVerdict(
-                        submissionEntity.getUser().getId(),
-                        submissionEntity.getProblem().getId(),
-                        OjVerdict.ACCEPTED
-                );
-                if (pastAcceptedCount == 0) {
-                    isFirstSolve = true;
+                    if (processedCount != null && processedCount == totalTestcases) {
+                        stringRedisTemplate.delete(redisKey);
+                        stringRedisTemplate.delete(failedKey);
+                    }
+                }
+
+                OjWebSocketMessage wsMessage = OjWebSocketMessage.builder()
+                        .submissionId(submissionId)
+                        .testcaseId(testcaseId)
+                        .testcaseVerdict(testcaseVerdict)
+                        .overallVerdict(overallVerdict)
+                        .executionTimeMs((isEarlyFinish || isNormalFinish) ? maxTime : detailExecutionTime)
+                        .memoryUsedKb((isEarlyFinish || isNormalFinish) ? maxMemory : detailMemoryUsed)
+                        .totalTestcases((int) totalTestcases)
+                        .processedTestcases(processedCount.intValue())
+                        .build();
+
+                if (!isContestMode) {
+                    wsMessage.setInput(inputData);
+                    wsMessage.setExpectedOutput(expectedOutput);
+                    wsMessage.setCompileOutput(compileOutput);
+                    wsMessage.setActualOutput(actualOutput);
+                    simpMessagingTemplate.convertAndSend("/topic/submissions/" + userId, wsMessage);
+                    log.info("PRACTICE MODE: Bắn WebSocket tiến trình {}/{} cho Submission {}",
+                            wsMessage.getProcessedTestcases(), wsMessage.getTotalTestcases(), submissionId);
+                } else if (isEarlyFinish || isNormalFinish) {
+                    wsMessage.setTestcaseId(null);
+                    wsMessage.setTestcaseVerdict(null);
+                    simpMessagingTemplate.convertAndSend("/topic/submissions/" + userId, wsMessage);
+                    log.info("CONTEST MODE: Đã chấm xong toàn bộ. Bắn WebSocket tổng kết (Verdict: {}) cho Submission {}",
+                            overallVerdict, submissionId);
+                } else {
+                    log.info("CONTEST MODE: Đang chấm testcase lẻ (Submission {}). Bỏ qua bắn WebSocket để bảo mật.", submissionId);
                 }
             }
+        });
+    }
 
-            // Cập nhật trạng thái, thời gian, bộ nhớ tổng của Submission và lưu vào DB
-            submissionEntity.setVerdict(overallVerdict);
-            submissionEntity.setExecutionTime(maxStats.getMaxTime());
-            submissionEntity.setMemoryUsed(maxStats.getMaxMemory());
-            problemSubmissionRepository.save(submissionEntity);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ProblemSubmissionEntity finalizeSubmission(Integer submissionId, OjVerdict testcaseVerdict, boolean isEarlyFinish) {
+        ProblemSubmissionEntity submissionEntity = problemSubmissionRepository.findById(submissionId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUBMISSION_NOT_FOUND));
 
-            // Nếu đúng tất cả Testcases (ACCEPTED), tăng biến đếm totalAccepted
-            if (overallVerdict == OjVerdict.ACCEPTED) {
-                problemRepository.incrementTotalAccepted(submissionEntity.getProblem().getId());
-
-                // Tính điểm cho User nếu đây là lần đầu giải đúng
-                if (isFirstSolve && submissionEntity.getProblem().getScore() != null) {
-                    userRepository.incrementUserScore(
-                            submissionEntity.getUser().getId(),
-                            submissionEntity.getProblem().getScore().intValue()
-                    );
-                }
-            }
-        }
-        
-        // HIỆU SUẤT: Luôn dọn dẹp key Redis giải phóng RAM khi tất cả webhook đã về đủ
-        if (processedCount != null && processedCount.equals(totalTestcases.longValue())) {
-            stringRedisTemplate.delete(redisKey);
-            stringRedisTemplate.delete(failedKey);
-        }
-
-        OjWebSocketMessage wsMessage = OjWebSocketMessage.builder()
-                .submissionId(submissionId)
-                .testcaseId(submissionDetail.getTestcase().getId())
-                .testcaseVerdict(testcaseVerdict)
-                .overallVerdict(overallVerdict)
-                // Nếu đã chốt sổ (Early hoặc Normal), gửi MAX time/memory. Nếu chưa, gửi time/memory hiện tại
-                .executionTimeMs((isEarlyFinish || isNormalFinish) ? submissionEntity.getExecutionTime() : submissionDetail.getExecutionTime())
-                .memoryUsedKb((isEarlyFinish || isNormalFinish) ? submissionEntity.getMemoryUsed() : submissionDetail.getMemoryUsed())
-                .totalTestcases(totalTestcases)
-                .processedTestcases(processedCount.intValue())
-                .build();
-
-        // Thêm dữ liệu output nếu không phải Contest (Thi đấu)
-        if (!isContestMode) {
-            wsMessage.setInput(submissionDetail.getTestcase().getInputData());
-            wsMessage.setExpectedOutput(submissionDetail.getTestcase().getExpectedOutput());
-            wsMessage.setCompileOutput(submissionDetail.getCompileOutput());
-            
-            // Ưu tiên hiển thị stderr vào actualOutput nếu stdout trống (giúp user dễ debug Runtime Error)
-            String actual = submissionDetail.getStdout();
-            if ((actual == null || actual.trim().isEmpty()) && submissionDetail.getStderr() != null && !submissionDetail.getStderr().trim().isEmpty()) {
-                actual = submissionDetail.getStderr();
-            }
-            wsMessage.setActualOutput(actual);
-        }
-
-        // RẼ NHÁNH GỬI WEBSOCKET
-        if (!isContestMode) {
-            // CHẾ ĐỘ LUYỆN TẬP (PRACTICE): Chấm xong testcase nào, bắn ngay testcase đó để chạy Progress Bar
-            simpMessagingTemplate.convertAndSend("/topic/submissions/" + submissionEntity.getUser().getId(), wsMessage);
-            log.info("PRACTICE MODE: Bắn WebSocket tiến trình {}/{} cho Submission {}",
-                    wsMessage.getProcessedTestcases(), wsMessage.getTotalTestcases(), submissionId);
-
-        } else if (isEarlyFinish || isNormalFinish) {
-            // CHẾ ĐỘ THI ĐẤU (CONTEST): ĐỌC ĐOC, không bắn lẻ tẻ. 
-            // CHỈ BẮN 1 LẦN DUY NHẤT khi chốt sổ (Short-circuit sớm HOẶC chấm xong toàn bộ)
-            wsMessage.setTestcaseId(null);
-            wsMessage.setTestcaseVerdict(null);
-
-            simpMessagingTemplate.convertAndSend("/topic/submissions/" + submissionEntity.getUser().getId(), wsMessage);
-            log.info("CONTEST MODE: Đã chấm xong toàn bộ. Bắn WebSocket tổng kết (Verdict: {}) cho Submission {}",
-                    overallVerdict, submissionId);
+        OjVerdict overallVerdict;
+        if (isEarlyFinish) {
+            overallVerdict = testcaseVerdict;
         } else {
-            // Đang chấm dở dang trong Contest -> Im lặng
-            log.info("CONTEST MODE: Đang chấm testcase lẻ (Submission {}). Bỏ qua bắn WebSocket để bảo mật.",
-                    submissionId);
+            overallVerdict = problemSubmissionDetailRepository
+                    .findFirstBySubmissionIdAndVerdictNotOrderByTestcaseOrderIndexAsc(submissionId, OjVerdict.ACCEPTED)
+                    .map(ProblemSubmissionDetailEntity::getVerdict)
+                    .orElse(OjVerdict.ACCEPTED);
         }
+
+        var maxStats = problemSubmissionDetailRepository.findMaxStatsBySubmissionId(submissionId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUBMISSION_NOT_FOUND));
+
+        boolean isFirstSolve = false;
+        if (overallVerdict == OjVerdict.ACCEPTED) {
+            long pastAcceptedCount = problemSubmissionRepository.countByUserIdAndProblemIdAndVerdict(
+                    submissionEntity.getUser().getId(),
+                    submissionEntity.getProblem().getId(),
+                    OjVerdict.ACCEPTED
+            );
+            if (pastAcceptedCount == 0) {
+                isFirstSolve = true;
+            }
+        }
+
+        submissionEntity.setVerdict(overallVerdict);
+        submissionEntity.setExecutionTime(maxStats.getMaxTime());
+        submissionEntity.setMemoryUsed(maxStats.getMaxMemory());
+        problemSubmissionRepository.save(submissionEntity);
+
+        if (overallVerdict == OjVerdict.ACCEPTED) {
+            problemRepository.incrementTotalAccepted(submissionEntity.getProblem().getId());
+            if (isFirstSolve && submissionEntity.getProblem().getScore() != null) {
+                userRepository.incrementUserScore(
+                        submissionEntity.getUser().getId(),
+                        submissionEntity.getProblem().getScore().intValue()
+                );
+            }
+        }
+        return submissionEntity;
     }
 
     // --- Hàm bổ trợ ---

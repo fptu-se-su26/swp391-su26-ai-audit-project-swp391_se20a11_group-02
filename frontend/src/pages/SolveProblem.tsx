@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { problemService } from '../services/problemService';
-import type { ProblemDetail, SubmitResponse, ProblemComment } from '../services/problemService';
+import type { ProblemDetail, ProblemComment } from '../services/problemService';
 import { useApp } from '../context/AppContext';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
@@ -37,56 +37,13 @@ export const SolveProblem: React.FC = () => {
   const [leftWidth, setLeftWidth] = useState<number>(50);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [selectedLangId, setSelectedLangId] = useState<number>(62); // Java default
-  const [codeCache, setCodeCache] = useState<Record<number, string>>({});
 
   const SUPPORTED_LANGUAGES = [
+    {"id":50,"name":"C (GCC 9.2.0)"},
     {"id":54,"name":"C++ (GCC 9.2.0)"},
     {"id":62,"name":"Java (OpenJDK 13.0.1)"},
     {"id":71,"name":"Python (3.8.1)"},
-    {"id":63,"name":"JavaScript (Node.js 12.14.0)"},
-    {"id":50,"name":"C (GCC 9.2.0)"},
-    {"id":60,"name":"Go (1.13.5)"},
-    {"id":51,"name":"C# (Mono 6.6.0.161)"},
-    {"id":74,"name":"TypeScript (3.7.4)"},
-    {"id":68,"name":"PHP (7.4.1)"},
-    {"id":72,"name":"Ruby (2.7.0)"},
-    {"id":73,"name":"Rust (1.40.0)"},
-    {"id":45,"name":"Assembly (NASM 2.14.02)"},
-    {"id":46,"name":"Bash (5.0.0)"},
-    {"id":47,"name":"Basic (FBC 1.07.1)"},
-    {"id":75,"name":"C (Clang 7.0.1)"},
-    {"id":76,"name":"C++ (Clang 7.0.1)"},
-    {"id":48,"name":"C (GCC 7.4.0)"},
-    {"id":52,"name":"C++ (GCC 7.4.0)"},
-    {"id":49,"name":"C (GCC 8.3.0)"},
-    {"id":53,"name":"C++ (GCC 8.3.0)"},
-    {"id":86,"name":"Clojure (1.10.1)"},
-    {"id":77,"name":"COBOL (GnuCOBOL 2.2)"},
-    {"id":55,"name":"Common Lisp (SBCL 2.0.0)"},
-    {"id":56,"name":"D (DMD 2.089.1)"},
-    {"id":57,"name":"Elixir (1.9.4)"},
-    {"id":58,"name":"Erlang (OTP 22.2)"},
-    {"id":44,"name":"Executable"},
-    {"id":87,"name":"F# (.NET Core SDK 3.1.202)"},
-    {"id":59,"name":"Fortran (GFortran 9.2.0)"},
-    {"id":88,"name":"Groovy (3.0.3)"},
-    {"id":61,"name":"Haskell (GHC 8.8.1)"},
-    {"id":78,"name":"Kotlin (1.3.70)"},
-    {"id":64,"name":"Lua (5.3.5)"},
-    {"id":89,"name":"Multi-file program"},
-    {"id":79,"name":"Objective-C (Clang 7.0.1)"},
-    {"id":65,"name":"OCaml (4.09.0)"},
-    {"id":66,"name":"Octave (5.1.0)"},
-    {"id":67,"name":"Pascal (FPC 3.0.4)"},
-    {"id":85,"name":"Perl (5.28.1)"},
-    {"id":43,"name":"Plain Text"},
-    {"id":69,"name":"Prolog (GNU Prolog 1.4.5)"},
-    {"id":70,"name":"Python (2.7.17)"},
-    {"id":80,"name":"R (4.0.0)"},
-    {"id":81,"name":"Scala (2.13.2)"},
-    {"id":82,"name":"SQL (SQLite 3.27.2)"},
-    {"id":83,"name":"Swift (5.2.3)"},
-    {"id":84,"name":"Visual Basic.Net (vbnc 0.0.0.5943)"}
+    {"id":51,"name":"C# (Mono 6.6.0.161)"}
   ];
 
   const getTemplateForLang = (langId: number, templates: {[key: string]: string} | undefined) => {
@@ -111,9 +68,14 @@ export const SolveProblem: React.FC = () => {
 
   const [codeHtml, setCodeHtml] = useState<string>('');
 
+  // Track which tabs have already been loaded to avoid duplicate API calls
+  const [loadedTabs, setLoadedTabs] = useState<{[key: string]: boolean}>({});
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
+    // Reset loaded tabs when problem changes
+    setLoadedTabs({});
     problemService.fetchProblemDetail(id)
       .then(data => {
         setProblem(data);
@@ -128,34 +90,25 @@ export const SolveProblem: React.FC = () => {
         setError(err.message);
         setLoading(false);
       });
+  }, [id]);
 
+  // Lazy-load Submissions only when user clicks the Submissions tab
+  useEffect(() => {
+    if (!id || activeTab !== 'submissions' || loadedTabs['submissions']) return;
     problemService.fetchProblemSubmissions(id)
       .then(data => {
         setSubmissions(data);
+        setLoadedTabs(prev => ({ ...prev, submissions: true }));
       })
       .catch(err => {
         console.error("Failed to load submissions:", err);
       });
-  }, [id]);
+  }, [id, activeTab]);
 
   // Handle changing language
   const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLangId = Number(e.target.value);
-    
-    // Save current code
-    const editor = document.getElementById('code-editor');
-    if (editor) {
-      setCodeCache(prev => ({ ...prev, [selectedLangId]: editor.innerText }));
-    }
-
     setSelectedLangId(newLangId);
-    
-    // Load cached code or template
-    const restoredCode = codeCache[newLangId] !== undefined ? codeCache[newLangId] : getTemplateForLang(newLangId, problem?.templates);
-    setCodeHtml(restoredCode);
-    if (editor) {
-      editor.innerText = restoredCode;
-    }
   };
 
   // Handle Reset Code
@@ -167,11 +120,6 @@ export const SolveProblem: React.FC = () => {
       if (editor) {
         editor.innerText = defaultCode;
       }
-      setCodeCache(prev => {
-        const next = { ...prev };
-        delete next[selectedLangId];
-        return next;
-      });
     }
   };
 
@@ -214,16 +162,18 @@ export const SolveProblem: React.FC = () => {
   const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState<string>('');
 
+  // Lazy-load Comments only when user clicks the Discussion tab
   useEffect(() => {
-    if (!id) return;
+    if (!id || activeTab !== 'discussion' || loadedTabs['discussion']) return;
     problemService.fetchProblemComments(id)
       .then(data => {
         setComments(data);
+        setLoadedTabs(prev => ({ ...prev, discussion: true }));
       })
       .catch(err => {
         console.error("Failed to load comments:", err);
       });
-  }, [id]);
+  }, [id, activeTab]);
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -295,12 +245,14 @@ export const SolveProblem: React.FC = () => {
 
   // Submit flow states
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showSuccessOverlay, setShowSuccessOverlay] = useState<boolean>(false);
-  const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
-
   const fetchSubmissionsAfterDelay = () => {
     setTimeout(() => {
-      if (id) problemService.fetchProblemSubmissions(id).then(setSubmissions).catch(console.error);
+      if (id) {
+        problemService.fetchProblemSubmissions(id).then(data => {
+          setSubmissions(data);
+          setLoadedTabs(prev => ({ ...prev, submissions: true }));
+        }).catch(console.error);
+      }
     }, 1000);
   };
 
@@ -314,7 +266,7 @@ export const SolveProblem: React.FC = () => {
     const sourceCode = editorElement ? (editorElement as HTMLElement).innerText : '';
 
     problemService.submitSolution(id, selectedLangId, sourceCode)
-      .then(result => {
+      .then(() => {
         setActiveTab('result');
         if (user && user.id) {
           const socket = new SockJS('http://localhost:8080/nonstopcoding/ws');
@@ -444,29 +396,6 @@ export const SolveProblem: React.FC = () => {
             display: none;
         }
       `}} />
-
-      {/* Success Modal overlay */}
-      {showSuccessOverlay && submitResult && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full border border-gray-200 text-center shadow-lg space-y-4 animate-fade-in">
-            <span className="material-symbols-outlined text-[48px] text-brand-green">check_circle</span>
-            <h3 className="font-bold text-lg text-text-main">Solution Accepted!</h3>
-            <p className="text-sm text-text-muted">Your solution passed {submitResult.passedTestcases}/{submitResult.totalTestcases} test cases successfully.</p>
-            <div className="bg-surface-gray p-3 rounded-md font-mono text-xs text-left space-y-1">
-              <div><strong>Status:</strong> <span className="text-brand-green">Accepted</span></div>
-              <div><strong>Language:</strong> {SUPPORTED_LANGUAGES.find(l => l.id === selectedLangId)?.name || 'Unknown'}</div>
-              <div><strong>Runtime:</strong> {submitResult.runtime.toFixed(1)} ms</div>
-              <div><strong>Memory:</strong> {(submitResult.memory / 1024).toFixed(1)} MB</div>
-            </div>
-            <button
-              onClick={() => setShowSuccessOverlay(false)}
-              className="w-full py-2 bg-brand-green hover:bg-[#3d8c38] text-white rounded font-bold text-sm transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Back button row */}
       <div className="px-4 py-2 bg-surface border-b border-gray-200 flex items-center justify-between shrink-0 h-12">
@@ -881,7 +810,7 @@ export const SolveProblem: React.FC = () => {
               <select
                 value={selectedLangId}
                 onChange={handleLangChange}
-                className="bg-surface-gray border border-gray-300 text-text-main text-sm rounded-md focus:ring-primary focus:border-primary block px-3 py-1.5 font-medium cursor-pointer outline-none"
+                className="bg-surface-gray border border-gray-300 text-text-main text-sm rounded-md focus:ring-primary focus:border-primary block pl-3 pr-10 py-1.5 font-medium cursor-pointer outline-none"
               >
                 {SUPPORTED_LANGUAGES.map(lang => (
                   <option key={lang.id} value={lang.id}>{lang.name}</option>

@@ -99,13 +99,6 @@ public class ContestController {
             @RequestBody(required = false) ContestRegisterRequest request) {
 
         String username = getUsername(jwt);
-//        if (username == null) {
-//            return ResponseEntity.status(401).body(ApiResponse.<Void>builder()
-//                    .status(401)
-//                    .code(1001)
-//                    .message("Unauthorized: please log in first")
-//                    .build());
-//        }
 
         contestService.registerForContest(contestId, username, request);
 

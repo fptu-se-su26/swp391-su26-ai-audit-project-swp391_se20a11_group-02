@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 @Repository
-public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Long> {
+public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Integer> {
     Boolean existsByUserIdAndCourseIdAndStatusIn(Long userId, Long courseId, Collection<EnrollmentStatus> statuses);
     Long countByUserId(Integer userId);
 
@@ -25,7 +25,7 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Lo
             "AND e.course.id IN (:courseIds) " +
             "AND e.status IN (:statuses)")
     Set<Long> findEnrolledCourseIdsByUserIdAndCourseIds(
-            @Param("userId") Long userId,
+            @Param("userId") Integer userId,
             @Param("courseIds") List<Long> courseIds,
             @Param("statuses") List<EnrollmentStatus> statuses);
 
@@ -78,4 +78,8 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Lo
 
     @Query("SELECT c FROM EnrollmentEntity e JOIN e.course c WHERE e.user.id = :userId AND e.status IN ('ACTIVE', 'COMPLETED')")
     Set<CourseEntity> findActiveCoursesByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT e FROM EnrollmentEntity e JOIN FETCH e.user u JOIN FETCH e.course c WHERE c.instructor.id = :instructorId ORDER BY e.enrolledAt DESC")
+    List<EnrollmentEntity> findEnrollmentsByInstructorId(@Param("instructorId") Integer instructorId);
 }
+

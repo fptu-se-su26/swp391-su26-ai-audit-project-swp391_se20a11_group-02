@@ -1,0 +1,348 @@
+package com.swp391.coding_platform.service.instructor;
+
+import com.swp391.coding_platform.dto.response.*;
+import com.swp391.coding_platform.entity.course.CourseEntity;
+import com.swp391.coding_platform.entity.course.EnrollmentEntity;
+import com.swp391.coding_platform.entity.instructor.InstructorEntity;
+import com.swp391.coding_platform.entity.payment.OrderItemEntity;
+import com.swp391.coding_platform.exception.AppException;
+import com.swp391.coding_platform.exception.ErrorCode;
+import com.swp391.coding_platform.repository.course.CourseRepository;
+import com.swp391.coding_platform.repository.course.EnrollmentRepository;
+import com.swp391.coding_platform.repository.instructor.InstructorRepository;
+import com.swp391.coding_platform.repository.payment.OrderItemRepository;
+import com.swp391.coding_platform.repository.payment.PayoutRequestRepository;
+import com.swp391.coding_platform.entity.payment.PayoutRequestEntity;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class InstructorService {
+
+    private final InstructorRepository instructorRepository;
+    private final CourseRepository courseRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final PayoutRequestRepository payoutRequestRepository;
+
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+            .withZone(ZoneId.of("UTC"));
+            
+    private static final DateTimeFormatter FRIENDLY_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")
+            .withZone(ZoneId.of("UTC"));
+
+    public List<InstructorCourseResponse> getCourses(Integer userId) {
+        InstructorEntity instructor = instructorRepository.findByUserId(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        List<CourseEntity> courses = courseRepository.findByInstructorId(instructor.getId());
+        List<InstructorCourseResponse> responses = new ArrayList<>();
+
+        for (CourseEntity course : courses) {
+            String status = "draft";
+            if ("APPROVED".equalsIgnoreCase(course.getStatus().name())) {
+                status = "published";
+            } else if ("PENDING".equalsIgnoreCase(course.getStatus().name())) {
+                status = "review";
+            }
+
+            // Map gradient & icon based on topic/id
+            String gradient = "from-orange-400 to-primary";
+            if (course.getId() % 3 == 0) {
+                gradient = "from-blue-500 to-indigo-600";
+            } else if (course.getId() % 3 == 1) {
+                gradient = "from-emerald-500 to-teal-600";
+            }
+
+            String icon = "code";
+            if (course.getType().equalsIgnoreCase("DATABASE")) {
+                icon = "database";
+            } else if (course.getType().equalsIgnoreCase("DEVOPS")) {
+                icon = "dns";
+            } else if (course.getType().equalsIgnoreCase("DATA_SCIENCE")) {
+                icon = "analytics";
+            }
+
+            responses.add(InstructorCourseResponse.builder()
+                    .id(String.valueOf(course.getId()))
+                    .title(course.getTitle())
+                    .level("Intermediate")
+                    .topic(course.getType())
+                    .price(formatVndPrice(course.getPrice()))
+                    .studentsCount(course.getTotalEnrolled())
+                    .rating(course.getAverageRating())
+                    .reviewsCount(course.getTotalReviews())
+                    .status(status)
+                    .icon(icon)
+                    .gradient(gradient)
+                    .description(course.getShortDescription())
+                    .build());
+        }
+
+        return responses;
+    }
+
+    public InstructorRevenueResponse getRevenueData(Integer userId, String filter, String startDate, String endDate, String trendTimeframe) {
+        InstructorEntity instructor = instructorRepository.findByUserId(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        // Fetch completed order items
+        List<OrderItemEntity> orderItems = orderItemRepository.findCompletedItemsByInstructorId(instructor.getId());
+
+        List<OrderItemEntity> filteredOrderItems = new ArrayList<>();
+        
+        // Date range boundaries
+        java.time.Instant start = null;
+        java.time.Instant end = null;
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+
+        if ("this-month".equalsIgnoreCase(filter)) {
+            java.time.ZonedDateTime startOfThisMonth = now.withDayOfMonth(1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+            start = startOfThisMonth.toInstant();
+            end = startOfThisMonth.plusMonths(1).toInstant();
+        } else if ("last-month".equalsIgnoreCase(filter)) {
+            java.time.ZonedDateTime startOfLastMonth = now.minusMonths(1).withDayOfMonth(1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+            start = startOfLastMonth.toInstant();
+            end = startOfLastMonth.plusMonths(1).toInstant();
+        } else if (filter != null && filter.startsWith("prev-")) {
+            try {
+                int diff = Integer.parseInt(filter.split("-")[1]);
+                java.time.ZonedDateTime startOfPrevMonth = now.minusMonths(diff).withDayOfMonth(1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+                start = startOfPrevMonth.toInstant();
+                end = startOfPrevMonth.plusMonths(1).toInstant();
+            } catch (Exception e) {
+                log.error("Error parsing prev- filter: {}", filter, e);
+            }
+        } else if ("custom".equalsIgnoreCase(filter)) {
+            if (startDate != null && !startDate.isEmpty()) {
+                try {
+                    java.time.LocalDate localStart = java.time.LocalDate.parse(startDate);
+                    start = localStart.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant();
+                } catch (Exception e) {
+                    log.error("Error parsing startDate: {}", startDate, e);
+                }
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                try {
+                    java.time.LocalDate localEnd = java.time.LocalDate.parse(endDate);
+                    end = localEnd.plusDays(1).atStartOfDay(java.time.ZoneId.of("UTC")).toInstant();
+                } catch (Exception e) {
+                    log.error("Error parsing endDate: {}", endDate, e);
+                }
+            }
+        }
+
+        for (OrderItemEntity item : orderItems) {
+            java.time.Instant createdAt = item.getOrder().getCreatedAt();
+            boolean matches = true;
+            if (start != null && createdAt.isBefore(start)) {
+                matches = false;
+            }
+            if (end != null && !createdAt.isBefore(end)) {
+                matches = false;
+            }
+            if (matches) {
+                filteredOrderItems.add(item);
+            }
+        }
+
+        BigDecimal totalGross = BigDecimal.ZERO;
+        List<SalesHistoryItem> salesHistory = new ArrayList<>();
+
+        for (OrderItemEntity item : filteredOrderItems) {
+            totalGross = totalGross.add(item.getPrice());
+            
+            String timestamp = ISO_FORMATTER.format(item.getOrder().getCreatedAt());
+
+            salesHistory.add(SalesHistoryItem.builder()
+                    .id("TX-" + item.getId())
+                    .studentName(item.getOrder().getUser().getDisplayname())
+                    .courseId(String.valueOf(item.getCourse().getId()))
+                    .courseTitle(item.getCourse().getTitle())
+                    .amount(item.getPrice())
+                    .timestamp(timestamp)
+                    .build());
+        }
+
+        // Net revenue = 70% of gross
+        BigDecimal totalNet = totalGross.multiply(new BigDecimal("0.70"));
+
+        // Group by month to calculate take-home with the 2M threshold
+        java.util.Map<String, BigDecimal> monthlyGross = new java.util.HashMap<>();
+        for (OrderItemEntity item : filteredOrderItems) {
+            java.time.Instant createdAt = item.getOrder().getCreatedAt();
+            java.time.ZonedDateTime zdt = createdAt.atZone(ZoneId.of("UTC"));
+            String monthKey = zdt.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            monthlyGross.put(monthKey, monthlyGross.getOrDefault(monthKey, BigDecimal.ZERO).add(item.getPrice()));
+        }
+
+        BigDecimal totalActualTakeHome = BigDecimal.ZERO;
+        BigDecimal twoMillion = new BigDecimal("2000000");
+        for (BigDecimal grossInMonth : monthlyGross.values()) {
+            BigDecimal netInMonth = grossInMonth.multiply(new BigDecimal("0.70"));
+            if (netInMonth.compareTo(twoMillion) > 0) {
+                totalActualTakeHome = totalActualTakeHome.add(netInMonth.multiply(new BigDecimal("0.90")));
+            } else {
+                totalActualTakeHome = totalActualTakeHome.add(netInMonth);
+            }
+        }
+
+        // Fetch recent registrations
+        List<EnrollmentEntity> enrollments = enrollmentRepository.findEnrollmentsByInstructorId(instructor.getId());
+        List<RecentRegistration> recentRegistrations = new ArrayList<>();
+
+        for (EnrollmentEntity enrollment : enrollments) {
+            String timeStr = FRIENDLY_FORMATTER.format(enrollment.getEnrolledAt());
+            String priceStr = formatVndPrice(enrollment.getCourse().getPrice());
+
+            recentRegistrations.add(RecentRegistration.builder()
+                    .studentName(enrollment.getUser().getDisplayname())
+                    .avatar(enrollment.getUser().getAvatarurl() != null ? enrollment.getUser().getAvatarurl() : 
+                            "https://ui-avatars.com/api/?name=" + enrollment.getUser().getDisplayname().replace(" ", "+") + "&background=eef7ee&color=46A040&bold=true")
+                    .course(enrollment.getCourse().getTitle())
+                    .time(timeStr)
+                    .amount(priceStr)
+                    .build());
+        }
+
+        // Fetch payout history
+        List<PayoutHistoryItem> payoutHistory = new ArrayList<>();
+        if (instructor.getUser().getWallet() != null) {
+            List<PayoutRequestEntity> payouts = payoutRequestRepository.findByWalletIdOrderByCreatedAtDesc(
+                    instructor.getUser().getWallet().getId());
+            for (PayoutRequestEntity payout : payouts) {
+                payoutHistory.add(PayoutHistoryItem.builder()
+                        .id("PO-" + payout.getId())
+                        .payoutPeriod(payout.getPayoutPeriod())
+                        .amount(payout.getAmount())
+                        .bankName(payout.getBankName())
+                        .bankAccountNumber(payout.getBankAccountNumber())
+                        .status(payout.getStatus().name())
+                        .transactionReference(payout.getTransactionReference())
+                        .adminNote(payout.getAdminNote())
+                        .build());
+            }
+        }
+
+        // Course Breakdown
+        List<CourseBreakdownItem> courseBreakdown = new ArrayList<>();
+        List<CourseEntity> courses = courseRepository.findByInstructorId(instructor.getId());
+        java.util.Map<Long, BigDecimal> courseGross = new java.util.HashMap<>();
+        for (CourseEntity course : courses) {
+            courseGross.put(course.getId(), BigDecimal.ZERO);
+        }
+
+        for (OrderItemEntity item : filteredOrderItems) {
+            Long courseId = item.getCourse().getId();
+            if (courseGross.containsKey(courseId)) {
+                courseGross.put(courseId, courseGross.get(courseId).add(item.getPrice()));
+            }
+        }
+
+        for (CourseEntity course : courses) {
+            BigDecimal amount = courseGross.get(course.getId());
+            int percentage = 0;
+            if (totalGross.compareTo(BigDecimal.ZERO) > 0) {
+                percentage = amount.multiply(new BigDecimal("100"))
+                        .divide(totalGross, 0, java.math.RoundingMode.HALF_UP)
+                        .intValue();
+            }
+            courseBreakdown.add(CourseBreakdownItem.builder()
+                    .courseId(String.valueOf(course.getId()))
+                    .courseTitle(course.getTitle())
+                    .amount(amount)
+                    .percentage(percentage)
+                    .build());
+        }
+        courseBreakdown.sort((a, b) -> b.getAmount().compareTo(a.getAmount()));
+
+        // trailing 12 months chart data
+        List<MonthlyChartItem> monthlyChartData = new ArrayList<>();
+        java.time.format.DateTimeFormatter labelFormatter = java.time.format.DateTimeFormatter.ofPattern("MMM yy", java.util.Locale.US);
+        for (int i = 11; i >= 0; i--) {
+            java.time.ZonedDateTime targetMonth = now.minusMonths(i);
+            String label = targetMonth.format(labelFormatter);
+            int yr = targetMonth.getYear();
+            int mn = targetMonth.getMonthValue() - 1; // 0-indexed
+            monthlyChartData.add(new MonthlyChartItem(label, yr, mn, BigDecimal.ZERO, 0));
+        }
+
+        for (OrderItemEntity item : orderItems) {
+            java.time.Instant createdAt = item.getOrder().getCreatedAt();
+            java.time.ZonedDateTime zdt = createdAt.atZone(java.time.ZoneId.of("UTC"));
+            int yr = zdt.getYear();
+            int mn = zdt.getMonthValue() - 1;
+            
+            for (MonthlyChartItem chartItem : monthlyChartData) {
+                if (chartItem.getYear() == yr && chartItem.getMonth() == mn) {
+                    chartItem.setAmount(chartItem.getAmount().add(item.getPrice()));
+                    chartItem.setCount(chartItem.getCount() + 1);
+                    break;
+                }
+            }
+        }
+
+        // courseRegistrations count for student registration volume
+        int trendMonths = 12;
+        if ("1m".equalsIgnoreCase(trendTimeframe)) trendMonths = 1;
+        else if ("3m".equalsIgnoreCase(trendTimeframe)) trendMonths = 3;
+        else if ("9m".equalsIgnoreCase(trendTimeframe)) trendMonths = 9;
+
+        java.time.Instant trendCutoff = now.minusMonths(trendMonths).toInstant();
+        
+        List<CourseRegistrationsItem> courseRegistrations = new ArrayList<>();
+        java.util.Map<Long, Integer> courseRegCounts = new java.util.HashMap<>();
+        for (CourseEntity course : courses) {
+            courseRegCounts.put(course.getId(), 0);
+        }
+
+        int totalTrendRegistrations = 0;
+        for (OrderItemEntity item : orderItems) {
+            java.time.Instant createdAt = item.getOrder().getCreatedAt();
+            if (!createdAt.isBefore(trendCutoff)) {
+                totalTrendRegistrations++;
+                Long courseId = item.getCourse().getId();
+                if (courseRegCounts.containsKey(courseId)) {
+                    courseRegCounts.put(courseId, courseRegCounts.get(courseId) + 1);
+                }
+            }
+        }
+
+        for (CourseEntity course : courses) {
+            courseRegistrations.add(CourseRegistrationsItem.builder()
+                    .courseId(String.valueOf(course.getId()))
+                    .courseTitle(course.getTitle())
+                    .count(courseRegCounts.get(course.getId()))
+                    .build());
+        }
+        courseRegistrations.sort((a, b) -> b.getCount().compareTo(a.getCount()));
+
+        return InstructorRevenueResponse.builder()
+                .totalGrossRevenue(totalGross)
+                .totalNetRevenue(totalNet)
+                .totalActualTakeHome(totalActualTakeHome)
+                .salesHistory(salesHistory)
+                .recentRegistrations(recentRegistrations)
+                .payoutHistory(payoutHistory)
+                .courseBreakdown(courseBreakdown)
+                .monthlyChartData(monthlyChartData)
+                .courseRegistrations(courseRegistrations)
+                .totalTrendRegistrations(totalTrendRegistrations)
+                .build();
+    }
+
+    private String formatVndPrice(BigDecimal price) {
+        if (price == null) return "0 ₫";
+        java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY); // formats using dots like 499.000
+        return nf.format(price.longValue()) + " ₫";
+    }
+}

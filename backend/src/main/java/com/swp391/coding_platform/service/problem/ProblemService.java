@@ -77,9 +77,11 @@ public class ProblemService {
             List<String> tags = tagsByProblemId.getOrDefault(problem.getId(), Collections.emptyList());
 
             boolean isSolved = false;
+            String status = "unsolved";
             List<ProblemSubmissionEntity> subs = finalSubmissions.getOrDefault(problem.getId(), Collections.emptyList());
             if (!subs.isEmpty()) {
                 isSolved = subs.stream().anyMatch(s -> s.getVerdict() == OjVerdict.ACCEPTED);
+                status = isSolved ? "solved" : "attempted";
             }
 
             String difficultyStr = "Medium";
@@ -97,6 +99,7 @@ public class ProblemService {
                     .totalSubmission(problem.getTotalSubmission() != null ? problem.getTotalSubmission() : 0)
                     .totalAccepted(problem.getTotalAccepted() != null ? problem.getTotalAccepted() : 0)
                     .isSolved(isSolved)
+                    .status(status)
                     .build();
         }).toList();
     }

@@ -4,7 +4,7 @@ import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.DashboardStatsResponse;
 import com.swp391.coding_platform.dto.response.UserActivityResponse;
-import com.swp391.coding_platform.dto.response.ProblemSubmissionResponse;
+import com.swp391.coding_platform.dto.response.SubmissionStatisticResponse;
 import com.swp391.coding_platform.service.user.DashboardService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -89,8 +89,8 @@ public class DashboardController {
                 .build());
     }
 
-    @GetMapping("/done-problems")
-    public ResponseEntity<ApiResponse<List<ProblemSubmissionResponse>>> getDoneProblems(
+    @GetMapping("/submission-statistics")
+    public ResponseEntity<ApiResponse<SubmissionStatisticResponse>> getSubmissionStatistics(
             @AuthenticationPrincipal Jwt jwt) {
 
         Integer userId = null;
@@ -99,12 +99,12 @@ public class DashboardController {
             if (idClaim != null) userId = idClaim.intValue();
         }
 
-        List<ProblemSubmissionResponse> result = dashboardService.getDoneProblems(userId);
+        SubmissionStatisticResponse result = dashboardService.getSubmissionStatistics(userId);
 
-        return ResponseEntity.ok(ApiResponse.<List<ProblemSubmissionResponse>>builder()
+        return ResponseEntity.ok(ApiResponse.<SubmissionStatisticResponse>builder()
                 .status(200)
                 .code(1000)
-                .message("Get done problems successfully")
+                .message("Get submission statistics successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());
