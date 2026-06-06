@@ -585,7 +585,7 @@ export const InstructorDashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingRevenue, setLoadingRevenue] = useState<boolean>(true);
 
-  const [revenueFilter, setRevenueFilter] = useState<'this-month' | 'last-month' | 'mar-2026' | 'feb-2026' | 'jan-2026' | 'all' | 'custom'>('this-month');
+  const [revenueFilter, setRevenueFilter] = useState<string>('this-month');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [appliedStartDate, setAppliedStartDate] = useState<string>('');
