@@ -165,8 +165,7 @@ ALTER TYPE public.order_status OWNER TO postgres;
 --
 
 CREATE TYPE public.payment_type AS ENUM (
-    'DEPOSIT',
-    'WITHDRAW'
+    'DEPOSIT'
 );
 
 
@@ -319,7 +318,6 @@ ALTER TYPE public.status_transaction OWNER TO postgres;
 
 CREATE TYPE public.transaction_type AS ENUM (
     'DEPOSIT',
-    'WITHDRAW',
     'BUY_COURSE',
     'SELL_COURSE',
     'REFUND',
