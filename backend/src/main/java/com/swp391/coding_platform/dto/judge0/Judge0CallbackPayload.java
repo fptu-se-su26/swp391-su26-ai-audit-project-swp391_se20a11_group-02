@@ -24,6 +24,7 @@ public class Judge0CallbackPayload {
     
     @JsonProperty("compile_output")
     String compileOutput; // Lỗi biên dịch (thiếu dấu ; ...)
+
     
     Judge0Status status;
 

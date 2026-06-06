@@ -4,6 +4,7 @@ INSERT INTO public.problems (
     example_input, example_output, hint, problem_scope, difficulty, is_active,
     created_by, total_testcase, time_limit_ms, memory_limit_kb, is_public, score
 ) VALUES
+
 (1001, 'Reverse String', 'Write a function that reverses a string. The input string is given as an array of characters.', 'An array of characters.', 'The reversed array of characters.', '1 <= s.length <= 10^5', '["h","e","l","l","o"]', '["o","l","l","e","h"]', 'Use two pointers approach.', 'PRACTICE'::public.problem_scope, 'EASY'::public.problem_difficulty, true, 999, 5, 1000, 64000, true, 100.00),
 (1002, 'Fizz Buzz', 'Given an integer n, return a string array answer (1-indexed) where answer[i] is FizzBuzz, Fizz, Buzz, or the number.', 'An integer n.', 'List of string representation.', '1 <= n <= 10^4', '3', '["1","2","Fizz"]', 'Check divisibility by 3 and 5.', 'PRACTICE'::public.problem_scope, 'EASY'::public.problem_difficulty, true, 999, 5, 1000, 64000, true, 100.00),
 (1003, 'Palindrome String', 'Given a string s, return true if it is a palindrome, or false otherwise.', 'A string s.', 'boolean value.', '1 <= s.length <= 2 * 10^5', '"racecar"', 'true', 'Use two pointers checking from both ends.', 'PRACTICE'::public.problem_scope, 'EASY'::public.problem_difficulty, true, 999, 5, 1000, 64000, true, 100.00),
