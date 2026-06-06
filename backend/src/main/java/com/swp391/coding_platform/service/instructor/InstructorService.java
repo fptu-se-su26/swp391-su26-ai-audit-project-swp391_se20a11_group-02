@@ -16,7 +16,6 @@ import com.swp391.coding_platform.entity.payment.PayoutRequestEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -39,55 +38,6 @@ public class InstructorService {
     private static final DateTimeFormatter FRIENDLY_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")
             .withZone(ZoneId.of("UTC"));
 
-    public List<InstructorCourseResponse> getCourses(Integer userId) {
-        InstructorEntity instructor = getInstructorByUserId(userId);
-
-        List<CourseEntity> courses = courseRepository.findByInstructorId(instructor.getId());
-        List<InstructorCourseResponse> responses = new ArrayList<>();
-
-        for (CourseEntity course : courses) {
-            String status = "draft";
-            if ("APPROVED".equalsIgnoreCase(course.getStatus().name())) {
-                status = "published";
-            } else if ("PENDING".equalsIgnoreCase(course.getStatus().name())) {
-                status = "review";
-            }
-
-            // Map gradient & icon based on topic/id
-            String gradient = "from-orange-400 to-primary";
-            if (course.getId() % 3 == 0) {
-                gradient = "from-blue-500 to-indigo-600";
-            } else if (course.getId() % 3 == 1) {
-                gradient = "from-emerald-500 to-teal-600";
-            }
-
-            String icon = "code";
-            if (course.getType().equalsIgnoreCase("DATABASE")) {
-                icon = "database";
-            } else if (course.getType().equalsIgnoreCase("DEVOPS")) {
-                icon = "dns";
-            } else if (course.getType().equalsIgnoreCase("DATA_SCIENCE")) {
-                icon = "analytics";
-            }
-
-            responses.add(InstructorCourseResponse.builder()
-                    .id(String.valueOf(course.getId()))
-                    .title(course.getTitle())
-                    .level("Intermediate")
-                    .topic(course.getType())
-                    .price(formatVndPrice(course.getPrice()))
-                    .studentsCount(course.getTotalEnrolled())
-                    .rating(course.getAverageRating())
-                    .reviewsCount(course.getTotalReviews())
-                    .status(status)
-                    .icon(icon)
-                    .gradient(gradient)
-                    .description(course.getShortDescription())
-                    .build());
-        }
-
-        return responses;
-    }
 
     public InstructorRevenueSummary getRevenueSummary(Integer userId, String filter, String startDate, String endDate) {
         InstructorEntity instructor = getInstructorByUserId(userId);
