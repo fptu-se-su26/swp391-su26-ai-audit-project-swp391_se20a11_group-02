@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 export const PaymentTransaction: React.FC = () => {
+  const { user, refreshBalance } = useApp();
+
+  useEffect(() => {
+    if (user) {
+      refreshBalance().catch(console.error);
+    }
+  }, [user?.id]);
+
   return (
     <div className="flex-grow max-w-[1280px] w-full mx-auto px-6 md:px-16 py-12 flex flex-col gap-8 text-left relative z-10">
       {/* Navigation & Balance Row */}
@@ -17,7 +26,7 @@ export const PaymentTransaction: React.FC = () => {
           </div>
           <div>
             <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-            <p className="text-[17px] font-bold text-brand-blue leading-none mt-0.5">2,500,000 ₫</p>
+            <p className="text-[17px] font-bold text-brand-blue leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
           </div>
         </div>
       </div>

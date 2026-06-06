@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 export const Withdraw: React.FC = () => {
+  const { user, refreshBalance } = useApp();
   const [bankName, setBankName] = useState<string>('');
   const [accNumber, setAccNumber] = useState<string>('');
   const [accName, setAccName] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user) {
+      refreshBalance().catch(console.error);
+    }
+  }, [user?.id]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +30,8 @@ export const Withdraw: React.FC = () => {
       return;
     }
 
-    if (numAmount > 2500000) {
+    const currentBalance = user?.walletBalance || 0;
+    if (numAmount > currentBalance) {
       setErrorMsg('Cannot withdraw more than your current balance.');
       return;
     }
@@ -56,7 +65,7 @@ export const Withdraw: React.FC = () => {
           </div>
           <div>
             <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-            <p className="text-[17px] font-bold text-brand-blue leading-none mt-0.5">2,500,000 ₫</p>
+            <p className="text-[17px] font-bold text-brand-blue leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
           </div>
         </div>
       </div>
