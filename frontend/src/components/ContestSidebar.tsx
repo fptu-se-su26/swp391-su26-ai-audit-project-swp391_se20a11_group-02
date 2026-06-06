@@ -10,6 +10,7 @@ interface ContestSidebarProps {
   children?: React.ReactNode;
 }
 
+
 export const ContestSidebar: React.FC<ContestSidebarProps> = ({ contestId, activeTab, timeLeft, timerLabel, isRegistered, children }) => {
   return (
     <aside className="w-full md:w-[15%] min-w-[280px] bg-white border-l border-gray-200 flex flex-col relative sticky top-16 h-[calc(100vh-64px)] z-20 shrink-0">
@@ -36,7 +37,8 @@ export const ContestSidebar: React.FC<ContestSidebarProps> = ({ contestId, activ
             <span className={`material-symbols-outlined ${activeTab === 'overview' ? 'icon-fill' : ''}`}>dashboard</span>
             Overview
           </Link>
-          
+
+
           {isRegistered && (
             <>
               <Link

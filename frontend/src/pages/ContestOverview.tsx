@@ -20,6 +20,7 @@ export const ContestOverview: React.FC = () => {
     });
   };
 
+
   if (loading) {
     return (
       <main className="w-full px-4 sm:px-8 py-8 md:py-12 bg-surface-gray flex-grow animate-pulse">

@@ -24,5 +24,8 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long>, Jpa
     @Modifying
     @Query("UPDATE CourseEntity c SET c.totalEnrolled = c.totalEnrolled + 1 WHERE c.id IN :courseIds")
     void incrementTotalEnrolledForCourses(@Param("courseIds") List<Long> courseIds);
+
+    List<CourseEntity> findByInstructorId(Integer instructorId);
 }
+
 

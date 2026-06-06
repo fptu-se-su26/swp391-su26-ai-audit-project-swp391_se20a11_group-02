@@ -12,3 +12,5 @@ import java.util.List;
 public class Judge0BatchRequest {
     List<Judge0SubmissionItem> submissions;
 }
+
+
