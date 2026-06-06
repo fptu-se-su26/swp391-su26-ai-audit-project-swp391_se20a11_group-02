@@ -111,3 +111,11 @@ backend/.env.local
 /frontend/coverage/
 /backend/coverage/
 .nyc_output
+backend/src/main/resources/application.yaml
+database/fake_50_problems.sql
+database/fake_actual_purchases_data.sql
+database/fake_course_data.sql
+database/fake_instructor_revenue_data.sql
+database/fake_testcases.sql
+database/generate_jane_data.py
+database/generate_testcases.py

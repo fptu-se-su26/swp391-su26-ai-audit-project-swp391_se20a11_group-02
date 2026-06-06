@@ -78,4 +78,8 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, In
 
     @Query("SELECT c FROM EnrollmentEntity e JOIN e.course c WHERE e.user.id = :userId AND e.status IN ('ACTIVE', 'COMPLETED')")
     Set<CourseEntity> findActiveCoursesByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT e FROM EnrollmentEntity e JOIN FETCH e.user u JOIN FETCH e.course c WHERE c.instructor.id = :instructorId ORDER BY e.enrolledAt DESC")
+    List<EnrollmentEntity> findEnrollmentsByInstructorId(@Param("instructorId") Integer instructorId);
 }
+
