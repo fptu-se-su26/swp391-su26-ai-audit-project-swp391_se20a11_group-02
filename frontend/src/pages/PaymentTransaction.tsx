@@ -1,15 +1,55 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { paymentService, type PaymentTransactionStatisticResponse } from '../services/paymentService';
 
 export const PaymentTransaction: React.FC = () => {
   const { user, refreshBalance } = useApp();
+  const [transactions, setTransactions] = useState<PaymentTransactionStatisticResponse[]>([]);
+  const [page, setPage] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (user) {
       refreshBalance().catch(console.error);
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      setIsLoading(true);
+      paymentService.getPaymentTransactions(page, 10, '')
+        .then(res => {
+          setTransactions(res.content || []);
+          setTotalPages(res.totalPages || 1);
+          setTotalElements(res.totalElements || 0);
+        })
+        .catch(console.error)
+        .finally(() => setIsLoading(false));
+    }
+  }, [user, page]);
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'SUCCESS':
+        return <span className="text-text-muted text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Success</span>;
+      case 'PENDING':
+        return <span className="text-orange-500 text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px]">schedule</span> Pending</span>;
+      case 'FAILED':
+        return <span className="text-red-600 text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px]">cancel</span> Failed</span>;
+      case 'CANCELLED':
+        return <span className="text-red-600 text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px]">do_not_disturb_on</span> Cancelled</span>;
+      default:
+        return <span className="text-text-muted text-sm">{status}</span>;
+    }
+  };
 
   return (
     <div className="flex-grow max-w-[1280px] w-full mx-auto px-6 md:px-16 py-12 flex flex-col gap-8 text-left relative z-10">
@@ -42,76 +82,83 @@ export const PaymentTransaction: React.FC = () => {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-text-muted text-xs uppercase tracking-wider">
                 <th className="p-4 pl-6 font-semibold">Date</th>
-                <th className="p-4 font-semibold">Transaction ID</th>
-                <th className="p-4 font-semibold">Method</th>
+                <th className="p-4 font-semibold">Transaction Code</th>
                 <th className="p-4 font-semibold">Type</th>
                 <th className="p-4 font-semibold text-right">Amount</th>
                 <th className="p-4 font-semibold text-right">Status</th>
               </tr>
             </thead>
             <tbody className="text-sm text-text-main divide-y divide-gray-200">
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-4 pl-6 whitespace-nowrap text-text-muted">10 May 2026, 16:45</td>
-                <td className="p-4 font-mono text-sm">TXN-9847291</td>
-                <td className="p-4 font-medium flex items-center gap-2">
-                  <img src="https://img.icons8.com/color/48/000000/bank-building.png" alt="MB Bank" className="w-5 h-5" /> MB Bank
-                </td>
-                <td className="p-4"><span className="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-semibold">Deposit</span></td>
-                <td className="p-4 text-right text-brand-green font-bold">+1,000,000 ₫</td>
-                <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-              </tr>
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-4 pl-6 whitespace-nowrap text-text-muted">02 May 2026, 10:10</td>
-                <td className="p-4 font-mono text-sm">TXN-1294857</td>
-                <td className="p-4 font-medium flex items-center gap-2">
-                  <span className="material-symbols-outlined text-gray-400 text-[18px]">credit_card</span> Vietcombank
-                </td>
-                <td className="p-4"><span className="bg-purple-100 text-purple-700 text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-semibold">Withdrawal</span></td>
-                <td className="p-4 text-right text-text-main font-bold">2,000,000 ₫</td>
-                <td className="p-4 text-right"><span className="text-orange-500 text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px]">schedule</span> Pending</span></td>
-              </tr>
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-4 pl-6 whitespace-nowrap text-text-muted">20 Apr 2026, 14:22</td>
-                <td className="p-4 font-mono text-sm">TXN-4927581</td>
-                <td className="p-4 font-medium flex items-center gap-2">
-                  <span className="material-symbols-outlined text-gray-400 text-[18px]">account_balance</span> BIDV
-                </td>
-                <td className="p-4"><span className="bg-purple-100 text-purple-700 text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-semibold">Withdrawal</span></td>
-                <td className="p-4 text-right text-text-main font-bold">3,500,000 ₫</td>
-                <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-              </tr>
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-4 pl-6 whitespace-nowrap text-text-muted">15 Mar 2026, 09:05</td>
-                <td className="p-4 font-mono text-sm">TXN-8573921</td>
-                <td className="p-4 font-medium flex items-center gap-2">
-                  <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Icon-VNPAY-QR.png" alt="VNPay" className="w-5 h-5 object-contain" /> VNPay
-                </td>
-                <td className="p-4"><span className="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-semibold">Deposit</span></td>
-                <td className="p-4 text-right text-brand-green font-bold">+500,000 ₫</td>
-                <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-              </tr>
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-4 pl-6 whitespace-nowrap text-text-muted">05 Feb 2026, 21:40</td>
-                <td className="p-4 font-mono text-sm">TXN-1029485</td>
-                <td className="p-4 font-medium flex items-center gap-2">
-                  <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="Momo" className="w-5 h-5 object-contain" /> Momo E-Wallet
-                </td>
-                <td className="p-4"><span className="bg-purple-100 text-purple-700 text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-semibold">Withdrawal</span></td>
-                <td className="p-4 text-right text-text-main font-bold">1,000,000 ₫</td>
-                <td className="p-4 text-right"><span className="text-red-600 text-sm flex items-center justify-end gap-1"><span className="material-symbols-outlined text-[16px]">cancel</span> Failed</span></td>
-              </tr>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-text-muted">Loading transactions...</td>
+                </tr>
+              ) : transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-text-muted">No transactions found.</td>
+                </tr>
+              ) : (
+                transactions.map((tx, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4 pl-6 whitespace-nowrap text-text-muted">{formatDate(tx.date)}</td>
+                    <td className="p-4 font-mono text-sm">{tx.transactionCode}</td>
+                    <td className="p-4">
+                      <span className="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-semibold">
+                        {tx.type}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right text-brand-green font-bold">
+                      +{tx.amount.toLocaleString('vi-VN')} ₫
+                    </td>
+                    <td className="p-4 text-right">
+                      {getStatusDisplay(tx.status)}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-        <div className="p-4 border-t border-gray-200 flex items-center justify-between bg-white">
-          <span className="text-sm text-text-muted">Showing 1 to 5 of 12 entries</span>
-          <div className="flex gap-1">
-            <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-gray-100 disabled:opacity-50"><span className="material-symbols-outlined text-sm">chevron_left</span></button>
-            <button className="w-8 h-8 rounded bg-primary text-white flex items-center justify-center text-sm font-medium">1</button>
-            <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-gray-100 hover:text-primary text-sm font-medium">2</button>
-            <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-gray-100"><span className="material-symbols-outlined text-sm">chevron_right</span></button>
+        
+        {/* Pagination */}
+        {totalPages > 0 && (
+          <div className="p-4 border-t border-gray-200 flex items-center justify-between bg-white">
+            <span className="text-sm text-text-muted">
+              Showing {page * 10 + 1} to {Math.min((page + 1) * 10, totalElements)} of {totalElements} entries
+            </span>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-gray-100 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-sm">chevron_left</span>
+              </button>
+              
+              {Array.from({ length: totalPages }, (_, i) => i).map(pageNum => (
+                <button
+                  key={pageNum}
+                  onClick={() => setPage(pageNum)}
+                  className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium ${
+                    page === pageNum 
+                      ? 'bg-primary text-white' 
+                      : 'border border-gray-200 text-text-muted hover:bg-gray-100 hover:text-primary'
+                  }`}
+                >
+                  {pageNum + 1}
+                </button>
+              ))}
+
+              <button 
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-gray-100 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-sm">chevron_right</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

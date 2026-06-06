@@ -227,4 +227,28 @@ public class PaymentService {
                 .map(WalletEntity::getBalance)
                 .orElse(java.math.BigDecimal.ZERO);
     }
+
+    @Transactional
+    public void cancelPayment(Integer userId, String transactionCode) {
+        PaymentTransactionEntity transaction = paymentTransactionRepository.findByTransactionCode(transactionCode)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        if (!transaction.getWallet().getUser().getId().equals(userId)) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        if (transaction.getStatus() != StatusTransaction.PENDING) {
+            return;
+        }
+
+        transaction.setStatus(StatusTransaction.CANCELLED);
+        paymentTransactionRepository.save(transaction);
+
+        try {
+            long orderCode = Long.parseLong(transactionCode);
+            payOS.cancelPaymentLink(orderCode, "Customer cancelled");
+        } catch (Exception e) {
+            log.warn("Failed to cancel PayOS payment link for orderCode {}: {}", transactionCode, e.getMessage());
+        }
+    }
 }
