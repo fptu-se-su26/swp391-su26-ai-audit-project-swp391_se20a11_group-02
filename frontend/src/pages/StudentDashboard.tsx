@@ -383,6 +383,7 @@ export const StudentDashboard: React.FC = () => {
       setActiveTab(hash);
       if (['wallet-transaction', 'deposit', 'payment-transaction'].includes(hash)) {
         setIsWalletOpen(true);
+        refreshBalance().catch(console.error);
       }
     } else {
       setActiveTab('dashboard');
