@@ -23,9 +23,9 @@ public class ContestStatusSyncRunner implements CommandLineRunner {
         log.info("Synchronizing contest statuses based on current system time...");
         try {
             int runningCount = jdbcTemplate.update(
-                    "UPDATE public.contest SET status = 'RUNNING'::public.contest_status WHERE start_time <= CURRENT_TIMESTAMP AND end_time >= CURRENT_TIMESTAMP AND status = 'UPCOMING'::public.contest_status");
+                    "UPDATE public.contest SET status = 'RUNNING' WHERE start_time <= CURRENT_TIMESTAMP AND end_time >= CURRENT_TIMESTAMP AND status = 'UPCOMING'");
             int endedCount = jdbcTemplate.update(
-                    "UPDATE public.contest SET status = 'ENDED'::public.contest_status WHERE end_time < CURRENT_TIMESTAMP AND status IN ('UPCOMING'::public.contest_status, 'RUNNING'::public.contest_status)");
+                    "UPDATE public.contest SET status = 'ENDED' WHERE end_time < CURRENT_TIMESTAMP AND status IN ('UPCOMING', 'RUNNING')");
             log.info("Contest status sync completed: {} moved to RUNNING, {} moved to ENDED.", runningCount,
                     endedCount);
         } catch (Exception e) {
