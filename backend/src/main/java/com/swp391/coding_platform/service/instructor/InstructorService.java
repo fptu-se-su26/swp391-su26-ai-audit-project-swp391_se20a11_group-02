@@ -230,10 +230,12 @@ public class InstructorService {
     public List<MonthlyChartItem> getMonthlyChartData(Integer userId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
         List<OrderItemEntity> orderItems = orderItemRepository.findCompletedItemsByInstructorId(instructor.getId());
-        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"))
+                .withDayOfMonth(1)
+                .truncatedTo(java.time.temporal.ChronoUnit.DAYS);
 
         List<MonthlyChartItem> monthlyChartData = new ArrayList<>();
-        java.time.format.DateTimeFormatter labelFormatter = java.time.format.DateTimeFormatter.ofPattern("MMM yy", java.util.Locale.US);
+        java.time.format.DateTimeFormatter labelFormatter = java.time.format.DateTimeFormatter.ofPattern("MM/yyyy", java.util.Locale.US);
         for (int i = 11; i >= 0; i--) {
             java.time.ZonedDateTime targetMonth = now.minusMonths(i);
             String label = targetMonth.format(labelFormatter);
@@ -263,7 +265,9 @@ public class InstructorService {
         InstructorEntity instructor = getInstructorByUserId(userId);
         List<OrderItemEntity> orderItems = orderItemRepository.findCompletedItemsByInstructorId(instructor.getId());
         List<CourseEntity> courses = courseRepository.findByInstructorId(instructor.getId());
-        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"));
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.of("UTC"))
+                .withDayOfMonth(1)
+                .truncatedTo(java.time.temporal.ChronoUnit.DAYS);
 
         int trendMonths = 12;
         if ("1m".equalsIgnoreCase(trendTimeframe)) trendMonths = 1;

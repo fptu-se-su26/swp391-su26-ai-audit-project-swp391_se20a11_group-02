@@ -582,6 +582,8 @@ export const InstructorDashboard: React.FC = () => {
   const [backendMonthlyChartData, setBackendMonthlyChartData] = useState<any[]>([]);
   const [courseRegistrationsState, setCourseRegistrationsState] = useState<any[]>([]);
   const [totalTrendRegistrationsState, setTotalTrendRegistrationsState] = useState<number>(0);
+  const [courseRegPage, setCourseRegPage] = useState<number>(1);
+  const [breakdownPage, setBreakdownPage] = useState<number>(1);
 
   const [revenueFilter, setRevenueFilter] = useState<string>('this-month');
   const [customStartDate, setCustomStartDate] = useState<string>('');
@@ -642,6 +644,7 @@ export const InstructorDashboard: React.FC = () => {
         setTotalActualTakeHome(summary?.totalActualTakeHome || 0);
         setTransactions(sales || []);
         setCourseBreakdown(breakdown || []);
+        setBreakdownPage(1);
       } catch (err) {
         console.error("Failed to load filtered revenue data:", err);
       }
@@ -658,6 +661,7 @@ export const InstructorDashboard: React.FC = () => {
         const trendRes = await instructorService.getCourseRegistrations(trendTimeframe);
         setCourseRegistrationsState(trendRes?.courseRegistrations || []);
         setTotalTrendRegistrationsState(trendRes?.totalTrendRegistrations || 0);
+        setCourseRegPage(1);
       } catch (err) {
         console.error("Failed to load trend data:", err);
       }
@@ -844,10 +848,22 @@ export const InstructorDashboard: React.FC = () => {
 
   const displayedTakeHome = totalActualTakeHome;
   const earningsBreakdown = courseBreakdown;
+  const BREAKDOWN_PER_PAGE = 5;
+  const totalBreakdownPages = Math.ceil(earningsBreakdown.length / BREAKDOWN_PER_PAGE);
+  const displayedEarningsBreakdown = earningsBreakdown.slice(
+    (breakdownPage - 1) * BREAKDOWN_PER_PAGE,
+    breakdownPage * BREAKDOWN_PER_PAGE
+  );
   const monthlyChartData = backendMonthlyChartData;
   const monthlyEnrollmentChartData = backendMonthlyChartData;
   const trendFilteredTransactions = { length: totalTrendRegistrationsState };
   const courseRegistrations = courseRegistrationsState;
+  const REGISTRATIONS_PER_PAGE = 5;
+  const totalCourseRegPages = Math.ceil(courseRegistrations.length / REGISTRATIONS_PER_PAGE);
+  const displayedCourseRegistrations = courseRegistrations.slice(
+    (courseRegPage - 1) * REGISTRATIONS_PER_PAGE,
+    courseRegPage * REGISTRATIONS_PER_PAGE
+  );
 
   const chartPoints = useMemo(() => {
     const maxAmount = Math.max(...monthlyChartData.map(m => m.amount), 1000000);
@@ -2205,35 +2221,79 @@ export const InstructorDashboard: React.FC = () => {
 
                       {/* Course shares mapping */}
                       <div className="flex flex-col gap-5 py-2">
-                        {earningsBreakdown.map((item, idx) => {
-                          const colors = [
-                            { bar: 'bg-primary', light: 'bg-orange-50', text: 'text-primary' },
-                            { bar: 'bg-blue-500', light: 'bg-blue-50', text: 'text-blue-500' },
-                            { bar: 'bg-emerald-500', light: 'bg-emerald-50', text: 'text-emerald-500' },
-                          ];
-                          const c = colors[idx % colors.length];
-                          
-                          return (
-                            <div key={item.courseId} className="group">
-                              <div className="flex justify-between text-xs font-bold text-brand-blue mb-2.5">
-                                <span className="truncate max-w-[70%]">{item.courseTitle}</span>
-                                <span className="flex items-center gap-1.5 shrink-0">
-                                  <span>{item.amount.toLocaleString('vi-VN')} ₫</span>
-                                  <span className={`px-2 py-0.5 rounded-full text-[10px] ${c.light} ${c.text}`}>
-                                    {item.percentage}%
+                        {displayedEarningsBreakdown.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-8 text-center bg-slate-50/40 rounded-2xl border border-dashed border-slate-200">
+                            <span className="material-symbols-outlined text-3xl text-slate-300 mb-1">analytics</span>
+                            <p className="text-[11px] text-text-muted font-bold">No earnings data in this period</p>
+                          </div>
+                        ) : (
+                          displayedEarningsBreakdown.map((item, idx) => {
+                            const colors = [
+                              { bar: 'bg-primary', light: 'bg-orange-50', text: 'text-primary' },
+                              { bar: 'bg-blue-500', light: 'bg-blue-50', text: 'text-blue-500' },
+                              { bar: 'bg-emerald-500', light: 'bg-emerald-50', text: 'text-emerald-500' },
+                            ];
+                            const c = colors[((breakdownPage - 1) * BREAKDOWN_PER_PAGE + idx) % colors.length];
+                            
+                            return (
+                              <div key={item.courseId} className="group">
+                                <div className="flex justify-between text-xs font-bold text-brand-blue mb-2.5">
+                                  <span className="truncate max-w-[70%]">{item.courseTitle}</span>
+                                  <span className="flex items-center gap-1.5 shrink-0">
+                                    <span>{item.amount.toLocaleString('vi-VN')} ₫</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${c.light} ${c.text}`}>
+                                      {item.percentage}%
+                                    </span>
                                   </span>
-                                </span>
+                                </div>
+                                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full ${c.bar} rounded-full transition-all duration-1000 ease-out`} 
+                                    style={{ width: `${item.percentage}%` }}
+                                  ></div>
+                                </div>
                               </div>
-                              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full ${c.bar} rounded-full transition-all duration-1000 ease-out`} 
-                                  style={{ width: `${item.percentage}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })
+                        )}
                       </div>
+
+                      {/* Pagination Controls */}
+                      {totalBreakdownPages > 1 && (
+                        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-150/30">
+                          <button
+                            type="button"
+                            onClick={() => setBreakdownPage(prev => Math.max(prev - 1, 1))}
+                            disabled={breakdownPage === 1}
+                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
+                              breakdownPage === 1
+                                ? 'bg-slate-50 text-slate-350 border border-slate-100 cursor-not-allowed'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-blue active:scale-90 shadow-sm'
+                            }`}
+                            title="Previous page"
+                          >
+                            <span className="material-symbols-outlined text-[16px] font-bold">chevron_left</span>
+                          </button>
+
+                          <span className="text-[10px] font-extrabold text-slate-500 select-none">
+                            {breakdownPage} / {totalBreakdownPages}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => setBreakdownPage(prev => Math.min(prev + 1, totalBreakdownPages))}
+                            disabled={breakdownPage === totalBreakdownPages}
+                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
+                              breakdownPage === totalBreakdownPages
+                                ? 'bg-slate-50 text-slate-350 border border-slate-100 cursor-not-allowed'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-blue active:scale-90 shadow-sm'
+                            }`}
+                            title="Next page"
+                          >
+                            <span className="material-symbols-outlined text-[16px] font-bold">chevron_right</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="mt-4 pt-3 border-t border-slate-150/40 text-[11px] text-text-muted flex items-center gap-1">
@@ -2447,33 +2507,77 @@ export const InstructorDashboard: React.FC = () => {
 
                       {/* Course Registration List */}
                       <div className="flex flex-col gap-3 py-1">
-                        {courseRegistrations.map((item, idx) => {
-                          const colors = [
-                            { lightBg: 'bg-[#ffece0]', pill: 'bg-[#ffece0] text-primary border border-primary/10', iconColor: 'text-primary' },
-                            { lightBg: 'bg-[#e8f0fe]', pill: 'bg-[#e8f0fe] text-blue-600 border border-blue-100', iconColor: 'text-blue-600' },
-                            { lightBg: 'bg-[#f0fdf4]', pill: 'bg-[#f0fdf4] text-emerald-600 border border-emerald-100', iconColor: 'text-emerald-600' },
-                          ];
-                          const c = colors[idx % colors.length];
-                          
-                          return (
-                            <div key={item.courseId} className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/60 border border-slate-200/30 transition-all hover:bg-slate-100/40 hover:shadow-sm">
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 ${c.lightBg}`}>
-                                  <span className={`material-symbols-outlined text-base ${c.iconColor}`}>school</span>
+                        {displayedCourseRegistrations.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-8 text-center bg-slate-50/40 rounded-2xl border border-dashed border-slate-200">
+                            <span className="material-symbols-outlined text-3xl text-slate-300 mb-1">school</span>
+                            <p className="text-[11px] text-text-muted font-bold">No registrations in this period</p>
+                          </div>
+                        ) : (
+                          displayedCourseRegistrations.map((item, idx) => {
+                            const colors = [
+                              { lightBg: 'bg-[#ffece0]', pill: 'bg-[#ffece0] text-primary border border-primary/10', iconColor: 'text-primary' },
+                              { lightBg: 'bg-[#e8f0fe]', pill: 'bg-[#e8f0fe] text-blue-600 border border-blue-100', iconColor: 'text-blue-600' },
+                              { lightBg: 'bg-[#f0fdf4]', pill: 'bg-[#f0fdf4] text-emerald-600 border border-emerald-100', iconColor: 'text-emerald-600' },
+                            ];
+                            const c = colors[((courseRegPage - 1) * REGISTRATIONS_PER_PAGE + idx) % colors.length];
+                            
+                            return (
+                              <div key={item.courseId} className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/60 border border-slate-200/30 transition-all hover:bg-slate-100/40 hover:shadow-sm">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 ${c.lightBg}`}>
+                                    <span className={`material-symbols-outlined text-base ${c.iconColor}`}>school</span>
+                                  </div>
+                                  <div className="min-w-0">
+                                    <h4 className="text-xs font-bold text-brand-blue truncate" title={item.courseTitle}>
+                                      {item.courseTitle}
+                                    </h4>
+                                  </div>
                                 </div>
-                                <div className="min-w-0">
-                                  <h4 className="text-xs font-black text-brand-blue truncate" title={item.courseTitle}>
-                                    {item.courseTitle}
-                                  </h4>
-                                </div>
+                                <span className={`px-2.5 py-1 rounded-xl text-[10px] font-semibold shrink-0 ${c.pill}`}>
+                                  {item.count} {item.count === 1 ? 'registrant' : 'registrants'}
+                                </span>
                               </div>
-                              <span className={`px-3 py-1 rounded-xl text-[11px] font-black shrink-0 shadow-sm ${c.pill}`}>
-                                {item.count} {item.count === 1 ? 'registrant' : 'registrants'}
-                              </span>
-                            </div>
-                          );
-                        })}
+                            );
+                          })
+                        )}
                       </div>
+
+                      {/* Pagination Controls */}
+                      {totalCourseRegPages > 1 && (
+                        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-150/30">
+                          <button
+                            type="button"
+                            onClick={() => setCourseRegPage(prev => Math.max(prev - 1, 1))}
+                            disabled={courseRegPage === 1}
+                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
+                              courseRegPage === 1
+                                ? 'bg-slate-50 text-slate-350 border border-slate-100 cursor-not-allowed'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-blue active:scale-90 shadow-sm'
+                            }`}
+                            title="Previous page"
+                          >
+                            <span className="material-symbols-outlined text-[16px] font-bold">chevron_left</span>
+                          </button>
+
+                          <span className="text-[10px] font-extrabold text-slate-500 select-none">
+                            {courseRegPage} / {totalCourseRegPages}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => setCourseRegPage(prev => Math.min(prev + 1, totalCourseRegPages))}
+                            disabled={courseRegPage === totalCourseRegPages}
+                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
+                              courseRegPage === totalCourseRegPages
+                                ? 'bg-slate-50 text-slate-350 border border-slate-100 cursor-not-allowed'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-blue active:scale-90 shadow-sm'
+                            }`}
+                            title="Next page"
+                          >
+                            <span className="material-symbols-outlined text-[16px] font-bold">chevron_right</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-slate-150/40 text-[10px] text-text-muted flex items-center gap-1.5 font-semibold">
@@ -2528,7 +2632,7 @@ export const InstructorDashboard: React.FC = () => {
                                     </div>
                                   </td>
                                   <td className="py-3.5 px-4 text-slate-700">{tx.courseTitle}</td>
-                                  <td className="py-3.5 px-4 text-right text-brand-blue font-bold">
+                                  <td className="py-3.5 px-4 text-right text-green-600 font-bold">
                                     {tx.amount.toLocaleString('vi-VN')} ₫
                                   </td>
                                   <td className="py-3.5 px-4 text-center text-slate-500 font-medium">
