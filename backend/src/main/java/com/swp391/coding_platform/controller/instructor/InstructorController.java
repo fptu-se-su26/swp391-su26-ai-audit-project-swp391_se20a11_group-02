@@ -37,6 +37,10 @@ public class InstructorController {
             }
         }
 
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
         List<InstructorCourseResponse> result = instructorService.getCourses(userId);
 
         return ResponseEntity.ok(ApiResponse.<List<InstructorCourseResponse>>builder()
