@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { instructorService } from '../services/instructorService';
+
 
 interface QuestionReply {
   author: string;
@@ -569,78 +571,75 @@ export const InstructorDashboard: React.FC = () => {
 
 
 
-  const [instructorCourses, setInstructorCourses] = useState<InstructorCourse[]>([
-    {
-      id: 'ic-1',
-      title: 'Data Structures & Algorithms',
-      level: 'Intermediate',
-      topic: 'Theory & Practices',
-      price: '499.000 ₫',
-      studentsCount: 524,
-      rating: 4.9,
-      reviewsCount: 120,
-      status: 'published',
-      icon: 'code',
-      gradient: 'from-orange-400 to-primary',
-      description: 'Master arrays, lists, trees, graphs, sorting, and search concepts utilizing premium visualizations.'
-    },
-    {
-      id: 'ic-2',
-      title: 'Java Web Development',
-      level: 'Beginner',
-      topic: 'Backend Tech',
-      price: '699.000 ₫',
-      studentsCount: 312,
-      rating: 4.7,
-      reviewsCount: 85,
-      status: 'published',
-      icon: 'javascript',
-      gradient: 'from-blue-500 to-indigo-600',
-      description: 'Understand MVC architectures, Spring Boot pipelines, databases, and microservices logic in this beginner pack.'
-    },
-    {
-      id: 'ic-3',
-      title: 'Python for Automation',
-      level: 'Advanced',
-      topic: 'Scripts & Models',
-      price: '599.000 ₫',
-      studentsCount: 189,
-      rating: 4.8,
-      reviewsCount: 42,
-      status: 'published',
-      icon: 'terminal',
-      gradient: 'from-emerald-555 to-teal-600',
-      description: 'Write robust scripting solutions to automate tasks, scrape data, and implement machine learning workflows.'
-    },
-    {
-      id: 'ic-4',
-      title: 'C++ Competitive Programming',
-      level: 'Advanced',
-      topic: 'Coding Skills',
-      price: '799.000 ₫',
-      studentsCount: 0,
-      rating: 0.0,
-      reviewsCount: 0,
-      status: 'review',
-      icon: 'developer_mode',
-      gradient: 'from-rose-500 to-red-600',
-      description: 'Master advanced STL containers, segment trees, heavy-light decomposition, and dynamic programming for international contests.'
-    },
-    {
-      id: 'ic-5',
-      title: 'Advanced Frontend Architecture',
-      level: 'Advanced',
-      topic: 'Frontend Tech',
-      price: '899.000 ₫',
-      studentsCount: 0,
-      rating: 0.0,
-      reviewsCount: 0,
-      status: 'draft',
-      icon: 'html',
-      gradient: 'from-purple-500 to-pink-600',
-      description: 'Deep dive into React fiber, custom renderers, Webpack/Vite bundler design, micro-frontends, and performance profiling.'
+  const [instructorCourses, setInstructorCourses] = useState<InstructorCourse[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [payouts, setPayouts] = useState<any[]>([]);
+  const [totalGrossRevenue, setTotalGrossRevenue] = useState<number>(0);
+  const [totalNetRevenue, setTotalNetRevenue] = useState<number>(0);
+  const [totalActualTakeHome, setTotalActualTakeHome] = useState<number>(0);
+  const [courseBreakdown, setCourseBreakdown] = useState<any[]>([]);
+  const [backendMonthlyChartData, setBackendMonthlyChartData] = useState<any[]>([]);
+  const [courseRegistrationsState, setCourseRegistrationsState] = useState<any[]>([]);
+  const [totalTrendRegistrationsState, setTotalTrendRegistrationsState] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingRevenue, setLoadingRevenue] = useState<boolean>(true);
+
+  const [revenueFilter, setRevenueFilter] = useState<'this-month' | 'last-month' | 'mar-2026' | 'feb-2026' | 'jan-2026' | 'all' | 'custom'>('this-month');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [appliedStartDate, setAppliedStartDate] = useState<string>('');
+  const [appliedEndDate, setAppliedEndDate] = useState<string>('');
+  const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
+
+  useEffect(() => {
+    const fetchInstructorCourses = async () => {
+      try {
+        setLoading(true);
+        const coursesData = await instructorService.getCourses();
+        setInstructorCourses(coursesData);
+        if (coursesData && coursesData.length > 0) {
+          setWorkspaceCourseTitle(coursesData[0].title);
+        }
+      } catch (err) {
+        console.error("Failed to load instructor courses:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchInstructorCourses();
     }
-  ]);
+  }, [user]);
+
+  useEffect(() => {
+    const fetchRevenueData = async () => {
+      try {
+        setLoadingRevenue(true);
+        const revData = await instructorService.getRevenueData(revenueFilter, appliedStartDate, appliedEndDate, trendTimeframe);
+        setTransactions(revData.salesHistory || []);
+        setRegistrations(revData.recentRegistrations || []);
+        setPayouts(revData.payoutHistory || []);
+        setTotalActualTakeHome(revData.totalActualTakeHome || 0);
+        setTotalGrossRevenue(revData.totalGrossRevenue || 0);
+        setTotalNetRevenue(revData.totalNetRevenue || 0);
+        setCourseBreakdown(revData.courseBreakdown || []);
+        setBackendMonthlyChartData(revData.monthlyChartData || []);
+        setCourseRegistrationsState(revData.courseRegistrations || []);
+        setTotalTrendRegistrationsState(revData.totalTrendRegistrations || 0);
+      } catch (err) {
+        console.error("Failed to load instructor revenue data:", err);
+      } finally {
+        setLoadingRevenue(false);
+      }
+    };
+
+    if (user) {
+      fetchRevenueData();
+    }
+  }, [user, revenueFilter, appliedStartDate, appliedEndDate, trendTimeframe]);
+
 
   const [courseSubTab, setCourseSubTab] = useState<'all' | 'published' | 'review' | 'draft'>('all');
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
@@ -706,18 +705,7 @@ export const InstructorDashboard: React.FC = () => {
       });
   }, [instructorCourses, statsPeriod]);
 
-  const mockRegistrations = [
-    { studentName: 'Nguyen Van A', avatar: 'https://ui-avatars.com/api/?name=Nguyen+Van+A&background=eef7ee&color=46A040&bold=true', course: 'Data Structures & Algorithms', time: 'May 24, 2026 16:12', amount: '499.000 ₫' },
-    { studentName: 'Tran Thi B', avatar: 'https://ui-avatars.com/api/?name=Tran+Thi+B&background=fce2d3&color=F36F21&bold=true', course: 'Java Web Development', time: 'May 24, 2026 15:12', amount: '699.000 ₫' },
-    { studentName: 'Le Huy C', avatar: 'https://ui-avatars.com/api/?name=Le+Huy+C&background=e8f0fe&color=1a73e8&bold=true', course: 'Python for Automation', time: 'May 23, 2026 18:12', amount: '599.000 ₫' },
-    { studentName: 'Pham Van D', avatar: 'https://ui-avatars.com/api/?name=Pham+Van+D&background=fdf4ff&color=c084fc&bold=true', course: 'Data Structures & Algorithms', time: 'May 23, 2026 14:30', amount: '499.000 ₫' },
-    { studentName: 'Hoang Thi E', avatar: 'https://ui-avatars.com/api/?name=Hoang+Thi+E&background=ecfdf5&color=10b981&bold=true', course: 'Java Web Development', time: 'May 22, 2026 10:15', amount: '699.000 ₫' },
-    { studentName: 'Bui Van F', avatar: 'https://ui-avatars.com/api/?name=Bui+Van+F&background=fff7ed&color=f97316&bold=true', course: 'Python for Automation', time: 'May 22, 2026 09:45', amount: '599.000 ₫' },
-    { studentName: 'Ngo Thi G', avatar: 'https://ui-avatars.com/api/?name=Ngo+Thi+G&background=eff6ff&color=3b82f6&bold=true', course: 'Data Structures & Algorithms', time: 'May 21, 2026 16:00', amount: '499.000 ₫' },
-    { studentName: 'Vu Huy H', avatar: 'https://ui-avatars.com/api/?name=Vu+Huy+H&background=faf5ff&color=a855f7&bold=true', course: 'Java Web Development', time: 'May 20, 2026 11:20', amount: '699.000 ₫' },
-    { studentName: 'Do Thi I', avatar: 'https://ui-avatars.com/api/?name=Do+Thi+I&background=f0fdf4&color=16a34a&bold=true', course: 'Python for Automation', time: 'May 19, 2026 14:10', amount: '599.000 ₫' },
-    { studentName: 'Hoang Van J', avatar: 'https://ui-avatars.com/api/?name=Hoang+Van+J&background=fef2f2&color=ef4444&bold=true', course: 'Data Structures & Algorithms', time: 'May 18, 2026 15:35', amount: '499.000 ₫' },
-  ];
+  const mockRegistrations = registrations;
 
 
 
@@ -816,183 +804,23 @@ export const InstructorDashboard: React.FC = () => {
     adminNote?: string;
   }
 
-  const mockTransactions = useMemo(() => [
-    { id: 'TX-1001', studentName: 'Nguyễn Văn A', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-05-28T14:32:00' },
-    { id: 'TX-1002', studentName: 'Trần Thị B', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-05-27T10:15:00' },
-    { id: 'TX-1003', studentName: 'Lê Huy Cường', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-05-25T08:05:12' },
-    { id: 'TX-1004', studentName: 'Phạm Văn D', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-05-23T19:40:00' },
-    { id: 'TX-1005', studentName: 'Hoàng Thị E', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-05-20T11:20:00' },
-    { id: 'TX-1006', studentName: 'Bùi Văn Nam', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-05-15T15:10:00' },
-    { id: 'TX-1007', studentName: 'Ngô Mỹ Linh', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-05-02T09:20:50' },
-    { id: 'TX-1008', studentName: 'Vũ Huy Hùng', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-04-25T16:12:00' },
-    { id: 'TX-1009', studentName: 'Đỗ Minh Tuấn', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-04-18T10:45:00' },
-    { id: 'TX-1010', studentName: 'Đặng Quốc Bảo', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-03-28T17:55:00' },
-    { id: 'TX-1011', studentName: 'Lâm Mỹ Dung', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-03-12T11:30:00' },
-    { id: 'TX-1012', studentName: 'Trịnh Gia Bảo', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-02-20T14:15:00' },
-    { id: 'TX-1013', studentName: 'Phan Thanh Hà', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2026-02-05T09:10:00' },
-    { id: 'TX-1014', studentName: 'Nguyễn Tấn Tài', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2026-01-22T16:40:00' },
-    { id: 'TX-1015', studentName: 'Hoàng Kim Chi', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2026-01-10T13:20:00' },
-    { id: 'TX-1016', studentName: 'Phạm Đức Duy', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2025-12-15T15:20:00' },
-    { id: 'TX-1017', studentName: 'Võ Minh Trí', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2025-11-08T09:12:00' },
-    { id: 'TX-1018', studentName: 'Bùi Tuấn Anh', courseId: 'ic-3', courseTitle: 'Python for Automation', amount: 599000, timestamp: '2025-10-18T16:30:00' },
-    { id: 'TX-1019', studentName: 'Nguyễn Tấn Dũng', courseId: 'ic-1', courseTitle: 'Data Structures & Algorithms', amount: 499000, timestamp: '2025-09-20T10:45:00' },
-    { id: 'TX-1020', studentName: 'Lê Thuỳ Trang', courseId: 'ic-2', courseTitle: 'Java Web Development', amount: 699000, timestamp: '2025-08-14T11:55:00' }
-  ], []);
+  const mockTransactions = transactions;
 
-  const payoutHistory: PayoutHistoryItem[] = [
-    {
-      id: 'PO-101',
-      payoutPeriod: 'May 01, 2026',
-      amount: 4293000,
-      bankName: 'Vietcombank',
-      bankAccountNumber: '1023456789',
-      status: 'SUCCESS',
-      transactionReference: 'VCB-987654321-PO',
-    },
-    {
-      id: 'PO-102',
-      payoutPeriod: 'Apr 01, 2026',
-      amount: 3890000,
-      bankName: 'Vietcombank',
-      bankAccountNumber: '1023456789',
-      status: 'SUCCESS',
-      transactionReference: 'VCB-847291038-PO',
-    },
-    {
-      id: 'PO-103',
-      payoutPeriod: 'Mar 01, 2026',
-      amount: 2950000,
-      bankName: 'Vietcombank',
-      bankAccountNumber: '1023456789',
-      status: 'FAILED',
-      transactionReference: 'VCB-736201948-PO',
-      adminNote: 'Transfer failed due to incorrect routing branch configuration. System automatically scheduled for retry in the next batch.',
-    },
-    {
-      id: 'PO-104',
-      payoutPeriod: 'Feb 01, 2026',
-      amount: 4120000,
-      bankName: 'Vietcombank',
-      bankAccountNumber: '1023456789',
-      status: 'PROCESSING',
-      transactionReference: 'VCB-627192039-PO',
-    },
-  ];
+  const payoutHistory = payouts;
 
-  const [revenueFilter, setRevenueFilter] = useState<'this-month' | 'last-month' | 'mar-2026' | 'feb-2026' | 'jan-2026' | 'all' | 'custom'>('this-month');
-  const [customStartDate, setCustomStartDate] = useState<string>('');
-  const [customEndDate, setCustomEndDate] = useState<string>('');
-  const [appliedStartDate, setAppliedStartDate] = useState<string>('');
-  const [appliedEndDate, setAppliedEndDate] = useState<string>('');
-  
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
   const [hoveredEnrollmentPointIdx, setHoveredEnrollmentPointIdx] = useState<number | null>(null);
   const [selectedFailedPayout, setSelectedFailedPayout] = useState<PayoutHistoryItem | null>(null);
+  const [isAllPayoutsModalOpen, setIsAllPayoutsModalOpen] = useState<boolean>(false);
   const [enrollmentPage, setEnrollmentPage] = useState<number>(1);
-  const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
 
-  const filteredTransactions = useMemo(() => {
-    return mockTransactions.filter(tx => {
-      const txDate = new Date(tx.timestamp);
-      
-      if (revenueFilter === 'this-month') {
-        return txDate.getFullYear() === 2026 && txDate.getMonth() === 4;
-      }
-      if (revenueFilter === 'last-month') {
-        return txDate.getFullYear() === 2026 && txDate.getMonth() === 3;
-      }
-      if (revenueFilter === 'mar-2026') {
-        return txDate.getFullYear() === 2026 && txDate.getMonth() === 2;
-      }
-      if (revenueFilter === 'feb-2026') {
-        return txDate.getFullYear() === 2026 && txDate.getMonth() === 1;
-      }
-      if (revenueFilter === 'jan-2026') {
-        return txDate.getFullYear() === 2026 && txDate.getMonth() === 0;
-      }
-      if (revenueFilter === 'custom') {
-        if (!appliedStartDate && !appliedEndDate) return true;
-        let startMatch = true;
-        let endMatch = true;
-        if (appliedStartDate) {
-          const start = new Date(appliedStartDate + 'T00:00:00');
-          startMatch = txDate >= start;
-        }
-        if (appliedEndDate) {
-          const end = new Date(appliedEndDate + 'T23:59:59');
-          endMatch = txDate <= end;
-        }
-        return startMatch && endMatch;
-      }
-      return true; // all
-    });
-  }, [mockTransactions, revenueFilter, appliedStartDate, appliedEndDate]);
-
-  const totalGrossRevenue = useMemo(() => {
-    return filteredTransactions.reduce((sum, tx) => sum + tx.amount, 0);
-  }, [filteredTransactions]);
-
-  const earningsBreakdown = useMemo(() => {
-    const groups: { [key: string]: { courseTitle: string; amount: number } } = {};
-    const defaultCourses = [
-      { id: 'ic-1', title: 'Data Structures & Algorithms' },
-      { id: 'ic-2', title: 'Java Web Development' },
-      { id: 'ic-3', title: 'Python for Automation' }
-    ];
-    
-    defaultCourses.forEach(c => {
-      groups[c.id] = { courseTitle: c.title, amount: 0 };
-    });
-
-    filteredTransactions.forEach(tx => {
-      if (groups[tx.courseId]) {
-        groups[tx.courseId].amount += tx.amount;
-      } else {
-        groups[tx.courseId] = { courseTitle: tx.courseTitle, amount: tx.amount };
-      }
-    });
-
-    return Object.keys(groups).map(courseId => {
-      const courseAmount = groups[courseId].amount;
-      const percentage = totalGrossRevenue > 0 ? Math.round((courseAmount / totalGrossRevenue) * 100) : 0;
-      return {
-        courseId,
-        courseTitle: groups[courseId].courseTitle,
-        amount: courseAmount,
-        percentage
-      };
-    }).sort((a, b) => b.amount - a.amount);
-  }, [filteredTransactions, totalGrossRevenue]);
-
-  const monthlyChartData = useMemo(() => {
-    const months = [
-      { label: 'Jun 25', year: 2025, month: 5, amount: 0 },
-      { label: 'Jul 25', year: 2025, month: 6, amount: 0 },
-      { label: 'Aug 25', year: 2025, month: 7, amount: 0 },
-      { label: 'Sep 25', year: 2025, month: 8, amount: 0 },
-      { label: 'Oct 25', year: 2025, month: 9, amount: 0 },
-      { label: 'Nov 25', year: 2025, month: 10, amount: 0 },
-      { label: 'Dec 25', year: 2025, month: 11, amount: 0 },
-      { label: 'Jan 26', year: 2026, month: 0, amount: 0 },
-      { label: 'Feb 26', year: 2026, month: 1, amount: 0 },
-      { label: 'Mar 26', year: 2026, month: 2, amount: 0 },
-      { label: 'Apr 26', year: 2026, month: 3, amount: 0 },
-      { label: 'May 26', year: 2026, month: 4, amount: 0 }
-    ];
-
-    mockTransactions.forEach(tx => {
-      const d = new Date(tx.timestamp);
-      const txYear = d.getFullYear();
-      const txMonth = d.getMonth();
-      
-      const matched = months.find(m => m.year === txYear && m.month === txMonth);
-      if (matched) {
-        matched.amount += tx.amount;
-      }
-    });
-
-    return months;
-  }, [mockTransactions]);
+  const filteredTransactions = transactions;
+  const displayedTakeHome = totalActualTakeHome;
+  const earningsBreakdown = courseBreakdown;
+  const monthlyChartData = backendMonthlyChartData;
+  const monthlyEnrollmentChartData = backendMonthlyChartData;
+  const trendFilteredTransactions = { length: totalTrendRegistrationsState };
+  const courseRegistrations = courseRegistrationsState;
 
   const chartPoints = useMemo(() => {
     const maxAmount = Math.max(...monthlyChartData.map(m => m.amount), 1000000);
@@ -1031,36 +859,6 @@ export const InstructorDashboard: React.FC = () => {
       roundMax
     };
   }, [monthlyChartData]);
-
-  const monthlyEnrollmentChartData = useMemo(() => {
-    const months = [
-      { label: 'Jun 25', year: 2025, month: 5, count: 0 },
-      { label: 'Jul 25', year: 2025, month: 6, count: 0 },
-      { label: 'Aug 25', year: 2025, month: 7, count: 0 },
-      { label: 'Sep 25', year: 2025, month: 8, count: 0 },
-      { label: 'Oct 25', year: 2025, month: 9, count: 0 },
-      { label: 'Nov 25', year: 2025, month: 10, count: 0 },
-      { label: 'Dec 25', year: 2025, month: 11, count: 0 },
-      { label: 'Jan 26', year: 2026, month: 0, count: 0 },
-      { label: 'Feb 26', year: 2026, month: 1, count: 0 },
-      { label: 'Mar 26', year: 2026, month: 2, count: 0 },
-      { label: 'Apr 26', year: 2026, month: 3, count: 0 },
-      { label: 'May 26', year: 2026, month: 4, count: 0 }
-    ];
-
-    mockTransactions.forEach(tx => {
-      const d = new Date(tx.timestamp);
-      const txYear = d.getFullYear();
-      const txMonth = d.getMonth();
-      
-      const matched = months.find(m => m.year === txYear && m.month === txMonth);
-      if (matched) {
-        matched.count += 1;
-      }
-    });
-
-    return months;
-  }, [mockTransactions]);
 
   const enrollmentChartPoints = useMemo(() => {
     const maxCount = Math.max(...monthlyEnrollmentChartData.map(m => m.count), 5);
@@ -1112,43 +910,6 @@ export const InstructorDashboard: React.FC = () => {
     const startIndex = (enrollmentPage - 1) * recordsPerPage;
     return sortedMockTransactions.slice(startIndex, startIndex + recordsPerPage);
   }, [sortedMockTransactions, enrollmentPage]);
-
-  const trendFilteredTransactions = useMemo(() => {
-    return mockTransactions.filter(tx => {
-      const txDate = new Date(tx.timestamp);
-      const systemDate = new Date('2026-05-30T23:59:59');
-      
-      let cutoffMonths = 12;
-      if (trendTimeframe === '1m') cutoffMonths = 1;
-      if (trendTimeframe === '3m') cutoffMonths = 3;
-      if (trendTimeframe === '9m') cutoffMonths = 9;
-      
-      const cutoffDate = new Date(systemDate);
-      cutoffDate.setMonth(cutoffDate.getMonth() - cutoffMonths);
-      
-      return txDate >= cutoffDate;
-    });
-  }, [mockTransactions, trendTimeframe]);
-
-  const courseRegistrations = useMemo(() => {
-    const counts: { [key: string]: { courseTitle: string; count: number } } = {
-      'ic-1': { courseTitle: 'Data Structures & Algorithms', count: 0 },
-      'ic-2': { courseTitle: 'Java Web Development', count: 0 },
-      'ic-3': { courseTitle: 'Python for Automation', count: 0 },
-    };
-
-    trendFilteredTransactions.forEach(tx => {
-      if (counts[tx.courseId]) {
-        counts[tx.courseId].count += 1;
-      }
-    });
-
-    return Object.keys(counts).map(id => ({
-      courseId: id,
-      courseTitle: counts[id].courseTitle,
-      count: counts[id].count
-    })).sort((a, b) => b.count - a.count);
-  }, [trendFilteredTransactions]);
 
   const formatFullDateTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -1398,12 +1159,14 @@ export const InstructorDashboard: React.FC = () => {
           {/* Instructor User Identity */}
           <div className="flex items-center gap-3 p-2 rounded-xl bg-brand-blue-light/30">
             <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is"
+              src={user?.avatar || "https://ui-avatars.com/api/?name=Instructor&background=F36F21&color=fff"}
               alt="Instructor Avatar"
               className="w-8 h-8 rounded-full border border-primary/40 object-cover shrink-0"
             />
             <div className="sidebar-footer-text flex flex-col min-w-0">
-              <span className="text-xs font-bold text-white truncate leading-tight">Dr. Jenkins</span>
+              <span className="text-xs font-bold text-white truncate leading-tight">
+                {user?.name || user?.username || 'Instructor'}
+              </span>
               <span className="text-[10px] text-slate-400 truncate leading-none">Primary Instructor</span>
             </div>
           </div>
@@ -1445,7 +1208,9 @@ export const InstructorDashboard: React.FC = () => {
                     </div>
                     <h1 className="text-3xl md:text-4xl font-display font-black leading-tight relative z-10">
                       <span className="bg-gradient-to-r from-[#12284C] to-[#1c3d73] bg-clip-text text-transparent">Hello, </span>
-                      <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">Dr. Jenkins! 👋</span>
+                      <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
+                        {user?.name || user?.username || 'Instructor'}! 👋
+                      </span>
                     </h1>
                     <p className="text-text-muted mt-1">Here is a high-level summary of your classes and revenue statistics.</p>
                   </div>
@@ -2243,15 +2008,46 @@ export const InstructorDashboard: React.FC = () => {
                           style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
                           className="w-full bg-slate-50 border border-slate-200 text-slate-700 hover:text-brand-blue rounded-xl py-1.5 pl-3 pr-8 text-[11px] font-extrabold cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:bg-slate-100/70"
                         >
-                          <option value="this-month">This Month (May 2026)</option>
-                          <option value="last-month">Last Month (Apr 2026)</option>
-                          <option value="mar-2026">March 2026</option>
-                          <option value="feb-2026">February 2026</option>
-                          <option value="jan-2026">January 2026</option>
-                          <option value="all">All Time</option>
-                          {revenueFilter === 'custom' && (
-                            <option value="custom">Custom Date Range</option>
-                          )}
+                          {(() => {
+                            const now = new Date();
+                            const curYear = now.getFullYear();
+                            const curMonth = now.getMonth();
+                            const monthNames = [
+                              "January", "February", "March", "April", "May", "June",
+                              "July", "August", "September", "October", "November", "December"
+                            ];
+                            
+                            // This Month
+                            const options = [
+                              <option key="this-month" value="this-month">
+                                This Month ({monthNames[curMonth]} {curYear})
+                              </option>
+                            ];
+                            
+                            // Last Month
+                            const lastMonthDate = new Date(curYear, curMonth - 1, 1);
+                            options.push(
+                              <option key="last-month" value="last-month">
+                                Last Month ({monthNames[lastMonthDate.getMonth()]} {lastMonthDate.getFullYear()})
+                              </option>
+                            );
+                            
+                            // 4 more previous months
+                            for (let i = 2; i <= 5; i++) {
+                              const prevDate = new Date(curYear, curMonth - i, 1);
+                              options.push(
+                                <option key={i} value={`prev-${i}`}>
+                                  {monthNames[prevDate.getMonth()]} {prevDate.getFullYear()}
+                                </option>
+                              );
+                            }
+                            
+                            options.push(<option key="all" value="all">All Time</option>);
+                            if (revenueFilter === 'custom') {
+                              options.push(<option key="custom" value="custom">Custom Date Range</option>);
+                            }
+                            return options;
+                          })()}
                         </select>
                         <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-base">
                           keyboard_arrow_down
@@ -2336,7 +2132,7 @@ export const InstructorDashboard: React.FC = () => {
                         Net Revenue (70% - After App Fee)
                       </span>
                       <p className="text-xl font-display font-black text-blue-800 mt-0.5 tracking-tight">
-                        {(totalGrossRevenue * 0.7).toLocaleString('vi-VN')} ₫
+                        {totalNetRevenue.toLocaleString('vi-VN')} ₫
                       </p>
                     </div>
 
@@ -2348,10 +2144,10 @@ export const InstructorDashboard: React.FC = () => {
                           Actual Take-Home Payout (After Tax)
                         </span>
                         <p className="text-xl font-display font-black text-orange-800 mt-0.5 tracking-tight">
-                          {(totalGrossRevenue * 0.7 * 0.9).toLocaleString('vi-VN')} ₫
+                          {displayedTakeHome.toLocaleString('vi-VN')} ₫
                         </p>
                         <p className="text-[8.5px] text-orange-600 font-bold mt-1 leading-normal italic">
-                          * Deducted 10% standard withholding tax from Net Revenue.
+                          * Deducted 10% tax only for months with Net Revenue &gt; 2M ₫.
                         </p>
                       </div>
                     ) : (
@@ -2361,7 +2157,7 @@ export const InstructorDashboard: React.FC = () => {
                           Actual Take-Home Payout (After Tax)
                         </span>
                         <p className="text-xs text-slate-500 font-bold mt-1.5 leading-relaxed">
-                          Taxes will be calculated and finalized at the end of this month.
+                          Taxes will be calculated at month-end based on the 2M ₫ threshold.
                         </p>
                       </div>
                     )}
@@ -2804,7 +2600,7 @@ export const InstructorDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                        {payoutHistory.map((item) => (
+                        {payoutHistory.slice(0, 3).map((item) => (
                           <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                             <td className="py-3.5 px-4 font-bold text-brand-blue">{item.payoutPeriod}</td>
                             <td className="py-3.5 px-4 text-right text-slate-900 font-bold">
@@ -2842,6 +2638,20 @@ export const InstructorDashboard: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* View All Payouts Button */}
+                  {payoutHistory.length > 3 && (
+                    <div className="flex justify-center mt-5 pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setIsAllPayoutsModalOpen(true)}
+                        className="px-5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-brand-blue font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                      >
+                        <span className="material-symbols-outlined text-base">history</span>
+                        View All Automatic Payouts
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Modal: Payout Failure Reason (admin_note) */}
@@ -2880,6 +2690,95 @@ export const InstructorDashboard: React.FC = () => {
                           type="button"
                           onClick={() => setSelectedFailedPayout(null)} 
                           className="bg-brand-blue hover:bg-brand-blue-light text-white font-bold text-xs py-2.5 px-6 rounded-xl transition-all shadow-md active:scale-95"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal: View All Payouts */}
+                {isAllPayoutsModalOpen && (
+                  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-surface border border-slate-200 shadow-2xl rounded-3xl p-6 max-w-4xl w-full relative z-50 animate-scale-in flex flex-col max-h-[85vh]">
+                      {/* Modal Header */}
+                      <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-150/40">
+                        <div className="flex items-center gap-2 text-brand-blue">
+                          <span className="material-symbols-outlined text-2xl text-primary font-bold">history</span>
+                          <h3 className="font-display font-black text-lg">All Automatic Payout Transactions</h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsAllPayoutsModalOpen(false)}
+                          className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-all active:scale-90"
+                        >
+                          <span className="material-symbols-outlined text-lg">close</span>
+                        </button>
+                      </div>
+
+                      {/* Modal Content - Scrollable Table */}
+                      <div className="overflow-y-auto flex-1 w-full min-h-[300px] pr-1">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                          <thead>
+                            <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-100 font-extrabold bg-slate-50/70 sticky top-0 z-10">
+                              <th className="py-3 px-4 rounded-l-xl">Payout Period</th>
+                              <th className="py-3 px-4 text-right">Amount Paid</th>
+                              <th className="py-3 px-4">Receiving Account</th>
+                              <th className="py-3 px-4 text-center">Status</th>
+                              <th className="py-3 px-4">Reference Code</th>
+                              <th className="py-3 px-4 rounded-r-xl text-center">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                            {payoutHistory.map((item) => (
+                              <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="py-3.5 px-4 font-bold text-brand-blue">{item.payoutPeriod}</td>
+                                <td className="py-3.5 px-4 text-right text-slate-900 font-bold">
+                                  {item.amount.toLocaleString('vi-VN')} ₫
+                                </td>
+                                <td className="py-3.5 px-4 text-slate-500 font-medium">
+                                  {item.bankName} - {maskAccountNumber(item.bankAccountNumber)}
+                                </td>
+                                <td className="py-3.5 px-4 text-center">
+                                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black border tracking-wide uppercase select-none ${
+                                    item.status === 'SUCCESS' ? 'bg-[#f0fdf4] text-green-700 border-green-200' :
+                                    item.status === 'PROCESSING' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                                    item.status === 'FAILED' ? 'bg-red-50 text-red-700 border-red-100' :
+                                    'bg-slate-50 text-slate-700 border-slate-200'
+                                  }`}>
+                                    {item.status}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 text-slate-500 font-mono tracking-tight">{item.transactionReference}</td>
+                                <td className="py-3.5 px-4 text-center">
+                                  {item.status === 'FAILED' ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedFailedPayout(item);
+                                        setIsAllPayoutsModalOpen(false);
+                                      }}
+                                      className="px-3.5 py-1.5 text-[10px] font-extrabold rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all shadow-sm flex items-center gap-0.5 mx-auto active:scale-95"
+                                    >
+                                      <span className="material-symbols-outlined text-xs">info</span> View Reason
+                                    </button>
+                                  ) : (
+                                    <span className="text-[10px] text-text-muted font-bold italic">-</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Modal Footer */}
+                      <div className="mt-5 pt-3 border-t border-slate-150/40 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setIsAllPayoutsModalOpen(false)}
+                          className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all active:scale-95"
                         >
                           Close
                         </button>
