@@ -68,6 +68,10 @@ public class InstructorController {
             }
         }
 
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
         InstructorRevenueResponse result = instructorService.getRevenueData(userId, filter, startDate, endDate, trendTimeframe);
 
         return ResponseEntity.ok(ApiResponse.<InstructorRevenueResponse>builder()
