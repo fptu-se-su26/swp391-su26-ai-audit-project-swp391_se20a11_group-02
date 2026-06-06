@@ -111,3 +111,4 @@ backend/.env.local
 /frontend/coverage/
 /backend/coverage/
 .nyc_output
+backend/src/main/resources/application.yaml
