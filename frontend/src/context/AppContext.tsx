@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 import { fetchCart, addToCartApi, removeFromCartApi, clearCartApi } from '../services/cartService';
 import { checkoutApi } from '../services/orderService';
-import { dashboardService } from '../services/dashboardService';
 import { paymentService } from '../services/paymentService';
 
 export interface User {
