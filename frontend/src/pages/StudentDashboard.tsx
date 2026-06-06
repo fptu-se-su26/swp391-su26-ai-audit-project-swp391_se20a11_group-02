@@ -4,6 +4,14 @@ import { useApp } from '../context/AppContext';
 import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type SubmissionStatisticResponse } from '../services/dashboardService';
 import { paymentService } from '../services/paymentService';
 
+const TX_TYPE_OPTIONS = [
+  { value: '', label: 'All Types', bg: 'bg-gray-100 text-gray-700' },
+  { value: 'DEPOSIT', label: 'Deposit', bg: 'bg-blue-100 text-blue-700' },
+  { value: 'BUY_COURSE', label: 'Buy Course', bg: 'bg-red-100 text-red-700' },
+  { value: 'REFUND', label: 'Refund', bg: 'bg-purple-100 text-purple-700' },
+  { value: 'AWARD', label: 'Award', bg: 'bg-amber-100 text-amber-700' }
+];
+
 // Mock datasets exactly as they are in the HTML
 export const initialMyCourses = [
   {
@@ -371,9 +379,9 @@ export const StudentDashboard: React.FC = () => {
   const [paymentDetails, setPaymentDetails] = useState<{accountNumber: string, accountName: string, bin: string} | null>(null);
   const [paymentStatusClass, setPaymentStatusClass] = useState<string>('hidden');
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [_checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [initialBalance, setInitialBalance] = useState<number | null>(null);
   const [showDepositToast, _setShowDepositToast] = useState<boolean>(false);
-  const [_checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
   // Wallet Transactions States
   const [walletTransactions, setWalletTransactions] = useState<any[]>([]);
@@ -422,6 +430,7 @@ export const StudentDashboard: React.FC = () => {
       setActiveTab(hash);
       if (['wallet-transaction', 'deposit', 'payment-transaction'].includes(hash)) {
         setIsWalletOpen(true);
+        refreshBalance().catch(console.error);
       }
     } else {
       setActiveTab('dashboard');
@@ -743,6 +752,7 @@ export const StudentDashboard: React.FC = () => {
       
       if (result && result.qrCode) {
         setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(result.qrCode)}`);
+        setCheckoutUrl(result.checkoutUrl);
         setPaymentDetails({ accountNumber: result.accountNumber, accountName: result.accountName, bin: result.bin });
         setPaymentStatus('PLEASE SCAN THE QR CODE USING YOUR BANKING APP');
         setPaymentStatusClass('bg-red-50 text-red-700 block border border-red-200');
@@ -760,6 +770,7 @@ export const StudentDashboard: React.FC = () => {
   const handleCancelQR = () => {
     setQrGenerated(false);
     setQrCodeUrl(null);
+    setCheckoutUrl(null);
     setPaymentStatus('');
     setPaymentStatusClass('hidden');
     setPaymentDetails(null);
@@ -2205,87 +2216,171 @@ export const StudentDashboard: React.FC = () => {
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer border-none">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
-                <div className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
                   <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
                 </div>
                 <div>
                   <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
+                  <p className="text-[17px] font-bold text-green-600 font-mono leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
                 </div>
               </div>
             </div>
 
             {/* Wallet Transactions Table */}
             <div className="bg-surface rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.08)] overflow-hidden border border-surface-container mb-12">
-              <div className="p-6 border-b border-surface-container">
-                <h2 className="font-headline-md text-headline-md text-surface-navy">Internal Transactions</h2>
-                <p className="font-body-md text-body-md text-text-muted mt-1">History of course purchases, contest rewards, and other platform activities.</p>
+              <div className="p-6 border-b border-surface-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="font-headline-md text-headline-md text-surface-navy">Internal Transactions</h2>
+                  <p className="font-body-md text-body-md text-text-muted mt-1">History of course purchases, contest rewards, and other platform activities.</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 relative" ref={txTypeDropdownRef}>
+                  <span className="text-sm font-semibold text-text-muted">Filter Type:</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsTxTypeDropdownOpen(!isTxTypeDropdownOpen)}
+                    className="flex items-center justify-between gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 min-w-[170px] hover:border-primary transition-all text-sm font-semibold text-text-main shadow-sm cursor-pointer outline-none"
+                  >
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${TX_TYPE_OPTIONS.find(o => o.value === selectedTxType)?.bg || 'bg-gray-100 text-gray-700'}`}>
+                      {TX_TYPE_OPTIONS.find(o => o.value === selectedTxType)?.label || 'All Types'}
+                    </span>
+                    <span className="material-symbols-outlined text-text-muted text-lg transition-transform duration-200" style={{ transform: isTxTypeDropdownOpen ? 'rotate(180deg)' : 'none' }}>
+                      keyboard_arrow_down
+                    </span>
+                  </button>
+
+                  {isTxTypeDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1.5 z-50 animate-fade-in flex flex-col gap-1">
+                      {TX_TYPE_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setSelectedTxType(opt.value);
+                            setWalletTxPage(0);
+                            setIsTxTypeDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center px-3 py-1.5 hover:bg-gray-50 transition-colors text-left border-none cursor-pointer bg-transparent"
+                        >
+                          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${opt.bg}`}>
+                            {opt.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto min-h-[530px]">
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead>
                     <tr className="bg-surface-gray border-b border-surface-container text-text-muted font-label-md text-label-md uppercase tracking-wider">
                       <th className="p-4 pl-6 font-semibold">Date</th>
-                      <th className="p-4 font-semibold">Description</th>
                       <th className="p-4 font-semibold">Type</th>
                       <th className="p-4 font-semibold text-right">Amount</th>
                       <th className="p-4 font-semibold text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody className="text-body-md font-body-md text-text-main divide-y divide-surface-container font-semibold">
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">15 May 2026, 14:30</td>
-                      <td className="p-4">Contest #42 Reward</td>
-                      <td className="p-4"><span className="bg-green-100 text-green-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Reward</span></td>
-                      <td className="p-4 text-right text-brand-green font-bold">+500,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">14 May 2026, 09:15</td>
-                      <td className="p-4">Purchase: Java Masterclass 2025</td>
-                      <td className="p-4"><span className="bg-red-100 text-red-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Course Purchase</span></td>
-                      <td className="p-4 text-right text-red-600 font-bold">-409,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">10 May 2026, 16:45</td>
-                      <td className="p-4">Deposit from Bank</td>
-                      <td className="p-4"><span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">System Deposit</span></td>
-                      <td className="p-4 text-right text-brand-green font-bold">+1,000,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">05 May 2026, 11:20</td>
-                      <td className="p-4">Purchase: Python for Beginners</td>
-                      <td className="p-4"><span className="bg-red-100 text-red-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Course Purchase</span></td>
-                      <td className="p-4 text-right text-red-600 font-bold">-250,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">01 May 2026, 08:00</td>
-                      <td className="p-4">Refund: Cancelled Course</td>
-                      <td className="p-4"><span className="bg-gray-100 text-gray-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Refund</span></td>
-                      <td className="p-4 text-right text-brand-green font-bold">+150,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
-                    <tr className="hover:bg-surface-gray/50 transition-colors">
-                      <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">28 Apr 2026, 18:30</td>
-                      <td className="p-4">Deposit from Momo</td>
-                      <td className="p-4"><span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">System Deposit</span></td>
-                      <td className="p-4 text-right text-brand-green font-bold">+500,000 ₫</td>
-                      <td className="p-4 text-right"><span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span></td>
-                    </tr>
+                    {isWalletTxLoading ? (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-text-muted font-normal">
+                          Loading transactions...
+                        </td>
+                      </tr>
+                    ) : walletTransactions.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-text-muted font-normal">
+                          No transactions found.
+                        </td>
+                      </tr>
+                    ) : (
+                      walletTransactions.map((tx, index) => {
+                        const isAddition = ['DEPOSIT', 'AWARD', 'REFUND'].includes(tx.type);
+                        
+                        const renderTypeBadge = (type: string) => {
+                          switch (type) {
+                            case 'DEPOSIT':
+                              return <span className="bg-blue-100 text-blue-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Deposit</span>;
+                            case 'BUY_COURSE':
+                              return <span className="bg-red-100 text-red-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Buy Course</span>;
+                            case 'REFUND':
+                              return <span className="bg-purple-100 text-purple-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Refund</span>;
+                            case 'AWARD':
+                              return <span className="bg-amber-100 text-amber-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">Award</span>;
+                            default:
+                              return <span className="bg-gray-100 text-gray-700 font-label-md text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-bold">{type}</span>;
+                          }
+                        };
+
+                        const renderStatus = (status: string) => {
+                          switch (status) {
+                            case 'SUCCESS':
+                              return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-green-600">check_circle</span> Completed</span>;
+                            case 'FAILED':
+                              return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-red-600">cancel</span> Failed</span>;
+                            case 'PENDING':
+                            default:
+                              return <span className="text-text-muted text-sm flex items-center justify-end gap-1 font-normal"><span className="material-symbols-outlined text-[16px] text-yellow-600">hourglass_empty</span> Pending</span>;
+                          }
+                        };
+
+                        return (
+                          <tr key={index} className="hover:bg-surface-gray/50 transition-colors">
+                            <td className="p-4 pl-6 whitespace-nowrap text-text-muted font-normal">
+                              {new Date(tx.date).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                            <td className="p-4">{renderTypeBadge(tx.type)}</td>
+                            <td className={`p-4 text-right font-bold ${isAddition ? 'text-brand-green' : 'text-red-600'}`}>
+                              {isAddition ? '+' : '-'}{tx.amount.toLocaleString('vi-VN')} ₫
+                            </td>
+                            <td className="p-4 text-right">{renderStatus(tx.status)}</td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
               <div className="p-4 border-t border-surface-container flex items-center justify-between">
-                <span className="text-sm text-text-muted font-medium">Showing 1 to 6 of 24 entries</span>
+                <span className="text-sm text-text-muted font-medium">
+                  Showing {walletTransactions.length > 0 ? walletTxPage * 10 + 1 : 0} to {walletTxPage * 10 + walletTransactions.length} of {walletTxTotalElements} entries
+                </span>
                 <div className="flex gap-1">
-                  <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray"><span className="material-symbols-outlined text-sm">chevron_left</span></button>
-                  <button className="w-8 h-8 rounded bg-primary text-white flex items-center justify-center text-sm font-medium">1</button>
-                  <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray hover:text-primary text-sm font-medium">2</button>
-                  <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray hover:text-primary text-sm font-medium">3</button>
-                  <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray"><span className="material-symbols-outlined text-sm">chevron_right</span></button>
+                  <button 
+                    type="button"
+                    disabled={walletTxPage === 0}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setWalletTxPage(prev => Math.max(prev - 1, 0));
+                    }}
+                    className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    <span className="material-symbols-outlined text-sm">chevron_left</span>
+                  </button>
+                  {Array.from({ length: walletTxTotalPages }, (_, i) => (
+                    <button 
+                      type="button"
+                      key={i}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setWalletTxPage(i);
+                      }}
+                      className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium ${walletTxPage === i ? 'bg-primary text-white' : 'border border-gray-200 text-text-muted hover:bg-surface-gray hover:text-primary'}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button 
+                    type="button"
+                    disabled={walletTxPage >= walletTxTotalPages - 1}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setWalletTxPage(prev => Math.min(prev + 1, walletTxTotalPages - 1));
+                    }}
+                    className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-text-muted hover:bg-surface-gray disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    <span className="material-symbols-outlined text-sm">chevron_right</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -2303,12 +2398,12 @@ export const StudentDashboard: React.FC = () => {
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-text-muted hover:text-primary transition-colors h-full flex items-center font-label-md text-label-md bg-transparent border-none cursor-pointer">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
-                <div className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
                   <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
                 </div>
                 <div>
                   <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
+                  <p className="text-[17px] font-bold text-green-600 font-mono leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
                 </div>
               </div>
             </div>
@@ -2433,12 +2528,12 @@ export const StudentDashboard: React.FC = () => {
                 <button onClick={() => handleTabChange('payment-transaction')} className="text-primary font-bold border-b-2 border-primary h-full flex items-center font-label-md text-label-md bg-transparent cursor-pointer">Payment Transaction</button>
               </div>
               <div className="bg-surface-container-lowest py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-surface-container">
-                <div className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
                   <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
                 </div>
                 <div>
                   <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-                  <p className="text-[17px] font-bold text-surface-navy leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
+                  <p className="text-[17px] font-bold text-green-600 font-mono leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
                 </div>
               </div>
             </div>

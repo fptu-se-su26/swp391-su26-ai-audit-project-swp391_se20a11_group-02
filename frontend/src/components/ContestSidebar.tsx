@@ -37,7 +37,8 @@ export const ContestSidebar: React.FC<ContestSidebarProps> = ({ contestId, activ
             <span className={`material-symbols-outlined ${activeTab === 'overview' ? 'icon-fill' : ''}`}>dashboard</span>
             Overview
           </Link>
-          
+
+
           {isRegistered && (
             <>
               <Link

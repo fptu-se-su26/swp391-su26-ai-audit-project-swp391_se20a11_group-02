@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 export const Withdraw: React.FC = () => {
+  const { user, refreshBalance } = useApp();
   const [bankName, setBankName] = useState<string>('');
   const [accNumber, setAccNumber] = useState<string>('');
   const [accName, setAccName] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user) {
+      refreshBalance().catch(console.error);
+    }
+  }, [user?.id]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +30,8 @@ export const Withdraw: React.FC = () => {
       return;
     }
 
-    if (numAmount > 2500000) {
+    const currentBalance = user?.walletBalance || 0;
+    if (numAmount > currentBalance) {
       setErrorMsg('Cannot withdraw more than your current balance.');
       return;
     }
@@ -51,12 +60,12 @@ export const Withdraw: React.FC = () => {
           <Link className="text-text-muted hover:text-primary transition-colors h-full flex items-center text-sm" to="/payment-transaction">Payment Transaction</Link>
         </div>
         <div className="bg-white py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.06)] flex items-center gap-3 min-w-[250px] mb-2 md:mb-0 shrink-0 border border-gray-200">
-          <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-primary">
+          <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
             <span className="material-symbols-outlined text-xl icon-fill">account_balance_wallet</span>
           </div>
           <div>
             <p className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Current Balance</p>
-            <p className="text-[17px] font-bold text-brand-blue leading-none mt-0.5">2,500,000 ₫</p>
+            <p className="text-[17px] font-bold text-green-600 font-mono leading-none mt-0.5">{user?.walletBalance?.toLocaleString('vi-VN') || 0} ₫</p>
           </div>
         </div>
       </div>

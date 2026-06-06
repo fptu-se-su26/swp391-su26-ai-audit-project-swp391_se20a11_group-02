@@ -26,7 +26,7 @@ interface CartItem {
 
 export const ShoppingCart: React.FC = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, checkoutCart, user, clearCart } = useApp();
+  const { cart, removeFromCart, checkoutCart, user, clearCart, refreshBalance } = useApp();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState('');
@@ -35,6 +35,12 @@ export const ShoppingCart: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   
   const walletBalance = user?.walletBalance || 0;
+
+  useEffect(() => {
+    if (user) {
+      refreshBalance().catch(console.error);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     const loadCartItems = async () => {
