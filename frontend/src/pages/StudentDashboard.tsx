@@ -1560,7 +1560,7 @@ export const StudentDashboard: React.FC = () => {
                       playerActiveTab === 'overview' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-primary'
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[18px]">info</span> Overview
+                    <span className="material-symbols-outlined text-[18px]">info</span> Theory Content
                   </button>
                   <button 
                     onClick={() => { setPlayerActiveTab('qa'); setCurrentProblemName(null); }}

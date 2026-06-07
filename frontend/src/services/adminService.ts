@@ -86,6 +86,8 @@ export interface AdminProblem {
   isPublic: boolean;
   score: number;
   solutions?: string;
+  totalSubmissions: number;
+  acceptedSubmissions: number;
 }
 
 export interface AdminContest {
@@ -337,7 +339,9 @@ let mockProblems: AdminProblem[] = [
     timeLimitMs: 1000,
     memoryLimitKb: 128000,
     isPublic: true,
-    score: 100.0
+    score: 100.0,
+    totalSubmissions: 1245,
+    acceptedSubmissions: 850
   },
   {
     id: 2,
@@ -358,7 +362,78 @@ let mockProblems: AdminProblem[] = [
     timeLimitMs: 1500,
     memoryLimitKb: 256000,
     isPublic: true,
-    score: 100.0
+    score: 100.0,
+    totalSubmissions: 540,
+    acceptedSubmissions: 210
+  },
+  {
+    id: 3,
+    title: "Median of Two Sorted Arrays",
+    description: "Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.",
+    inputDescription: "Two sorted integer arrays nums1 and nums2.",
+    outputDescription: "A double representing the median.",
+    constraints: "nums1.length == m, nums2.length == n",
+    exampleInput: "nums1 = [1,3], nums2 = [2]",
+    exampleOutput: "2.00000",
+    hint: "Think about binary search partition.",
+    problemScope: "CONTEST",
+    difficulty: "HARD",
+    isActive: true,
+    createdBy: 1001,
+    createdAt: "2026-03-01T12:00:00Z",
+    totalTestcases: 12,
+    timeLimitMs: 2000,
+    memoryLimitKb: 128000,
+    isPublic: false,
+    score: 200.0,
+    totalSubmissions: 310,
+    acceptedSubmissions: 45
+  },
+  {
+    id: 4,
+    title: "Palindrome Number",
+    description: "Given an integer x, return true if x is a palindrome, and false otherwise.",
+    inputDescription: "An integer x.",
+    outputDescription: "true or false.",
+    constraints: "-2^31 <= x <= 2^31 - 1",
+    exampleInput: "x = 121",
+    exampleOutput: "true",
+    hint: "Try reversing the second half of the number.",
+    problemScope: "PRACTICE",
+    difficulty: "EASY",
+    isActive: false,
+    createdBy: 1003,
+    createdAt: "2026-03-10T14:00:00Z",
+    totalTestcases: 0,
+    timeLimitMs: 1000,
+    memoryLimitKb: 64000,
+    isPublic: false,
+    score: 50.0,
+    totalSubmissions: 0,
+    acceptedSubmissions: 0
+  },
+  {
+    id: 5,
+    title: "Spring Security OAuth2 Validator",
+    description: "Implement a parser/validator for Spring Security OAuth2 tokens.",
+    inputDescription: "String representation of a token.",
+    outputDescription: "Boolean validation state.",
+    constraints: "Token length <= 2048",
+    exampleInput: "token = \"bearer eyJ...\"",
+    exampleOutput: "true",
+    hint: "Check JWT header and signature structure.",
+    problemScope: "CONTEST",
+    difficulty: "HARD",
+    isActive: false,
+    createdBy: 1001,
+    createdAt: "2026-03-12T08:30:00Z",
+    totalTestcases: 0,
+    timeLimitMs: 3000,
+    memoryLimitKb: 256000,
+    isPublic: false,
+    score: 150.0,
+    totalSubmissions: 0,
+    acceptedSubmissions: 0
   }
 ];
 
@@ -656,7 +731,7 @@ export const adminService = {
     return mockProblems;
   },
 
-  async createProblem(problem: Omit<AdminProblem, 'id' | 'createdAt' | 'createdBy' | 'isActive'>): Promise<AdminProblem> {
+  async createProblem(problem: Omit<AdminProblem, 'id' | 'createdAt' | 'createdBy' | 'isActive' | 'totalSubmissions' | 'acceptedSubmissions'>): Promise<AdminProblem> {
     try {
       const response = await fetch(`${BASE_URL}/admin/problems`, {
         method: 'POST',
@@ -677,11 +752,73 @@ export const adminService = {
       id: mockProblems.length + 1,
       createdAt: new Date().toISOString(),
       createdBy: 9999, // Admin
-      isActive: true
+      isActive: problem.totalTestcases > 0,
+      totalSubmissions: 0,
+      acceptedSubmissions: 0
     };
     mockProblems.push(newProb);
     mockStats.totalProblems += 1;
     return newProb;
+  },
+
+  async updateProblemScope(problemId: number, problemScope: 'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE'): Promise<AdminProblem> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/scope`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problemScope }),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Mocking update problem scope:", err);
+    }
+    await delay(200);
+    mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, problemScope } : p);
+    return mockProblems.find(p => p.id === problemId)!;
+  },
+
+  async updateProblemPublicStatus(problemId: number, isPublic: boolean): Promise<AdminProblem> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/public`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublic }),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Mocking update problem public status:", err);
+    }
+    await delay(200);
+    mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, isPublic } : p);
+    return mockProblems.find(p => p.id === problemId)!;
+  },
+
+  async activateProblem(problemId: number, totalTestcases: number): Promise<AdminProblem> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/activate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ totalTestcases }),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Mocking activate problem:", err);
+    }
+    await delay(200);
+    mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, totalTestcases, isActive: totalTestcases > 0 } : p);
+    return mockProblems.find(p => p.id === problemId)!;
   },
 
   // Contests
