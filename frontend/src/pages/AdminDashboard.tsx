@@ -68,6 +68,261 @@ const problemData: Record<string, ProblemDetail> = {
   }
 };
 
+const tabHeaderDetails: Record<string, { badge: string; icon: string; title: string; desc: string }> = {
+  dashboard: {
+    badge: 'Platform Administration',
+    icon: 'admin_panel_settings',
+    title: 'System Control Dashboard ⚙️',
+    desc: 'Manage courses, instructors, users, program problems, contests, and view statistics.'
+  },
+  courses: {
+    badge: 'Course Management',
+    icon: 'library_books',
+    title: 'Course Administration 📚',
+    desc: 'Review and approve instructor course submissions, curriculum, and settings.'
+  },
+  problems: {
+    badge: 'Problem Management',
+    icon: 'task',
+    title: 'Coding Arena Problems 💻',
+    desc: 'Create, modify, and publish coding challenges and configure test cases.'
+  },
+  contest: {
+    badge: 'Contest Management',
+    icon: 'emoji_events',
+    title: 'Contests & Competitions 🏆',
+    desc: 'Organize programming contests, configure scoring rules, and monitor participants.'
+  },
+  instructor: {
+    badge: 'Instructor Management',
+    icon: 'school',
+    title: 'Instructor Applications 🎓',
+    desc: 'Review instructor registration requests, CVs, and manage current platform instructors.'
+  },
+  users: {
+    badge: 'User Management',
+    icon: 'group',
+    title: 'User Control Panel 👥',
+    desc: 'Monitor registered students, check profiles, lock/unlock accounts, and track purchases.'
+  },
+  financial: {
+    badge: 'Financial Overview',
+    icon: 'insights',
+    title: 'Financial Statistics 📊',
+    desc: 'Track platform revenue growth, subscription sales, and analyze instructor payouts.'
+  }
+};
+
+const JAVA_TEMPLATE = `class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        // Write your code here
+        
+    }
+}`;
+
+const PYTHON_TEMPLATE = `class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        # Write your code here
+        pass`;
+
+const CPP_TEMPLATE = `#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        // Write your code here
+        
+    }
+};`;
+
+interface RankingSubmissionDetail {
+  time?: string;
+  penalty: number;
+  status: 'first_solve' | 'accepted' | 'failed' | 'unattempted';
+}
+
+interface RankingTeam {
+  rank: number;
+  name: string;
+  affiliation: string;
+  solved: number;
+  totalAttempts: number;
+  totalTime: string;
+  submissions: Record<string, RankingSubmissionDetail>;
+}
+
+const TEAMS_DATA: RankingTeam[] = [
+  {
+    rank: 1,
+    name: 'mosaic14_2025',
+    affiliation: 'CyberKnights',
+    solved: 8,
+    totalAttempts: 10,
+    totalTime: '11:02:15',
+    submissions: {
+      A: { time: '0:15:22', penalty: 1, status: 'first_solve' },
+      B: { time: '0:45:10', penalty: 2, status: 'accepted' },
+      C: { time: '1:10:33', penalty: 1, status: 'accepted' },
+      D: { time: '1:55:00', penalty: 3, status: 'accepted' },
+      E: { time: '2:30:15', penalty: 1, status: 'accepted' },
+      F: { time: '3:10:45', penalty: 4, status: 'accepted' },
+      G: { time: '3:25:22', penalty: 2, status: 'accepted' },
+      H: { time: '3:50:00', penalty: 5, status: 'accepted' },
+      I: { penalty: 0, status: 'unattempted' },
+      J: { penalty: 0, status: 'unattempted' }
+    }
+  },
+  {
+    rank: 2,
+    name: 'BinaryBeasts',
+    affiliation: 'Tech Univ',
+    solved: 7,
+    totalAttempts: 10,
+    totalTime: '10:25:15',
+    submissions: {
+      A: { time: '0:10:45', penalty: 0, status: 'accepted' },
+      B: { time: '0:32:10', penalty: 1, status: 'first_solve' },
+      C: { time: '1:05:50', penalty: 2, status: 'accepted' },
+      D: { penalty: 3, status: 'failed' },
+      E: { time: '2:15:30', penalty: 1, status: 'accepted' },
+      F: { time: '3:05:40', penalty: 0, status: 'accepted' },
+      G: { time: '3:35:10', penalty: 4, status: 'accepted' },
+      H: { time: '3:45:22', penalty: 1, status: 'accepted' },
+      I: { penalty: 0, status: 'unattempted' },
+      J: { penalty: 0, status: 'unattempted' }
+    }
+  },
+  {
+    rank: 3,
+    name: 'CodeMasters',
+    affiliation: 'Polytechnic',
+    solved: 6,
+    totalAttempts: 10,
+    totalTime: '09:20:30',
+    submissions: {
+      A: { time: '0:20:15', penalty: 1, status: 'accepted' },
+      B: { time: '0:55:40', penalty: 0, status: 'accepted' },
+      C: { time: '1:20:10', penalty: 0, status: 'first_solve' },
+      D: { time: '2:10:45', penalty: 2, status: 'accepted' },
+      E: { penalty: 4, status: 'failed' },
+      F: { time: '3:30:15', penalty: 1, status: 'accepted' },
+      G: { time: '3:50:30', penalty: 3, status: 'accepted' },
+      H: { penalty: 0, status: 'unattempted' },
+      I: { penalty: 0, status: 'unattempted' },
+      J: { penalty: 0, status: 'unattempted' }
+    }
+  },
+  {
+    rank: 4,
+    name: 'ByteBusters',
+    affiliation: 'Alpha Tech',
+    solved: 6,
+    totalAttempts: 10,
+    totalTime: '11:05:00',
+    submissions: {
+      A: { time: '0:25:30', penalty: 2, status: 'accepted' },
+      B: { time: '1:02:15', penalty: 1, status: 'accepted' },
+      C: { time: '1:45:00', penalty: 1, status: 'accepted' },
+      D: { time: '2:25:40', penalty: 3, status: 'accepted' },
+      E: { time: '3:20:10', penalty: 0, status: 'accepted' },
+      F: { time: '3:52:50', penalty: 2, status: 'accepted' },
+      G: { penalty: 0, status: 'unattempted' },
+      H: { penalty: 0, status: 'unattempted' },
+      I: { penalty: 0, status: 'unattempted' },
+      J: { penalty: 0, status: 'unattempted' }
+    }
+  },
+  {
+    rank: 5,
+    name: 'RecursionRiders',
+    affiliation: 'Beta University',
+    solved: 5,
+    totalAttempts: 10,
+    totalTime: '08:45:40',
+    submissions: {
+      A: { time: '0:18:10', penalty: 0, status: 'accepted' },
+      B: { time: '0:50:30', penalty: 1, status: 'accepted' },
+      C: { time: '1:30:15', penalty: 0, status: 'accepted' },
+      D: { time: '2:40:00', penalty: 2, status: 'accepted' },
+      E: { time: '3:45:20', penalty: 1, status: 'accepted' },
+      F: { penalty: 0, status: 'unattempted' },
+      G: { penalty: 0, status: 'unattempted' },
+      H: { penalty: 0, status: 'unattempted' },
+      I: { penalty: 0, status: 'unattempted' },
+      J: { penalty: 0, status: 'unattempted' }
+    }
+  }
+];
+
+const RANKING_TEAM_COLORS = [
+  '#3b82f6', // Rank 1: Blue
+  '#10b981', // Rank 2: Emerald Green
+  '#f59e0b', // Rank 3: Amber Orange
+  '#8b5cf6', // Rank 4: Purple
+  '#ec4899', // Rank 5: Pink
+];
+
+const RANKING_W = 720;
+const RANKING_H = 260;
+const RANKING_paddingLeft = 45;
+const RANKING_paddingTop = 20;
+
+const rankingTimeToMinutes = (timeStr?: string): number => {
+  if (!timeStr) return 0;
+  const parts = timeStr.split(':').map(Number);
+  const hrs = parts[0] || 0;
+  const mins = parts[1] || 0;
+  const secs = parts[2] || 0;
+  return hrs * 60 + mins + secs / 60;
+};
+
+const getRankingSvgCoords = (minutes: number, solves: number) => {
+  const svgX = RANKING_paddingLeft + (minutes / 240) * RANKING_W;
+  const svgY = (RANKING_paddingTop + RANKING_H) - (solves / 10) * RANKING_H;
+  return { x: svgX, y: svgY };
+};
+
+const getRankingStepPathString = (team: RankingTeam) => {
+  const solves: { time: number; problem: string }[] = [];
+  Object.keys(team.submissions).forEach((key) => {
+    const sub = team.submissions[key];
+    if (sub.status === 'accepted' || sub.status === 'first_solve') {
+      solves.push({
+        time: rankingTimeToMinutes(sub.time),
+        problem: key
+      });
+    }
+  });
+  solves.sort((a, b) => a.time - b.time);
+
+  const start = getRankingSvgCoords(0, 0);
+  if (solves.length === 0) {
+    const end = getRankingSvgCoords(240, 0);
+    return {
+      pathStr: `M ${start.x} ${start.y} L ${end.x} ${end.y}`,
+      solves: []
+    };
+  }
+
+  let pathStr = `M ${start.x} ${start.y}`;
+  solves.forEach((solve, index) => {
+    const p1 = getRankingSvgCoords(solve.time, index);
+    const p2 = getRankingSvgCoords(solve.time, index + 1);
+    pathStr += ` L ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+  });
+
+  const end = getRankingSvgCoords(240, solves.length);
+  pathStr += ` L ${end.x} ${end.y}`;
+  return { pathStr, solves };
+};
+
+const rankingFormatMinutes = (m: number): string => {
+  const hrs = Math.floor(m / 60);
+  const mins = Math.floor(m % 60);
+  return `${hrs}h ${mins}m`;
+};
+
 export const AdminDashboard: React.FC = () => {
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
@@ -83,7 +338,7 @@ export const AdminDashboard: React.FC = () => {
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
-  
+
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -92,8 +347,10 @@ export const AdminDashboard: React.FC = () => {
   const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
+  const [userOnlineFilter, setUserOnlineFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
+  const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
 
@@ -102,6 +359,8 @@ export const AdminDashboard: React.FC = () => {
   const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
+  const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
+  const [editingProblemId, setEditingProblemId] = useState<number | null>(null);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
 
   // Course Player Review Mode states
@@ -113,16 +372,63 @@ export const AdminDashboard: React.FC = () => {
   const [reviewSolveLang, setReviewSolveLang] = useState('Java');
   const [reviewSolveCode, setReviewSolveCode] = useState('');
 
+  // Contest Detail Review Mode states
+  const [reviewingContest, setReviewingContest] = useState<AdminContest | null>(null);
+  const [reviewContestTab, setReviewContestTab] = useState<'overview' | 'problems' | 'submissions' | 'ranking'>('overview');
+  const [reviewContestProblemId, setReviewContestProblemId] = useState<number | null>(null);
+
+  // Contest Countdown Timer states
+  const [contestTimeLeft, setContestTimeLeft] = useState<string>('--:--:--');
+  const [contestTimerLabel, setContestTimerLabel] = useState<string>('Ends In');
+
+  // Contest Problem Solve Workspace states
+  const [contestSolveLang, setContestSolveLang] = useState<string>('Java');
+  const [contestSolveCode, setContestSolveCode] = useState<string>('');
+  const [contestEditorStatus, setContestEditorStatus] = useState<'Accepted' | 'Running' | 'Success'>('Accepted');
+  const [contestToastMessage, setContestToastMessage] = useState<string | null>(null);
+  const [contestSuccessOverlay, setContestSuccessOverlay] = useState<boolean>(false);
+
+  // Contest Rankings tab states
+  const [rankingHoveredTeam, setRankingHoveredTeam] = useState<string | null>(null);
+  const [rankingActiveTooltip, setRankingActiveTooltip] = useState<{
+    x: number;
+    y: number;
+    teamName: string;
+    solvedCount: number;
+    timeStr: string;
+    problem: string;
+  } | null>(null);
+  const [rankingVisibleTeams, setRankingVisibleTeams] = useState<Record<string, boolean>>({
+    'mosaic14_2025': true,
+    'BinaryBeasts': true,
+    'CodeMasters': true,
+    'ByteBusters': true,
+    'RecursionRiders': true
+  });
+
+  // Contest Add Problems states
+  const [isAddContestProblemOpen, setIsAddContestProblemOpen] = useState(false);
+  const [contestAddedProblemIds, setContestAddedProblemIds] = useState<Set<number>>(new Set());
+
+  // Create Contest Password states
+  const [newContestPassword, setNewContestPassword] = useState('');
+  const [newContestConfirmPassword, setNewContestConfirmPassword] = useState('');
+
   // Hash-based routing synchronization
   useEffect(() => {
     const handleRouting = () => {
       let currentHash = window.location.hash || '#dashboard';
-      
+
       // Close active review player and modals when navigating tabs
       setReviewingCourse(null);
+      setReviewingContest(null);
+      setReviewContestTab('overview');
+      setReviewContestProblemId(null);
       setSelectedAppForReview(null);
       setSelectedUserDetail(null);
       setIsCreateProblemOpen(false);
+      setIsEditProblemOpen(false);
+      setEditingProblemId(null);
       setIsCreateContestOpen(false);
 
       if (currentHash === '#courses') {
@@ -154,6 +460,61 @@ export const AdminDashboard: React.FC = () => {
 
     return () => window.removeEventListener('hashchange', handleRouting);
   }, []);
+
+  // useEffect for contest ticking countdown timer
+  useEffect(() => {
+    if (!reviewingContest) return;
+
+    const status = reviewingContest.status || 'ENDED';
+
+    if (status === 'ENDED' || status === 'CANCELLED') {
+      setContestTimeLeft('Ended');
+      setContestTimerLabel('Contest Ended');
+      return;
+    }
+
+    const targetTime = status === 'UPCOMING' ? reviewingContest.startTime : reviewingContest.endTime;
+    const label = status === 'UPCOMING' ? 'Begins In' : 'Ends In';
+    setContestTimerLabel(label);
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const end = new Date(targetTime).getTime();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        setContestTimeLeft('Ended');
+        setContestTimerLabel('Contest Ended');
+        return;
+      }
+
+      const hrs = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const pad = (n: number) => String(n).padStart(2, '0');
+      setContestTimeLeft(`${pad(hrs)}:${pad(mins)}:${pad(secs)}`);
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [reviewingContest]);
+
+  const showContestToast = (msg: string) => {
+    setContestToastMessage(msg);
+    setTimeout(() => setContestToastMessage(null), 4000);
+  };
+
+  const handleContestSubmit = () => {
+    setContestEditorStatus('Running');
+    showContestToast('Submitting solution... Evaluating sample cases...');
+    setTimeout(() => {
+      setContestEditorStatus('Success');
+      setContestSuccessOverlay(true);
+      showContestToast('All test cases passed successfully!');
+    }, 2000);
+  };
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(prev => {
@@ -230,41 +591,150 @@ export const AdminDashboard: React.FC = () => {
   const [newContestScoringRule, setNewContestScoringRule] = useState<'ICPC' | 'IOI' | 'CUSTOM'>('ICPC');
   const [newContestStartTime, setNewContestStartTime] = useState('');
   const [newContestEndTime, setNewContestEndTime] = useState('');
-  const [newContestDuration, setNewContestDuration] = useState(120);
 
   const dashboardTimeFilter = '12';
 
   // SVG Chart Computations
   const financialChartData = useMemo(() => adminService.getFinancialChartData(), []);
-  
-  // Filter mock metrics based on time filter
-  const filteredRevenue = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const subset = financialChartData.slice(0, months);
-    return subset.reduce((sum, item) => sum + item.amount, 0);
-  }, [dashboardTimeFilter, financialChartData]);
+
+  // Financial Page state variables
+  const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '3months' | '9months' | '12months' | 'custom'>('12months');
+  const [financialStartDate, setFinancialStartDate] = useState<string>('');
+  const [financialEndDate, setFinancialEndDate] = useState<string>('');
+  const [hoveredMonthIndex, setHoveredMonthIndex] = useState<number | null>(null);
+  const [hoveredCourseSalesIndex, setHoveredCourseSalesIndex] = useState<number | null>(null);
+  // 12-month raw financial records (Jul 25 to Jun 26)
+  const financialMonthlyRecords = useMemo(() => {
+    const rawChartData = [
+      { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
+      { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
+      { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
+      { label: 'Oct 25', datePrefix: '2025-10', gross: 17200000, count: 34, rewards: 900000, server: 1200000, marketing: 1500000 },
+      { label: 'Nov 25', datePrefix: '2025-11', gross: 19000000, count: 38, rewards: 1000000, server: 1500000, marketing: 1500000 },
+      { label: 'Dec 25', datePrefix: '2025-12', gross: 21500000, count: 43, rewards: 1500000, server: 1500000, marketing: 2000000 },
+      { label: 'Jan 26', datePrefix: '2026-01', gross: 12000000, count: 24, rewards: 800000, server: 1500000, marketing: 800000 },
+      { label: 'Feb 26', datePrefix: '2026-02', gross: 15000000, count: 30, rewards: 1000000, server: 1500000, marketing: 1000000 },
+      { label: 'Mar 26', datePrefix: '2026-03', gross: 18500000, count: 37, rewards: 1200000, server: 1500000, marketing: 1500000 },
+      { label: 'Apr 26', datePrefix: '2026-04', gross: 16000000, count: 32, rewards: 1000000, server: 1500000, marketing: 1200000 },
+      { label: 'May 26', datePrefix: '2026-05', gross: 22000000, count: 44, rewards: 1500000, server: 1500000, marketing: 1800000 },
+      { label: 'Jun 26', datePrefix: '2026-06', gross: 24580000, count: 49, rewards: 1800000, server: 1500000, marketing: 2000000 }
+    ];
+
+    return rawChartData.map(item => {
+      const gross = item.gross;
+      const instructorShare = Math.round(gross * 0.7);
+      const platformShare = Math.round(gross * 0.3);
+      const gatewayFees = Math.round(gross * 0.02);
+      const otherExpenses = item.server + item.marketing + gatewayFees;
+      const netProfit = platformShare - item.rewards - otherExpenses;
+      const datePrefix = item.datePrefix;
+      const days = datePrefix.endsWith('02') ? 28 : (['04', '06', '09', '11'].some(m => datePrefix.endsWith(m)) ? 30 : 31);
+
+      return {
+        label: item.label,
+        startDate: `${datePrefix}-01`,
+        endDate: `${datePrefix}-${days}`,
+        grossRevenue: gross,
+        coursesSold: item.count,
+        contestRewards: item.rewards,
+        otherExpenses,
+        serverCosts: item.server,
+        marketingCosts: item.marketing,
+        gatewayFees,
+        instructorShare,
+        platformShare,
+        netProfit
+      };
+    });
+  }, []);
+
+  // Filtered dataset according to UI state
+  const filteredFinancialData = useMemo(() => {
+    if (financialTimeFilter === 'custom') {
+      if (!financialStartDate && !financialEndDate) return financialMonthlyRecords;
+      return financialMonthlyRecords.filter(r => {
+        const recordStart = new Date(r.startDate).getTime();
+        const recordEnd = new Date(r.endDate).getTime();
+        const filterStart = financialStartDate ? new Date(financialStartDate).getTime() : -Infinity;
+        const filterEnd = financialEndDate ? new Date(financialEndDate).getTime() : Infinity;
+        return recordStart >= filterStart && recordEnd <= filterEnd;
+      });
+    }
+
+    switch (financialTimeFilter) {
+      case 'month':
+        return financialMonthlyRecords.slice(11);
+      case '3months':
+        return financialMonthlyRecords.slice(9);
+      case '9months':
+        return financialMonthlyRecords.slice(3);
+      case '12months':
+      default:
+        return financialMonthlyRecords;
+    }
+  }, [financialTimeFilter, financialStartDate, financialEndDate, financialMonthlyRecords]);
+
+  // Aggregated Summary of metrics
+  const financialSummary = useMemo(() => {
+    let gross = 0;
+    let platformNet = 0;
+    let coursesSold = 0;
+    let contestRewards = 0;
+    let otherExpenses = 0;
+    let netProfit = 0;
+    let instructorPayouts = 0;
+    let serverCosts = 0;
+    let marketingCosts = 0;
+    let gatewayFees = 0;
+
+    filteredFinancialData.forEach(item => {
+      gross += item.grossRevenue;
+      platformNet += item.platformShare;
+      coursesSold += item.coursesSold;
+      contestRewards += item.contestRewards;
+      otherExpenses += item.otherExpenses;
+      netProfit += item.netProfit;
+      instructorPayouts += item.instructorShare;
+      serverCosts += item.serverCosts;
+      marketingCosts += item.marketingCosts;
+      gatewayFees += item.gatewayFees;
+    });
+
+    return {
+      gross,
+      platformNet,
+      coursesSold,
+      contestRewards,
+      otherExpenses,
+      netProfit,
+      instructorPayouts,
+      serverCosts,
+      marketingCosts,
+      gatewayFees
+    };
+  }, [filteredFinancialData]);
 
   // SVG coordinate calculator for 12-month revenue line chart
   const lineChartPoints = useMemo(() => {
     const maxAmount = Math.max(...financialChartData.map(m => m.amount), 1000000);
     const roundMax = Math.ceil(maxAmount / 5000000) * 5000000;
-    
+
     const width = 640;
     const height = 220;
     const paddingLeft = 60;
     const paddingRight = 20;
     const paddingTop = 20;
     const paddingBottom = 30;
-    
+
     const chartWidth = width - paddingLeft - paddingRight;
     const chartHeight = height - paddingTop - paddingBottom;
-    
+
     const points = financialChartData.map((m, idx) => {
       const x = paddingLeft + (idx * (chartWidth / 11));
       const y = paddingTop + chartHeight - (m.amount / roundMax) * chartHeight;
       return { x, y, label: m.label, amount: m.amount };
     });
-    
+
     return { points, width, height, paddingLeft, paddingRight, paddingTop, paddingBottom, chartWidth, chartHeight, roundMax };
   }, [financialChartData]);
 
@@ -370,20 +840,19 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleToggleUserLock = async (userId: number, currentStatus: 'ACTIVE' | 'LOCKED') => {
-    const targetStatus = currentStatus === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
-    const confirmMsg = `Are you sure you want to ${targetStatus === 'LOCKED' ? 'LOCK' : 'UNLOCK'} this user account?`;
+  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      const updated = await adminService.setUserLockStatus(userId, targetStatus);
+      const updated = await adminService.setUserLockStatus(userId, newStatus);
       setUsers(prev => prev.map(u => u.id === userId ? updated : u));
       if (selectedUserDetail?.id === userId) {
         setSelectedUserDetail(updated);
       }
-      alert(`User status successfully updated to ${targetStatus}`);
+      alert(`User status successfully updated to ${newStatus}`);
     } catch (error) {
-      alert("Failed to toggle user lock status");
+      alert("Failed to update user status");
     }
   };
 
@@ -440,6 +909,82 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleEditProblemClick = (p: AdminProblem) => {
+    setEditingProblemId(p.id);
+    setNewProbTitle(p.title);
+    setNewProbDesc(p.description);
+    setNewProbInputDesc(p.inputDescription || '');
+    setNewProbOutputDesc(p.outputDescription || '');
+    setNewProbConstraints(p.constraints || '');
+    setNewProbExampleInput(p.exampleInput || '');
+    setNewProbExampleOutput(p.exampleOutput || '');
+    setNewProbHint(p.hint || '');
+    setNewProbScope(p.problemScope);
+    setNewProbDifficulty(p.difficulty);
+    setNewProbScore(p.score);
+    setNewProbTimeLimit(p.timeLimitMs);
+    setNewProbMemoryLimit(p.memoryLimitKb);
+    setNewProbIsPublic(p.isPublic);
+    setNewProbSolutions(p.solutions || '');
+    setIsEditProblemOpen(true);
+  };
+
+  const handleEditProblemSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingProblemId === null) return;
+    if (!newProbTitle.trim() || !newProbDesc.trim()) {
+      alert("Please fill in the title and description.");
+      return;
+    }
+
+    try {
+      const existingProb = problems.find(p => p.id === editingProblemId);
+      const updatedProb = await adminService.updateProblem(editingProblemId, {
+        title: newProbTitle.trim(),
+        description: newProbDesc.trim(),
+        inputDescription: newProbInputDesc.trim(),
+        outputDescription: newProbOutputDesc.trim(),
+        constraints: newProbConstraints.trim(),
+        exampleInput: newProbExampleInput.trim(),
+        exampleOutput: newProbExampleOutput.trim(),
+        hint: newProbHint.trim(),
+        problemScope: newProbScope,
+        difficulty: newProbDifficulty,
+        totalTestcases: existingProb?.totalTestcases || 0,
+        timeLimitMs: newProbTimeLimit,
+        memoryLimitKb: newProbMemoryLimit,
+        isPublic: newProbIsPublic,
+        score: newProbScore,
+        solutions: newProbSolutions.trim()
+      });
+
+      setProblems(prev => prev.map(p => p.id === editingProblemId ? updatedProb : p));
+      setIsEditProblemOpen(false);
+      setEditingProblemId(null);
+
+      // Reset form
+      setNewProbTitle('');
+      setNewProbDesc('');
+      setNewProbInputDesc('');
+      setNewProbOutputDesc('');
+      setNewProbConstraints('');
+      setNewProbExampleInput('');
+      setNewProbExampleOutput('');
+      setNewProbHint('');
+      setNewProbScope('PRACTICE');
+      setNewProbDifficulty('MEDIUM');
+      setNewProbScore(100);
+      setNewProbTimeLimit(2000);
+      setNewProbMemoryLimit(128000);
+      setNewProbIsPublic(true);
+      setNewProbSolutions('');
+
+      alert(`Problem "${updatedProb.title}" updated successfully!`);
+    } catch (error) {
+      alert("Failed to update problem");
+    }
+  };
+
   const handleUpdateProblemScope = async (problemId: number, scope: 'PRACTICE' | 'CONTEST') => {
     try {
       const updated = await adminService.updateProblemScope(problemId, scope);
@@ -483,6 +1028,20 @@ export const AdminDashboard: React.FC = () => {
       return;
     }
 
+    if (newContestPassword !== newContestConfirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    const start = new Date(newContestStartTime).getTime();
+    const end = new Date(newContestEndTime).getTime();
+    if (end <= start) {
+      alert("End Time must be after Start Time!");
+      return;
+    }
+
+    const computedDuration = Math.round((end - start) / 60000);
+
     try {
       const newContest = await adminService.createContest({
         title: newContestTitle.trim(),
@@ -490,7 +1049,8 @@ export const AdminDashboard: React.FC = () => {
         scoringRule: newContestScoringRule,
         startTime: newContestStartTime,
         endTime: newContestEndTime,
-        durations: newContestDuration
+        durations: computedDuration,
+        password: newContestPassword.trim() || undefined
       });
 
       setContests(prev => [...prev, newContest]);
@@ -502,7 +1062,8 @@ export const AdminDashboard: React.FC = () => {
       setNewContestScoringRule('ICPC');
       setNewContestStartTime('');
       setNewContestEndTime('');
-      setNewContestDuration(120);
+      setNewContestPassword('');
+      setNewContestConfirmPassword('');
 
       // update stats
       const newStats = await adminService.getDashboardStats();
@@ -529,15 +1090,18 @@ export const AdminDashboard: React.FC = () => {
     return users.filter(u => {
       const matchesSearch = u.name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase());
       const matchesStatus = userStatusFilter === 'ALL' || u.status === userStatusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesOnline = userOnlineFilter === 'ALL' || 
+        (userOnlineFilter === 'ONLINE' ? !!u.isOnline : !u.isOnline);
+      return matchesSearch && matchesStatus && matchesOnline;
     });
-  }, [users, userSearch, userStatusFilter]);
+  }, [users, userSearch, userStatusFilter, userOnlineFilter]);
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(problemSearch.toLowerCase()) || p.description.toLowerCase().includes(problemSearch.toLowerCase());
       const matchesDifficulty = problemDifficultyFilter === 'ALL' || p.difficulty === problemDifficultyFilter;
-      
+      const matchesScope = problemScopeFilter === 'ALL' || p.problemScope === problemScopeFilter;
+
       let matchesSubTab = false;
       if (problemSubTab === 'repository') {
         matchesSubTab = !p.isActive || !p.isPublic; // Repository shows inactive or private (draft) problems
@@ -547,9 +1111,9 @@ export const AdminDashboard: React.FC = () => {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'CONTEST';
       }
 
-      return matchesSearch && matchesDifficulty && matchesSubTab;
+      return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
     });
-  }, [problems, problemSearch, problemDifficultyFilter, problemSubTab]);
+  }, [problems, problemSearch, problemDifficultyFilter, problemScopeFilter, problemSubTab]);
 
   const filteredContests = useMemo(() => {
     if (contestStatusFilter === 'ALL') return contests;
@@ -612,9 +1176,8 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Admin Collapsible Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen transition-all duration-300 ${
-          isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'
-        } bg-brand-blue text-white flex flex-col justify-between z-50 border-r border-brand-blue-light/35 shadow-2xl shrink-0 overflow-visible`}
+        className={`fixed top-0 left-0 h-screen transition-all duration-300 ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'
+          } bg-brand-blue text-white flex flex-col justify-between z-50 border-r border-brand-blue-light/35 shadow-2xl shrink-0 overflow-visible`}
       >
         <div className="flex items-center justify-center px-4 h-20 border-b border-brand-blue-light/30 shrink-0" id="sidebar-header">
           <Link to="/" className="flex items-center justify-center w-full">
@@ -631,9 +1194,8 @@ export const AdminDashboard: React.FC = () => {
           <a
             href="#dashboard"
             onClick={() => setActiveTab('dashboard')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'dashboard' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
+            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+              }`}
           >
             <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'dashboard' ? 'text-primary icon-fill' : ''}`}>dashboard</span>
             <span className="sidebar-text text-sm">Dashboard</span>
@@ -642,9 +1204,8 @@ export const AdminDashboard: React.FC = () => {
           <a
             href="#courses"
             onClick={() => setActiveTab('courses')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'courses' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
+            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'courses' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+              }`}
           >
             <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'courses' ? 'text-primary icon-fill' : ''}`}>library_books</span>
             <span className="sidebar-text text-sm">Courses</span>
@@ -653,9 +1214,8 @@ export const AdminDashboard: React.FC = () => {
           <a
             href="#problems"
             onClick={() => setActiveTab('problems')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'problems' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
+            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'problems' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+              }`}
           >
             <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'problems' ? 'text-primary icon-fill' : ''}`}>task</span>
             <span className="sidebar-text text-sm">Problems</span>
@@ -664,9 +1224,8 @@ export const AdminDashboard: React.FC = () => {
           <a
             href="#contest"
             onClick={() => setActiveTab('contest')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'contest' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
+            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'contest' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+              }`}
           >
             <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'contest' ? 'text-primary icon-fill' : ''}`}>emoji_events</span>
             <span className="sidebar-text text-sm">Contest</span>
@@ -675,9 +1234,8 @@ export const AdminDashboard: React.FC = () => {
           <a
             href="#instructor"
             onClick={() => setActiveTab('instructor')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'instructor' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
+            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'instructor' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+              }`}
           >
             <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'instructor' ? 'text-primary icon-fill' : ''}`}>school</span>
             <span className="sidebar-text text-sm">Instructor</span>
@@ -686,9 +1244,8 @@ export const AdminDashboard: React.FC = () => {
           <a
             href="#users"
             onClick={() => setActiveTab('users')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'users' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
+            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'users' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+              }`}
           >
             <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'users' ? 'text-primary icon-fill' : ''}`}>group</span>
             <span className="sidebar-text text-sm">Users</span>
@@ -697,9 +1254,8 @@ export const AdminDashboard: React.FC = () => {
           <a
             href="#financial"
             onClick={() => setActiveTab('financial')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === 'financial' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
-            }`}
+            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'financial' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+              }`}
           >
             <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'financial' ? 'text-primary icon-fill' : ''}`}>insights</span>
             <span className="sidebar-text text-sm">Financial Stats</span>
@@ -743,9 +1299,8 @@ export const AdminDashboard: React.FC = () => {
       {/* Main Content Area */}
       <div
         id="main-content"
-        className={`flex-grow transition-all duration-300 relative z-10 ${
-          isSidebarCollapsed ? 'main-collapsed' : 'main-expanded'
-        } min-h-screen flex flex-col`}
+        className={`flex-grow transition-all duration-300 relative z-10 ${isSidebarCollapsed ? 'main-collapsed' : 'main-expanded'
+          } min-h-screen flex flex-col`}
       >
         {loading ? (
           <div className="flex-grow flex items-center justify-center">
@@ -850,9 +1405,8 @@ export const AdminDashboard: React.FC = () => {
                         <button
                           key={tab.key}
                           onClick={() => { setReviewPlayerTab(tab.key); setReviewCurrentProblem(null); }}
-                          className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                            reviewPlayerTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-primary'
-                          }`}
+                          className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${reviewPlayerTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-primary'
+                            }`}
                         >
                           <span className="material-symbols-outlined text-[18px]">{tab.icon}</span> {tab.label}
                         </button>
@@ -1150,7 +1704,7 @@ export const AdminDashboard: React.FC = () => {
                         ];
                         const chapterName = chapterNames[chIdx] || `Chapter ${chIdx + 1}`;
                         const lessonsPerChapter = Math.max(1, Math.round(reviewingCourse.totalLessons / Math.max(reviewingCourse.totalChapters, 1)));
-                        
+
                         return (
                           <div key={secKey} className="flex flex-col">
                             <button
@@ -1170,11 +1724,10 @@ export const AdminDashboard: React.FC = () => {
                                   <div
                                     key={lIdx}
                                     onClick={() => setReviewLectureTitle(lectureTitle)}
-                                    className={`flex items-center gap-2.5 px-4 py-2.5 cursor-pointer border-l-2 transition-colors group ${
-                                      isActive
-                                        ? 'bg-primary-light/30 border-primary'
-                                        : 'hover:bg-slate-100 border-transparent'
-                                    }`}
+                                    className={`flex items-center gap-2.5 px-4 py-2.5 cursor-pointer border-l-2 transition-colors group ${isActive
+                                      ? 'bg-primary-light/30 border-primary'
+                                      : 'hover:bg-slate-100 border-transparent'
+                                      }`}
                                   >
                                     <span className={`material-symbols-outlined text-[16px] ${isActive ? 'text-primary' : 'text-text-muted'}`}>
                                       {isActive ? 'play_circle' : 'radio_button_unchecked'}
@@ -1194,18 +1747,929 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        ) : (activeTab === 'contest' && reviewingContest) ? (
+          <div className="flex-grow flex flex-col bg-[#f0f4f9] animate-fade-in w-full relative">
+            {/* Floating Toast Alert */}
+            {contestToastMessage && (
+              <div className="fixed bottom-20 right-6 z-50 bg-brand-blue text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-brand-blue-light animate-fade-in">
+                <span className="material-symbols-outlined text-[18px] text-primary">info</span>
+                <span>{contestToastMessage}</span>
+              </div>
+            )}
+
+            {/* Success Modal overlay */}
+            {contestSuccessOverlay && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99] flex items-center justify-center p-4">
+                <div className="bg-surface rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl border border-slate-200/50 relative z-[100] space-y-4 animate-fade-in bg-white">
+                  <div className="w-16 h-16 rounded-full bg-green-50 text-brand-green flex items-center justify-center border border-green-200 mx-auto animate-bounce">
+                    <span className="material-symbols-outlined text-4xl icon-fill text-brand-green">emoji_events</span>
+                  </div>
+                  <h3 className="font-display font-black text-xl text-brand-blue">Contest Solved!</h3>
+                  <p className="font-body text-sm text-text-muted">
+                    Your solution has successfully passed all automated test cases for this contest task!
+                  </p>
+                  <div className="bg-surface-gray border border-gray-150 p-3 rounded-xl font-mono text-xs text-left space-y-1">
+                    <div className="flex justify-between">
+                      <strong>Status:</strong> <span className="text-brand-green font-bold">Passed</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <strong>Runtime:</strong> <span>12 ms (Beats 98.4%)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <strong>Memory:</strong> <span>39.8 MB (Beats 91.2%)</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setContestSuccessOverlay(false);
+                      setReviewContestProblemId(null);
+                    }}
+                    className="w-full bg-primary hover:bg-primary-hover text-white border-none font-bold py-2 rounded-xl transition-all shadow-md text-xs uppercase cursor-pointer"
+                  >
+                    Back to Problems
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Banner/Header */}
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm sticky top-0 z-20">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setReviewingContest(null);
+                    setReviewContestProblemId(null);
+                  }}
+                  className="flex items-center gap-1.5 text-sm text-slate-600 font-bold hover:text-primary transition-colors bg-white/80 border border-slate-200 px-3 py-1.5 rounded-lg cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  Back to Contests
+                </button>
+                <div className="h-6 w-px bg-amber-200"></div>
+                <span className="material-symbols-outlined text-amber-600 text-[22px]">emoji_events</span>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-amber-700">Contest Admin Dashboard</p>
+                  <p className="text-xs font-semibold text-amber-900 leading-tight">{reviewingContest.title}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-amber-700 font-semibold hidden md:inline">Status: {reviewingContest.status}</span>
+              </div>
+            </div>
+
+            {/* Split Flex Layout */}
+            <div className="flex-grow flex flex-col md:flex-row min-h-0 w-full">
+              {/* Left Main Content Block - with right margin for fixed sidebar */}
+              <div className="flex-grow p-6 overflow-y-auto max-w-[1400px] mr-[max(12%,210px)]">
+                {reviewContestTab === 'overview' && (
+                  <div className="space-y-6 animate-fade-in">
+                    <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
+                      <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-text-muted">info</span> Contest Overview
+                        <span className={`ml-auto text-white text-xs font-bold px-3 py-1 rounded-full ${reviewingContest.status === 'RUNNING' ? 'bg-brand-green' : reviewingContest.status === 'UPCOMING' ? 'bg-primary' : 'bg-gray-400'
+                          }`}>
+                          {reviewingContest.status}
+                        </span>
+                      </h2>
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <div className="md:col-span-2">
+                          <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Contest Title</h3>
+                          <p className="text-lg font-bold text-brand-blue font-display italic">{reviewingContest.title}</p>
+                        </div>
+                        <div className="md:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                          <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Schedule</h3>
+                          <ul className="text-xs text-text-main space-y-1">
+                            <li><strong>Start:</strong> {new Date(reviewingContest.startTime).toLocaleString()}</li>
+                            <li><strong>End:</strong> {new Date(reviewingContest.endTime).toLocaleString()}</li>
+                            <li><strong>Duration:</strong> {reviewingContest.durations} Minutes</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
+                      <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-text-muted">description</span> Contest Description
+                      </h2>
+                      <p className="text-sm text-text-muted leading-relaxed whitespace-pre-wrap">
+                        {reviewingContest.description || 'No description provided.'}
+                      </p>
+                    </section>
+
+                    <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
+                      <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-text-muted">score</span> Scoring System
+                      </h2>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 flex items-center gap-3">
+                        <span className="material-symbols-outlined text-primary text-[24px]">emoji_events</span>
+                        <div>
+                          <p className="text-xs font-bold text-text-muted uppercase tracking-wider">Scoring Rule</p>
+                          <p className="text-sm font-bold text-text-main mt-0.5">{reviewingContest.scoringRule}</p>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
+                      <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-text-muted">gavel</span> Rules & Prohibitions
+                      </h2>
+                      <p className="text-xs text-text-muted italic">—</p>
+                    </section>
+
+                    <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
+                      <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-text-muted">translate</span> Supported Languages
+                      </h2>
+                      <p className="text-xs text-text-muted italic">—</p>
+                    </section>
+                  </div>
+                )}
+
+                {reviewContestTab === 'problems' && (
+                  <div className="animate-fade-in">
+                    {reviewContestProblemId === null ? (<>
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="p-6 border-b border-gray-200 bg-white">
+                          <h2 className="text-lg font-bold text-text-main">Problems</h2>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider">
+                                <th className="p-4 w-16 text-center">#</th>
+                                <th className="p-4">Title</th>
+                                <th className="p-4 w-44 text-center">Success Rate</th>
+                                <th className="p-4 w-44 text-center">Total Submissions</th>
+                                <th className="p-4 w-44 text-center">Accepted Teams</th>
+                                <th className="p-4 w-28 text-center">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody className="text-xs font-semibold divide-y divide-gray-200">
+                              {[
+                                { id: 101, title: 'Two Sum', totalAccepted: 1245, totalSubmissions: 1580, isBuiltIn: true },
+                                { id: 102, title: 'Reverse Linked List', totalAccepted: 850, totalSubmissions: 1200, isBuiltIn: true },
+                                { id: 103, title: 'Spring Context Hierarchy Solver', totalAccepted: 420, totalSubmissions: 980, isBuiltIn: true },
+                                ...Array.from(contestAddedProblemIds)
+                                  .map(id => problems.find(p => p.id === id))
+                                  .filter((p): p is AdminProblem => !!p)
+                                  .map(p => ({
+                                    id: p.id,
+                                    title: p.title,
+                                    totalAccepted: p.acceptedSubmissions,
+                                    totalSubmissions: p.totalSubmissions,
+                                    isBuiltIn: false
+                                  }))
+                              ].map((cp, idx) => {
+                                const acPercent = cp.totalSubmissions > 0 ? Math.round((cp.totalAccepted / cp.totalSubmissions) * 100) : 0;
+                                const totalTeams = (reviewingContest?.participantCount && reviewingContest.participantCount > 0) ? reviewingContest.participantCount : 100;
+                                const acTeams = Math.min(Math.round((acPercent / 100) * totalTeams), totalTeams);
+                                const orderLetter = String.fromCharCode(65 + idx);
+
+                                return (
+                                  <tr key={cp.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="p-4 text-center font-bold text-brand-blue">
+                                      {orderLetter}
+                                    </td>
+                                    <td className="p-4">
+                                      <button
+                                        onClick={() => {
+                                          setReviewContestProblemId(cp.id);
+                                          setContestSolveLang('Java');
+                                          setContestSolveCode(problemData[cp.title]?.code?.['Java'] || JAVA_TEMPLATE);
+                                        }}
+                                        className="text-primary hover:underline font-bold text-left bg-transparent border-none cursor-pointer p-0"
+                                      >
+                                        {cp.title}
+                                      </button>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                      <span className={`font-bold ${acPercent >= 70 ? 'text-brand-green' : acPercent >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
+                                        {acPercent}%
+                                      </span>
+                                    </td>
+                                    <td className="p-4 text-center font-mono text-slate-600">
+                                      {cp.totalSubmissions.toLocaleString()}
+                                    </td>
+                                    <td className="p-4 text-center font-mono text-slate-600">
+                                      {acTeams}/{totalTeams}
+                                    </td>
+                                    <td className="p-4 text-center">
+                                      {cp.isBuiltIn ? (
+                                        <button
+                                          onClick={() => { /* built-in problems can also be removed if needed */ }}
+                                          className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 p-1.5 rounded-lg transition-all cursor-pointer"
+                                          title="Delete problem"
+                                        >
+                                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => {
+                                            setContestAddedProblemIds(prev => {
+                                              const next = new Set(prev);
+                                              next.delete(cp.id);
+                                              return next;
+                                            });
+                                          }}
+                                          className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 p-1.5 rounded-lg transition-all cursor-pointer"
+                                          title="Delete problem"
+                                        >
+                                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                                        </button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="p-4 border-t border-gray-150 bg-slate-50/50 flex justify-between items-center">
+                          <p className="text-xs text-text-muted">
+                            Total: <span className="font-bold text-text-main">
+                              {3 + Array.from(contestAddedProblemIds)
+                                .map(id => problems.find(p => p.id === id))
+                                .filter(Boolean).length}
+                            </span> problems
+                          </p>
+                          <button
+                            onClick={() => setIsAddContestProblemOpen(true)}
+                            className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white border-none px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">add</span>
+                            Add Problems
+                          </button>
+                        </div>
+                      </div>
+
+                    {/* Add Problems Modal */}
+                    {isAddContestProblemOpen && (
+                      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-slate-200/50 animate-fade-in">
+                          <div className="p-6 border-b border-gray-200 flex items-center justify-between shrink-0">
+                            <div>
+                              <h2 className="text-lg font-display font-bold text-brand-blue">Add Problems to Contest</h2>
+                              <p className="text-xs text-text-muted mt-1">Select from available contest problems to add to this contest.</p>
+                            </div>
+                            <button
+                              onClick={() => setIsAddContestProblemOpen(false)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors bg-transparent border-none cursor-pointer text-slate-500"
+                            >
+                              <span className="material-symbols-outlined">close</span>
+                            </button>
+                          </div>
+                          <div className="flex-grow overflow-y-auto p-2">
+                            {problems.filter(p => p.problemScope === 'CONTEST' && p.isActive && p.isPublic).length === 0 ? (
+                              <div className="p-12 text-center">
+                                <span className="material-symbols-outlined text-4xl text-slate-300 mb-3 block">search_off</span>
+                                <p className="text-sm text-text-muted font-semibold">No contest problems available.</p>
+                                <p className="text-xs text-slate-400 mt-1">Create problems with "Contest" scope in the Problems management tab first.</p>
+                              </div>
+                            ) : (
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider sticky top-0">
+                                    <th className="p-3 w-12 text-center"></th>
+                                    <th className="p-3">Title</th>
+                                    <th className="p-3 w-24">Difficulty</th>
+                                    <th className="p-3 w-20 text-center">Score</th>
+                                    <th className="p-3 w-28 text-center">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="text-sm divide-y divide-gray-100">
+                                  {problems.filter(p => p.problemScope === 'CONTEST' && p.isActive && p.isPublic).map((p) => {
+                                    const isAdded = contestAddedProblemIds.has(p.id);
+                                    const isBuiltIn = [101, 102, 103].includes(p.id);
+                                    return (
+                                      <tr key={p.id} className={`transition-colors ${isAdded ? 'bg-green-50/50' : 'hover:bg-slate-50/50'}`}>
+                                        <td className="p-3 text-center">
+                                          {isAdded ? (
+                                            <span className="material-symbols-outlined text-brand-green icon-fill text-[18px]">check_circle</span>
+                                          ) : (
+                                            <span className="material-symbols-outlined text-gray-300 text-[18px]">radio_button_unchecked</span>
+                                          )}
+                                        </td>
+                                        <td className="p-3 font-semibold text-slate-800">{p.title}</td>
+                                        <td className="p-3">
+                                          <span className={`px-2 py-0.5 rounded border text-[10px] font-bold ${
+                                            p.difficulty === 'EASY' ? 'bg-green-50 text-brand-green border-green-200' :
+                                            p.difficulty === 'MEDIUM' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                            'bg-red-50 text-red-600 border-red-200'
+                                          }`}>{p.difficulty}</span>
+                                        </td>
+                                        <td className="p-3 text-center font-bold text-slate-600">{p.score}</td>
+                                        <td className="p-3 text-center">
+                                          {isBuiltIn ? (
+                                            <span className="text-[10px] text-slate-400 font-semibold">Built-in</span>
+                                          ) : isAdded ? (
+                                            <button
+                                              onClick={() => {
+                                                setContestAddedProblemIds(prev => {
+                                                  const next = new Set(prev);
+                                                  next.delete(p.id);
+                                                  return next;
+                                                });
+                                              }}
+                                              className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1 rounded-lg font-bold text-[10px] transition-all cursor-pointer"
+                                            >
+                                              Remove
+                                            </button>
+                                          ) : (
+                                            <button
+                                              onClick={() => {
+                                                setContestAddedProblemIds(prev => {
+                                                  const next = new Set(prev);
+                                                  next.add(p.id);
+                                                  return next;
+                                                });
+                                              }}
+                                              className="bg-primary hover:bg-primary-hover text-white border-none px-3 py-1 rounded-lg font-bold text-[10px] transition-all cursor-pointer shadow-sm"
+                                            >
+                                              Add
+                                            </button>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            )}
+                          </div>
+                          <div className="p-4 border-t border-gray-200 flex items-center justify-between shrink-0 bg-slate-50">
+                            <p className="text-xs text-text-muted font-semibold">
+                              <span className="text-brand-blue font-bold">{contestAddedProblemIds.size}</span> problem{contestAddedProblemIds.size !== 1 ? 's' : ''} added
+                            </p>
+                            <button
+                              onClick={() => setIsAddContestProblemOpen(false)}
+                              className="bg-primary hover:bg-primary-hover text-white border-none px-6 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer shadow-sm"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    </>) : (() => {
+                      const probName = reviewContestProblemId === 101 ? 'Two Sum' : reviewContestProblemId === 102 ? 'Reverse Linked List' : 'Spring Context Hierarchy Solver';
+                      const probDetail = problemData[probName];
+                      const contestSolveLineCount = Math.max(contestSolveCode.split('\n').length, 6);
+
+                      return (
+                        <div className="flex flex-col gap-6 animate-fade-in">
+                          {/* Problem Description Card */}
+                          <div className="w-full flex flex-col bg-white border border-gray-200 rounded-xl shadow-sm">
+                            <div className="p-6 md:p-8 space-y-6">
+                              {/* Back button */}
+                              <button
+                                onClick={() => setReviewContestProblemId(null)}
+                                className="inline-flex items-center gap-2 text-text-muted hover:text-primary transition-colors text-sm font-medium group w-max bg-transparent border-none cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                                Back to Problems
+                              </button>
+
+                              {/* Title & Difficulty */}
+                              <div className="flex items-center gap-3">
+                                <h1 className="text-2xl font-display font-bold text-text-main">{probName}</h1>
+                                <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${reviewContestProblemId === 103 ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-green-50 text-brand-green border border-green-200'
+                                  }`}>
+                                  {reviewContestProblemId === 103 ? 'Medium' : 'Easy'}
+                                </span>
+                              </div>
+
+                              {/* Problem Description */}
+                              <div
+                                className="space-y-3 text-text-main text-base leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: probDetail?.description || '' }}
+                              />
+
+                              {/* Example */}
+                              <div>
+                                <h3 className="font-semibold text-lg mb-3 text-text-main">Example 1:</h3>
+                                <div className="bg-brand-blue text-white rounded-lg p-5 font-mono text-sm shadow-sm space-y-2">
+                                  <div>
+                                    <span className="text-gray-400 select-none">Input:</span> nums = [2,7,11,15], target = 9
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400 select-none">Output:</span> [0,1]
+                                  </div>
+                                  <div className="text-gray-300">
+                                    <span className="text-gray-400 select-none">Explanation:</span> Because nums[0] + nums[1] == 9, we return [0, 1].
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Constraints */}
+                              <div>
+                                <h3 className="font-semibold text-lg mb-3 text-text-main">Constraints:</h3>
+                                <ul className="list-disc list-inside space-y-2 text-text-main bg-surface-gray p-5 rounded-lg border border-gray-200">
+                                  <li><code className="font-mono text-sm">2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
+                                  <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
+                                  <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
+                                  <li><strong>Only one valid answer exists.</strong></li>
+                                </ul>
+                              </div>
+
+                              {/* Hint */}
+                              <details className="group bg-surface-gray rounded-lg border border-gray-200">
+                                <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-text-main">
+                                  Show Hint
+                                  <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                                </summary>
+                                <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-white">
+                                  A really brute force way would be to search for all possible pairs of numbers but that would be too slow. Again, it's best to try out brute force solutions for just for completeness. It is from these brute force solutions that you can come up with optimizations.
+                                </div>
+                              </details>
+                            </div>
+                          </div>
+
+                          {/* Code Editor Card */}
+                          <div className="w-full flex flex-col bg-white border border-gray-200 rounded-xl min-h-[400px] h-auto overflow-hidden shadow-sm">
+                            {/* Editor Header */}
+                            <div className="flex items-center justify-between p-3 bg-surface border-b border-gray-200">
+                              <div className="flex items-center gap-3">
+                                <select
+                                  value={contestSolveLang}
+                                  onChange={(e) => {
+                                    setContestSolveLang(e.target.value);
+                                    const selectedLangName = e.target.value === 'Python 3' ? 'Python' : e.target.value;
+                                    const codeFromData = probDetail?.code?.[selectedLangName];
+                                    if (codeFromData) {
+                                      setContestSolveCode(codeFromData);
+                                    } else {
+                                      setContestSolveCode(selectedLangName === 'Python' ? PYTHON_TEMPLATE : selectedLangName === 'C++' ? CPP_TEMPLATE : JAVA_TEMPLATE);
+                                    }
+                                  }}
+                                  className="bg-surface-gray border border-gray-300 text-text-main text-sm rounded-md focus:ring-primary focus:border-primary block px-3 py-1.5 font-medium cursor-pointer outline-none"
+                                >
+                                  <option value="Java">Java</option>
+                                  <option value="C++">C++</option>
+                                  <option value="Python 3">Python 3</option>
+                                </select>
+                                <div className="flex items-center gap-1.5 text-xs font-semibold">
+                                  <span className="text-text-muted">Status:</span>
+                                  {contestEditorStatus === 'Accepted' && (
+                                    <span className="text-brand-green bg-green-50 px-2 py-0.5 rounded border border-green-200">Accepted</span>
+                                  )}
+                                  {contestEditorStatus === 'Running' && (
+                                    <span className="text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-200 animate-pulse">Running Tests...</span>
+                                  )}
+                                  {contestEditorStatus === 'Success' && (
+                                    <span className="text-brand-green bg-green-50 px-2 py-0.5 rounded border border-green-200 animate-bounce">Passed!</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-1 text-text-muted">
+                                <button
+                                  onClick={() => {
+                                    const selectedLangName = contestSolveLang === 'Python 3' ? 'Python' : contestSolveLang;
+                                    const codeFromData = probDetail?.code?.[selectedLangName];
+                                    if (codeFromData) {
+                                      setContestSolveCode(codeFromData);
+                                    } else {
+                                      setContestSolveCode(selectedLangName === 'Python' ? PYTHON_TEMPLATE : selectedLangName === 'C++' ? CPP_TEMPLATE : JAVA_TEMPLATE);
+                                    }
+                                    setContestEditorStatus('Accepted');
+                                    showContestToast('Code editor has been reset to default template.');
+                                  }}
+                                  aria-label="Reset"
+                                  className="p-1.5 hover:bg-surface-gray rounded transition-colors text-text-main hover:text-primary bg-transparent border-none cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[20px]">refresh</span>
+                                </button>
+                                <button
+                                  onClick={() => showContestToast('Editor Settings: Font Size and Keybindings can be modified in your account profile.')}
+                                  aria-label="Settings"
+                                  className="p-1.5 hover:bg-surface-gray rounded transition-colors text-text-main hover:text-primary bg-transparent border-none cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[20px]">settings</span>
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Editor Area */}
+                            <div className="flex-grow flex text-[15px] leading-relaxed font-mono text-gray-800 bg-white min-h-[300px]">
+                              {/* Line Numbers */}
+                              <div className="w-12 flex flex-col items-end py-4 pr-3 text-gray-400 bg-surface-gray border-r border-gray-200 select-none">
+                                {Array.from({ length: contestSolveLineCount }).map((_, i) => (
+                                  <span key={i} className="leading-relaxed h-[22.5px] block">{i + 1}</span>
+                                ))}
+                              </div>
+                              {/* Code */}
+                              <textarea
+                                value={contestSolveCode}
+                                onChange={(e) => setContestSolveCode(e.target.value)}
+                                className="flex-grow py-4 pl-4 overflow-x-auto whitespace-pre outline-none font-mono text-[15px] text-gray-800 bg-white min-h-[300px] w-full resize-none border-none focus:ring-0 focus:outline-none leading-relaxed"
+                                spellCheck={false}
+                              />
+                            </div>
+
+                            {/* Action Bar */}
+                            <div className="p-4 bg-surface border-t border-gray-200 flex justify-end gap-4 sticky bottom-0">
+                              <button
+                                onClick={handleContestSubmit}
+                                disabled={contestEditorStatus === 'Running'}
+                                className={`px-6 py-2 rounded-lg font-bold transition-colors shadow-sm text-white border-none cursor-pointer ${contestEditorStatus === 'Running'
+                                  ? 'bg-primary/50 cursor-not-allowed'
+                                  : 'bg-primary hover:bg-primary-hover'
+                                  }`}
+                              >
+                                Submit
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                  </div>
+                )}
+
+                {reviewContestTab === 'submissions' && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in">
+                    <div className="p-6 border-b border-gray-200 bg-white">
+                      <h2 className="text-lg font-bold text-text-main">Submissions</h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider">
+                            <th className="px-6 py-4">When</th>
+                            <th className="px-6 py-4">User</th>
+                            <th className="px-6 py-4 text-center">Problem</th>
+                            <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4 text-right">Time</th>
+                            <th className="px-6 py-4 text-right">Memory</th>
+                            <th className="px-6 py-4">Language</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-xs font-semibold divide-y divide-gray-200">
+                          {[
+                            { when: 'Oct 28, 2026, 10:45:12 AM', user: 'CodeNinja_99', prob: 'A', status: 'Accepted', time: '12ms', mem: '2.4 MB', lang: 'C++', statusClass: 'bg-brand-green/10 text-brand-green border border-green-200', icon: 'check_circle' },
+                            { when: 'Oct 28, 2026, 10:42:05 AM', user: 'AlgorithmAce', prob: 'C', status: 'Wrong Answer', time: '4ms', mem: '1.8 MB', lang: 'Python 3', statusClass: 'bg-red-50 text-red-500 border border-red-200', icon: 'cancel' },
+                            { when: 'Oct 28, 2026, 10:38:50 AM', user: 'ByteMe', prob: 'B', status: 'Time Limit Exceeded', time: '>2000ms', mem: '15.2 MB', lang: 'Java', statusClass: 'bg-amber-50 text-amber-600 border border-amber-200', icon: 'timer' },
+                            { when: 'Oct 28, 2026, 10:35:12 AM', user: 'DataStructura', prob: 'A', status: 'Accepted', time: '45ms', mem: '4.1 MB', lang: 'Python 3', statusClass: 'bg-brand-green/10 text-brand-green border border-green-200', icon: 'check_circle' },
+                            { when: 'Oct 28, 2026, 10:30:01 AM', user: 'GraphMaster', prob: 'D', status: 'Compilation Error', time: '-', mem: '-', lang: 'C++', statusClass: 'bg-slate-100 text-slate-500 border border-slate-200', icon: 'error' }
+                          ].map((sub, sIdx) => (
+                            <tr key={sIdx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="px-6 py-4 text-slate-500 font-normal">{sub.when}</td>
+                              <td className="px-6 py-4 font-bold text-slate-900">{sub.user}</td>
+                              <td className="px-6 py-4 text-center">
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold border border-slate-200">{sub.prob}</span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${sub.statusClass}`}>
+                                  <span className="material-symbols-outlined text-[14px] icon-fill">{sub.icon}</span>
+                                  {sub.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.time}</td>
+                              <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.mem}</td>
+                              <td className="px-6 py-4">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">{sub.lang}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-white">
+                      <span className="text-xs text-slate-500">Showing 1 to 5 of 245 submissions</span>
+                      <div className="flex gap-2">
+                        <button className="p-1 rounded text-slate-400 bg-transparent border-none hover:bg-slate-100 disabled:opacity-50" disabled>
+                          <span className="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <button className="p-1 rounded text-slate-400 bg-transparent border-none hover:bg-slate-100">
+                          <span className="material-symbols-outlined">chevron_right</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {reviewContestTab === 'ranking' && (
+                  <div className="flex flex-col gap-6 animate-fade-in w-full">
+                    <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 relative overflow-hidden">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between pb-2 border-b border-gray-150">
+                        <div>
+                          <h2 className="font-display font-bold text-lg text-brand-blue flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">monitoring</span> Top 5 Teams Progress
+                          </h2>
+                          <p className="text-xs text-text-muted mt-1">Real-time stepwise progression of problems solved over 4 hours.</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch mt-2">
+                        {/* Interactive Vector Step Chart (Col-span 3) */}
+                        <div className="lg:col-span-3 bg-white rounded-lg border border-gray-150 p-4 relative flex items-center justify-center">
+                          <svg className="w-full h-auto max-w-[760px]" viewBox={`0 0 ${RANKING_W + 60} ${RANKING_H + 40}`} width="100%">
+                            {/* Vertical Hour Grid Lines */}
+                            {Array.from({ length: 5 }).map((_, i) => {
+                              const minutes = i * 60;
+                              const coordsStart = getRankingSvgCoords(minutes, 0);
+                              const coordsEnd = getRankingSvgCoords(minutes, 10);
+                              return (
+                                <g key={i}>
+                                  <line
+                                    x1={coordsStart.x}
+                                    y1={coordsStart.y}
+                                    x2={coordsEnd.x}
+                                    y2={coordsEnd.y}
+                                    stroke="#e2e8f0"
+                                    strokeWidth={1}
+                                    strokeDasharray="4 4"
+                                  />
+                                  <text
+                                    x={coordsStart.x}
+                                    y={coordsStart.y + 16}
+                                    textAnchor="middle"
+                                    className="font-mono text-[10px] fill-text-muted"
+                                  >
+                                    {i}h
+                                  </text>
+                                </g>
+                              );
+                            })}
+
+                            {/* Horizontal Solved Grid Lines */}
+                            {[0, 2, 4, 6, 8, 10].map((solved) => {
+                              const coordsStart = getRankingSvgCoords(0, solved);
+                              const coordsEnd = getRankingSvgCoords(240, solved);
+                              return (
+                                <g key={solved}>
+                                  <line
+                                    x1={coordsStart.x}
+                                    y1={coordsStart.y}
+                                    x2={coordsEnd.x}
+                                    y2={coordsEnd.y}
+                                    stroke="#e2e8f0"
+                                    strokeWidth={1}
+                                  />
+                                  <text
+                                    x={coordsStart.x - 8}
+                                    y={coordsStart.y + 4}
+                                    textAnchor="end"
+                                    className="font-mono text-[10px] fill-text-muted"
+                                  >
+                                    {solved}
+                                  </text>
+                                </g>
+                              );
+                            })}
+
+                            {/* Draw team stepwise progression lines */}
+                            {TEAMS_DATA.map((team, idx) => {
+                              if (!rankingVisibleTeams[team.name]) return null;
+                              const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
+                              const isHovered = rankingHoveredTeam === team.name;
+                              const { pathStr, solves } = getRankingStepPathString(team);
+
+                              return (
+                                <g key={team.name}>
+                                  <path
+                                    d={pathStr}
+                                    fill="none"
+                                    stroke={color}
+                                    strokeWidth={isHovered ? 3.5 : 1.5}
+                                    strokeOpacity={rankingHoveredTeam === null ? 0.6 : isHovered ? 1.0 : 0.15}
+                                    className="transition-all duration-300"
+                                  />
+
+                                  {solves.map((solve, sIdx) => {
+                                    const coords = getRankingSvgCoords(solve.time, sIdx + 1);
+                                    return (
+                                      <circle
+                                        key={sIdx}
+                                        cx={coords.x}
+                                        cy={coords.y}
+                                        r={isHovered ? 5.5 : 3.5}
+                                        fill={color}
+                                        stroke="#ffffff"
+                                        strokeWidth={1.5}
+                                        opacity={rankingHoveredTeam === null ? 0.9 : isHovered ? 1.0 : 0.15}
+                                        className="cursor-pointer transition-all duration-300"
+                                        onMouseEnter={() => {
+                                          setRankingHoveredTeam(team.name);
+                                          setRankingActiveTooltip({
+                                            x: coords.x,
+                                            y: coords.y,
+                                            teamName: team.name,
+                                            solvedCount: sIdx + 1,
+                                            timeStr: rankingFormatMinutes(solve.time),
+                                            problem: solve.problem
+                                          });
+                                        }}
+                                        onMouseLeave={() => {
+                                          setRankingHoveredTeam(null);
+                                          setRankingActiveTooltip(null);
+                                        }}
+                                      />
+                                    );
+                                  })}
+                                </g>
+                              );
+                            })}
+
+                            {/* HTML-styled SVG Tooltip Overlay */}
+                            {rankingActiveTooltip && (
+                              <foreignObject
+                                x={rankingActiveTooltip.x - 100}
+                                y={rankingActiveTooltip.y - 75}
+                                width="200"
+                                height="70"
+                                className="pointer-events-none"
+                              >
+                                <div className="bg-slate-900/95 text-white p-2 rounded-lg text-[10px] shadow-lg border border-slate-700/80 font-sans space-y-0.5">
+                                  <div className="font-bold text-primary">{rankingActiveTooltip.teamName}</div>
+                                  <div className="flex justify-between">
+                                    <span>Problem {rankingActiveTooltip.problem}:</span>
+                                    <span className="text-brand-green font-bold">Solved</span>
+                                  </div>
+                                  <div className="flex justify-between text-slate-400">
+                                    <span>Total Solved:</span>
+                                    <span>{rankingActiveTooltip.solvedCount} tasks</span>
+                                  </div>
+                                  <div className="flex justify-between text-slate-400">
+                                    <span>Time:</span>
+                                    <span>{rankingActiveTooltip.timeStr}</span>
+                                  </div>
+                                </div>
+                              </foreignObject>
+                            )}
+                          </svg>
+                        </div>
+
+                        {/* Legend Toggles */}
+                        <div className="lg:col-span-1 bg-slate-50 border border-slate-200/50 rounded-xl p-4 flex flex-col gap-2.5">
+                          <h4 className="text-xs font-black text-text-muted uppercase tracking-wider mb-1">Toggle Teams</h4>
+                          <div className="flex flex-col gap-2">
+                            {TEAMS_DATA.map((team, idx) => {
+                              const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
+                              const isVisible = rankingVisibleTeams[team.name];
+                              return (
+                                <button
+                                  key={team.name}
+                                  onClick={() => {
+                                    setRankingVisibleTeams(prev => ({
+                                      ...prev,
+                                      [team.name]: !prev[team.name]
+                                    }));
+                                  }}
+                                  className="flex items-center gap-2 text-left bg-transparent border-none cursor-pointer w-full text-xs font-semibold p-1 hover:bg-slate-100 rounded"
+                                >
+                                  <span
+                                    className="w-3.5 h-3.5 rounded-md flex items-center justify-center shrink-0 border border-slate-300"
+                                    style={{ backgroundColor: isVisible ? color : '#e2e8f0' }}
+                                  >
+                                    {isVisible && <span className="material-symbols-outlined text-[10px] text-white font-black">check</span>}
+                                  </span>
+                                  <span className="truncate flex-1 text-slate-800">{team.name}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* Standings table */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
+                      <div className="p-6 border-b border-gray-200 bg-white">
+                        <h2 className="text-lg font-bold text-text-main">Standings Scoreboard</h2>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider">
+                              <th className="p-3 w-12 text-center">Rank</th>
+                              <th className="p-3">Team</th>
+                              <th className="p-3 w-16 text-center">Solved</th>
+                              <th className="p-3 w-24 text-center">Penalty</th>
+                              {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map((prob) => (
+                                <th key={prob} className="p-3 w-16 text-center">{prob}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="text-xs font-semibold divide-y divide-gray-200">
+                            {TEAMS_DATA.map((team) => {
+                              // Calculate penalty
+                              let penaltyMinutes = 0;
+                              Object.values(team.submissions).forEach((sub) => {
+                                if (sub.status === 'accepted' || sub.status === 'first_solve') {
+                                  const parts = (sub.time || '0:0:0').split(':').map(Number);
+                                  const mins = (parts[0] || 0) * 60 + (parts[1] || 0);
+                                  penaltyMinutes += mins + sub.penalty * 20;
+                                }
+                              });
+
+                              return (
+                                <tr key={team.name} className="hover:bg-slate-50/50 transition-colors">
+                                  <td className="p-3 text-center font-bold text-slate-900">{team.rank}</td>
+                                  <td className="p-3">
+                                    <div className="font-bold text-slate-900">{team.name}</div>
+                                    <div className="text-[10px] text-slate-400 font-normal">{team.affiliation}</div>
+                                  </td>
+                                  <td className="p-3 text-center font-bold text-slate-900 bg-slate-50/60">{team.solved}</td>
+                                  <td className="p-3 text-center font-mono text-slate-500 font-normal">{penaltyMinutes} m</td>
+                                  {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map((probCode) => {
+                                    const sub = team.submissions[probCode];
+                                    if (!sub || sub.status === 'unattempted') {
+                                      return <td key={probCode} className="p-3 border border-white text-center bg-gray-50/50"></td>;
+                                    }
+                                    if (sub.status === 'failed') {
+                                      return (
+                                        <td key={probCode} className="p-3 border border-white text-center bg-primary text-white">
+                                          --
+                                          <div className="text-[9px] font-normal text-white/80 font-mono">(-{sub.penalty})</div>
+                                        </td>
+                                      );
+                                    }
+                                    const penaltyText = sub.penalty > 0 ? `(-${sub.penalty})` : '';
+                                    const bgClass = sub.status === 'first_solve' ? 'bg-brand-blue' : 'bg-brand-green';
+                                    return (
+                                      <td key={probCode} className={`p-3 border border-white text-center text-white ${bgClass}`}>
+                                        {sub.time}
+                                        <div className="text-[9px] font-normal text-white/80 font-mono">{penaltyText}</div>
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Sidebar Block (12%) - Fixed to right edge, below header */}
+              <aside className="fixed right-0 top-[60px] h-[calc(100vh-64px)] w-[12%] min-w-[190px] bg-white border-l border-gray-200 flex flex-col z-30 shadow-lg">
+                <div className="flex-grow py-5 px-3 flex flex-col">
+                  {/* Contest Header / Timer */}
+                  <div className="mb-6 text-center">
+                    <h2 className="text-sm font-black text-brand-blue mb-1.5 tracking-tight">Contest #{reviewingContest.id}</h2>
+                    <div className="bg-slate-50 rounded-lg p-2.5 shadow-sm border border-gray-200">
+                      <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">{contestTimerLabel}</p>
+                      <div className="font-display text-base font-bold text-primary tabular-nums tracking-tight">{contestTimeLeft}</div>
+                    </div>
+                  </div>
+
+                  {/* Navigation Links */}
+                  <nav className="space-y-1 font-semibold text-xs flex-grow">
+                    {[
+                      { key: 'overview', icon: 'dashboard', label: 'Overview' },
+                      { key: 'problems', icon: 'extension', label: 'Problems' },
+                      { key: 'submissions', icon: 'list_alt', label: 'Submissions' },
+                      { key: 'ranking', icon: 'leaderboard', label: 'Rankings' }
+                    ].map((tab) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => {
+                          setReviewContestTab(tab.key as any);
+                          setReviewContestProblemId(null);
+                        }}
+                        className={`w-full flex items-center gap-2 py-2 px-2.5 rounded-lg transition-all border-none text-left cursor-pointer ${reviewContestTab === tab.key
+                          ? 'text-primary font-bold border-l-4 border-primary bg-primary-light/30 shadow-sm translate-x-0.5'
+                          : 'text-text-muted font-medium hover:bg-slate-50 bg-transparent'
+                          }`}
+                      >
+                        <span className={`material-symbols-outlined text-[16px] ${reviewContestTab === tab.key ? 'icon-fill font-black' : ''}`}>{tab.icon}</span>
+                        {tab.label}
+                      </button>
+                    ))}
+                  </nav>
+
+                  {/* Back to Contests button at bottom */}
+                  <button
+                    onClick={() => {
+                      setReviewingContest(null);
+                      setReviewContestProblemId(null);
+                    }}
+                    className="w-full mt-4 bg-slate-100 hover:bg-slate-200 border-none text-slate-700 font-bold py-1.5 rounded-lg transition-all shadow-sm text-[10px] flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+                    Back
+                  </button>
+                </div>
+              </aside>
+            </div>
+          </div>
         ) : (
           <main className="flex-grow p-4 md:p-8 lg:p-10 flex flex-col gap-8 max-w-[1440px] w-full mx-auto">
             {/* Header Banner */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="inline-flex items-center gap-1.5 bg-brand-blue-light/10 border border-brand-blue/20 px-3 py-1 rounded-full text-brand-blue font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
-                  <span className="material-symbols-outlined text-xs icon-fill">admin_panel_settings</span> Platform Administration
+                  <span className="material-symbols-outlined text-xs icon-fill">{tabHeaderDetails[activeTab]?.icon || 'admin_panel_settings'}</span> {tabHeaderDetails[activeTab]?.badge || 'Platform Administration'}
                 </div>
                 <h1 className="text-3xl md:text-4xl font-display font-black leading-tight">
-                  <span className="bg-gradient-to-r from-brand-blue to-primary bg-clip-text text-transparent">System Control Dashboard ⚙️</span>
+                  <span className="bg-gradient-to-r from-brand-blue to-primary bg-clip-text text-transparent">{tabHeaderDetails[activeTab]?.title || 'System Control Dashboard ⚙️'}</span>
                 </h1>
-                <p className="text-text-muted mt-1">Manage courses, instructors, users, program problems, contests, and view statistics.</p>
+                <p className="text-text-muted mt-1">{tabHeaderDetails[activeTab]?.desc || 'Manage courses, instructors, users, program problems, contests, and view statistics.'}</p>
               </div>
             </div>
 
@@ -1277,8 +2741,8 @@ export const AdminDashboard: React.FC = () => {
                     <div className="w-full h-[220px] select-none mt-2">
                       <svg viewBox={`0 0 ${lineChartPoints.width} ${lineChartPoints.height}`} className="w-full h-full overflow-visible">
                         <linearGradient id="admin-revenue-grad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#F36F21" stopOpacity="0.25"/>
-                          <stop offset="100%" stopColor="#F36F21" stopOpacity="0"/>
+                          <stop offset="0%" stopColor="#F36F21" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="#F36F21" stopOpacity="0" />
                         </linearGradient>
                         {/* Grid Lines */}
                         {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
@@ -1551,10 +3015,9 @@ export const AdminDashboard: React.FC = () => {
                                 <div className="flex items-center gap-2">
                                   <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }}></span>
                                   <span className="font-semibold text-slate-700">
-                                    {c.name} <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 ${
-                                      c.difficulty === 'EASY' ? 'bg-green-50 text-green-600' :
+                                    {c.name} <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 ${c.difficulty === 'EASY' ? 'bg-green-50 text-green-600' :
                                       c.difficulty === 'MEDIUM' ? 'bg-orange-50 text-orange-600' : 'bg-red-50 text-red-600'
-                                    }`}>{c.difficulty}</span>
+                                      }`}>{c.difficulty}</span>
                                   </span>
                                 </div>
                                 <span className="font-bold text-brand-blue">
@@ -1613,7 +3076,7 @@ export const AdminDashboard: React.FC = () => {
                       <h3 className="font-display font-bold text-lg text-brand-blue mb-4 flex items-center gap-2">
                         <span className="material-symbols-outlined text-orange-500">pending_actions</span> Pending Approvals Summary
                       </h3>
-                      
+
                       {/* Course Approvals quick preview */}
                       <div className="flex flex-col gap-3">
                         <h4 className="text-xs font-black text-text-muted uppercase tracking-wider">Pending Courses ({courses.filter(c => c.status === 'PENDING').length})</h4>
@@ -1674,11 +3137,10 @@ export const AdminDashboard: React.FC = () => {
                       <button
                         key={filterVal}
                         onClick={() => setCourseFilter(filterVal as any)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                          courseFilter === filterVal
-                            ? 'bg-primary text-white border-primary shadow-sm'
-                            : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
-                        }`}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${courseFilter === filterVal
+                          ? 'bg-primary text-white border-primary shadow-sm'
+                          : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
+                          }`}
                       >
                         {filterVal}
                       </button>
@@ -1692,10 +3154,9 @@ export const AdminDashboard: React.FC = () => {
                       <div>
                         <img src={c.thumbnailUrl} alt={c.title} className="w-full h-40 object-cover border-b border-slate-100" />
                         <div className="p-5 flex flex-col gap-2">
-                          <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md self-start ${
-                            c.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
+                          <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md self-start ${c.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
                             c.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
-                          }`}>{c.status}</span>
+                            }`}>{c.status}</span>
                           <h3 className="font-display font-bold text-base text-brand-blue truncate mt-1">{c.title}</h3>
                           <p className="text-xs text-text-muted line-clamp-2">{c.shortDescription}</p>
                           <div className="flex items-center gap-2 mt-1">
@@ -1727,7 +3188,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {c.status === 'PENDING' && (
                         <div className="p-5 pt-0 border-t border-slate-50 mt-2 flex gap-2">
                           <button
@@ -1772,6 +3233,16 @@ export const AdminDashboard: React.FC = () => {
                       <option value="MEDIUM">Medium</option>
                       <option value="HARD">Hard</option>
                     </select>
+                    <select
+                      value={problemScopeFilter}
+                      onChange={(e) => setProblemScopeFilter(e.target.value as any)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="ALL">All Scopes</option>
+                      <option value="PRACTICE">Practice</option>
+                      <option value="CONTEST">Contest</option>
+                      <option value="SHARED">Share</option>
+                    </select>
                     <button
                       onClick={() => setIsCreateProblemOpen(true)}
                       className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5"
@@ -1785,33 +3256,30 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex border-b border-slate-200 gap-4 mb-2 overflow-x-auto pb-px">
                   <button
                     onClick={() => setProblemSubTab('repository')}
-                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                      problemSubTab === 'repository'
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-slate-500 hover:text-primary'
-                    }`}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'repository'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-primary'
+                      }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">folder_open</span>
                     Repository & Drafts ({problems.filter(p => !p.isActive || !p.isPublic).length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('practice')}
-                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                      problemSubTab === 'practice'
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-slate-500 hover:text-primary'
-                    }`}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'practice'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-primary'
+                      }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">terminal</span>
                     Practice Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'PRACTICE').length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('contest')}
-                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                      problemSubTab === 'contest'
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-slate-500 hover:text-primary'
-                    }`}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'contest'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-primary'
+                      }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
                     Contest Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'CONTEST').length})
@@ -1827,9 +3295,9 @@ export const AdminDashboard: React.FC = () => {
                           <th className="py-4 px-6">ID</th>
                           <th className="py-4 px-6">Title</th>
                           <th className="py-4 px-6">Difficulty</th>
-                          <th className="py-4 px-6">Scope</th>
                           <th className="py-4 px-6 text-right">Submissions</th>
                           <th className="py-4 px-6 text-right">Accepted Rate</th>
+                          <th className="py-4 px-6 text-center">Scope</th>
                           <th className="py-4 px-6 text-center">Status</th>
                           <th className="py-4 px-6 text-center">Actions</th>
                         </tr>
@@ -1845,21 +3313,9 @@ export const AdminDashboard: React.FC = () => {
                               <td className="py-4 px-6 text-brand-blue font-bold">#{index + 1}</td>
                               <td className="py-4 px-6 font-bold text-slate-900">{p.title}</td>
                               <td className="py-4 px-6">
-                                <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${
-                                  p.difficulty === 'EASY' ? 'bg-emerald-50 text-emerald-600' :
+                                <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${p.difficulty === 'EASY' ? 'bg-emerald-50 text-emerald-600' :
                                   p.difficulty === 'MEDIUM' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'
-                                }`}>{p.difficulty}</span>
-                              </td>
-                              <td className="py-4 px-6">
-                                <select
-                                  value={p.problemScope}
-                                  onChange={(e) => handleUpdateProblemScope(p.id, e.target.value as any)}
-                                  className="bg-white border border-slate-200 rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold focus:ring-0 focus:border-primary text-slate-700 cursor-pointer outline-none"
-                                >
-                                  <option value="PRACTICE">Practice</option>
-                                  <option value="CONTEST">Contest</option>
-                                  <option value="SHARED">Share</option>
-                                </select>
+                                  }`}>{p.difficulty}</span>
                               </td>
                               <td className="py-4 px-6 text-right font-mono font-bold text-slate-600">
                                 {totalSubs.toLocaleString()}
@@ -1868,23 +3324,42 @@ export const AdminDashboard: React.FC = () => {
                                 {acceptedRate}%
                               </td>
                               <td className="py-4 px-6 text-center">
-                                {p.isActive ? (
-                                  p.isPublic ? (
-                                    <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 border border-emerald-250 px-2 py-0.5 rounded text-[10px] font-bold">
-                                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                      Public
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center gap-1 text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                      Private
-                                    </span>
-                                  )
+                                <select
+                                  value={p.problemScope}
+                                  onChange={(e) => handleUpdateProblemScope(p.id, e.target.value as any)}
+                                  className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${p.problemScope === 'PRACTICE'
+                                    ? 'bg-green-50 text-green-600 border-green-200'
+                                    : p.problemScope === 'CONTEST'
+                                      ? 'bg-blue-50 text-blue-600 border-blue-200'
+                                      : 'bg-orange-50 text-orange-600 border-orange-200'
+                                    }`}
+                                >
+                                  <option value="PRACTICE" className="bg-white text-green-600 font-bold">Practice</option>
+                                  <option value="CONTEST" className="bg-white text-blue-600 font-bold">Contest</option>
+                                  <option value="SHARED" className="bg-white text-orange-600 font-bold">Share</option>
+                                </select>
+                              </td>
+                              <td className="py-4 px-6 text-center">
+                                {!p.isActive ? (
+                                  <select
+                                    disabled
+                                    value="INACTIVE"
+                                    className="bg-amber-50 border border-amber-250 text-amber-600 rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold outline-none cursor-not-allowed"
+                                  >
+                                    <option value="INACTIVE">Inactive</option>
+                                  </select>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-50 border border-amber-250 px-2 py-0.5 rounded text-[10px] font-bold">
-                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                    Inactive
-                                  </span>
+                                  <select
+                                    value={p.isPublic ? "PUBLIC" : "PRIVATE"}
+                                    onChange={(e) => handleUpdateProblemPublicStatus(p.id, e.target.value === "PUBLIC")}
+                                    className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold outline-none cursor-pointer ${p.isPublic
+                                      ? "bg-emerald-50 border-emerald-250 text-emerald-600"
+                                      : "bg-slate-100 border-slate-200 text-slate-600"
+                                      }`}
+                                  >
+                                    <option value="PUBLIC">Public</option>
+                                    <option value="PRIVATE">Private</option>
+                                  </select>
                                 )}
                               </td>
                               <td className="py-4 px-6 text-center">
@@ -1896,19 +3371,12 @@ export const AdminDashboard: React.FC = () => {
                                     >
                                       <span className="material-symbols-outlined text-[14px]">tune</span> Add Test Cases
                                     </button>
-                                  ) : p.isPublic ? (
-                                    <button
-                                      onClick={() => handleUpdateProblemPublicStatus(p.id, false)}
-                                      className="bg-slate-500 hover:bg-slate-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-[14px]">visibility_off</span> Make Private
-                                    </button>
                                   ) : (
                                     <button
-                                      onClick={() => handleUpdateProblemPublicStatus(p.id, true)}
-                                      className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                      onClick={() => handleEditProblemClick(p)}
+                                      className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
                                     >
-                                      <span className="material-symbols-outlined text-[14px]">public</span> Publish
+                                      <span className="material-symbols-outlined text-[14px]">edit</span> Edit
                                     </button>
                                   )}
                                 </div>
@@ -1966,8 +3434,8 @@ export const AdminDashboard: React.FC = () => {
                           <th className="py-4 px-6">Start Time</th>
                           <th className="py-4 px-6">Duration</th>
                           <th className="py-4 px-6">Participants</th>
-                          <th className="py-4 px-6">Avg Score</th>
-                          <th className="py-4 px-6">Status</th>
+                          <th className="py-4 px-6 text-center">Status</th>
+                          <th className="py-4 px-6 text-center">Action</th>
                         </tr>
                       </thead>
                       <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
@@ -1979,12 +3447,22 @@ export const AdminDashboard: React.FC = () => {
                             <td className="py-4 px-6">{new Date(c.startTime).toLocaleString()}</td>
                             <td className="py-4 px-6">{c.durations} mins</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{c.participantCount}</td>
-                            <td className="py-4 px-6 font-bold text-brand-blue">{c.averageScore}</td>
-                            <td className="py-4 px-6">
-                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${
-                                c.status === 'RUNNING' ? 'bg-red-50 text-red-500 animate-pulse' :
+                            <td className="py-4 px-6 text-center">
+                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${c.status === 'RUNNING' ? 'bg-red-50 text-red-500 animate-pulse' :
                                 c.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'
-                              }`}>{c.status}</span>
+                                }`}>{c.status}</span>
+                            </td>
+                            <td className="py-4 px-6 text-center">
+                              <button
+                                onClick={() => {
+                                  setReviewingContest(c);
+                                  setReviewContestTab('overview');
+                                  setReviewContestProblemId(null);
+                                }}
+                                className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                              >
+                                Detail
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -2005,11 +3483,10 @@ export const AdminDashboard: React.FC = () => {
                       <button
                         key={filterVal}
                         onClick={() => setInstructorAppFilter(filterVal as any)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                          instructorAppFilter === filterVal
-                            ? 'bg-primary text-white border-primary shadow-sm'
-                            : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
-                        }`}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${instructorAppFilter === filterVal
+                          ? 'bg-primary text-white border-primary shadow-sm'
+                          : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
+                          }`}
                       >
                         {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : 'Rejected Applications'}
                       </button>
@@ -2030,10 +3507,9 @@ export const AdminDashboard: React.FC = () => {
                                 <h4 className="font-display font-bold text-base text-brand-blue">{app.fullName}</h4>
                                 <p className="text-xs text-text-muted">{app.email}</p>
                               </div>
-                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                                app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
+                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
                                 app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
-                              }`}>{app.status}</span>
+                                }`}>{app.status}</span>
                             </div>
                             <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl line-clamp-3 italic">"{app.introduction}"</p>
                             <a
@@ -2110,13 +3586,22 @@ export const AdminDashboard: React.FC = () => {
                       className="text-xs bg-surface border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-primary focus:border-primary w-full sm:w-60"
                     />
                     <select
+                      value={userOnlineFilter}
+                      onChange={(e) => setUserOnlineFilter(e.target.value as any)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="ALL">All Activity</option>
+                      <option value="ONLINE">Online</option>
+                      <option value="OFFLINE">Offline</option>
+                    </select>
+                    <select
                       value={userStatusFilter}
                       onChange={(e) => setUserStatusFilter(e.target.value as any)}
                       className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
                     >
                       <option value="ALL">All Status</option>
-                      <option value="ACTIVE">Active Only</option>
-                      <option value="LOCKED">Locked Only</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="LOCKED">Locked</option>
                     </select>
                   </div>
                 </div>
@@ -2127,7 +3612,7 @@ export const AdminDashboard: React.FC = () => {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
-                          <th className="py-4 px-6">User ID</th>
+                          <th className="py-4 px-6 text-center w-24">Activity</th>
                           <th className="py-4 px-6">Name</th>
                           <th className="py-4 px-6">Email</th>
                           <th className="py-4 px-6">Register Date</th>
@@ -2140,34 +3625,40 @@ export const AdminDashboard: React.FC = () => {
                       <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
                         {filteredUsers.map((u) => (
                           <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-4 px-6 text-brand-blue font-bold">#{u.id}</td>
+                            <td className="py-4 px-6 text-center">
+                              <span
+                                className={`inline-block w-2.5 h-2.5 rounded-full ${u.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}
+                                title={u.isOnline ? 'Online' : 'Offline'}
+                              ></span>
+                            </td>
                             <td className="py-4 px-6 font-bold text-slate-900">{u.name}</td>
                             <td className="py-4 px-6">{u.email}</td>
                             <td className="py-4 px-6">{new Date(u.registerDate).toLocaleDateString()}</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{u.balance.toLocaleString()} ₫</td>
                             <td className="py-4 px-6 text-emerald-600 font-bold">+{u.totalDeposited.toLocaleString()} ₫</td>
                             <td className="py-4 px-6">
-                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${
-                                u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                              }`}>{u.status}</span>
-                            </td>
-                            <td className="py-4 px-6 text-right flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => setSelectedUserDetail(u)}
-                                className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-lg transition-colors"
-                              >
-                                View Purchases
-                              </button>
-                              <button
-                                onClick={() => handleToggleUserLock(u.id, u.status)}
-                                className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${
+                              <select
+                                value={u.status}
+                                onChange={(e) => handleUserStatusChange(u.id, e.target.value as 'ACTIVE' | 'LOCKED')}
+                                className={`border rounded-lg pl-2.5 pr-8 py-1.5 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${
                                   u.status === 'ACTIVE'
-                                    ? 'bg-red-500 hover:bg-red-600 text-white shadow-sm'
-                                    : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm'
+                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                    : 'bg-red-50 text-red-600 border-red-200'
                                 }`}
                               >
-                                {u.status === 'ACTIVE' ? 'Lock' : 'Unlock'}
-                              </button>
+                                <option value="ACTIVE" className="bg-white text-emerald-600 font-bold">ACTIVE</option>
+                                <option value="LOCKED" className="bg-white text-red-600 font-bold">LOCKED</option>
+                              </select>
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              {u.status === 'LOCKED' && (
+                                <button
+                                  onClick={() => handleUserStatusChange(u.id, 'ACTIVE')}
+                                  className="text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm cursor-pointer border-none"
+                                >
+                                  Unlock
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -2180,82 +3671,452 @@ export const AdminDashboard: React.FC = () => {
 
             {/* TAB: FINANCIAL STATISTICS */}
             {activeTab === 'financial' && (
-              <div className="flex flex-col gap-8">
-                <div className="mb-2">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Platform Financial Audits</h2>
-                  <p className="text-text-muted mt-1">Detailed statistical records of all financial parameters and metrics.</p>
-                </div>
-
-                {/* Metric breakdown cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Gross Platform Revenue</span>
-                    <span className="text-3xl font-display font-black text-brand-blue mt-2">{(filteredRevenue).toLocaleString()} ₫</span>
+              <div className="flex flex-col gap-8 pb-10 text-left">
+                {/* Header Title and Controls */}
+                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 border-b border-slate-200/60 pb-6">
+                  <div>
+                    <h2 className="text-2xl font-display font-black text-brand-blue flex items-center gap-2">
+                      <span className="material-symbols-outlined text-3xl text-primary">insights</span>
+                      Financial Insights & Audits
+                    </h2>
+                    <p className="text-xs text-text-muted mt-1 font-medium">
+                      Real-time stats of platform course sales, instructor revenue payouts, and operating profit.
+                    </p>
                   </div>
 
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Active Wallet Deposits</span>
-                    <span className="text-3xl font-display font-black text-emerald-600 mt-2">12,400,000 ₫</span>
-                  </div>
-
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Courses Purchased</span>
-                    <span className="text-3xl font-display font-black text-primary mt-2">550 times</span>
-                  </div>
-
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Net Platform Earnings (10%)</span>
-                    <span className="text-3xl font-display font-black text-indigo-600 mt-2">{(filteredRevenue * 0.1).toLocaleString()} ₫</span>
-                  </div>
-                </div>
-
-                {/* Financial chart detail grid */}
-                <div className="bg-surface rounded-2xl p-8 border border-slate-200/50 ambient-shadow flex flex-col">
-                  <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Detailed Financial Inflow & Course Purchase Count</h3>
-                  
-                  {/* Custom Bar chart comparing Cash vs Purchases */}
-                  <div className="w-full h-72 relative select-none">
-                    <svg viewBox="0 0 800 240" className="w-full h-full overflow-visible">
-                      {/* Grid lines */}
-                      {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
-                        const y = 20 + 190 - r * 190;
-                        return (
-                          <line key={i} x1="60" y1={y} x2="780" y2={y} stroke="#f1f5f9" strokeWidth="1.5" />
-                        );
-                      })}
-
-                      {/* Bar groups */}
-                      {financialChartData.map((item, idx) => {
-                        const x = 75 + idx * 60;
-                        // Max scaling
-                        const revHeight = (item.amount / 30000000) * 190;
-                        const buyHeight = (item.count / 60) * 190;
-
-                        return (
-                          <g key={idx}>
-                            {/* Revenue Bar (Orange) */}
-                            <rect x={x} y={210 - revHeight} width="16" height={revHeight} fill="#F36F21" rx="2" />
-                            {/* Purchase Count Bar (Blue) */}
-                            <rect x={x + 20} y={210 - buyHeight} width="16" height={buyHeight} fill="#12284C" rx="2" />
-
-                            <text x={x + 18} y="228" fill="#64748b" fontSize="10" fontWeight="700" textAnchor="middle">{item.label}</text>
-                          </g>
-                        );
-                      })}
-                    </svg>
-                  </div>
-                  <div className="flex gap-6 justify-center text-xs font-bold mt-4">
-                    <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 bg-primary rounded"></span>
-                      <span>Total Cash Inflow (VND)</span>
+                  {/* Filter Controls Panel */}
+                  <div className="flex flex-wrap items-center gap-4 bg-white p-3.5 rounded-2xl border border-slate-200/50 shadow-sm w-full xl:w-auto">
+                    {/* Preset buttons */}
+                    <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5">
+                      {[
+                        { val: 'month', label: 'Tháng này' },
+                        { val: '3months', label: '3 tháng' },
+                        { val: '9months', label: '9 tháng' },
+                        { val: '12months', label: '12 tháng' }
+                      ].map(p => (
+                        <button
+                          key={p.val}
+                          onClick={() => {
+                            setFinancialTimeFilter(p.val as any);
+                            setFinancialStartDate('');
+                            setFinancialEndDate('');
+                          }}
+                          className={`text-xs font-bold px-3.5 py-2 rounded-lg transition-all ${
+                            financialTimeFilter === p.val
+                              ? 'bg-white text-brand-blue shadow-sm'
+                              : 'text-slate-500 hover:text-brand-blue'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
                     </div>
+
+                    {/* Date pickers */}
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 bg-brand-blue rounded"></span>
-                      <span>Total Purchase Volume</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:inline">Custom:</span>
+                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                        <input
+                          type="date"
+                          value={financialStartDate}
+                          onChange={e => {
+                            setFinancialStartDate(e.target.value);
+                            setFinancialTimeFilter('custom');
+                          }}
+                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
+                          placeholder="Từ ngày"
+                        />
+                      </div>
+                      <span className="text-xs text-slate-400 font-bold">to</span>
+                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                        <input
+                          type="date"
+                          value={financialEndDate}
+                          onChange={e => {
+                            setFinancialEndDate(e.target.value);
+                            setFinancialTimeFilter('custom');
+                          }}
+                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
+                          placeholder="Đến ngày"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Reset Button */}
+                    {(financialTimeFilter !== '12months' || financialStartDate || financialEndDate) && (
+                      <button
+                        onClick={() => {
+                          setFinancialTimeFilter('12months');
+                          setFinancialStartDate('');
+                          setFinancialEndDate('');
+                        }}
+                        className="bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs p-2 rounded-xl transition-all border border-slate-200 flex items-center justify-center"
+                        title="Reset Filters"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 6 Key Metric Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
+                  {/* Card 1: Gross Revenue */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Gross Revenue</span>
+                        <span className="material-symbols-outlined text-blue-500 text-lg bg-blue-50 p-1.5 rounded-lg">payments</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-slate-900 mt-3 truncate">
+                        {financialSummary.gross.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      Total sales volume generated
+                    </p>
+                  </div>
+
+                  {/* Card 2: Instructor Share (70%) */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-violet-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Instructor Share (70%)</span>
+                        <span className="material-symbols-outlined text-violet-500 text-lg bg-violet-50 p-1.5 rounded-lg">school</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-violet-600 mt-3 truncate">
+                        {financialSummary.instructorPayouts.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      70% split allocated to lecturers
+                    </p>
+                  </div>
+
+                  {/* Card 3: Platform Cut (30%) */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Platform Cut (30%)</span>
+                        <span className="material-symbols-outlined text-indigo-500 text-lg bg-indigo-50 p-1.5 rounded-lg">account_balance_wallet</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-indigo-600 mt-3 truncate">
+                        {financialSummary.platformNet.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      System shares from courses
+                    </p>
+                  </div>
+
+                  {/* Card 4: Contest Prizes */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-rose-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Contest Prizes</span>
+                        <span className="material-symbols-outlined text-rose-500 text-lg bg-rose-50 p-1.5 rounded-lg">emoji_events</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-rose-600 mt-3 truncate">
+                        {financialSummary.contestRewards.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      Total cash rewarded to top users
+                    </p>
+                  </div>
+
+                  {/* Card 5: Net Operating Profit */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Net Operating Profit</span>
+                        <span className="material-symbols-outlined text-emerald-500 text-lg bg-emerald-50 p-1.5 rounded-lg">trending_up</span>
+                      </div>
+                      <h4 className={`text-xl font-display font-black mt-3 truncate ${
+                        financialSummary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                      }`}>
+                        {financialSummary.netProfit.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      Platform Share after expenses
+                    </p>
+                  </div>
+
+                  {/* Card 6: Courses Sold */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Courses Sold</span>
+                        <span className="material-symbols-outlined text-amber-500 text-lg bg-amber-50 p-1.5 rounded-lg">shopping_bag</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-slate-900 mt-3 truncate">
+                        {financialSummary.coursesSold.toLocaleString()} copies
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      Total purchased copies count
+                    </p>
+                  </div>
+                </div>
+
+                {/* Charts Row: 12-Month Breakdown (60%) & Platform Courses Sold Trend (40%) */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                  {/* Chart 1: 12-Month Triple Column Revenue Chart - occupies 3 columns (60%) */}
+                  <div className="lg:col-span-3 bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col relative">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="font-display font-bold text-lg text-brand-blue">12-Month Financial Revenue & Profit Breakdown</h3>
+                        <p className="text-xs text-text-muted mt-0.5">Compares Gross Revenue, Platform Cut (30%), and Net Profit per month.</p>
+                      </div>
+
+                      {/* Legend */}
+                      <div className="hidden sm:flex items-center gap-3 text-[10px] font-black text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-[#F36F21]"></span>
+                          <span>Gross Sales</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-[#12284C]"></span>
+                          <span>Platform Net (30%)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-[#10B981]"></span>
+                          <span>Net Profit</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Chart Area */}
+                    <div className="w-full h-72 select-none relative mt-2">
+                      <svg viewBox="0 0 800 250" className="w-full h-full overflow-visible">
+                        {/* Grid lines */}
+                        {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
+                          const y = 20 + 190 - r * 190;
+                          const labelVal = r * 30000000;
+                          return (
+                            <g key={i}>
+                              <line x1="55" y1={y} x2="785" y2={y} stroke="#f1f5f9" strokeWidth="1.5" />
+                              <text x="45" y={y + 3} fill="#94a3b8" fontSize="9" fontWeight="800" textAnchor="end">
+                                {labelVal === 0 ? '0 ₫' : `${(labelVal / 1000000).toFixed(0)}M ₫`}
+                              </text>
+                            </g>
+                          );
+                        })}
+
+                        {/* Bar loops */}
+                        {financialMonthlyRecords.map((item, idx) => {
+                          const chartMax = 30000000;
+                          const gx = 65 + idx * 60;
+                          const hGross = (item.grossRevenue / chartMax) * 190;
+                          const hPlat = (item.platformShare / chartMax) * 190;
+                          const hNet = (Math.max(item.netProfit, 0) / chartMax) * 190;
+
+                          return (
+                            <g
+                              key={idx}
+                              onMouseEnter={() => setHoveredMonthIndex(idx)}
+                              onMouseLeave={() => setHoveredMonthIndex(null)}
+                              className="cursor-pointer"
+                            >
+                              {/* Gross Column - Cam (Orange): #F36F21 */}
+                              <rect x={gx} y={210 - hGross} width="11" height={hGross} fill="#F36F21" rx="2" className="transition-all hover:brightness-95" />
+                              {/* Platform Share Column - Xanh dương (Navy): #12284C */}
+                              <rect x={gx + 13} y={210 - hPlat} width="11" height={hPlat} fill="#12284C" rx="2" className="transition-all hover:brightness-95" />
+                              {/* Net Profit Column - Xanh lá cây (Green): #10B981 */}
+                              <rect x={gx + 26} y={210 - hNet} width="11" height={hNet} fill="#10B981" rx="2" className="transition-all hover:brightness-95" />
+
+                              {/* Month label */}
+                              <text x={gx + 18} y="228" fill="#64748b" fontSize="9.5" fontWeight="800" textAnchor="middle">
+                                {item.label}
+                              </text>
+
+                              {/* Invisible interactive overlay for easier hovering */}
+                              <rect x={gx - 4} y="15" width="45" height="200" fill="transparent" />
+                            </g>
+                          );
+                        })}
+                      </svg>
+
+                      {/* Tooltip Popup */}
+                      {hoveredMonthIndex !== null && (
+                        <div
+                          className="absolute z-30 bg-slate-900/95 backdrop-blur-md text-white p-3.5 rounded-xl border border-slate-800 shadow-xl flex flex-col gap-1.5 text-xs font-semibold"
+                          style={{
+                            left: `${65 + hoveredMonthIndex * 60 - 25}px`,
+                            bottom: '215px',
+                            minWidth: '180px'
+                          }}
+                        >
+                          <div className="border-b border-slate-800 pb-1 flex justify-between items-center">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                              Details for {financialMonthlyRecords[hoveredMonthIndex].label}
+                            </span>
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                          </div>
+                          <div className="flex justify-between items-center gap-4">
+                            <span className="text-slate-400">Gross Sales:</span>
+                            <span className="font-mono text-[#F36F21]">
+                              {financialMonthlyRecords[hoveredMonthIndex].grossRevenue.toLocaleString()} ₫
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center gap-4">
+                            <span className="text-slate-400">Platform Cut:</span>
+                            <span className="font-mono text-[#12284C]">
+                              {financialMonthlyRecords[hoveredMonthIndex].platformShare.toLocaleString()} ₫
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center gap-4 border-t border-slate-800 pt-1.5">
+                            <span className="text-slate-400">Net Profit:</span>
+                            <span className="font-mono text-[#10B981]">
+                              {financialMonthlyRecords[hoveredMonthIndex].netProfit.toLocaleString()} ₫
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Chart 2: 12-Month Courses Sold Line Chart - occupies 2 columns (40%) */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col relative">
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-brand-blue">Platform Courses Sold Trend</h3>
+                      <p className="text-xs text-text-muted mt-0.5">Volume copies purchased during the past year.</p>
+                    </div>
+
+                    <div className="w-full h-[270px] select-none relative mt-6">
+                      <svg viewBox="0 0 640 270" className="w-full h-full overflow-visible">
+                        <linearGradient id="courses-sales-grad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                        </linearGradient>
+
+                        {/* Grid lines */}
+                        {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
+                          const y = 30 + 200 - r * 200;
+                          const val = Math.round(r * 60);
+                          return (
+                            <g key={i}>
+                              <line x1="40" y1={y} x2="620" y2={y} stroke="#f1f5f9" strokeWidth="1.5" />
+                              <text x="30" y={y + 3} fill="#94a3b8" fontSize="9" fontWeight="800" textAnchor="end">{val}</text>
+                            </g>
+                          );
+                        })}
+
+                        {/* Area path */}
+                        <path
+                          d={`M 50 230 L ${financialMonthlyRecords
+                            .map((item, idx) => `${50 + idx * 49} ${230 - (item.coursesSold / 60) * 200}`)
+                            .join(' L ')} L ${50 + 11 * 49} 230 Z`}
+                          fill="url(#courses-sales-grad)"
+                        />
+
+                        {/* Line path */}
+                        <path
+                          d={`M ${financialMonthlyRecords
+                            .map((item, idx) => `${50 + idx * 49} ${230 - (item.coursesSold / 60) * 200}`)
+                            .join(' L ')}`}
+                          fill="none"
+                          stroke="#10B981"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+
+                        {/* Dots */}
+                        {financialMonthlyRecords.map((item, idx) => {
+                          const dx = 50 + idx * 49;
+                          const dy = 230 - (item.coursesSold / 60) * 200;
+                          return (
+                            <g
+                              key={idx}
+                              onMouseEnter={() => setHoveredCourseSalesIndex(idx)}
+                              onMouseLeave={() => setHoveredCourseSalesIndex(null)}
+                              className="cursor-pointer"
+                            >
+                              <circle cx={dx} cy={dy} r="4.5" fill="#fff" stroke="#10B981" strokeWidth="2.5" />
+                              {/* Invisible cover for easier hover */}
+                              <circle cx={dx} cy={dy} r="10" fill="transparent" />
+                            </g>
+                          );
+                        })}
+
+                        {/* X-axis labels */}
+                        {financialMonthlyRecords.map((item, idx) => (
+                          <text key={idx} x={50 + idx * 49} y="252" fill="#64748b" fontSize="8.5" fontWeight="800" textAnchor="middle">
+                            {item.label}
+                          </text>
+                        ))}
+                      </svg>
+
+                      {/* Tooltip for Course Sales */}
+                      {hoveredCourseSalesIndex !== null && (
+                        <div
+                          className="absolute z-30 bg-slate-900/95 backdrop-blur-sm text-white px-2.5 py-1.5 rounded-lg border border-slate-800 shadow-md text-[10px] font-bold"
+                          style={{
+                            left: `${50 + hoveredCourseSalesIndex * 49 - 40}px`,
+                            top: `${185 - (financialMonthlyRecords[hoveredCourseSalesIndex].coursesSold / 60) * 200}px`
+                          }}
+                        >
+                          <p className="text-slate-400 font-medium">Sales Count:</p>
+                          <p className="text-emerald-400 font-extrabold text-xs">
+                            {financialMonthlyRecords[hoveredCourseSalesIndex].coursesSold} copies
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Table: Top-Selling Courses Table - occupies 100% full width */}
+                <div className="w-full bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
+                      Top Revenue Generating Courses
+                    </h3>
+                    <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                  </div>
+
+                  <div className="overflow-x-auto mt-4">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
+                          <th className="py-3 px-4">Course title</th>
+                          <th className="py-3 px-4">Instructor</th>
+                          <th className="py-3 px-4 text-center">Units Sold</th>
+                          <th className="py-3 px-4 text-right">Gross Income</th>
+                          <th className="py-3 px-4 text-right">Instructor (70%)</th>
+                          <th className="py-3 px-4 text-right">Platform (30%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                        {[
+                          { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
+                          { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
+                          { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
+                          { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
+                        ].map((c, i) => (
+                          <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-3 px-4 font-bold text-slate-900">{c.name}</td>
+                            <td className="py-3 px-4 text-slate-500 font-extrabold">{c.tutor}</td>
+                            <td className="py-3 px-4 text-center font-mono font-bold">{c.sold}</td>
+                            <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">{c.gross.toLocaleString()} ₫</td>
+                            <td className="py-3 px-4 text-right font-mono font-semibold text-violet-600">+{c.payout.toLocaleString()} ₫</td>
+                            <td className="py-3 px-4 text-right font-mono font-semibold text-indigo-600">+{c.plat.toLocaleString()} ₫</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>              </div>
             )}
           </main>
         )}
@@ -2345,19 +4206,47 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* ================= MODAL: CREATE PROBLEM ================= */}
-      {isCreateProblemOpen && (
+      {/* ================= MODAL: CREATE OR EDIT PROBLEM ================= */}
+      {(isCreateProblemOpen || isEditProblemOpen) && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 animate-fade-in text-left">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 animate-fade-in text-left">
             <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-display font-black text-xl text-brand-blue">Create Programming Problem</h3>
-                <p className="text-xs text-text-muted mt-0.5">Fill in the specifications based on the platform db/entity schema.</p>
+                <h3 className="font-display font-black text-xl text-brand-blue">
+                  {isEditProblemOpen ? "Edit Programming Problem" : "Create Programming Problem"}
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {isEditProblemOpen ? "Modify the specifications of the problem." : "Fill in the specifications based on the platform db/entity schema."}
+                </p>
               </div>
-              <button onClick={() => setIsCreateProblemOpen(false)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
+              <button
+                onClick={() => {
+                  setIsCreateProblemOpen(false);
+                  setIsEditProblemOpen(false);
+                  setEditingProblemId(null);
+                  setNewProbTitle('');
+                  setNewProbDesc('');
+                  setNewProbInputDesc('');
+                  setNewProbOutputDesc('');
+                  setNewProbConstraints('');
+                  setNewProbExampleInput('');
+                  setNewProbExampleOutput('');
+                  setNewProbHint('');
+                  setNewProbScope('PRACTICE');
+                  setNewProbDifficulty('MEDIUM');
+                  setNewProbScore(100);
+                  setNewProbTimeLimit(2000);
+                  setNewProbMemoryLimit(128000);
+                  setNewProbIsPublic(true);
+                  setNewProbSolutions('');
+                }}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                close
+              </button>
             </div>
 
-            <form onSubmit={handleCreateProblemSubmit} className="flex flex-col gap-4 text-xs font-semibold">
+            <form onSubmit={isEditProblemOpen ? handleEditProblemSubmit : handleCreateProblemSubmit} className="flex flex-col gap-4 text-xs font-semibold">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Problem Title *</label>
@@ -2449,7 +4338,7 @@ export const AdminDashboard: React.FC = () => {
                 type="submit"
                 className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4"
               >
-                Create Problem Metadata
+                {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
               </button>
             </form>
           </div>
@@ -2459,27 +4348,30 @@ export const AdminDashboard: React.FC = () => {
       {/* ================= MODAL: CREATE CONTEST ================= */}
       {isCreateContestOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-lg w-full p-6 animate-fade-in text-left">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-2xl w-full p-6 animate-fade-in text-left">
             <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-display font-black text-xl text-brand-blue">Create Contest</h3>
                 <p className="text-xs text-text-muted mt-0.5">Input the basic meta details of the competition.</p>
               </div>
-              <button onClick={() => setIsCreateContestOpen(false)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
+              <button onClick={() => {
+                setIsCreateContestOpen(false);
+                setNewContestTitle('');
+                setNewContestDesc('');
+                setNewContestScoringRule('ICPC');
+                setNewContestStartTime('');
+                setNewContestEndTime('');
+                setNewContestPassword('');
+                setNewContestConfirmPassword('');
+              }} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
             </div>
 
             <form onSubmit={handleCreateContestSubmit} className="flex flex-col gap-4 text-xs font-semibold">
-              <div className="flex flex-col gap-1">
-                <label className="text-text-muted">Contest Title *</label>
-                <input required type="text" value={newContestTitle} onChange={e => setNewContestTitle(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="e.g. Nonstop Coding Winter Cup" />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-text-muted">Contest Description</label>
-                <textarea rows={3} value={newContestDesc} onChange={e => setNewContestDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Detail contest guidelines..." />
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-muted">Contest Title *</label>
+                  <input required type="text" value={newContestTitle} onChange={e => setNewContestTitle(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="e.g. Nonstop Coding Winter Cup" />
+                </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Scoring Rule</label>
                   <select value={newContestScoringRule} onChange={e => setNewContestScoringRule(e.target.value as any)} className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-xs">
@@ -2488,10 +4380,11 @@ export const AdminDashboard: React.FC = () => {
                     <option value="CUSTOM">Custom Rule</option>
                   </select>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Duration (Minutes)</label>
-                  <input type="number" value={newContestDuration} onChange={e => setNewContestDuration(Number(e.target.value))} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" />
-                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-text-muted">Contest Description</label>
+                <textarea rows={3} value={newContestDesc} onChange={e => setNewContestDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Detail contest guidelines..." />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -2502,6 +4395,17 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">End Time *</label>
                   <input required type="datetime-local" value={newContestEndTime} onChange={e => setNewContestEndTime(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-muted">Password (Optional)</label>
+                  <input type="password" value={newContestPassword} onChange={e => setNewContestPassword(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Leave empty for public" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-muted">Confirm Password</label>
+                  <input type="password" value={newContestConfirmPassword} onChange={e => setNewContestConfirmPassword(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Confirm contest password" />
                 </div>
               </div>
 
