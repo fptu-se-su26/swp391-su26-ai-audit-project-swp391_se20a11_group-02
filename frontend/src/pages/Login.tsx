@@ -16,8 +16,14 @@ export const Login: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      await login(username, password);
-      navigate('/dashboard');
+      const user = await login(username, password);
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else if (user.role === 'instructor') {
+        navigate('/instructor');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Đăng nhập không thành công. Vui lòng kiểm tra lại.');
     } finally {
@@ -147,8 +153,14 @@ export const Login: React.FC = () => {
                       setLoading(true);
                       setError(null);
                       try {
-                        await googleLogin(credentialResponse.credential);
-                        navigate('/dashboard');
+                        const user = await googleLogin(credentialResponse.credential);
+                        if (user.role === 'admin') {
+                          navigate('/admin');
+                        } else if (user.role === 'instructor') {
+                          navigate('/instructor');
+                        } else {
+                          navigate('/dashboard');
+                        }
                       } catch (err: any) {
                         setError(err.message || 'Đăng nhập Google thất bại');
                       } finally {

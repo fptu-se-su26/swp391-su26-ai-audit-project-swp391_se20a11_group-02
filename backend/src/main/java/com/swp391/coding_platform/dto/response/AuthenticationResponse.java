@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Data
 @Builder
@@ -18,6 +19,6 @@ public class AuthenticationResponse {
     String avatarUrl;
     String email;
     BigDecimal balance;
-    java.util.Set<String> roles;
+    Set<String> roles;
     String username;
 }

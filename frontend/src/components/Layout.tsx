@@ -223,6 +223,12 @@ export const Layout: React.FC = () => {
                 <span>Instructor</span>
               </Link>
             )}
+            {user && user.role === 'admin' && (
+              <Link to="/admin" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-red-200 shrink-0">
+                <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">admin_panel_settings</span>
+                <span>Admin</span>
+              </Link>
+            )}
             <button className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all">
               <span className="material-symbols-outlined">notifications</span>
             </button>
@@ -249,6 +255,16 @@ export const Layout: React.FC = () => {
                   <Link to="/dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">dashboard</span> My Learning
                   </Link>
+                  {user && user.role === 'admin' && (
+                    <Link to="/admin" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Panel
+                    </Link>
+                  )}
+                  {user && user.role === 'instructor' && (
+                    <Link to="/instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
+                    </Link>
+                  )}
                   <a href="#" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">person</span> Edit Profile
                   </a>

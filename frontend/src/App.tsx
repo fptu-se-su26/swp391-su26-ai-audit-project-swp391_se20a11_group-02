@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AppProvider } from './context/AppContext';
 import { Layout } from './components/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -42,9 +43,23 @@ function App() {
             {/* Platform SPA routes wrapped inside responsive Layout shell */}
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
-              <Route path="dashboard" element={<StudentDashboard />} />
-              <Route path="instructor" element={<InstructorDashboard />} />
-              <Route path="admin" element={<AdminDashboard />} />
+
+              {/* Student/User learning dashboard (accessible to all logged in users) */}
+              <Route element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']} />}>
+                <Route path="dashboard" element={<StudentDashboard />} />
+                <Route path="wallet-transaction" element={<WalletTransaction />} />
+                <Route path="payment-transaction" element={<PaymentTransaction />} />
+              </Route>
+
+              {/* Instructor area (only for instructors) */}
+              <Route element={<ProtectedRoute allowedRoles={['instructor']} />}>
+                <Route path="instructor" element={<InstructorDashboard />} />
+              </Route>
+
+              {/* Admin Panel (only for admin) */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="admin" element={<AdminDashboard />} />
+              </Route>
               
               {/* Courses Catalog & Details */}
               <Route path="courses" element={<Courses />} />
@@ -65,10 +80,8 @@ function App() {
               <Route path="contests/:id/submissions" element={<ContestSubmissions />} />
               <Route path="contests/:id/ranking" element={<ContestRanking />} />
               
-              {/* Shopping cart & wallet */}
+              {/* Shopping cart */}
               <Route path="shopping-cart" element={<ShoppingCart />} />
-              <Route path="wallet-transaction" element={<WalletTransaction />} />
-              <Route path="payment-transaction" element={<PaymentTransaction />} />
               
               {/* Footer legal and contact pages */}
               <Route path="contact" element={<ContactUs />} />

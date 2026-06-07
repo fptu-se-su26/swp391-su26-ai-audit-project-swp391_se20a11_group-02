@@ -25,14 +25,20 @@ export const Register: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      await register({
+      const user = await register({
         username,
         password,
         confirmPassword,
         displayname: fullname,
         email
       });
-      navigate('/dashboard');
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else if (user.role === 'instructor') {
+        navigate('/instructor');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Đăng ký không thành công. Vui lòng kiểm tra lại.');
     } finally {
@@ -237,8 +243,14 @@ export const Register: React.FC = () => {
                       setLoading(true);
                       setError(null);
                       try {
-                        await googleLogin(credentialResponse.credential);
-                        navigate('/dashboard');
+                        const user = await googleLogin(credentialResponse.credential);
+                        if (user.role === 'admin') {
+                          navigate('/admin');
+                        } else if (user.role === 'instructor') {
+                          navigate('/instructor');
+                        } else {
+                          navigate('/dashboard');
+                        }
                       } catch (err: any) {
                         setError(err.message || 'Đăng ký Google thất bại');
                       } finally {

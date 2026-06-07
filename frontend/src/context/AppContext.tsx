@@ -9,7 +9,7 @@ export interface User {
   name: string;
   username: string;
   email: string;
-  role: 'student' | 'instructor';
+  role: 'student' | 'instructor' | 'admin';
   avatar: string;
   walletBalance: number;
 }
@@ -52,9 +52,9 @@ interface AppContextType {
   enrolledCourses: string[]; // Course IDs
   submissions: CodeSubmission[];
   registeredContests: string[]; // Contest IDs
-  login: (username: string, password: string) => Promise<void>;
-  googleLogin: (idToken: string) => Promise<void>;
-  register: (registerData: any) => Promise<void>;
+  login: (username: string, password: string) => Promise<User>;
+  googleLogin: (idToken: string) => Promise<User>;
+  register: (registerData: any) => Promise<User>;
   logout: () => Promise<void>;
   depositFunds: (amount: number, method: string) => void;
   withdrawFunds: (amount: number, bank: string, account: string) => boolean;
@@ -142,10 +142,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [user?.id]);
 
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (username: string, password: string): Promise<User> => {
     const result = await authService.login(username, password);
-    const isInstructor = result.roles?.includes('INSTRUCTOR') || result.roles?.includes('ADMIN');
-    const userRole: 'student' | 'instructor' = isInstructor ? 'instructor' : 'student';
+    let userRole: 'student' | 'instructor' | 'admin' = 'student';
+    if (result.roles?.includes('ADMIN')) {
+      userRole = 'admin';
+    } else if (result.roles?.includes('INSTRUCTOR')) {
+      userRole = 'instructor';
+    }
 
     const loggedInUser: User = {
       id: result.id.toString(),
@@ -158,14 +162,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setUser(loggedInUser);
-    setUser(loggedInUser);
     localStorage.setItem('user_info', JSON.stringify(loggedInUser));
+    return loggedInUser;
   };
 
-  const googleLogin = async (idToken: string): Promise<void> => {
+  const googleLogin = async (idToken: string): Promise<User> => {
     const result = await authService.googleLogin(idToken);
-    const isInstructor = result.roles?.includes('INSTRUCTOR') || result.roles?.includes('ADMIN');
-    const userRole: 'student' | 'instructor' = isInstructor ? 'instructor' : 'student';
+    let userRole: 'student' | 'instructor' | 'admin' = 'student';
+    if (result.roles?.includes('ADMIN')) {
+      userRole = 'admin';
+    } else if (result.roles?.includes('INSTRUCTOR')) {
+      userRole = 'instructor';
+    }
 
     const loggedInUser: User = {
       id: result.id.toString(),
@@ -179,12 +187,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setUser(loggedInUser);
     localStorage.setItem('user_info', JSON.stringify(loggedInUser));
+    return loggedInUser;
   };
 
-  const register = async (registerData: any): Promise<void> => {
+  const register = async (registerData: any): Promise<User> => {
     const result = await authService.register(registerData);
-    const isInstructor = result.roles?.includes('INSTRUCTOR') || result.roles?.includes('ADMIN');
-    const userRole: 'student' | 'instructor' = isInstructor ? 'instructor' : 'student';
+    let userRole: 'student' | 'instructor' | 'admin' = 'student';
+    if (result.roles?.includes('ADMIN')) {
+      userRole = 'admin';
+    } else if (result.roles?.includes('INSTRUCTOR')) {
+      userRole = 'instructor';
+    }
 
     const loggedInUser: User = {
       id: result.id.toString(),
@@ -198,6 +211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setUser(loggedInUser);
     localStorage.setItem('user_info', JSON.stringify(loggedInUser));
+    return loggedInUser;
   };
 
   const logout = async (): Promise<void> => {

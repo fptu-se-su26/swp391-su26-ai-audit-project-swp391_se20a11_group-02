@@ -63,6 +63,7 @@ export interface AdminUser {
   totalDeposited: number;
   totalPurchased: number;
   purchasedCourses: { id: string; title: string; price: number; date: string }[];
+  isOnline?: boolean;
 }
 
 export interface AdminProblem {
@@ -102,6 +103,7 @@ export interface AdminContest {
   participantCount: number;
   submissionCount: number;
   averageScore: number;
+  password?: string;
 }
 
 export interface ActivityLog {
@@ -280,7 +282,8 @@ let mockUsers: AdminUser[] = [
     purchasedCourses: [
       { id: "c-101", title: "Mastering Full-Stack React & Node.js", price: 499000, date: "2026-02-01T12:00:00Z" },
       { id: "c-102", title: "Java Algorithms & Coding Arena", price: 389000, date: "2026-03-10T14:20:00Z" }
-    ]
+    ],
+    isOnline: true
   },
   {
     id: 102,
@@ -293,7 +296,8 @@ let mockUsers: AdminUser[] = [
     totalPurchased: 1000000,
     purchasedCourses: [
       { id: "c-101", title: "Mastering Full-Stack React & Node.js", price: 499000, date: "2026-02-25T09:00:00Z" }
-    ]
+    ],
+    isOnline: false
   },
   {
     id: 103,
@@ -304,7 +308,8 @@ let mockUsers: AdminUser[] = [
     balance: 0,
     totalDeposited: 300000,
     totalPurchased: 300000,
-    purchasedCourses: []
+    purchasedCourses: [],
+    isOnline: false
   },
   {
     id: 104,
@@ -315,7 +320,8 @@ let mockUsers: AdminUser[] = [
     balance: 4500000,
     totalDeposited: 4500000,
     totalPurchased: 0,
-    purchasedCourses: []
+    purchasedCourses: [],
+    isOnline: true
   }
 ];
 
@@ -818,6 +824,30 @@ export const adminService = {
     }
     await delay(200);
     mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, totalTestcases, isActive: totalTestcases > 0 } : p);
+    return mockProblems.find(p => p.id === problemId)!;
+  },
+
+  async updateProblem(problemId: number, problem: Omit<AdminProblem, 'id' | 'createdAt' | 'createdBy' | 'isActive' | 'totalSubmissions' | 'acceptedSubmissions'>): Promise<AdminProblem> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(problem),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Mocking update problem:", err);
+    }
+    await delay(400);
+    mockProblems = mockProblems.map(p => p.id === problemId ? {
+      ...p,
+      ...problem,
+      isActive: problem.totalTestcases > 0
+    } : p);
     return mockProblems.find(p => p.id === problemId)!;
   },
 
