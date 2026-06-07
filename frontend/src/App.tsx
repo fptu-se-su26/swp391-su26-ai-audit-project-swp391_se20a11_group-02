@@ -7,6 +7,7 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { InstructorDashboard } from './pages/InstructorDashboard';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { Courses } from './pages/Courses';
 import { CourseDetail } from './pages/CourseDetail';
 import { Problems } from './pages/Problems';
@@ -43,6 +44,7 @@ function App() {
               <Route index element={<Home />} />
               <Route path="dashboard" element={<StudentDashboard />} />
               <Route path="instructor" element={<InstructorDashboard />} />
+              <Route path="admin" element={<AdminDashboard />} />
               
               {/* Courses Catalog & Details */}
               <Route path="courses" element={<Courses />} />
