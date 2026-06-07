@@ -347,6 +347,7 @@ export const AdminDashboard: React.FC = () => {
   const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
+  const [userOnlineFilter, setUserOnlineFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
@@ -596,12 +597,122 @@ export const AdminDashboard: React.FC = () => {
   // SVG Chart Computations
   const financialChartData = useMemo(() => adminService.getFinancialChartData(), []);
 
-  // Filter mock metrics based on time filter
-  const filteredRevenue = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const subset = financialChartData.slice(0, months);
-    return subset.reduce((sum, item) => sum + item.amount, 0);
-  }, [dashboardTimeFilter, financialChartData]);
+  // Financial Page state variables
+  const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '3months' | '9months' | '12months' | 'custom'>('12months');
+  const [financialStartDate, setFinancialStartDate] = useState<string>('');
+  const [financialEndDate, setFinancialEndDate] = useState<string>('');
+  const [hoveredMonthIndex, setHoveredMonthIndex] = useState<number | null>(null);
+  const [hoveredCourseSalesIndex, setHoveredCourseSalesIndex] = useState<number | null>(null);
+  // 12-month raw financial records (Jul 25 to Jun 26)
+  const financialMonthlyRecords = useMemo(() => {
+    const rawChartData = [
+      { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
+      { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
+      { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
+      { label: 'Oct 25', datePrefix: '2025-10', gross: 17200000, count: 34, rewards: 900000, server: 1200000, marketing: 1500000 },
+      { label: 'Nov 25', datePrefix: '2025-11', gross: 19000000, count: 38, rewards: 1000000, server: 1500000, marketing: 1500000 },
+      { label: 'Dec 25', datePrefix: '2025-12', gross: 21500000, count: 43, rewards: 1500000, server: 1500000, marketing: 2000000 },
+      { label: 'Jan 26', datePrefix: '2026-01', gross: 12000000, count: 24, rewards: 800000, server: 1500000, marketing: 800000 },
+      { label: 'Feb 26', datePrefix: '2026-02', gross: 15000000, count: 30, rewards: 1000000, server: 1500000, marketing: 1000000 },
+      { label: 'Mar 26', datePrefix: '2026-03', gross: 18500000, count: 37, rewards: 1200000, server: 1500000, marketing: 1500000 },
+      { label: 'Apr 26', datePrefix: '2026-04', gross: 16000000, count: 32, rewards: 1000000, server: 1500000, marketing: 1200000 },
+      { label: 'May 26', datePrefix: '2026-05', gross: 22000000, count: 44, rewards: 1500000, server: 1500000, marketing: 1800000 },
+      { label: 'Jun 26', datePrefix: '2026-06', gross: 24580000, count: 49, rewards: 1800000, server: 1500000, marketing: 2000000 }
+    ];
+
+    return rawChartData.map(item => {
+      const gross = item.gross;
+      const instructorShare = Math.round(gross * 0.7);
+      const platformShare = Math.round(gross * 0.3);
+      const gatewayFees = Math.round(gross * 0.02);
+      const otherExpenses = item.server + item.marketing + gatewayFees;
+      const netProfit = platformShare - item.rewards - otherExpenses;
+      const datePrefix = item.datePrefix;
+      const days = datePrefix.endsWith('02') ? 28 : (['04', '06', '09', '11'].some(m => datePrefix.endsWith(m)) ? 30 : 31);
+
+      return {
+        label: item.label,
+        startDate: `${datePrefix}-01`,
+        endDate: `${datePrefix}-${days}`,
+        grossRevenue: gross,
+        coursesSold: item.count,
+        contestRewards: item.rewards,
+        otherExpenses,
+        serverCosts: item.server,
+        marketingCosts: item.marketing,
+        gatewayFees,
+        instructorShare,
+        platformShare,
+        netProfit
+      };
+    });
+  }, []);
+
+  // Filtered dataset according to UI state
+  const filteredFinancialData = useMemo(() => {
+    if (financialTimeFilter === 'custom') {
+      if (!financialStartDate && !financialEndDate) return financialMonthlyRecords;
+      return financialMonthlyRecords.filter(r => {
+        const recordStart = new Date(r.startDate).getTime();
+        const recordEnd = new Date(r.endDate).getTime();
+        const filterStart = financialStartDate ? new Date(financialStartDate).getTime() : -Infinity;
+        const filterEnd = financialEndDate ? new Date(financialEndDate).getTime() : Infinity;
+        return recordStart >= filterStart && recordEnd <= filterEnd;
+      });
+    }
+
+    switch (financialTimeFilter) {
+      case 'month':
+        return financialMonthlyRecords.slice(11);
+      case '3months':
+        return financialMonthlyRecords.slice(9);
+      case '9months':
+        return financialMonthlyRecords.slice(3);
+      case '12months':
+      default:
+        return financialMonthlyRecords;
+    }
+  }, [financialTimeFilter, financialStartDate, financialEndDate, financialMonthlyRecords]);
+
+  // Aggregated Summary of metrics
+  const financialSummary = useMemo(() => {
+    let gross = 0;
+    let platformNet = 0;
+    let coursesSold = 0;
+    let contestRewards = 0;
+    let otherExpenses = 0;
+    let netProfit = 0;
+    let instructorPayouts = 0;
+    let serverCosts = 0;
+    let marketingCosts = 0;
+    let gatewayFees = 0;
+
+    filteredFinancialData.forEach(item => {
+      gross += item.grossRevenue;
+      platformNet += item.platformShare;
+      coursesSold += item.coursesSold;
+      contestRewards += item.contestRewards;
+      otherExpenses += item.otherExpenses;
+      netProfit += item.netProfit;
+      instructorPayouts += item.instructorShare;
+      serverCosts += item.serverCosts;
+      marketingCosts += item.marketingCosts;
+      gatewayFees += item.gatewayFees;
+    });
+
+    return {
+      gross,
+      platformNet,
+      coursesSold,
+      contestRewards,
+      otherExpenses,
+      netProfit,
+      instructorPayouts,
+      serverCosts,
+      marketingCosts,
+      gatewayFees
+    };
+  }, [filteredFinancialData]);
 
   // SVG coordinate calculator for 12-month revenue line chart
   const lineChartPoints = useMemo(() => {
@@ -729,20 +840,19 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleToggleUserLock = async (userId: number, currentStatus: 'ACTIVE' | 'LOCKED') => {
-    const targetStatus = currentStatus === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
-    const confirmMsg = `Are you sure you want to ${targetStatus === 'LOCKED' ? 'LOCK' : 'UNLOCK'} this user account?`;
+  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      const updated = await adminService.setUserLockStatus(userId, targetStatus);
+      const updated = await adminService.setUserLockStatus(userId, newStatus);
       setUsers(prev => prev.map(u => u.id === userId ? updated : u));
       if (selectedUserDetail?.id === userId) {
         setSelectedUserDetail(updated);
       }
-      alert(`User status successfully updated to ${targetStatus}`);
+      alert(`User status successfully updated to ${newStatus}`);
     } catch (error) {
-      alert("Failed to toggle user lock status");
+      alert("Failed to update user status");
     }
   };
 
@@ -980,9 +1090,11 @@ export const AdminDashboard: React.FC = () => {
     return users.filter(u => {
       const matchesSearch = u.name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase());
       const matchesStatus = userStatusFilter === 'ALL' || u.status === userStatusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesOnline = userOnlineFilter === 'ALL' || 
+        (userOnlineFilter === 'ONLINE' ? !!u.isOnline : !u.isOnline);
+      return matchesSearch && matchesStatus && matchesOnline;
     });
-  }, [users, userSearch, userStatusFilter]);
+  }, [users, userSearch, userStatusFilter, userOnlineFilter]);
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
@@ -3474,13 +3586,22 @@ export const AdminDashboard: React.FC = () => {
                       className="text-xs bg-surface border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-primary focus:border-primary w-full sm:w-60"
                     />
                     <select
+                      value={userOnlineFilter}
+                      onChange={(e) => setUserOnlineFilter(e.target.value as any)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="ALL">All Activity</option>
+                      <option value="ONLINE">Online</option>
+                      <option value="OFFLINE">Offline</option>
+                    </select>
+                    <select
                       value={userStatusFilter}
                       onChange={(e) => setUserStatusFilter(e.target.value as any)}
                       className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
                     >
                       <option value="ALL">All Status</option>
-                      <option value="ACTIVE">Active Only</option>
-                      <option value="LOCKED">Locked Only</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="LOCKED">Locked</option>
                     </select>
                   </div>
                 </div>
@@ -3491,7 +3612,7 @@ export const AdminDashboard: React.FC = () => {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
-                          <th className="py-4 px-6">User ID</th>
+                          <th className="py-4 px-6 text-center w-24">Activity</th>
                           <th className="py-4 px-6">Name</th>
                           <th className="py-4 px-6">Email</th>
                           <th className="py-4 px-6">Register Date</th>
@@ -3504,32 +3625,40 @@ export const AdminDashboard: React.FC = () => {
                       <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
                         {filteredUsers.map((u) => (
                           <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-4 px-6 text-brand-blue font-bold">#{u.id}</td>
+                            <td className="py-4 px-6 text-center">
+                              <span
+                                className={`inline-block w-2.5 h-2.5 rounded-full ${u.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}
+                                title={u.isOnline ? 'Online' : 'Offline'}
+                              ></span>
+                            </td>
                             <td className="py-4 px-6 font-bold text-slate-900">{u.name}</td>
                             <td className="py-4 px-6">{u.email}</td>
                             <td className="py-4 px-6">{new Date(u.registerDate).toLocaleDateString()}</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{u.balance.toLocaleString()} ₫</td>
                             <td className="py-4 px-6 text-emerald-600 font-bold">+{u.totalDeposited.toLocaleString()} ₫</td>
                             <td className="py-4 px-6">
-                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                                }`}>{u.status}</span>
+                              <select
+                                value={u.status}
+                                onChange={(e) => handleUserStatusChange(u.id, e.target.value as 'ACTIVE' | 'LOCKED')}
+                                className={`border rounded-lg pl-2.5 pr-8 py-1.5 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${
+                                  u.status === 'ACTIVE'
+                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                    : 'bg-red-50 text-red-600 border-red-200'
+                                }`}
+                              >
+                                <option value="ACTIVE" className="bg-white text-emerald-600 font-bold">ACTIVE</option>
+                                <option value="LOCKED" className="bg-white text-red-600 font-bold">LOCKED</option>
+                              </select>
                             </td>
-                            <td className="py-4 px-6 text-right flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => setSelectedUserDetail(u)}
-                                className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-lg transition-colors"
-                              >
-                                View Purchases
-                              </button>
-                              <button
-                                onClick={() => handleToggleUserLock(u.id, u.status)}
-                                className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${u.status === 'ACTIVE'
-                                  ? 'bg-red-500 hover:bg-red-600 text-white shadow-sm'
-                                  : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm'
-                                  }`}
-                              >
-                                {u.status === 'ACTIVE' ? 'Lock' : 'Unlock'}
-                              </button>
+                            <td className="py-4 px-6 text-right">
+                              {u.status === 'LOCKED' && (
+                                <button
+                                  onClick={() => handleUserStatusChange(u.id, 'ACTIVE')}
+                                  className="text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm cursor-pointer border-none"
+                                >
+                                  Unlock
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -3542,82 +3671,452 @@ export const AdminDashboard: React.FC = () => {
 
             {/* TAB: FINANCIAL STATISTICS */}
             {activeTab === 'financial' && (
-              <div className="flex flex-col gap-8">
-                <div className="mb-2">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Platform Financial Audits</h2>
-                  <p className="text-text-muted mt-1">Detailed statistical records of all financial parameters and metrics.</p>
-                </div>
-
-                {/* Metric breakdown cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Gross Platform Revenue</span>
-                    <span className="text-3xl font-display font-black text-brand-blue mt-2">{(filteredRevenue).toLocaleString()} ₫</span>
+              <div className="flex flex-col gap-8 pb-10 text-left">
+                {/* Header Title and Controls */}
+                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 border-b border-slate-200/60 pb-6">
+                  <div>
+                    <h2 className="text-2xl font-display font-black text-brand-blue flex items-center gap-2">
+                      <span className="material-symbols-outlined text-3xl text-primary">insights</span>
+                      Financial Insights & Audits
+                    </h2>
+                    <p className="text-xs text-text-muted mt-1 font-medium">
+                      Real-time stats of platform course sales, instructor revenue payouts, and operating profit.
+                    </p>
                   </div>
 
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Active Wallet Deposits</span>
-                    <span className="text-3xl font-display font-black text-emerald-600 mt-2">12,400,000 ₫</span>
-                  </div>
-
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Courses Purchased</span>
-                    <span className="text-3xl font-display font-black text-primary mt-2">550 times</span>
-                  </div>
-
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Net Platform Earnings (10%)</span>
-                    <span className="text-3xl font-display font-black text-indigo-600 mt-2">{(filteredRevenue * 0.1).toLocaleString()} ₫</span>
-                  </div>
-                </div>
-
-                {/* Financial chart detail grid */}
-                <div className="bg-surface rounded-2xl p-8 border border-slate-200/50 ambient-shadow flex flex-col">
-                  <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Detailed Financial Inflow & Course Purchase Count</h3>
-
-                  {/* Custom Bar chart comparing Cash vs Purchases */}
-                  <div className="w-full h-72 relative select-none">
-                    <svg viewBox="0 0 800 240" className="w-full h-full overflow-visible">
-                      {/* Grid lines */}
-                      {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
-                        const y = 20 + 190 - r * 190;
-                        return (
-                          <line key={i} x1="60" y1={y} x2="780" y2={y} stroke="#f1f5f9" strokeWidth="1.5" />
-                        );
-                      })}
-
-                      {/* Bar groups */}
-                      {financialChartData.map((item, idx) => {
-                        const x = 75 + idx * 60;
-                        // Max scaling
-                        const revHeight = (item.amount / 30000000) * 190;
-                        const buyHeight = (item.count / 60) * 190;
-
-                        return (
-                          <g key={idx}>
-                            {/* Revenue Bar (Orange) */}
-                            <rect x={x} y={210 - revHeight} width="16" height={revHeight} fill="#F36F21" rx="2" />
-                            {/* Purchase Count Bar (Blue) */}
-                            <rect x={x + 20} y={210 - buyHeight} width="16" height={buyHeight} fill="#12284C" rx="2" />
-
-                            <text x={x + 18} y="228" fill="#64748b" fontSize="10" fontWeight="700" textAnchor="middle">{item.label}</text>
-                          </g>
-                        );
-                      })}
-                    </svg>
-                  </div>
-                  <div className="flex gap-6 justify-center text-xs font-bold mt-4">
-                    <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 bg-primary rounded"></span>
-                      <span>Total Cash Inflow (VND)</span>
+                  {/* Filter Controls Panel */}
+                  <div className="flex flex-wrap items-center gap-4 bg-white p-3.5 rounded-2xl border border-slate-200/50 shadow-sm w-full xl:w-auto">
+                    {/* Preset buttons */}
+                    <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5">
+                      {[
+                        { val: 'month', label: 'Tháng này' },
+                        { val: '3months', label: '3 tháng' },
+                        { val: '9months', label: '9 tháng' },
+                        { val: '12months', label: '12 tháng' }
+                      ].map(p => (
+                        <button
+                          key={p.val}
+                          onClick={() => {
+                            setFinancialTimeFilter(p.val as any);
+                            setFinancialStartDate('');
+                            setFinancialEndDate('');
+                          }}
+                          className={`text-xs font-bold px-3.5 py-2 rounded-lg transition-all ${
+                            financialTimeFilter === p.val
+                              ? 'bg-white text-brand-blue shadow-sm'
+                              : 'text-slate-500 hover:text-brand-blue'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
                     </div>
+
+                    {/* Date pickers */}
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 bg-brand-blue rounded"></span>
-                      <span>Total Purchase Volume</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:inline">Custom:</span>
+                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                        <input
+                          type="date"
+                          value={financialStartDate}
+                          onChange={e => {
+                            setFinancialStartDate(e.target.value);
+                            setFinancialTimeFilter('custom');
+                          }}
+                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
+                          placeholder="Từ ngày"
+                        />
+                      </div>
+                      <span className="text-xs text-slate-400 font-bold">to</span>
+                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                        <input
+                          type="date"
+                          value={financialEndDate}
+                          onChange={e => {
+                            setFinancialEndDate(e.target.value);
+                            setFinancialTimeFilter('custom');
+                          }}
+                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
+                          placeholder="Đến ngày"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Reset Button */}
+                    {(financialTimeFilter !== '12months' || financialStartDate || financialEndDate) && (
+                      <button
+                        onClick={() => {
+                          setFinancialTimeFilter('12months');
+                          setFinancialStartDate('');
+                          setFinancialEndDate('');
+                        }}
+                        className="bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs p-2 rounded-xl transition-all border border-slate-200 flex items-center justify-center"
+                        title="Reset Filters"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 6 Key Metric Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
+                  {/* Card 1: Gross Revenue */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Gross Revenue</span>
+                        <span className="material-symbols-outlined text-blue-500 text-lg bg-blue-50 p-1.5 rounded-lg">payments</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-slate-900 mt-3 truncate">
+                        {financialSummary.gross.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      Total sales volume generated
+                    </p>
+                  </div>
+
+                  {/* Card 2: Instructor Share (70%) */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-violet-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Instructor Share (70%)</span>
+                        <span className="material-symbols-outlined text-violet-500 text-lg bg-violet-50 p-1.5 rounded-lg">school</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-violet-600 mt-3 truncate">
+                        {financialSummary.instructorPayouts.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      70% split allocated to lecturers
+                    </p>
+                  </div>
+
+                  {/* Card 3: Platform Cut (30%) */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Platform Cut (30%)</span>
+                        <span className="material-symbols-outlined text-indigo-500 text-lg bg-indigo-50 p-1.5 rounded-lg">account_balance_wallet</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-indigo-600 mt-3 truncate">
+                        {financialSummary.platformNet.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      System shares from courses
+                    </p>
+                  </div>
+
+                  {/* Card 4: Contest Prizes */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-rose-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Contest Prizes</span>
+                        <span className="material-symbols-outlined text-rose-500 text-lg bg-rose-50 p-1.5 rounded-lg">emoji_events</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-rose-600 mt-3 truncate">
+                        {financialSummary.contestRewards.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      Total cash rewarded to top users
+                    </p>
+                  </div>
+
+                  {/* Card 5: Net Operating Profit */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Net Operating Profit</span>
+                        <span className="material-symbols-outlined text-emerald-500 text-lg bg-emerald-50 p-1.5 rounded-lg">trending_up</span>
+                      </div>
+                      <h4 className={`text-xl font-display font-black mt-3 truncate ${
+                        financialSummary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                      }`}>
+                        {financialSummary.netProfit.toLocaleString()} ₫
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      Platform Share after expenses
+                    </p>
+                  </div>
+
+                  {/* Card 6: Courses Sold */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
+                    <div>
+                      <div className="flex justify-between items-center text-text-muted">
+                        <span className="text-[10px] font-black uppercase tracking-wider">Courses Sold</span>
+                        <span className="material-symbols-outlined text-amber-500 text-lg bg-amber-50 p-1.5 rounded-lg">shopping_bag</span>
+                      </div>
+                      <h4 className="text-xl font-display font-black text-slate-900 mt-3 truncate">
+                        {financialSummary.coursesSold.toLocaleString()} copies
+                      </h4>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
+                      Total purchased copies count
+                    </p>
+                  </div>
+                </div>
+
+                {/* Charts Row: 12-Month Breakdown (60%) & Platform Courses Sold Trend (40%) */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                  {/* Chart 1: 12-Month Triple Column Revenue Chart - occupies 3 columns (60%) */}
+                  <div className="lg:col-span-3 bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col relative">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="font-display font-bold text-lg text-brand-blue">12-Month Financial Revenue & Profit Breakdown</h3>
+                        <p className="text-xs text-text-muted mt-0.5">Compares Gross Revenue, Platform Cut (30%), and Net Profit per month.</p>
+                      </div>
+
+                      {/* Legend */}
+                      <div className="hidden sm:flex items-center gap-3 text-[10px] font-black text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-[#F36F21]"></span>
+                          <span>Gross Sales</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-[#12284C]"></span>
+                          <span>Platform Net (30%)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-[#10B981]"></span>
+                          <span>Net Profit</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Chart Area */}
+                    <div className="w-full h-72 select-none relative mt-2">
+                      <svg viewBox="0 0 800 250" className="w-full h-full overflow-visible">
+                        {/* Grid lines */}
+                        {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
+                          const y = 20 + 190 - r * 190;
+                          const labelVal = r * 30000000;
+                          return (
+                            <g key={i}>
+                              <line x1="55" y1={y} x2="785" y2={y} stroke="#f1f5f9" strokeWidth="1.5" />
+                              <text x="45" y={y + 3} fill="#94a3b8" fontSize="9" fontWeight="800" textAnchor="end">
+                                {labelVal === 0 ? '0 ₫' : `${(labelVal / 1000000).toFixed(0)}M ₫`}
+                              </text>
+                            </g>
+                          );
+                        })}
+
+                        {/* Bar loops */}
+                        {financialMonthlyRecords.map((item, idx) => {
+                          const chartMax = 30000000;
+                          const gx = 65 + idx * 60;
+                          const hGross = (item.grossRevenue / chartMax) * 190;
+                          const hPlat = (item.platformShare / chartMax) * 190;
+                          const hNet = (Math.max(item.netProfit, 0) / chartMax) * 190;
+
+                          return (
+                            <g
+                              key={idx}
+                              onMouseEnter={() => setHoveredMonthIndex(idx)}
+                              onMouseLeave={() => setHoveredMonthIndex(null)}
+                              className="cursor-pointer"
+                            >
+                              {/* Gross Column - Cam (Orange): #F36F21 */}
+                              <rect x={gx} y={210 - hGross} width="11" height={hGross} fill="#F36F21" rx="2" className="transition-all hover:brightness-95" />
+                              {/* Platform Share Column - Xanh dương (Navy): #12284C */}
+                              <rect x={gx + 13} y={210 - hPlat} width="11" height={hPlat} fill="#12284C" rx="2" className="transition-all hover:brightness-95" />
+                              {/* Net Profit Column - Xanh lá cây (Green): #10B981 */}
+                              <rect x={gx + 26} y={210 - hNet} width="11" height={hNet} fill="#10B981" rx="2" className="transition-all hover:brightness-95" />
+
+                              {/* Month label */}
+                              <text x={gx + 18} y="228" fill="#64748b" fontSize="9.5" fontWeight="800" textAnchor="middle">
+                                {item.label}
+                              </text>
+
+                              {/* Invisible interactive overlay for easier hovering */}
+                              <rect x={gx - 4} y="15" width="45" height="200" fill="transparent" />
+                            </g>
+                          );
+                        })}
+                      </svg>
+
+                      {/* Tooltip Popup */}
+                      {hoveredMonthIndex !== null && (
+                        <div
+                          className="absolute z-30 bg-slate-900/95 backdrop-blur-md text-white p-3.5 rounded-xl border border-slate-800 shadow-xl flex flex-col gap-1.5 text-xs font-semibold"
+                          style={{
+                            left: `${65 + hoveredMonthIndex * 60 - 25}px`,
+                            bottom: '215px',
+                            minWidth: '180px'
+                          }}
+                        >
+                          <div className="border-b border-slate-800 pb-1 flex justify-between items-center">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                              Details for {financialMonthlyRecords[hoveredMonthIndex].label}
+                            </span>
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                          </div>
+                          <div className="flex justify-between items-center gap-4">
+                            <span className="text-slate-400">Gross Sales:</span>
+                            <span className="font-mono text-[#F36F21]">
+                              {financialMonthlyRecords[hoveredMonthIndex].grossRevenue.toLocaleString()} ₫
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center gap-4">
+                            <span className="text-slate-400">Platform Cut:</span>
+                            <span className="font-mono text-[#12284C]">
+                              {financialMonthlyRecords[hoveredMonthIndex].platformShare.toLocaleString()} ₫
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center gap-4 border-t border-slate-800 pt-1.5">
+                            <span className="text-slate-400">Net Profit:</span>
+                            <span className="font-mono text-[#10B981]">
+                              {financialMonthlyRecords[hoveredMonthIndex].netProfit.toLocaleString()} ₫
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Chart 2: 12-Month Courses Sold Line Chart - occupies 2 columns (40%) */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col relative">
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-brand-blue">Platform Courses Sold Trend</h3>
+                      <p className="text-xs text-text-muted mt-0.5">Volume copies purchased during the past year.</p>
+                    </div>
+
+                    <div className="w-full h-[270px] select-none relative mt-6">
+                      <svg viewBox="0 0 640 270" className="w-full h-full overflow-visible">
+                        <linearGradient id="courses-sales-grad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                        </linearGradient>
+
+                        {/* Grid lines */}
+                        {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
+                          const y = 30 + 200 - r * 200;
+                          const val = Math.round(r * 60);
+                          return (
+                            <g key={i}>
+                              <line x1="40" y1={y} x2="620" y2={y} stroke="#f1f5f9" strokeWidth="1.5" />
+                              <text x="30" y={y + 3} fill="#94a3b8" fontSize="9" fontWeight="800" textAnchor="end">{val}</text>
+                            </g>
+                          );
+                        })}
+
+                        {/* Area path */}
+                        <path
+                          d={`M 50 230 L ${financialMonthlyRecords
+                            .map((item, idx) => `${50 + idx * 49} ${230 - (item.coursesSold / 60) * 200}`)
+                            .join(' L ')} L ${50 + 11 * 49} 230 Z`}
+                          fill="url(#courses-sales-grad)"
+                        />
+
+                        {/* Line path */}
+                        <path
+                          d={`M ${financialMonthlyRecords
+                            .map((item, idx) => `${50 + idx * 49} ${230 - (item.coursesSold / 60) * 200}`)
+                            .join(' L ')}`}
+                          fill="none"
+                          stroke="#10B981"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+
+                        {/* Dots */}
+                        {financialMonthlyRecords.map((item, idx) => {
+                          const dx = 50 + idx * 49;
+                          const dy = 230 - (item.coursesSold / 60) * 200;
+                          return (
+                            <g
+                              key={idx}
+                              onMouseEnter={() => setHoveredCourseSalesIndex(idx)}
+                              onMouseLeave={() => setHoveredCourseSalesIndex(null)}
+                              className="cursor-pointer"
+                            >
+                              <circle cx={dx} cy={dy} r="4.5" fill="#fff" stroke="#10B981" strokeWidth="2.5" />
+                              {/* Invisible cover for easier hover */}
+                              <circle cx={dx} cy={dy} r="10" fill="transparent" />
+                            </g>
+                          );
+                        })}
+
+                        {/* X-axis labels */}
+                        {financialMonthlyRecords.map((item, idx) => (
+                          <text key={idx} x={50 + idx * 49} y="252" fill="#64748b" fontSize="8.5" fontWeight="800" textAnchor="middle">
+                            {item.label}
+                          </text>
+                        ))}
+                      </svg>
+
+                      {/* Tooltip for Course Sales */}
+                      {hoveredCourseSalesIndex !== null && (
+                        <div
+                          className="absolute z-30 bg-slate-900/95 backdrop-blur-sm text-white px-2.5 py-1.5 rounded-lg border border-slate-800 shadow-md text-[10px] font-bold"
+                          style={{
+                            left: `${50 + hoveredCourseSalesIndex * 49 - 40}px`,
+                            top: `${185 - (financialMonthlyRecords[hoveredCourseSalesIndex].coursesSold / 60) * 200}px`
+                          }}
+                        >
+                          <p className="text-slate-400 font-medium">Sales Count:</p>
+                          <p className="text-emerald-400 font-extrabold text-xs">
+                            {financialMonthlyRecords[hoveredCourseSalesIndex].coursesSold} copies
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Table: Top-Selling Courses Table - occupies 100% full width */}
+                <div className="w-full bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
+                      Top Revenue Generating Courses
+                    </h3>
+                    <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                  </div>
+
+                  <div className="overflow-x-auto mt-4">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
+                          <th className="py-3 px-4">Course title</th>
+                          <th className="py-3 px-4">Instructor</th>
+                          <th className="py-3 px-4 text-center">Units Sold</th>
+                          <th className="py-3 px-4 text-right">Gross Income</th>
+                          <th className="py-3 px-4 text-right">Instructor (70%)</th>
+                          <th className="py-3 px-4 text-right">Platform (30%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                        {[
+                          { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
+                          { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
+                          { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
+                          { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
+                        ].map((c, i) => (
+                          <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-3 px-4 font-bold text-slate-900">{c.name}</td>
+                            <td className="py-3 px-4 text-slate-500 font-extrabold">{c.tutor}</td>
+                            <td className="py-3 px-4 text-center font-mono font-bold">{c.sold}</td>
+                            <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">{c.gross.toLocaleString()} ₫</td>
+                            <td className="py-3 px-4 text-right font-mono font-semibold text-violet-600">+{c.payout.toLocaleString()} ₫</td>
+                            <td className="py-3 px-4 text-right font-mono font-semibold text-indigo-600">+{c.plat.toLocaleString()} ₫</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>              </div>
             )}
           </main>
         )}

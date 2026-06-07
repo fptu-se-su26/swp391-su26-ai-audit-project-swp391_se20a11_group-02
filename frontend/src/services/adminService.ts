@@ -63,6 +63,7 @@ export interface AdminUser {
   totalDeposited: number;
   totalPurchased: number;
   purchasedCourses: { id: string; title: string; price: number; date: string }[];
+  isOnline?: boolean;
 }
 
 export interface AdminProblem {
@@ -281,7 +282,8 @@ let mockUsers: AdminUser[] = [
     purchasedCourses: [
       { id: "c-101", title: "Mastering Full-Stack React & Node.js", price: 499000, date: "2026-02-01T12:00:00Z" },
       { id: "c-102", title: "Java Algorithms & Coding Arena", price: 389000, date: "2026-03-10T14:20:00Z" }
-    ]
+    ],
+    isOnline: true
   },
   {
     id: 102,
@@ -294,7 +296,8 @@ let mockUsers: AdminUser[] = [
     totalPurchased: 1000000,
     purchasedCourses: [
       { id: "c-101", title: "Mastering Full-Stack React & Node.js", price: 499000, date: "2026-02-25T09:00:00Z" }
-    ]
+    ],
+    isOnline: false
   },
   {
     id: 103,
@@ -305,7 +308,8 @@ let mockUsers: AdminUser[] = [
     balance: 0,
     totalDeposited: 300000,
     totalPurchased: 300000,
-    purchasedCourses: []
+    purchasedCourses: [],
+    isOnline: false
   },
   {
     id: 104,
@@ -316,7 +320,8 @@ let mockUsers: AdminUser[] = [
     balance: 4500000,
     totalDeposited: 4500000,
     totalPurchased: 0,
-    purchasedCourses: []
+    purchasedCourses: [],
+    isOnline: true
   }
 ];
 
