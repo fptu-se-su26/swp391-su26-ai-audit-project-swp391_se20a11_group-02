@@ -821,6 +821,30 @@ export const adminService = {
     return mockProblems.find(p => p.id === problemId)!;
   },
 
+  async updateProblem(problemId: number, problem: Omit<AdminProblem, 'id' | 'createdAt' | 'createdBy' | 'isActive' | 'totalSubmissions' | 'acceptedSubmissions'>): Promise<AdminProblem> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(problem),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Mocking update problem:", err);
+    }
+    await delay(400);
+    mockProblems = mockProblems.map(p => p.id === problemId ? {
+      ...p,
+      ...problem,
+      isActive: problem.totalTestcases > 0
+    } : p);
+    return mockProblems.find(p => p.id === problemId)!;
+  },
+
   // Contests
   async getContests(): Promise<AdminContest[]> {
     try {

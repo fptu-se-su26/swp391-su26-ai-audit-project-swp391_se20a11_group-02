@@ -68,6 +68,51 @@ const problemData: Record<string, ProblemDetail> = {
   }
 };
 
+const tabHeaderDetails: Record<string, { badge: string; icon: string; title: string; desc: string }> = {
+  dashboard: {
+    badge: 'Platform Administration',
+    icon: 'admin_panel_settings',
+    title: 'System Control Dashboard ⚙️',
+    desc: 'Manage courses, instructors, users, program problems, contests, and view statistics.'
+  },
+  courses: {
+    badge: 'Course Management',
+    icon: 'library_books',
+    title: 'Course Administration 📚',
+    desc: 'Review and approve instructor course submissions, curriculum, and settings.'
+  },
+  problems: {
+    badge: 'Problem Management',
+    icon: 'task',
+    title: 'Coding Arena Problems 💻',
+    desc: 'Create, modify, and publish coding challenges and configure test cases.'
+  },
+  contest: {
+    badge: 'Contest Management',
+    icon: 'emoji_events',
+    title: 'Contests & Competitions 🏆',
+    desc: 'Organize programming contests, configure scoring rules, and monitor participants.'
+  },
+  instructor: {
+    badge: 'Instructor Management',
+    icon: 'school',
+    title: 'Instructor Applications 🎓',
+    desc: 'Review instructor registration requests, CVs, and manage current platform instructors.'
+  },
+  users: {
+    badge: 'User Management',
+    icon: 'group',
+    title: 'User Control Panel 👥',
+    desc: 'Monitor registered students, check profiles, lock/unlock accounts, and track purchases.'
+  },
+  financial: {
+    badge: 'Financial Overview',
+    icon: 'insights',
+    title: 'Financial Statistics 📊',
+    desc: 'Track platform revenue growth, subscription sales, and analyze instructor payouts.'
+  }
+};
+
 export const AdminDashboard: React.FC = () => {
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
@@ -94,6 +139,7 @@ export const AdminDashboard: React.FC = () => {
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
+  const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
 
@@ -102,6 +148,8 @@ export const AdminDashboard: React.FC = () => {
   const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
+  const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
+  const [editingProblemId, setEditingProblemId] = useState<number | null>(null);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
 
   // Course Player Review Mode states
@@ -123,6 +171,8 @@ export const AdminDashboard: React.FC = () => {
       setSelectedAppForReview(null);
       setSelectedUserDetail(null);
       setIsCreateProblemOpen(false);
+      setIsEditProblemOpen(false);
+      setEditingProblemId(null);
       setIsCreateContestOpen(false);
 
       if (currentHash === '#courses') {
@@ -440,6 +490,82 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleEditProblemClick = (p: AdminProblem) => {
+    setEditingProblemId(p.id);
+    setNewProbTitle(p.title);
+    setNewProbDesc(p.description);
+    setNewProbInputDesc(p.inputDescription || '');
+    setNewProbOutputDesc(p.outputDescription || '');
+    setNewProbConstraints(p.constraints || '');
+    setNewProbExampleInput(p.exampleInput || '');
+    setNewProbExampleOutput(p.exampleOutput || '');
+    setNewProbHint(p.hint || '');
+    setNewProbScope(p.problemScope);
+    setNewProbDifficulty(p.difficulty);
+    setNewProbScore(p.score);
+    setNewProbTimeLimit(p.timeLimitMs);
+    setNewProbMemoryLimit(p.memoryLimitKb);
+    setNewProbIsPublic(p.isPublic);
+    setNewProbSolutions(p.solutions || '');
+    setIsEditProblemOpen(true);
+  };
+
+  const handleEditProblemSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingProblemId === null) return;
+    if (!newProbTitle.trim() || !newProbDesc.trim()) {
+      alert("Please fill in the title and description.");
+      return;
+    }
+
+    try {
+      const existingProb = problems.find(p => p.id === editingProblemId);
+      const updatedProb = await adminService.updateProblem(editingProblemId, {
+        title: newProbTitle.trim(),
+        description: newProbDesc.trim(),
+        inputDescription: newProbInputDesc.trim(),
+        outputDescription: newProbOutputDesc.trim(),
+        constraints: newProbConstraints.trim(),
+        exampleInput: newProbExampleInput.trim(),
+        exampleOutput: newProbExampleOutput.trim(),
+        hint: newProbHint.trim(),
+        problemScope: newProbScope,
+        difficulty: newProbDifficulty,
+        totalTestcases: existingProb?.totalTestcases || 0,
+        timeLimitMs: newProbTimeLimit,
+        memoryLimitKb: newProbMemoryLimit,
+        isPublic: newProbIsPublic,
+        score: newProbScore,
+        solutions: newProbSolutions.trim()
+      });
+
+      setProblems(prev => prev.map(p => p.id === editingProblemId ? updatedProb : p));
+      setIsEditProblemOpen(false);
+      setEditingProblemId(null);
+
+      // Reset form
+      setNewProbTitle('');
+      setNewProbDesc('');
+      setNewProbInputDesc('');
+      setNewProbOutputDesc('');
+      setNewProbConstraints('');
+      setNewProbExampleInput('');
+      setNewProbExampleOutput('');
+      setNewProbHint('');
+      setNewProbScope('PRACTICE');
+      setNewProbDifficulty('MEDIUM');
+      setNewProbScore(100);
+      setNewProbTimeLimit(2000);
+      setNewProbMemoryLimit(128000);
+      setNewProbIsPublic(true);
+      setNewProbSolutions('');
+
+      alert(`Problem "${updatedProb.title}" updated successfully!`);
+    } catch (error) {
+      alert("Failed to update problem");
+    }
+  };
+
   const handleUpdateProblemScope = async (problemId: number, scope: 'PRACTICE' | 'CONTEST') => {
     try {
       const updated = await adminService.updateProblemScope(problemId, scope);
@@ -537,6 +663,7 @@ export const AdminDashboard: React.FC = () => {
     return problems.filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(problemSearch.toLowerCase()) || p.description.toLowerCase().includes(problemSearch.toLowerCase());
       const matchesDifficulty = problemDifficultyFilter === 'ALL' || p.difficulty === problemDifficultyFilter;
+      const matchesScope = problemScopeFilter === 'ALL' || p.problemScope === problemScopeFilter;
       
       let matchesSubTab = false;
       if (problemSubTab === 'repository') {
@@ -547,9 +674,9 @@ export const AdminDashboard: React.FC = () => {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'CONTEST';
       }
 
-      return matchesSearch && matchesDifficulty && matchesSubTab;
+      return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
     });
-  }, [problems, problemSearch, problemDifficultyFilter, problemSubTab]);
+  }, [problems, problemSearch, problemDifficultyFilter, problemScopeFilter, problemSubTab]);
 
   const filteredContests = useMemo(() => {
     if (contestStatusFilter === 'ALL') return contests;
@@ -1200,12 +1327,12 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="inline-flex items-center gap-1.5 bg-brand-blue-light/10 border border-brand-blue/20 px-3 py-1 rounded-full text-brand-blue font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
-                  <span className="material-symbols-outlined text-xs icon-fill">admin_panel_settings</span> Platform Administration
+                  <span className="material-symbols-outlined text-xs icon-fill">{tabHeaderDetails[activeTab]?.icon || 'admin_panel_settings'}</span> {tabHeaderDetails[activeTab]?.badge || 'Platform Administration'}
                 </div>
                 <h1 className="text-3xl md:text-4xl font-display font-black leading-tight">
-                  <span className="bg-gradient-to-r from-brand-blue to-primary bg-clip-text text-transparent">System Control Dashboard ⚙️</span>
+                  <span className="bg-gradient-to-r from-brand-blue to-primary bg-clip-text text-transparent">{tabHeaderDetails[activeTab]?.title || 'System Control Dashboard ⚙️'}</span>
                 </h1>
-                <p className="text-text-muted mt-1">Manage courses, instructors, users, program problems, contests, and view statistics.</p>
+                <p className="text-text-muted mt-1">{tabHeaderDetails[activeTab]?.desc || 'Manage courses, instructors, users, program problems, contests, and view statistics.'}</p>
               </div>
             </div>
 
@@ -1772,6 +1899,16 @@ export const AdminDashboard: React.FC = () => {
                       <option value="MEDIUM">Medium</option>
                       <option value="HARD">Hard</option>
                     </select>
+                    <select
+                      value={problemScopeFilter}
+                      onChange={(e) => setProblemScopeFilter(e.target.value as any)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="ALL">All Scopes</option>
+                      <option value="PRACTICE">Practice</option>
+                      <option value="CONTEST">Contest</option>
+                      <option value="SHARED">Share</option>
+                    </select>
                     <button
                       onClick={() => setIsCreateProblemOpen(true)}
                       className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5"
@@ -1827,9 +1964,9 @@ export const AdminDashboard: React.FC = () => {
                           <th className="py-4 px-6">ID</th>
                           <th className="py-4 px-6">Title</th>
                           <th className="py-4 px-6">Difficulty</th>
-                          <th className="py-4 px-6">Scope</th>
                           <th className="py-4 px-6 text-right">Submissions</th>
                           <th className="py-4 px-6 text-right">Accepted Rate</th>
+                          <th className="py-4 px-6 text-center">Scope</th>
                           <th className="py-4 px-6 text-center">Status</th>
                           <th className="py-4 px-6 text-center">Actions</th>
                         </tr>
@@ -1850,17 +1987,6 @@ export const AdminDashboard: React.FC = () => {
                                   p.difficulty === 'MEDIUM' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'
                                 }`}>{p.difficulty}</span>
                               </td>
-                              <td className="py-4 px-6">
-                                <select
-                                  value={p.problemScope}
-                                  onChange={(e) => handleUpdateProblemScope(p.id, e.target.value as any)}
-                                  className="bg-white border border-slate-200 rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold focus:ring-0 focus:border-primary text-slate-700 cursor-pointer outline-none"
-                                >
-                                  <option value="PRACTICE">Practice</option>
-                                  <option value="CONTEST">Contest</option>
-                                  <option value="SHARED">Share</option>
-                                </select>
-                              </td>
                               <td className="py-4 px-6 text-right font-mono font-bold text-slate-600">
                                 {totalSubs.toLocaleString()}
                               </td>
@@ -1868,23 +1994,44 @@ export const AdminDashboard: React.FC = () => {
                                 {acceptedRate}%
                               </td>
                               <td className="py-4 px-6 text-center">
-                                {p.isActive ? (
-                                  p.isPublic ? (
-                                    <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 border border-emerald-250 px-2 py-0.5 rounded text-[10px] font-bold">
-                                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                      Public
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center gap-1 text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                      Private
-                                    </span>
-                                  )
+                                <select
+                                  value={p.problemScope}
+                                  onChange={(e) => handleUpdateProblemScope(p.id, e.target.value as any)}
+                                  className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${
+                                    p.problemScope === 'PRACTICE'
+                                      ? 'bg-green-50 text-green-600 border-green-200'
+                                      : p.problemScope === 'CONTEST'
+                                      ? 'bg-blue-50 text-blue-600 border-blue-200'
+                                      : 'bg-orange-50 text-orange-600 border-orange-200'
+                                  }`}
+                                >
+                                  <option value="PRACTICE" className="bg-white text-green-600 font-bold">Practice</option>
+                                  <option value="CONTEST" className="bg-white text-blue-600 font-bold">Contest</option>
+                                  <option value="SHARED" className="bg-white text-orange-600 font-bold">Share</option>
+                                </select>
+                              </td>
+                              <td className="py-4 px-6 text-center">
+                                {!p.isActive ? (
+                                  <select
+                                    disabled
+                                    value="INACTIVE"
+                                    className="bg-amber-50 border border-amber-250 text-amber-600 rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold outline-none cursor-not-allowed"
+                                  >
+                                    <option value="INACTIVE">Inactive</option>
+                                  </select>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-50 border border-amber-250 px-2 py-0.5 rounded text-[10px] font-bold">
-                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                    Inactive
-                                  </span>
+                                  <select
+                                    value={p.isPublic ? "PUBLIC" : "PRIVATE"}
+                                    onChange={(e) => handleUpdateProblemPublicStatus(p.id, e.target.value === "PUBLIC")}
+                                    className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold outline-none cursor-pointer ${
+                                      p.isPublic
+                                        ? "bg-emerald-50 border-emerald-250 text-emerald-600"
+                                        : "bg-slate-100 border-slate-200 text-slate-600"
+                                    }`}
+                                  >
+                                    <option value="PUBLIC">Public</option>
+                                    <option value="PRIVATE">Private</option>
+                                  </select>
                                 )}
                               </td>
                               <td className="py-4 px-6 text-center">
@@ -1896,19 +2043,12 @@ export const AdminDashboard: React.FC = () => {
                                     >
                                       <span className="material-symbols-outlined text-[14px]">tune</span> Add Test Cases
                                     </button>
-                                  ) : p.isPublic ? (
-                                    <button
-                                      onClick={() => handleUpdateProblemPublicStatus(p.id, false)}
-                                      className="bg-slate-500 hover:bg-slate-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-[14px]">visibility_off</span> Make Private
-                                    </button>
                                   ) : (
                                     <button
-                                      onClick={() => handleUpdateProblemPublicStatus(p.id, true)}
-                                      className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                      onClick={() => handleEditProblemClick(p)}
+                                      className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
                                     >
-                                      <span className="material-symbols-outlined text-[14px]">public</span> Publish
+                                      <span className="material-symbols-outlined text-[14px]">edit</span> Edit
                                     </button>
                                   )}
                                 </div>
@@ -2345,19 +2485,47 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* ================= MODAL: CREATE PROBLEM ================= */}
-      {isCreateProblemOpen && (
+      {/* ================= MODAL: CREATE OR EDIT PROBLEM ================= */}
+      {(isCreateProblemOpen || isEditProblemOpen) && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 animate-fade-in text-left">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 animate-fade-in text-left">
             <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-display font-black text-xl text-brand-blue">Create Programming Problem</h3>
-                <p className="text-xs text-text-muted mt-0.5">Fill in the specifications based on the platform db/entity schema.</p>
+                <h3 className="font-display font-black text-xl text-brand-blue">
+                  {isEditProblemOpen ? "Edit Programming Problem" : "Create Programming Problem"}
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {isEditProblemOpen ? "Modify the specifications of the problem." : "Fill in the specifications based on the platform db/entity schema."}
+                </p>
               </div>
-              <button onClick={() => setIsCreateProblemOpen(false)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
+              <button
+                onClick={() => {
+                  setIsCreateProblemOpen(false);
+                  setIsEditProblemOpen(false);
+                  setEditingProblemId(null);
+                  setNewProbTitle('');
+                  setNewProbDesc('');
+                  setNewProbInputDesc('');
+                  setNewProbOutputDesc('');
+                  setNewProbConstraints('');
+                  setNewProbExampleInput('');
+                  setNewProbExampleOutput('');
+                  setNewProbHint('');
+                  setNewProbScope('PRACTICE');
+                  setNewProbDifficulty('MEDIUM');
+                  setNewProbScore(100);
+                  setNewProbTimeLimit(2000);
+                  setNewProbMemoryLimit(128000);
+                  setNewProbIsPublic(true);
+                  setNewProbSolutions('');
+                }}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                close
+              </button>
             </div>
 
-            <form onSubmit={handleCreateProblemSubmit} className="flex flex-col gap-4 text-xs font-semibold">
+            <form onSubmit={isEditProblemOpen ? handleEditProblemSubmit : handleCreateProblemSubmit} className="flex flex-col gap-4 text-xs font-semibold">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Problem Title *</label>
@@ -2449,7 +2617,7 @@ export const AdminDashboard: React.FC = () => {
                 type="submit"
                 className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4"
               >
-                Create Problem Metadata
+                {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
               </button>
             </form>
           </div>
