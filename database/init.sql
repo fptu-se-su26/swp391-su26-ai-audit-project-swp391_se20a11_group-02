@@ -26,7 +26,7 @@ SET row_security = off;
 -- Name: public; Type: SCHEMA; Schema: -; Owner: pg_database_owner
 --
 
-CREATE SCHEMA public;
+CREATE SCHEMA IF NOT EXISTS public;
 
 
 ALTER SCHEMA public OWNER TO pg_database_owner;
@@ -332,6 +332,8 @@ ALTER TYPE public.transaction_type OWNER TO postgres;
 -- TOC entry 311 (class 1255 OID 19602)
 -- Name: f_unaccent(text); Type: FUNCTION; Schema: public; Owner: postgres
 --
+
+CREATE EXTENSION IF NOT EXISTS unaccent;
 
 CREATE FUNCTION public.f_unaccent(text) RETURNS text
     LANGUAGE sql IMMUTABLE STRICT
