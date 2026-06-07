@@ -102,6 +102,7 @@ export interface AdminContest {
   participantCount: number;
   submissionCount: number;
   averageScore: number;
+  password?: string;
 }
 
 export interface ActivityLog {
