@@ -10,7 +10,7 @@ import type {
   AdminUser,
   AdminProblem,
   AdminContest,
-  ActivityLog
+  AdminDepositHistory
 } from '../services/adminService';
 
 export const AdminDashboard: React.FC = () => {
@@ -22,13 +22,13 @@ export const AdminDashboard: React.FC = () => {
 
   // States for API data
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [courses, setCourses] = useState<AdminCourse[]>([]);
   const [applications, setApplications] = useState<AdminInstructorApplication[]>([]);
   const [instructors, setInstructors] = useState<AdminInstructor[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
+  const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
   
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
@@ -80,32 +80,32 @@ export const AdminDashboard: React.FC = () => {
     try {
       const [
         statsRes,
-        logsRes,
         coursesRes,
         appsRes,
         instsRes,
         usersRes,
         probsRes,
-        contestsRes
+        contestsRes,
+        recentDepositsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
-        adminService.getActivityLogs(),
         adminService.getCourses(),
         adminService.getInstructorApplications(),
         adminService.getInstructors(),
         adminService.getUsers(),
         adminService.getProblems(),
-        adminService.getContests()
+        adminService.getContests(),
+        adminService.getRecentDeposits()
       ]);
 
       setStats(statsRes);
-      setActivityLogs(logsRes);
       setCourses(coursesRes);
       setApplications(appsRes);
       setInstructors(instsRes);
       setUsers(usersRes);
       setProblems(probsRes);
       setContests(contestsRes);
+      setRecentDeposits(recentDepositsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -160,8 +160,7 @@ export const AdminDashboard: React.FC = () => {
   const [newContestEndTime, setNewContestEndTime] = useState('');
   const [newContestDuration, setNewContestDuration] = useState(120);
 
-  // Time filters for Dashboard & Categories
-  const [dashboardTimeFilter, setDashboardTimeFilter] = useState<'1' | '3' | '9' | '12'>('12');
+  const dashboardTimeFilter = '12';
 
   // SVG Chart Computations
   const financialChartData = useMemo(() => adminService.getFinancialChartData(), []);
@@ -218,14 +217,42 @@ export const AdminDashboard: React.FC = () => {
     const months = parseInt(dashboardTimeFilter);
     const multiplier = months / 12;
     return [
-      { name: 'React Full-Stack', count: Math.round(120 * multiplier), color: '#F36F21' },
-      { name: 'Java Algorithms', count: Math.round(95 * multiplier), color: '#10B981' },
-      { name: 'Go Microservices', count: Math.round(80 * multiplier), color: '#3B82F6' },
-      { name: 'Python ML', count: Math.round(50 * multiplier), color: '#6366F1' },
+      { name: 'React Full-Stack', instructor: 'Dr. Jenkins', count: Math.round(120 * multiplier), color: '#F36F21' },
+      { name: 'Java Algorithms', instructor: 'Alice Miller', count: Math.round(95 * multiplier), color: '#10B981' },
+      { name: 'Go Microservices', instructor: 'John Doe', count: Math.round(80 * multiplier), color: '#3B82F6' },
+      { name: 'Python ML', instructor: 'Dr. Jenkins', count: Math.round(50 * multiplier), color: '#6366F1' },
     ];
   }, [dashboardTimeFilter]);
 
   const topCoursesTotal = useMemo(() => topCoursesChartData.reduce((sum, c) => sum + c.count, 0), [topCoursesChartData]);
+
+  // Top instructors data and computations for SVG Donut Chart
+  const topInstructorsChartData = useMemo(() => {
+    const months = parseInt(dashboardTimeFilter);
+    const multiplier = months / 12;
+    return [
+      { name: 'Dr. Jenkins', count: Math.round(170 * multiplier), color: '#F36F21' },
+      { name: 'Alice Miller', count: Math.round(115 * multiplier), color: '#12284C' },
+      { name: 'John Doe', count: Math.round(80 * multiplier), color: '#10B981' },
+      { name: 'Sarah Connor', count: Math.round(55 * multiplier), color: '#3B82F6' },
+    ];
+  }, [dashboardTimeFilter]);
+
+  const topInstructorsTotal = useMemo(() => topInstructorsChartData.reduce((sum, c) => sum + c.count, 0), [topInstructorsChartData]);
+
+  // Top problems data and computations for SVG Donut Chart
+  const topProblemsChartData = useMemo(() => {
+    const months = parseInt(dashboardTimeFilter);
+    const multiplier = months / 12;
+    return [
+      { name: 'Two Sum', difficulty: 'EASY', count: Math.round(350 * multiplier), color: '#F36F21' },
+      { name: 'Binary Search', difficulty: 'EASY', count: Math.round(240 * multiplier), color: '#12284C' },
+      { name: 'Longest Path', difficulty: 'HARD', count: Math.round(180 * multiplier), color: '#10B981' },
+      { name: 'Valid Parentheses', difficulty: 'MEDIUM', count: Math.round(150 * multiplier), color: '#3B82F6' },
+    ];
+  }, [dashboardTimeFilter]);
+
+  const topProblemsTotal = useMemo(() => topProblemsChartData.reduce((sum, c) => sum + c.count, 0), [topProblemsChartData]);
 
   // Action handlers
   const handleApproveCourse = async (courseId: string, status: 'APPROVED' | 'REJECTED') => {
@@ -611,40 +638,13 @@ export const AdminDashboard: React.FC = () => {
                 </h1>
                 <p className="text-text-muted mt-1">Manage courses, instructors, users, program problems, contests, and view statistics.</p>
               </div>
-
-              {/* Quick monthly filter */}
-              <div className="flex items-center gap-2 bg-surface py-1.5 px-3 rounded-xl border border-slate-200/60 shadow-sm self-start md:self-auto">
-                <span className="material-symbols-outlined text-sm text-text-muted">calendar_today</span>
-                <select
-                  value={dashboardTimeFilter}
-                  onChange={(e) => setDashboardTimeFilter(e.target.value as any)}
-                  className="border-0 bg-transparent text-xs font-semibold text-text-main py-0 pl-1 pr-8 focus:ring-0 cursor-pointer"
-                >
-                  <option value="1">Last 1 Month</option>
-                  <option value="3">Last 3 Months</option>
-                  <option value="9">Last 9 Months</option>
-                  <option value="12">Last 12 Months</option>
-                </select>
-              </div>
             </div>
 
             {/* TAB: DASHBOARD */}
             {activeTab === 'dashboard' && (
               <div className="flex flex-col gap-8">
                 {/* Stats cards */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
-                  <div className="bg-surface rounded-2xl p-5 border border-slate-200/50 ambient-shadow flex items-center justify-between gap-4">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Revenue</span>
-                      <span className="text-2xl font-display font-black text-brand-blue mt-1">
-                        {filteredRevenue.toLocaleString('vi-VN')} ₫
-                      </span>
-                    </div>
-                    <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined icon-fill">payments</span>
-                    </div>
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
                   <div className="bg-surface rounded-2xl p-5 border border-slate-200/50 ambient-shadow flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
                       <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Active Users</span>
@@ -682,6 +682,16 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
                       <span className="material-symbols-outlined icon-fill">school</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-surface rounded-2xl p-5 border border-slate-200/50 ambient-shadow flex items-center justify-between gap-4">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Problems</span>
+                      <span className="text-2xl font-display font-black text-brand-blue mt-1">{stats?.totalProblems}</span>
+                    </div>
+                    <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined icon-fill">code</span>
                     </div>
                   </div>
                 </div>
@@ -768,104 +778,223 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Donut Charts Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Donut Chart 1: Top Categories */}
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow">
-                    <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Top Registered Categories</h3>
-                    <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
-                      <div className="relative w-44 h-44 shrink-0">
-                        {/* Custom SVG Pie/Donut Chart */}
-                        <svg viewBox="0 0 36 36" className="w-full h-full">
-                          <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" strokeWidth="3" />
-                          {categoryChartData.map((c, i) => {
-                            // Compute accumulate percentages
-                            const prevSum = categoryChartData.slice(0, i).reduce((sum, curr) => sum + curr.count, 0);
-                            const prevPct = (prevSum / categoryTotal) * 100;
-                            const currentPct = (c.count / categoryTotal) * 100;
-                            return (
-                              <circle
-                                key={i}
-                                cx="18"
-                                cy="18"
-                                r="15.915"
-                                fill="none"
-                                stroke={c.color}
-                                strokeWidth="3"
-                                strokeDasharray={`${currentPct} ${100 - currentPct}`}
-                                strokeDashoffset={100 - prevPct + 25}
-                              />
-                            );
-                          })}
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-                          <span className="text-2xl font-black text-brand-blue">{categoryTotal}</span>
-                          <span className="text-[10px] text-text-muted font-bold mt-1 uppercase tracking-wider">Subscribers</span>
+                {/* Donut Charts Rows (2 rows x 2 columns) */}
+                <div className="flex flex-col gap-8">
+                  {/* Row 1: Categories & Courses */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Donut Chart 1: Top Categories */}
+                    <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Top Registered Categories</h3>
+                        <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
+                          <div className="relative w-36 h-36 shrink-0">
+                            {/* Custom SVG Pie/Donut Chart */}
+                            <svg viewBox="0 0 36 36" className="w-full h-full">
+                              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                              {categoryChartData.map((c, i) => {
+                                // Compute accumulate percentages
+                                const prevSum = categoryChartData.slice(0, i).reduce((sum, curr) => sum + curr.count, 0);
+                                const prevPct = (prevSum / categoryTotal) * 100;
+                                const currentPct = (c.count / categoryTotal) * 100;
+                                return (
+                                  <circle
+                                    key={i}
+                                    cx="18"
+                                    cy="18"
+                                    r="15.915"
+                                    fill="none"
+                                    stroke={c.color}
+                                    strokeWidth="3"
+                                    strokeDasharray={`${currentPct} ${100 - currentPct}`}
+                                    strokeDashoffset={100 - prevPct + 25}
+                                  />
+                                );
+                              })}
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+                              <span className="text-xl font-black text-brand-blue">{categoryTotal}</span>
+                              <span className="text-[10px] text-text-muted font-bold mt-1 uppercase tracking-wider">Subscribers</span>
+                            </div>
+                          </div>
+
+                          {/* Legend */}
+                          <div className="flex flex-col gap-2.5 w-full">
+                            {categoryChartData.map((c, i) => (
+                              <div key={i} className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }}></span>
+                                  <span className="font-semibold text-slate-700">{c.name}</span>
+                                </div>
+                                <span className="font-bold text-brand-blue">
+                                  {c.count} ({((c.count / categoryTotal) * 100).toFixed(1)}%)
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Legend */}
-                      <div className="flex flex-col gap-2.5 w-full">
-                        {categoryChartData.map((c, i) => (
-                          <div key={i} className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2">
-                              <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }}></span>
-                              <span className="font-semibold text-slate-700">{c.name}</span>
+                    {/* Donut Chart 2: Top Courses */}
+                    <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Top Subscribed Courses</h3>
+                        <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
+                          <div className="relative w-36 h-36 shrink-0">
+                            <svg viewBox="0 0 36 36" className="w-full h-full">
+                              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                              {topCoursesChartData.map((c, i) => {
+                                const prevSum = topCoursesChartData.slice(0, i).reduce((sum, curr) => sum + curr.count, 0);
+                                const prevPct = (prevSum / topCoursesTotal) * 100;
+                                const currentPct = (c.count / topCoursesTotal) * 100;
+                                return (
+                                  <circle
+                                    key={i}
+                                    cx="18"
+                                    cy="18"
+                                    r="15.915"
+                                    fill="none"
+                                    stroke={c.color}
+                                    strokeWidth="3"
+                                    strokeDasharray={`${currentPct} ${100 - currentPct}`}
+                                    strokeDashoffset={100 - prevPct + 25}
+                                  />
+                                );
+                              })}
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+                              <span className="text-xl font-black text-brand-blue">{topCoursesTotal}</span>
+                              <span className="text-[10px] text-text-muted font-bold mt-1 uppercase tracking-wider">Registrations</span>
                             </div>
-                            <span className="font-bold text-brand-blue">
-                              {c.count} ({((c.count / categoryTotal) * 100).toFixed(1)}%)
-                            </span>
                           </div>
-                        ))}
+
+                          {/* Legend */}
+                          <div className="flex flex-col gap-2.5 w-full">
+                            {topCoursesChartData.map((c, i) => (
+                              <div key={i} className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }}></span>
+                                  <span className="font-semibold text-slate-700">
+                                    {c.name} <span className="text-[10px] text-slate-400 font-medium">({c.instructor})</span>
+                                  </span>
+                                </div>
+                                <span className="font-bold text-brand-blue">
+                                  {c.count} ({((c.count / topCoursesTotal) * 100).toFixed(1)}%)
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Donut Chart 2: Top Courses */}
-                  <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow">
-                    <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Top Subscribed Courses</h3>
-                    <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
-                      <div className="relative w-44 h-44 shrink-0">
-                        <svg viewBox="0 0 36 36" className="w-full h-full">
-                          <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" strokeWidth="3" />
-                          {topCoursesChartData.map((c, i) => {
-                            const prevSum = topCoursesChartData.slice(0, i).reduce((sum, curr) => sum + curr.count, 0);
-                            const prevPct = (prevSum / topCoursesTotal) * 100;
-                            const currentPct = (c.count / topCoursesTotal) * 100;
-                            return (
-                              <circle
-                                key={i}
-                                cx="18"
-                                cy="18"
-                                r="15.915"
-                                fill="none"
-                                stroke={c.color}
-                                strokeWidth="3"
-                                strokeDasharray={`${currentPct} ${100 - currentPct}`}
-                                strokeDashoffset={100 - prevPct + 25}
-                              />
-                            );
-                          })}
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-                          <span className="text-2xl font-black text-brand-blue">{topCoursesTotal}</span>
-                          <span className="text-[10px] text-text-muted font-bold mt-1 uppercase tracking-wider">Registrations</span>
+                  {/* Row 2: Instructors & Problems */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Donut Chart 3: Top Instructors */}
+                    <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Top Instructors</h3>
+                        <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
+                          <div className="relative w-36 h-36 shrink-0">
+                            <svg viewBox="0 0 36 36" className="w-full h-full">
+                              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                              {topInstructorsChartData.map((c, i) => {
+                                const prevSum = topInstructorsChartData.slice(0, i).reduce((sum, curr) => sum + curr.count, 0);
+                                const prevPct = (prevSum / topInstructorsTotal) * 100;
+                                const currentPct = (c.count / topInstructorsTotal) * 100;
+                                return (
+                                  <circle
+                                    key={i}
+                                    cx="18"
+                                    cy="18"
+                                    r="15.915"
+                                    fill="none"
+                                    stroke={c.color}
+                                    strokeWidth="3"
+                                    strokeDasharray={`${currentPct} ${100 - currentPct}`}
+                                    strokeDashoffset={100 - prevPct + 25}
+                                  />
+                                );
+                              })}
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+                              <span className="text-xl font-black text-brand-blue">{topInstructorsTotal}</span>
+                              <span className="text-[10px] text-text-muted font-bold mt-1 uppercase tracking-wider">Purchases</span>
+                            </div>
+                          </div>
+
+                          {/* Legend */}
+                          <div className="flex flex-col gap-2.5 w-full">
+                            {topInstructorsChartData.map((c, i) => (
+                              <div key={i} className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }}></span>
+                                  <span className="font-semibold text-slate-700">{c.name}</span>
+                                </div>
+                                <span className="font-bold text-brand-blue">
+                                  {c.count} ({((c.count / topInstructorsTotal) * 100).toFixed(1)}%)
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Legend */}
-                      <div className="flex flex-col gap-2.5 w-full">
-                        {topCoursesChartData.map((c, i) => (
-                          <div key={i} className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2">
-                              <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }}></span>
-                              <span className="font-semibold text-slate-700">{c.name}</span>
+                    {/* Donut Chart 4: Top Submitted Problems */}
+                    <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-display font-bold text-lg text-brand-blue mb-4">Top Submitted Problems</h3>
+                        <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
+                          <div className="relative w-36 h-36 shrink-0">
+                            <svg viewBox="0 0 36 36" className="w-full h-full">
+                              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                              {topProblemsChartData.map((c, i) => {
+                                const prevSum = topProblemsChartData.slice(0, i).reduce((sum, curr) => sum + curr.count, 0);
+                                const prevPct = (prevSum / topProblemsTotal) * 100;
+                                const currentPct = (c.count / topProblemsTotal) * 100;
+                                return (
+                                  <circle
+                                    key={i}
+                                    cx="18"
+                                    cy="18"
+                                    r="15.915"
+                                    fill="none"
+                                    stroke={c.color}
+                                    strokeWidth="3"
+                                    strokeDasharray={`${currentPct} ${100 - currentPct}`}
+                                    strokeDashoffset={100 - prevPct + 25}
+                                  />
+                                );
+                              })}
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+                              <span className="text-xl font-black text-brand-blue">{topProblemsTotal}</span>
+                              <span className="text-[10px] text-text-muted font-bold mt-1 uppercase tracking-wider">Submissions</span>
                             </div>
-                            <span className="font-bold text-brand-blue">
-                              {c.count} ({((c.count / topCoursesTotal) * 100).toFixed(1)}%)
-                            </span>
                           </div>
-                        ))}
+
+                          {/* Legend */}
+                          <div className="flex flex-col gap-2.5 w-full">
+                            {topProblemsChartData.map((c, i) => (
+                              <div key={i} className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }}></span>
+                                  <span className="font-semibold text-slate-700">
+                                    {c.name} <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1.5 ${
+                                      c.difficulty === 'EASY' ? 'bg-green-50 text-green-600' :
+                                      c.difficulty === 'MEDIUM' ? 'bg-orange-50 text-orange-600' : 'bg-red-50 text-red-600'
+                                    }`}>{c.difficulty}</span>
+                                  </span>
+                                </div>
+                                <span className="font-bold text-brand-blue">
+                                  {c.count} ({((c.count / topProblemsTotal) * 100).toFixed(1)}%)
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -873,26 +1002,39 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Logs and Quick Approvals Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Activity Log Feed */}
+                  {/* User Deposit History Table */}
                   <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col">
                     <h3 className="font-display font-bold text-lg text-brand-blue mb-4 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary">feed</span> Recent Activity Feed
+                      <span className="material-symbols-outlined text-primary">payments</span> User Deposit History
                     </h3>
-                    <div className="flex flex-col gap-4 overflow-y-auto max-h-[350px]">
-                      {activityLogs.map((log) => (
-                        <div key={log.id} className="flex gap-3 text-xs items-start border-b border-slate-100 pb-3">
-                          <span className="material-symbols-outlined text-xl text-brand-blue bg-slate-50 p-1.5 rounded-lg">
-                            {log.type === 'REGISTER' ? 'person_add' :
-                             log.type === 'DEPOSIT' ? 'savings' :
-                             log.type === 'BUY_COURSE' ? 'shopping_bag' : 'gavel'}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-text-main leading-tight">{log.user}</p>
-                            <p className="text-text-muted mt-0.5">{log.detail}</p>
-                            <span className="text-[10px] text-slate-400 font-semibold">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="overflow-x-auto max-h-[350px]">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 text-[10px] font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
+                            <th className="py-2.5 px-4">User Name</th>
+                            <th className="py-2.5 px-4">Deposit Amount</th>
+                            <th className="py-2.5 px-4">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
+                          {recentDeposits.map((dep) => (
+                            <tr key={dep.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="py-3 px-4 font-bold text-slate-900">{dep.userName}</td>
+                              <td className="py-3 px-4 text-[#10B981] font-bold">
+                                {dep.amount.toLocaleString('vi-VN')} ₫
+                              </td>
+                              <td className="py-3 px-4 text-slate-400 font-semibold">
+                                {new Date(dep.date).toLocaleString()}
+                              </td>
+                            </tr>
+                          ))}
+                          {recentDeposits.length === 0 && (
+                            <tr>
+                              <td colSpan={3} className="py-8 text-center text-text-muted italic">No recent deposits.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 

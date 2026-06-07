@@ -6,6 +6,7 @@ export interface AdminDashboardStats {
   activeContests: number;
   totalCourses: number;
   totalInstructors: number;
+  totalProblems: number;
 }
 
 export interface AdminCourse {
@@ -107,6 +108,13 @@ export interface ActivityLog {
   timestamp: string;
 }
 
+export interface AdminDepositHistory {
+  id: string;
+  userName: string;
+  amount: number;
+  date: string;
+}
+
 // Mock database to simulate stateful actions locally when backend is unavailable
 let mockStats: AdminDashboardStats = {
   totalRevenue: 24580000,
@@ -114,6 +122,7 @@ let mockStats: AdminDashboardStats = {
   activeContests: 4,
   totalCourses: 18,
   totalInstructors: 8,
+  totalProblems: 45,
 };
 
 let mockCourses: AdminCourse[] = [
@@ -403,6 +412,14 @@ let mockActivityLogs: ActivityLog[] = [
   }
 ];
 
+let mockRecentDeposits: AdminDepositHistory[] = [
+  { id: "dep-1", userName: "Nguyen Van A", amount: 500000, date: "2026-06-07T07:45:00Z" },
+  { id: "dep-2", userName: "Tran Thi B", amount: 1000000, date: "2026-06-07T06:30:00Z" },
+  { id: "dep-3", userName: "Le Van C", amount: 200000, date: "2026-06-06T15:20:00Z" },
+  { id: "dep-4", userName: "Pham Minh D", amount: 1500000, date: "2026-06-05T09:10:00Z" },
+  { id: "dep-5", userName: "Hoang Van E", amount: 50000, date: "2026-06-04T11:00:00Z" }
+];
+
 // Helper to delay response for realism
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -434,6 +451,20 @@ export const adminService = {
     }
     await delay(200);
     return mockActivityLogs;
+  },
+
+  async getRecentDeposits(): Promise<AdminDepositHistory[]> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/dashboard/recent-deposits`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Using mock data for Recent Deposits:", err);
+    }
+    await delay(200);
+    return mockRecentDeposits;
   },
 
   // Courses
@@ -639,6 +670,7 @@ export const adminService = {
       isActive: true
     };
     mockProblems.push(newProb);
+    mockStats.totalProblems += 1;
     return newProb;
   },
 
@@ -689,18 +721,18 @@ export const adminService = {
   // Financial Chart details for 12 months
   getFinancialChartData() {
     return [
-      { label: 'Jan', amount: 12000000, count: 24, usersCount: 15 },
-      { label: 'Feb', amount: 15000000, count: 30, usersCount: 22 },
-      { label: 'Mar', amount: 18500000, count: 37, usersCount: 31 },
-      { label: 'Apr', amount: 16000000, count: 32, usersCount: 28 },
-      { label: 'May', amount: 22000000, count: 44, usersCount: 45 },
-      { label: 'Jun', amount: 24580000, count: 49, usersCount: 52 },
-      { label: 'Jul', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Aug', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Sep', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Oct', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Nov', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Dec', amount: 0, count: 0, usersCount: 0 }
+      { label: 'Jul 25', amount: 14000000, count: 28, usersCount: 18 },
+      { label: 'Aug 25', amount: 16500000, count: 33, usersCount: 21 },
+      { label: 'Sep 25', amount: 15000000, count: 30, usersCount: 25 },
+      { label: 'Oct 25', amount: 17200000, count: 34, usersCount: 30 },
+      { label: 'Nov 25', amount: 19000000, count: 38, usersCount: 29 },
+      { label: 'Dec 25', amount: 21500000, count: 43, usersCount: 35 },
+      { label: 'Jan 26', amount: 12000000, count: 24, usersCount: 15 },
+      { label: 'Feb 26', amount: 15000000, count: 30, usersCount: 22 },
+      { label: 'Mar 26', amount: 18500000, count: 37, usersCount: 31 },
+      { label: 'Apr 26', amount: 16000000, count: 32, usersCount: 28 },
+      { label: 'May 26', amount: 22000000, count: 44, usersCount: 45 },
+      { label: 'Jun 26', amount: 24580000, count: 49, usersCount: 52 }
     ];
   }
 };

@@ -25,6 +25,7 @@ export const Layout: React.FC = () => {
   const location = useLocation();
 
   const isInstructorRoute = location.pathname.startsWith('/instructor');
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const isProblemSolvePage = location.pathname.startsWith('/problems/');
 
   // Parse contestId from location pathname
@@ -198,7 +199,7 @@ export const Layout: React.FC = () => {
       </div>
 
       {/* TopAppBar */}
-      {!isInstructorRoute && (
+      {!isInstructorRoute && !isAdminRoute && (
         <header className="bg-surface/90 backdrop-blur-md shadow-sm fixed top-0 z-50 w-full border-b border-gray-100/50">
           <div className="flex justify-between items-center w-full px-8 h-16 max-w-[1440px] mx-auto relative">
           {/* Brand */}
@@ -275,7 +276,7 @@ export const Layout: React.FC = () => {
       )}
 
       {/* Main content body with Outlet */}
-      <main className={`relative z-10 flex-grow w-full min-w-0 ${isInstructorRoute ? '' : 'pt-16'}`}>
+      <main className={`relative z-10 flex-grow w-full min-w-0 ${(isInstructorRoute || isAdminRoute) ? '' : 'pt-16'}`}>
         {isContestPage ? (
           <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10">
             {/* Main content column on the left (85%) */}
@@ -358,7 +359,7 @@ export const Layout: React.FC = () => {
       </main>
 
       {/* Master Footer */}
-      {!isInstructorRoute && !isProblemSolvePage && !isContestPage && (
+      {!isInstructorRoute && !isAdminRoute && !isProblemSolvePage && !isContestPage && (
         <footer className="bg-brand-blue text-white mt-auto shrink-0 w-full z-40 relative">
           <div className="max-w-[1440px] mx-auto px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
