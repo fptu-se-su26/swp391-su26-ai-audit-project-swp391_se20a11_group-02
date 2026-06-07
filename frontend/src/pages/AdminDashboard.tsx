@@ -13,6 +13,62 @@ import type {
   AdminDepositHistory
 } from '../services/adminService';
 
+interface ProblemDetail {
+  difficulty: string;
+  difficultyClass: string;
+  description: string;
+  code: Record<string, string>;
+}
+
+
+const initialExercises = [
+  { name: 'Two Sum', difficulty: 'Easy', difficultyClass: 'bg-green-50 text-brand-green border border-green-150', submissions: '1,245', completed: true },
+  { name: 'Reverse Linked List', difficulty: 'Easy', difficultyClass: 'bg-green-50 text-brand-green border border-green-150', submissions: '850', completed: false },
+  { name: 'Spring Context Hierarchy Solver', difficulty: 'Medium', difficultyClass: 'bg-primary-light/50 text-primary border border-primary/20', submissions: '420', completed: false }
+];
+
+
+const problemData: Record<string, ProblemDetail> = {
+  "Two Sum": {
+    difficulty: "Easy",
+    difficultyClass: "bg-green-50 text-brand-green border border-green-150",
+    description: `
+      <p class="mb-4">Given an array of integers <code class="bg-slate-100 px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">nums</code> and an integer <code class="bg-slate-100 px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">target</code>, return <em>indices of the two numbers such that they add up to <code class="bg-slate-100 px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">target</code></em>.</p>
+      <p class="mb-4">You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice.</p>
+      <p class="mb-4">You can return the answer in any order.</p>
+    `,
+    code: {
+      "Java": `class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Write your Java code here\n        return new int[] {};\n    }\n}`,
+      "C++": `class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        // Write your C++ code here\n        return {};\n    }\n};`,
+      "Python": `class Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n        # Write your Python code here\n        pass`
+    }
+  },
+  "Reverse Linked List": {
+    difficulty: "Easy",
+    difficultyClass: "bg-green-50 text-brand-green border border-green-150",
+    description: `
+      <p class="mb-4">Given the <code class="bg-slate-100 px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">head</code> of a singly linked list, reverse the list, and return <em>its reversed list</em>.</p>
+    `,
+    code: {
+      "Java": `class Solution {\n    public ListNode reverseList(ListNode head) {\n        // Write your Java code here\n        return null;\n    }\n}`,
+      "C++": `class Solution {\npublic:\n    ListNode* reverseList(ListNode* head) {\n        // Write your C++ code here\n        return nullptr;\n    }\n};`,
+      "Python": `class Solution:\n    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:\n        # Write your Python code here\n        pass`
+    }
+  },
+  "Spring Context Hierarchy Solver": {
+    difficulty: "Medium",
+    difficultyClass: "bg-primary-light/50 text-primary border border-primary/20",
+    description: `
+      <p class="mb-4">Given a hierarchical relationship of Spring ApplicationContext names and their respective registered beans, resolve if a child context can correctly lookup a bean defined in its parent context or its own context.</p>
+    `,
+    code: {
+      "Java": `class Solution {\n    public boolean resolveBeanLookup(Map<String, String> contextParents, Map<String, List<String>> contextBeans, String lookupContext, String beanName) {\n        // Write your Java code here\n        return false;\n    }\n}`,
+      "C++": `class Solution {\npublic:\n    bool resolveBeanLookup(unordered_map<string, string>& contextParents, unordered_map<string, vector<string>>& contextBeans, string lookupContext, string beanName) {\n        // Write your C++ code here\n        return false;\n    }\n};`,
+      "Python": `class Solution:\n    def resolveBeanLookup(self, contextParents: Dict[str, str], contextBeans: Dict[str, List[str]], lookupContext: str, beanName: str) -> bool: \n        # Write your Python code here\n        return False`
+    }
+  }
+};
+
 export const AdminDashboard: React.FC = () => {
   const { user } = useApp();
 
@@ -32,6 +88,31 @@ export const AdminDashboard: React.FC = () => {
   
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Filter states
+  const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
+  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
+  const [userSearch, setUserSearch] = useState('');
+  const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
+  const [problemSearch, setProblemSearch] = useState('');
+  const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
+  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
+
+  // Modal / review panel states
+
+  const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
+  const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
+  const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
+  const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
+
+  // Course Player Review Mode states
+  const [reviewingCourse, setReviewingCourse] = useState<AdminCourse | null>(null);
+  const [reviewPlayerTab, setReviewPlayerTab] = useState<'overview' | 'qa' | 'exercises' | 'source-code' | 'quiz'>('overview');
+  const [reviewLectureTitle, setReviewLectureTitle] = useState('1.1 Course Introduction');
+  const [reviewCurriculumSections, setReviewCurriculumSections] = useState<Record<string, boolean>>({ sec1: true });
+  const [reviewCurrentProblem, setReviewCurrentProblem] = useState<string | null>(null);
+  const [reviewSolveLang, setReviewSolveLang] = useState('Java');
+  const [reviewSolveCode, setReviewSolveCode] = useState('');
 
   // Hash-based routing synchronization
   useEffect(() => {
@@ -117,23 +198,7 @@ export const AdminDashboard: React.FC = () => {
     loadData();
   }, []);
 
-  // Filter states
-  const [courseFilter, setCourseFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
-  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
-  const [userSearch, setUserSearch] = useState<string>('');
-  const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
-  const [problemSearch, setProblemSearch] = useState<string>('');
-  const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
-  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'RUNNING' | 'ENDED' | 'CANCELLED'>('ALL');
 
-  // Modals and detail views
-  const [selectedCourseForReview, setSelectedCourseForReview] = useState<AdminCourse | null>(null);
-  const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
-  const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
-  
-  // Forms states
-  const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
-  const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
 
   // Add Problem form state
   const [newProbTitle, setNewProbTitle] = useState('');
@@ -255,11 +320,22 @@ export const AdminDashboard: React.FC = () => {
   const topProblemsTotal = useMemo(() => topProblemsChartData.reduce((sum, c) => sum + c.count, 0), [topProblemsChartData]);
 
   // Action handlers
+  const handleReviewCourse = (course: AdminCourse) => {
+    setReviewingCourse(course);
+    setReviewPlayerTab('overview');
+    setReviewLectureTitle('1.1 Course Introduction');
+    setReviewCurriculumSections({ sec1: true });
+    setReviewCurrentProblem(null);
+    setReviewSolveLang('Java');
+    setReviewSolveCode(problemData['Two Sum']?.code?.['Java'] || '');
+  };
+
   const handleApproveCourse = async (courseId: string, status: 'APPROVED' | 'REJECTED') => {
     try {
       const updated = await adminService.approveCourse(courseId, status);
       setCourses(prev => prev.map(c => c.id === courseId ? updated : c));
-      setSelectedCourseForReview(null);
+
+      setReviewingCourse(null);
       // reload stats
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
@@ -623,6 +699,446 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col items-center gap-3">
               <span className="animate-spin material-symbols-outlined text-4xl text-primary">sync</span>
               <p className="text-sm text-text-muted font-bold">Synchronizing Admin Panel Data...</p>
+            </div>
+          </div>
+        ) : reviewingCourse ? (
+          <div className="flex-grow flex flex-col bg-[#f0f4f9] animate-fade-in w-full">
+            {/* Admin Review Action Banner */}
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm sticky top-0 z-20">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setReviewingCourse(null)}
+                  className="flex items-center gap-1.5 text-sm text-slate-600 font-bold hover:text-primary transition-colors bg-white/80 border border-slate-200 px-3 py-1.5 rounded-lg"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  Back to Courses
+                </button>
+                <div className="h-6 w-px bg-amber-200"></div>
+                <span className="material-symbols-outlined text-amber-600 text-[22px]">rate_review</span>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-amber-700">Admin Review Mode</p>
+                  <p className="text-xs font-semibold text-amber-900 leading-tight">{reviewingCourse.title}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-amber-700 font-semibold hidden md:inline">By {reviewingCourse.instructorName} • {reviewingCourse.price.toLocaleString('vi-VN')} ₫</span>
+                <button
+                  onClick={() => handleApproveCourse(reviewingCourse.id, 'APPROVED')}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                  Approve / Phê duyệt
+                </button>
+                <button
+                  onClick={() => handleApproveCourse(reviewingCourse.id, 'REJECTED')}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold text-xs px-5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">cancel</span>
+                  Reject / Từ chối
+                </button>
+              </div>
+            </div>
+
+            {/* Main Player Content */}
+            <div className="flex-grow p-6">
+              <div className="max-w-[1400px] mx-auto">
+
+                {/* Course Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-4 mb-6">
+                  <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl md:text-3xl font-display font-black text-brand-blue leading-tight">{reviewingCourse.title}</h1>
+                    <p className="text-sm text-text-muted">By {reviewingCourse.instructorName}</p>
+                  </div>
+                  <div className="bg-surface py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.04)] border border-gray-100 flex items-center gap-3 shrink-0">
+                    <span className="material-symbols-outlined text-amber-500 bg-amber-50 p-1.5 rounded-lg text-lg">pending</span>
+                    <div>
+                      <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Status</p>
+                      <p className="text-[15px] font-extrabold text-amber-600 leading-none mt-0.5">Pending Review</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  {/* Left Column (Video + Tabs) */}
+                  <div className="lg:col-span-9 flex flex-col gap-6">
+
+                    {/* Video Player */}
+                    <div className="w-full bg-[#0a0f1d] rounded-2xl overflow-hidden shadow-lg border border-gray-800 aspect-video relative flex items-center justify-center group" style={{ maxHeight: '520px' }}>
+                      <img src={reviewingCourse.thumbnailUrl} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 group-hover:bg-black/50 transition-colors">
+                        <button className="bg-primary hover:bg-primary-hover hover:scale-105 text-white rounded-full p-5 shadow-2xl transition-all duration-300 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[48px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                        </button>
+                        <p className="text-white/80 text-sm font-semibold mt-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">{reviewLectureTitle}</p>
+                      </div>
+                      {/* Video Controls */}
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4 flex items-center gap-4 z-20">
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                        <div className="flex-grow h-1 bg-white/20 rounded-full cursor-pointer relative">
+                          <div className="absolute left-0 top-0 h-full bg-primary rounded-full" style={{ width: '30%' }}></div>
+                          <div className="absolute w-3 h-3 bg-white rounded-full top-1/2 -translate-y-1/2 shadow opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: '30%' }}></div>
+                        </div>
+                        <span className="font-mono text-xs text-white/90">03:45 / 12:45</span>
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">volume_up</span>
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">fullscreen</span>
+                      </div>
+                    </div>
+
+                    {/* Sub-tab Navigation */}
+                    <div className="flex border-b border-gray-200 gap-6 overflow-x-auto pb-px">
+                      {([
+                        { key: 'overview', icon: 'info', label: 'Overview' },
+                        { key: 'qa', icon: 'forum', label: 'Q&A' },
+                        { key: 'exercises', icon: 'terminal', label: 'Exercises' },
+                        { key: 'source-code', icon: 'code', label: 'Source Code' },
+                        { key: 'quiz', icon: 'quiz', label: 'Quiz' },
+                      ] as const).map((tab) => (
+                        <button
+                          key={tab.key}
+                          onClick={() => { setReviewPlayerTab(tab.key); setReviewCurrentProblem(null); }}
+                          className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                            reviewPlayerTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-primary'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[18px]">{tab.icon}</span> {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Tab Content */}
+                    <div className="bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px]">
+
+                      {/* Overview Tab */}
+                      {reviewPlayerTab === 'overview' && (
+                        <div className="space-y-4 animate-fade-in">
+                          <h2 className="text-xl font-bold text-text-main">{reviewLectureTitle}</h2>
+                          <div className="prose max-w-none text-sm text-text-muted space-y-4 leading-relaxed">
+                            <h3 className="font-bold text-text-main text-base">Course Overview</h3>
+                            <p>{reviewingCourse.shortDescription}</p>
+                            <h3 className="font-bold text-text-main text-base mt-6">Detailed Description</h3>
+                            <p className="whitespace-pre-line">{reviewingCourse.longDescription}</p>
+                            <div className="bg-primary-light/35 p-5 rounded-xl border border-primary/10 flex gap-4 mt-6">
+                              <span className="material-symbols-outlined text-primary text-[24px]">lightbulb</span>
+                              <div>
+                                <p className="font-bold text-text-main text-sm">Course Info</p>
+                                <p className="text-xs text-text-muted mt-1 leading-normal">
+                                  {reviewingCourse.totalChapters} Chapters • {reviewingCourse.totalLessons} Lessons • {reviewingCourse.totalQuizzes} Quizzes • {reviewingCourse.totalVideos} Videos
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Q&A Tab */}
+                      {reviewPlayerTab === 'qa' && (
+                        <div className="animate-fade-in">
+                          <h2 className="text-lg font-bold text-text-main mb-4">Questions & Answers in this lesson</h2>
+                          <div className="flex gap-3 mb-6">
+                            <div className="relative flex-1">
+                              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">search</span>
+                              <input className="w-full bg-surface-gray border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors text-text-main" placeholder="Search questions..." type="text" />
+                            </div>
+                            <button className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors whitespace-nowrap">Ask a new question</button>
+                          </div>
+                          <div className="space-y-6">
+                            <div className="border-b border-gray-100 pb-4">
+                              <div className="flex gap-3">
+                                <div className="w-9 h-9 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
+                                  <span className="material-symbols-outlined text-text-muted text-[18px]">person</span>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span className="font-bold text-sm text-text-main">Alex Chen</span>
+                                    <span className="text-[10px] text-text-muted">2 hours ago</span>
+                                  </div>
+                                  <p className="text-sm font-semibold text-text-main mb-1">Error initializing Spring Boot application template</p>
+                                  <p className="text-xs text-text-muted leading-relaxed line-clamp-2">Getting 'java: error: invalid source release: 17' when compiling. What could be wrong with my JDK configurations?</p>
+                                  <div className="flex items-center gap-3 mt-2 text-[11px] text-text-muted font-semibold">
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-brand-green text-[14px]">thumb_up</span> 4 likes</span>
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-primary text-[14px]">comment</span> 2 replies</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="border-b border-gray-100 pb-4">
+                              <div className="flex gap-3">
+                                <div className="w-9 h-9 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
+                                  <span className="material-symbols-outlined text-text-muted text-[18px]">person</span>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span className="font-bold text-sm text-text-main">Sarah Jenkins</span>
+                                    <span className="text-[10px] text-text-muted">1 day ago</span>
+                                  </div>
+                                  <p className="text-sm font-semibold text-text-main mb-1">IntelliJ Ultimate vs Community</p>
+                                  <p className="text-xs text-text-muted leading-relaxed line-clamp-2">Is IntelliJ Ultimate strictly necessary for Spring Boot projects, or is Community Edition sufficient for general microservice development?</p>
+                                  <div className="flex items-center gap-3 mt-2 text-[11px] text-text-muted font-semibold">
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">thumb_up</span> 0 likes</span>
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">comment</span> 1 reply</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Exercises Tab */}
+                      {reviewPlayerTab === 'exercises' && (
+                        <div className="animate-fade-in">
+                          {reviewCurrentProblem === null ? (
+                            <div>
+                              <h2 className="text-lg font-bold text-text-main mb-1">Practice Problems</h2>
+                              <p className="text-xs text-text-muted mb-4">Solve these algorithmic challenges to solidify your understanding of the lesson.</p>
+                              <div className="overflow-x-auto border border-gray-200 rounded-xl">
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className="bg-surface-gray border-b border-gray-200">
+                                      <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-text-muted text-center w-16">Status</th>
+                                      <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-text-muted">Title</th>
+                                      <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-text-muted w-24">Difficulty</th>
+                                      <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-text-muted text-right w-28">Submissions</th>
+                                      <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-text-muted text-center w-24">Action</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-150">
+                                    {initialExercises.map((ex, idx) => (
+                                      <tr key={idx} className="hover:bg-surface-gray/50 transition-colors">
+                                        <td className="p-3 text-center">
+                                          {ex.completed ? (
+                                            <span className="material-symbols-outlined text-brand-green text-[18px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                          ) : (
+                                            <span className="material-symbols-outlined text-text-muted text-[18px]">radio_button_unchecked</span>
+                                          )}
+                                        </td>
+                                        <td className="p-3 text-sm font-semibold text-text-main">{ex.name}</td>
+                                        <td className="p-3"><span className={`border px-2 py-0.5 rounded text-[10px] font-bold ${ex.difficultyClass}`}>{ex.difficulty}</span></td>
+                                        <td className="p-3 text-right text-xs text-text-muted font-mono">{ex.submissions}</td>
+                                        <td className="p-3 text-center">
+                                          <button
+                                            onClick={() => {
+                                              setReviewCurrentProblem(ex.name);
+                                              setReviewSolveLang('Java');
+                                              setReviewSolveCode(problemData[ex.name]?.code?.['Java'] || '');
+                                            }}
+                                            className="border border-gray-200 hover:border-primary hover:text-primary bg-white text-text-main px-3 py-1 rounded font-bold text-xs transition-all"
+                                          >
+                                            Solve
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col gap-6 animate-fade-in">
+                              <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+                                <button
+                                  onClick={() => setReviewCurrentProblem(null)}
+                                  className="flex items-center gap-1.5 text-xs font-bold text-text-muted hover:text-primary transition-all bg-transparent border-none cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">arrow_back</span> Back to Problems
+                                </button>
+                                <div className="flex items-center gap-3">
+                                  <h3 className="text-base font-bold text-text-main">{reviewCurrentProblem}</h3>
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${problemData[reviewCurrentProblem]?.difficultyClass}`}>
+                                    {problemData[reviewCurrentProblem]?.difficulty}
+                                  </span>
+                                </div>
+                              </div>
+                              <div
+                                className="prose max-w-none text-sm text-text-muted leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: problemData[reviewCurrentProblem]?.description || '' }}
+                              />
+                              <div className="border border-gray-200 rounded-xl overflow-hidden bg-[#1e1e1e] shadow-lg flex flex-col">
+                                <div className="bg-[#252526] border-b border-[#333333] px-4 py-2 flex justify-between items-center">
+                                  <select
+                                    value={reviewSolveLang}
+                                    onChange={(e) => {
+                                      setReviewSolveLang(e.target.value);
+                                      setReviewSolveCode(problemData[reviewCurrentProblem!]?.code?.[e.target.value] || '');
+                                    }}
+                                    className="bg-[#2d2d2d] text-white border-none rounded px-3 py-1 text-sm focus:ring-0 cursor-pointer outline-none"
+                                  >
+                                    <option value="Java">Java</option>
+                                    <option value="C++">C++</option>
+                                    <option value="Python">Python</option>
+                                  </select>
+                                  <button
+                                    onClick={() => setReviewSolveCode(problemData[reviewCurrentProblem!]?.code?.[reviewSolveLang] || '')}
+                                    className="text-[#cccccc] hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+                                    title="Reset Template"
+                                  >
+                                    <span className="material-symbols-outlined text-xl">restart_alt</span>
+                                  </button>
+                                </div>
+                                <div className="flex font-mono text-sm leading-6 p-4">
+                                  <div className="w-10 text-[#858585] text-right pr-4 select-none">
+                                    {reviewSolveCode.split('\n').map((_, i) => <div key={i}>{i + 1}</div>)}
+                                  </div>
+                                  <div className="flex-1">
+                                    <textarea
+                                      value={reviewSolveCode}
+                                      onChange={(e) => setReviewSolveCode(e.target.value)}
+                                      className="w-full bg-transparent text-[#d4d4d4] border-none p-0 focus:ring-0 resize-none font-mono text-sm leading-6 focus:outline-none outline-none shadow-none"
+                                      rows={12}
+                                      spellCheck={false}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="bg-[#252526] border-t border-[#333333] px-4 py-3 flex justify-end gap-3">
+                                  <button className="bg-primary hover:bg-primary-hover text-white px-8 py-2 rounded-lg font-bold text-sm transition-all shadow-md">
+                                    Submit
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Source Code Tab */}
+                      {reviewPlayerTab === 'source-code' && (
+                        <div className="animate-fade-in">
+                          <h2 className="text-lg font-bold text-text-main mb-1">Lesson Resources</h2>
+                          <p className="text-xs text-text-muted mb-4">Download the starting templates and completed source code for this lesson.</p>
+                          <div className="flex flex-col gap-3">
+                            <div className="bg-surface border border-gray-200 p-4 rounded-xl flex items-center justify-between gap-4 hover:border-primary transition-all group">
+                              <div className="flex items-center gap-3">
+                                <span className="material-symbols-outlined text-brand-blue text-[28px] bg-slate-100 p-2 rounded-lg">folder_zip</span>
+                                <div>
+                                  <p className="font-bold text-sm text-text-main">lesson-1-starter-template.zip</p>
+                                  <p className="text-[11px] text-text-muted">15.2 MB</p>
+                                </div>
+                              </div>
+                              <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
+                                <span className="material-symbols-outlined text-[16px]">download</span> Download
+                              </button>
+                            </div>
+                            <div className="bg-surface border border-gray-200 p-4 rounded-xl flex items-center justify-between gap-4 hover:border-primary transition-all group">
+                              <div className="flex items-center gap-3">
+                                <span className="material-symbols-outlined text-brand-blue text-[28px] bg-slate-100 p-2 rounded-lg">description</span>
+                                <div>
+                                  <p className="font-bold text-sm text-text-main">database-schema-init.sql</p>
+                                  <p className="text-[11px] text-text-muted">2.1 MB</p>
+                                </div>
+                              </div>
+                              <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
+                                <span className="material-symbols-outlined text-[16px]">download</span> Download
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Quiz Tab */}
+                      {reviewPlayerTab === 'quiz' && (
+                        <div className="animate-fade-in">
+                          <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                            <h2 className="text-lg font-bold text-text-main">Knowledge Check</h2>
+                            <span className="bg-slate-100 text-text-muted border border-gray-200 px-3 py-1 rounded-full text-xs font-bold">Question 1 of 5</span>
+                          </div>
+                          <div className="bg-surface p-2">
+                            <h3 className="text-base font-bold text-text-main mb-4 leading-snug">In Spring Boot, which annotation is used to map HTTP GET requests onto specific handler methods?</h3>
+                            <div className="space-y-3">
+                              {['@PostMapping', '@GetMapping', '@RequestMapping', '@PathMapping'].map((opt) => (
+                                <label key={opt} className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
+                                  <input className="w-4 h-4 text-primary border-gray-300 focus:ring-primary" name="reviewQuiz1" type="radio" />
+                                  <span className="text-sm font-medium text-text-main">{opt}</span>
+                                </label>
+                              ))}
+                            </div>
+                            <div className="border-t border-gray-100 mt-6 pt-4 flex justify-between items-center">
+                              <span className="text-text-muted hover:text-primary font-bold text-xs transition-colors cursor-pointer">Skip Question</span>
+                              <button className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors">Submit Answer</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                  {/* Right Column (Curriculum Sidebar) */}
+                  <div className="lg:col-span-3 bg-surface rounded-2xl border border-gray-200 shadow-sm overflow-hidden h-fit">
+                    <div className="p-4 bg-slate-50 border-b border-gray-200 flex flex-col gap-2">
+                      <h2 className="font-bold text-sm text-text-main flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary text-[18px]">toc</span>
+                        Curriculum
+                      </h2>
+                      <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-text-muted mt-1">
+                        <div className="bg-white border border-gray-100 rounded-lg p-1.5 text-center">
+                          <p className="text-brand-blue text-sm font-black">{reviewingCourse.totalChapters}</p>
+                          <p>Chapters</p>
+                        </div>
+                        <div className="bg-white border border-gray-100 rounded-lg p-1.5 text-center">
+                          <p className="text-brand-blue text-sm font-black">{reviewingCourse.totalLessons}</p>
+                          <p>Lessons</p>
+                        </div>
+                        <div className="bg-white border border-gray-100 rounded-lg p-1.5 text-center">
+                          <p className="text-brand-blue text-sm font-black">{reviewingCourse.totalVideos}</p>
+                          <p>Videos</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="divide-y divide-gray-150">
+                      {/* Dynamically generate sections based on totalChapters */}
+                      {Array.from({ length: Math.max(reviewingCourse.totalChapters, 1) }, (_, chIdx) => {
+                        const secKey = `sec${chIdx + 1}`;
+                        const chapterNames = [
+                          'Course Introduction', 'REST API & Controller', 'Spring Data JPA',
+                          'Service Layer & Business Logic', 'Security & Authentication',
+                          'Testing & Deployment', 'Advanced Topics', 'Capstone Project'
+                        ];
+                        const chapterName = chapterNames[chIdx] || `Chapter ${chIdx + 1}`;
+                        const lessonsPerChapter = Math.max(1, Math.round(reviewingCourse.totalLessons / Math.max(reviewingCourse.totalChapters, 1)));
+                        
+                        return (
+                          <div key={secKey} className="flex flex-col">
+                            <button
+                              onClick={() => setReviewCurriculumSections(prev => ({ ...prev, [secKey]: !prev[secKey] }))}
+                              className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
+                            >
+                              <span className="font-semibold text-xs text-text-main line-clamp-1">{chIdx + 1}. {chapterName}</span>
+                              <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${reviewCurriculumSections[secKey] ? 'rotate-180' : ''}`}>expand_more</span>
+                            </button>
+
+                            <div className={`${reviewCurriculumSections[secKey] ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
+                              {Array.from({ length: lessonsPerChapter }, (_, lIdx) => {
+                                const lectureTitle = `${chIdx + 1}.${lIdx + 1} Lesson ${lIdx + 1}`;
+                                const isActive = reviewLectureTitle === lectureTitle;
+                                const duration = `${String(Math.floor(Math.random() * 20 + 5)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`;
+                                return (
+                                  <div
+                                    key={lIdx}
+                                    onClick={() => setReviewLectureTitle(lectureTitle)}
+                                    className={`flex items-center gap-2.5 px-4 py-2.5 cursor-pointer border-l-2 transition-colors group ${
+                                      isActive
+                                        ? 'bg-primary-light/30 border-primary'
+                                        : 'hover:bg-slate-100 border-transparent'
+                                    }`}
+                                  >
+                                    <span className={`material-symbols-outlined text-[16px] ${isActive ? 'text-primary' : 'text-text-muted'}`}>
+                                      {isActive ? 'play_circle' : 'radio_button_unchecked'}
+                                    </span>
+                                    <span className={`text-xs flex-1 truncate ${isActive ? 'text-primary font-bold' : 'text-text-main group-hover:text-primary font-medium'}`}>{lectureTitle}</span>
+                                    <span className={`text-[10px] font-mono ${isActive ? 'text-primary/80' : 'text-text-muted'}`}>{duration}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
@@ -1055,7 +1571,7 @@ export const AdminDashboard: React.FC = () => {
                               <p className="text-[10px] text-text-muted">By {c.instructorName}</p>
                             </div>
                             <button
-                              onClick={() => setSelectedCourseForReview(c)}
+                              onClick={() => handleReviewCourse(c)}
                               className="text-[10px] bg-primary hover:bg-primary-hover text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
                             >
                               Review
@@ -1101,7 +1617,7 @@ export const AdminDashboard: React.FC = () => {
                   <h2 className="text-2xl font-display font-black text-brand-blue">Platform Courses Management</h2>
                   {/* Status Filters */}
                   <div className="flex gap-2">
-                    {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map((filterVal) => (
+                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (
                       <button
                         key={filterVal}
                         onClick={() => setCourseFilter(filterVal as any)}
@@ -1129,13 +1645,32 @@ export const AdminDashboard: React.FC = () => {
                           }`}>{c.status}</span>
                           <h3 className="font-display font-bold text-base text-brand-blue truncate mt-1">{c.title}</h3>
                           <p className="text-xs text-text-muted line-clamp-2">{c.shortDescription}</p>
-                          <p className="text-[11px] text-slate-500 font-semibold mt-1">Instructor: {c.instructorName}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <img
+                              src={c.instructorAvatarUrl || "https://ui-avatars.com/api/?name=" + encodeURIComponent(c.instructorName) + "&background=12284C&color=fff"}
+                              alt={c.instructorName}
+                              className="w-5 h-5 rounded-full object-cover border border-slate-200 shrink-0"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(c.instructorName) + "&background=12284C&color=fff";
+                              }}
+                            />
+                            <p className="text-[11px] text-slate-500 font-semibold">Instructor: {c.instructorName}</p>
+                          </div>
 
                           <div className="grid grid-cols-2 gap-2 mt-3 text-[11px] font-semibold text-slate-600 bg-slate-50 p-2.5 rounded-xl">
                             <div>Enrolled: <span className="text-brand-blue font-bold">{c.totalEnrolled}</span></div>
                             <div>Price: <span className="text-primary font-bold">{c.price.toLocaleString('vi-VN')} ₫</span></div>
+                            <div>Chapters: <span className="text-slate-800 font-bold">{c.totalChapters}</span></div>
                             <div>Lessons: <span className="text-slate-800 font-bold">{c.totalLessons}</span></div>
-                            <div>Rating: <span className="text-orange-500 font-bold">★ {c.averageRating || 'N/A'}</span></div>
+                            {c.status === 'APPROVED' && (
+                              <div>Videos: <span className="text-slate-800 font-bold">{c.totalVideos}</span></div>
+                            )}
+                            <div className={c.status === 'APPROVED' ? 'col-span-1' : 'col-span-2'}>
+                              Rating: <span className="text-orange-500 font-bold">★ {c.averageRating ? c.averageRating.toFixed(1) : 'N/A'}</span>
+                              {c.totalReviews > 0 && (
+                                <span className="text-slate-400 font-medium ml-0.5">({c.totalReviews})</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1143,7 +1678,7 @@ export const AdminDashboard: React.FC = () => {
                       {c.status === 'PENDING' && (
                         <div className="p-5 pt-0 border-t border-slate-50 mt-2 flex gap-2">
                           <button
-                            onClick={() => setSelectedCourseForReview(c)}
+                            onClick={() => handleReviewCourse(c)}
                             className="flex-1 text-xs bg-primary hover:bg-primary-hover text-white font-bold py-2 rounded-xl transition-all"
                           >
                             Review & Phê duyệt
@@ -1314,7 +1849,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <h2 className="text-2xl font-display font-black text-brand-blue">Active Instructors & Applicants</h2>
                   <div className="flex gap-2">
-                    {['ALL', 'PENDING', 'APPROVED'].map((filterVal) => (
+                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (
                       <button
                         key={filterVal}
                         onClick={() => setInstructorAppFilter(filterVal as any)}
@@ -1324,7 +1859,7 @@ export const AdminDashboard: React.FC = () => {
                             : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
                         }`}
                       >
-                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : 'Pending Approvals'}
+                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : 'Rejected Applications'}
                       </button>
                     ))}
                   </div>
@@ -1344,7 +1879,8 @@ export const AdminDashboard: React.FC = () => {
                                 <p className="text-xs text-text-muted">{app.email}</p>
                               </div>
                               <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                                app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-500'
+                                app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
+                                app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
                               }`}>{app.status}</span>
                             </div>
                             <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl line-clamp-3 italic">"{app.introduction}"</p>
@@ -1573,54 +2109,7 @@ export const AdminDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* ================= MODAL: COURSE REVIEW & APPROVAL ================= */}
-      {selectedCourseForReview && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto flex flex-col p-6 animate-fade-in text-left">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-primary-light px-2 py-0.5 rounded-md">Course Review</span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">{selectedCourseForReview.title}</h3>
-              </div>
-              <button onClick={() => setSelectedCourseForReview(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
-            </div>
 
-            <div className="flex flex-col gap-4 text-xs">
-              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl font-semibold">
-                <div>Instructor: <span className="text-brand-blue font-bold">{selectedCourseForReview.instructorName}</span></div>
-                <div>Price: <span className="text-primary font-bold">{selectedCourseForReview.price.toLocaleString()} ₫</span></div>
-                <div>Lessons Count: <span className="text-slate-800 font-bold">{selectedCourseForReview.totalLessons} lessons</span></div>
-                <div>Quizzes: <span className="text-slate-800 font-bold">{selectedCourseForReview.totalQuizzes} quizzes</span></div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Short Description</h4>
-                <p className="text-slate-600 leading-relaxed bg-slate-50/50 p-3 rounded-xl border border-slate-100">{selectedCourseForReview.shortDescription}</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Detailed Long Description</h4>
-                <p className="text-slate-600 leading-relaxed bg-slate-50/50 p-3 rounded-xl border border-slate-100 max-h-40 overflow-y-auto whitespace-pre-line">{selectedCourseForReview.longDescription}</p>
-              </div>
-
-              <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
-                <button
-                  onClick={() => handleApproveCourse(selectedCourseForReview.id, 'APPROVED')}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Approve / Phê duyệt
-                </button>
-                <button
-                  onClick={() => handleApproveCourse(selectedCourseForReview.id, 'REJECTED')}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Reject / Từ chối
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ================= MODAL: INSTRUCTOR APPLICATION REVIEW ================= */}
       {selectedAppForReview && (

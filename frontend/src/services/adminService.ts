@@ -25,6 +25,8 @@ export interface AdminCourse {
   totalLessons: number;
   totalQuizzes: number;
   totalVideos: number;
+  totalChapters: number;
+  instructorAvatarUrl?: string;
 }
 
 export interface AdminInstructorApplication {
@@ -130,6 +132,7 @@ let mockCourses: AdminCourse[] = [
     id: "c-101",
     instructorId: 10,
     instructorName: "Dr. Jenkins",
+    instructorAvatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
     title: "Mastering Full-Stack React & Node.js",
     thumbnailUrl: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=400&q=80",
     shortDescription: "Build scalable web applications from scratch using MERN stack.",
@@ -142,11 +145,13 @@ let mockCourses: AdminCourse[] = [
     totalLessons: 42,
     totalQuizzes: 8,
     totalVideos: 24,
+    totalChapters: 6,
   },
   {
     id: "c-102",
     instructorId: 11,
     instructorName: "Alice Miller",
+    instructorAvatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
     title: "Java Algorithms & Coding Arena",
     thumbnailUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=400&q=80",
     shortDescription: "Solve complex programmatic challenges using Java standard library.",
@@ -159,11 +164,13 @@ let mockCourses: AdminCourse[] = [
     totalLessons: 30,
     totalQuizzes: 5,
     totalVideos: 18,
+    totalChapters: 4,
   },
   {
     id: "c-103",
     instructorId: 10,
     instructorName: "Dr. Jenkins",
+    instructorAvatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
     title: "Python Data Science and Machine Learning",
     thumbnailUrl: "https://images.unsplash.com/photo-1527474305487-b87b222841cc?auto=format&fit=crop&w=400&q=80",
     shortDescription: "Analyze datasets, build neural networks, and visualize data trends.",
@@ -176,11 +183,13 @@ let mockCourses: AdminCourse[] = [
     totalLessons: 35,
     totalQuizzes: 6,
     totalVideos: 20,
+    totalChapters: 5,
   },
   {
     id: "c-104",
     instructorId: 12,
     instructorName: "John Doe",
+    instructorAvatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
     title: "Go Microservices & Dockerized Deployments",
     thumbnailUrl: "https://images.unsplash.com/photo-1607799279861-4dd421887fb3?auto=format&fit=crop&w=400&q=80",
     shortDescription: "Build blazing fast microservices with Golang, gRPC and RabbitMQ.",
@@ -193,6 +202,7 @@ let mockCourses: AdminCourse[] = [
     totalLessons: 28,
     totalQuizzes: 4,
     totalVideos: 15,
+    totalChapters: 4,
   }
 ];
 
