@@ -26,6 +26,25 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long>, Jpa
     void incrementTotalEnrolledForCourses(@Param("courseIds") List<Long> courseIds);
 
     List<CourseEntity> findByInstructorId(Integer instructorId);
+
+    boolean existsByIdAndInstructorId(Long id, Integer instructorId);
+
+    @Query(value = "SELECT EXISTS (" +
+           "SELECT 1 FROM courses c " +
+           "JOIN chapters ch ON c.id = ch.course_id " +
+           "JOIN lessons l ON ch.id = l.chapter_id " +
+           "WHERE l.id = :lessonId AND c.instructor_id = :instructorId" +
+           ")", nativeQuery = true)
+    boolean existsByLessonIdAndInstructorId(@Param("lessonId") Long lessonId, @Param("instructorId") Integer instructorId);
+
+    @Query(value = "SELECT EXISTS (" +
+           "SELECT 1 FROM courses c " +
+           "JOIN chapters ch ON c.id = ch.course_id " +
+           "JOIN lessons l ON ch.id = l.chapter_id " +
+           "JOIN quizzes q ON l.id = q.lesson_id " +
+           "WHERE q.id = :quizId AND c.instructor_id = :instructorId" +
+           ")", nativeQuery = true)
+    boolean existsByQuizIdAndInstructorId(@Param("quizId") Long quizId, @Param("instructorId") Integer instructorId);
 }
 
 
