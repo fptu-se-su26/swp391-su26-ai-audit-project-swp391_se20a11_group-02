@@ -139,6 +139,17 @@ export const InstructorDashboard: React.FC = () => {
   const [lessonDuration, setLessonDuration] = useState('12:45');
   const [lessonTheory, setLessonTheory] = useState('');
 
+  // Exercise & Quiz states
+  const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
+  const [editingExerciseId, setEditingExerciseId] = useState<number | null>(null);
+  const [exerciseTitle, setExerciseTitle] = useState('');
+  const [exerciseDifficulty, setExerciseDifficulty] = useState('EASY');
+
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
+  const [quizTitle, setQuizTitle] = useState('');
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+
   // Video uploading states
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -177,12 +188,19 @@ export const InstructorDashboard: React.FC = () => {
       return;
     }
     setCurriculumData(prev => {
-      const newChapters = [...prev.chapters];
-      const lesson = newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!];
-      if (lesson) {
-        lesson.title = lessonTitle.trim();
-        lesson.isTrial = lessonIsTrial;
-      }
+      const newChapters = prev.chapters.map((ch, cIdx) => {
+        if (cIdx !== selectedItem.chIdx) return ch;
+        const newLessons = ch.lessons.map((les, lIdx) => {
+          if (lIdx !== selectedItem.lesIdx) return les;
+          return {
+            ...les,
+            title: lessonTitle.trim(),
+            isTrial: lessonIsTrial,
+            duration: lessonDuration
+          };
+        });
+        return { ...ch, lessons: newLessons };
+      });
       return { chapters: newChapters };
     });
     alert('Lesson Overview saved to backend successfully via separate API!');
@@ -190,11 +208,14 @@ export const InstructorDashboard: React.FC = () => {
 
   const handleSaveLessonTheory = () => {
     setCurriculumData(prev => {
-      const newChapters = [...prev.chapters];
-      const lesson = newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!];
-      if (lesson) {
-        lesson.theory = lessonTheory;
-      }
+      const newChapters = prev.chapters.map((ch, cIdx) => {
+        if (cIdx !== selectedItem.chIdx) return ch;
+        const newLessons = ch.lessons.map((les, lIdx) => {
+          if (lIdx !== selectedItem.lesIdx) return les;
+          return { ...les, theory: lessonTheory };
+        });
+        return { ...ch, lessons: newLessons };
+      });
       return { chapters: newChapters };
     });
     alert('Lesson Theory content saved to backend successfully via separate Theory API!');
@@ -3563,7 +3584,7 @@ export const InstructorDashboard: React.FC = () => {
                              <span className="material-symbols-outlined text-4xl text-slate-300 mb-3 block">terminal</span>
                              <h5 className="font-bold text-brand-blue mb-1">No Exercises Yet</h5>
                              <p className="text-xs text-text-muted mb-4">Add coding problems for students to practice.</p>
-                             <button className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors">
+                             <button onClick={() => handleOpenExerciseModal()} className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors">
                                + Create Exercise
                              </button>
                           </div>
@@ -3582,12 +3603,17 @@ export const InstructorDashboard: React.FC = () => {
                                     </span>
                                   </div>
                                 </div>
-                                <button className="text-primary hover:text-primary-hover text-xs font-bold border border-primary/20 hover:border-primary/50 px-3 py-1.5 rounded-lg transition-colors">
-                                  Edit
-                                </button>
+                                <div className="flex items-center gap-2">
+                                  <button onClick={() => handleOpenExerciseModal(exercise)} className="text-primary hover:text-primary-hover text-xs font-bold border border-primary/20 hover:border-primary/50 px-3 py-1.5 rounded-lg transition-colors">
+                                    Edit
+                                  </button>
+                                  <button onClick={() => handleDeleteExercise(exercise.id)} className="text-red-500 hover:text-red-700 text-xs font-bold border border-red-500/20 hover:border-red-500/50 px-3 py-1.5 rounded-lg transition-colors">
+                                    Delete
+                                  </button>
+                                </div>
                               </div>
                             ))}
-                            <button className="mt-2 w-full py-3 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                            <button onClick={() => handleOpenExerciseModal()} className="mt-2 w-full py-3 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
                               <span className="material-symbols-outlined text-sm">add</span>
                               Add Exercise
                             </button>
@@ -3605,7 +3631,7 @@ export const InstructorDashboard: React.FC = () => {
                              <span className="material-symbols-outlined text-4xl text-slate-300 mb-3 block">quiz</span>
                              <h5 className="font-bold text-brand-blue mb-1">No Quiz Yet</h5>
                              <p className="text-xs text-text-muted mb-4">Test student knowledge with multiple choice questions.</p>
-                             <button className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors">
+                             <button onClick={() => handleOpenQuizModal()} className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors">
                                + Create Quiz
                              </button>
                           </div>
@@ -3618,7 +3644,10 @@ export const InstructorDashboard: React.FC = () => {
                                     <span className="material-symbols-outlined text-amber-500 text-base">quiz</span>
                                     {quiz.title}
                                   </h5>
-                                  <button className="text-primary hover:text-primary-hover text-[11px] font-bold">Edit Quiz</button>
+                                  <div className="flex gap-2">
+                                    <button onClick={() => handleOpenQuizModal(quiz)} className="text-primary hover:text-primary-hover text-[11px] font-bold">Edit Quiz</button>
+                                    <button onClick={() => handleDeleteQuiz(quiz.id)} className="text-red-500 hover:text-red-700 text-[11px] font-bold">Delete Quiz</button>
+                                  </div>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                   {quiz.questions?.map((q: any, qIdx: number) => (
@@ -3637,7 +3666,7 @@ export const InstructorDashboard: React.FC = () => {
                                 </div>
                               </div>
                             ))}
-                            <button className="mt-1 w-full py-3 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                            <button onClick={() => handleOpenQuizModal()} className="mt-1 w-full py-3 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
                               <span className="material-symbols-outlined text-sm">add</span>
                               Add Quiz
                             </button>
@@ -4318,6 +4347,157 @@ export const InstructorDashboard: React.FC = () => {
                 <button type="submit" className="px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-extrabold transition-all shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]">Submit Course</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+
+      {/* ================= MODAL: ADD/EDIT EXERCISE ================= */}
+      {isExerciseModalOpen && (
+        <div className="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="bg-brand-blue px-6 py-4 flex items-center justify-between shrink-0">
+              <h2 className="text-white font-display font-black text-xl flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">code</span>
+                {editingExerciseId ? 'Edit Coding Exercise' : 'Create Coding Exercise'}
+              </h2>
+              <button type="button" onClick={() => setIsExerciseModalOpen(false)} className="text-white/60 hover:text-white transition-colors">
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Exercise Title</label>
+                <input
+                  type="text"
+                  value={exerciseTitle}
+                  onChange={(e) => setExerciseTitle(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue"
+                  placeholder="e.g. Reverse a Linked List"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Difficulty Level</label>
+                <div className="flex gap-3">
+                  {['EASY', 'MEDIUM', 'HARD'].map(diff => (
+                    <label key={diff} className={`flex-1 flex items-center justify-center gap-2 py-3 border rounded-xl cursor-pointer transition-colors ${exerciseDifficulty === diff ? 'bg-primary/10 border-primary text-primary font-bold' : 'border-slate-200 text-slate-500 font-medium hover:bg-slate-50'}`}>
+                      <input
+                        type="radio"
+                        name="exerciseDifficulty"
+                        value={diff}
+                        checked={exerciseDifficulty === diff}
+                        onChange={() => setExerciseDifficulty(diff)}
+                        className="hidden"
+                      />
+                      {diff}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
+              <button type="button" onClick={() => setIsExerciseModalOpen(false)} className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-100 transition-colors">Cancel</button>
+              <button type="button" onClick={handleSaveExercise} className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-extrabold shadow-md shadow-primary/20 transition-transform active:scale-95">
+                Save Exercise
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: ADD/EDIT QUIZ ================= */}
+      {isQuizModalOpen && (
+        <div className="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="bg-amber-500 px-6 py-4 flex items-center justify-between shrink-0">
+              <h2 className="text-white font-display font-black text-xl flex items-center gap-2">
+                <span className="material-symbols-outlined text-white">quiz</span>
+                {editingQuizId ? 'Edit Multiple Choice Quiz' : 'Create Multiple Choice Quiz'}
+              </h2>
+              <button type="button" onClick={() => setIsQuizModalOpen(false)} className="text-white/60 hover:text-white transition-colors">
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex flex-col gap-6">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Quiz Title</label>
+                <input
+                  type="text"
+                  value={quizTitle}
+                  onChange={(e) => setQuizTitle(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue"
+                  placeholder="e.g. End of Chapter 1 Quiz"
+                />
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Questions</h4>
+                  <button type="button" onClick={handleAddQuizQuestion} className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">add</span> Add Question
+                  </button>
+                </div>
+                
+                {quizQuestions.length === 0 ? (
+                  <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
+                    <p className="text-xs text-text-muted font-bold">No questions added yet.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-5">
+                    {quizQuestions.map((q, qIdx) => (
+                      <div key={q.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+                        <div className="flex items-start gap-3">
+                          <span className="font-display font-black text-slate-400 mt-2 text-sm">Q{qIdx + 1}</span>
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={q.content}
+                              onChange={(e) => handleUpdateQuizQuestion(qIdx, e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue"
+                              placeholder="Question text..."
+                            />
+                          </div>
+                          <button type="button" onClick={() => handleDeleteQuizQuestion(qIdx)} className="text-slate-400 hover:text-red-500 mt-2 transition-colors">
+                            <span className="material-symbols-outlined">delete</span>
+                          </button>
+                        </div>
+                        
+                        <div className="pl-8 flex flex-col gap-2">
+                          <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Options (Select Correct)</label>
+                          {q.options.map((opt: any, optIdx: number) => (
+                            <div key={opt.id} className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name={`q-${q.id}-correct`}
+                                checked={opt.isCorrect}
+                                onChange={() => handleSetCorrectOption(qIdx, optIdx)}
+                                className="w-4 h-4 text-green-500 border-slate-300 focus:ring-green-500"
+                              />
+                              <input
+                                type="text"
+                                value={opt.content}
+                                onChange={(e) => handleUpdateQuizOption(qIdx, optIdx, e.target.value)}
+                                className={`flex-1 bg-white border ${opt.isCorrect ? 'border-green-300 bg-green-50/30' : 'border-slate-200'} rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue`}
+                                placeholder={`Option ${optIdx + 1}`}
+                              />
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => handleAddQuizOption(qIdx)} className="text-xs text-primary font-bold hover:underline self-start mt-1">
+                            + Add Option
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
+              <button type="button" onClick={() => setIsQuizModalOpen(false)} className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-100 transition-colors">Cancel</button>
+              <button type="button" onClick={handleSaveQuiz} className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-extrabold shadow-md shadow-amber-500/20 transition-transform active:scale-95">
+                Save Quiz
+              </button>
+            </div>
           </div>
         </div>
       )}
