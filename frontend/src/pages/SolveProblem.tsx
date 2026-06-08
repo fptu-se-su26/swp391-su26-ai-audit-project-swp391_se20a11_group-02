@@ -22,9 +22,25 @@ export const SolveProblem: React.FC = () => {
   const [testcasesLogs, setTestcasesLogs] = useState<any[]>([]);
   const [overallResult, setOverallResult] = useState<any>(null);
   const [expandedTestcases, setExpandedTestcases] = useState<{[key: number]: boolean}>({});
+  const [copiedInput, setCopiedInput] = useState<boolean>(false);
+  const [copiedOutput, setCopiedOutput] = useState<boolean>(false);
 
   const toggleTestcaseDetails = (testcaseId: number) => {
     setExpandedTestcases(prev => ({ ...prev, [testcaseId]: !prev[testcaseId] }));
+  };
+
+  const copyToClipboard = (text: string | undefined | null, type: 'input' | 'output') => {
+    if (!text) return;
+    const cleanText = formatPreText(text);
+    navigator.clipboard.writeText(cleanText).then(() => {
+      if (type === 'input') {
+        setCopiedInput(true);
+        setTimeout(() => setCopiedInput(false), 2000);
+      } else {
+        setCopiedOutput(true);
+        setTimeout(() => setCopiedOutput(false), 2000);
+      }
+    });
   };
 
   useEffect(() => {
@@ -212,8 +228,9 @@ export const SolveProblem: React.FC = () => {
 
   const formatPreText = (text: string | undefined | null) => {
     if (!text) return '';
-    // Replace literal '\n' with actual newline for <pre> tags
-    return text.replace(/\\n/g, '\n');
+    let cleaned = text.replace(/\\n/g, '\n');
+    cleaned = cleaned.replace(/\[([a-zA-Z0-9,\s\-.]+)\]/g, '$1');
+    return cleaned;
   };
 
   const handleAddReply = (parentId: number) => {
@@ -468,12 +485,46 @@ export const SolveProblem: React.FC = () => {
                 </div>
 
                 {(problem.exampleInput || problem.exampleOutput) && (
-                  <div>
-                    <h3 className="font-semibold text-lg mb-3">Example:</h3>
-                    <div className="bg-surface-gray rounded-lg p-4 font-mono text-sm border border-gray-200 space-y-2">
-                      {problem.exampleInput && <div><span className="font-bold text-brand-blue">Input:</span><pre className="whitespace-pre-wrap">{formatPreText(problem.exampleInput)}</pre></div>}
-                      {problem.exampleOutput && <div className="mt-2"><span className="font-bold text-brand-blue">Output:</span><pre className="whitespace-pre-wrap">{formatPreText(problem.exampleOutput)}</pre></div>}
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {problem.exampleInput && (
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-text-main font-semibold text-lg">Sample Input</span>
+                          <button
+                            onClick={() => copyToClipboard(problem.exampleInput, 'input')}
+                            className="text-text-muted hover:text-text-main transition-colors flex items-center"
+                            title="Copy Sample Input"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">
+                              {copiedInput ? 'check' : 'assignment'}
+                            </span>
+                          </button>
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded p-4 font-mono text-sm overflow-x-auto min-h-[100px]">
+                          <pre className="whitespace-pre-wrap">{formatPreText(problem.exampleInput)}</pre>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {problem.exampleOutput && (
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-text-main font-semibold text-lg">Sample Output</span>
+                          <button
+                            onClick={() => copyToClipboard(problem.exampleOutput, 'output')}
+                            className="text-text-muted hover:text-text-main transition-colors flex items-center"
+                            title="Copy Sample Output"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">
+                              {copiedOutput ? 'check' : 'assignment'}
+                            </span>
+                          </button>
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded p-4 font-mono text-sm overflow-x-auto min-h-[100px]">
+                          <pre className="whitespace-pre-wrap">{formatPreText(problem.exampleOutput)}</pre>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

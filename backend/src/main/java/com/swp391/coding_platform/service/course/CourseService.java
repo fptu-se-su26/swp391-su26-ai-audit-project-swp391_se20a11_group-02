@@ -5,6 +5,10 @@ import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.CourseDetailResponse;
 import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
+import com.swp391.coding_platform.dto.response.LearningDetailResponse;
+import com.swp391.coding_platform.dto.response.LearningLessonResponse;
+import com.swp391.coding_platform.dto.response.LearningCurriculumChapterResponse;
+import com.swp391.coding_platform.entity.course.LessonEntity;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
@@ -256,5 +260,63 @@ public class CourseService {
         }
 
         courseRepository.save(course);
+    }
+
+    public LearningDetailResponse getCourseLearningDetail(Long userId, Long courseId) {
+        CourseEntity course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 1. Tải danh sách bài học đã hoàn thiện bằng EntityGraph để tránh N+1
+        List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+        List<LessonEntity> orderedLessons = chapters.stream()
+                .flatMap(chapter -> chapter.getLessons().stream())
+                .toList();
+
+        if (orderedLessons.isEmpty()) {
+            throw new AppException(ErrorCode.LESSON_NOT_FOUND);
+        }
+
+        // 2. Tải danh sách ID bài học hoàn thành trong 1 query
+        Set<Long> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId, courseId);
+
+        // 3. Tính toán tiến độ bài học hoàn thành
+        int completeLessons = completedLessonIds.size();
+        int totalLessons = orderedLessons.size();
+        int progressPercentage = ProgressUtils.calculatePercentage(completeLessons, totalLessons);
+
+        // 4. Tìm bài học active chưa học đầu tiên, nếu đã học hết chọn bài cuối cùng
+        LessonEntity activeLesson = orderedLessons.stream()
+                .filter(lesson -> !completedLessonIds.contains(lesson.getId().longValue()))
+                .findFirst()
+                .orElse(orderedLessons.get(orderedLessons.size() - 1));
+
+        // 5. Trả về DTO map đa nguồn sạch sẽ bằng MapStruct
+        return courseMapper.toLearningDetailResponse(course, progressPercentage, activeLesson);
+    }
+
+    public List<LearningCurriculumChapterResponse> getCourseLearningCurriculum(Long userId, Long courseId) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
+        // 1. Lấy toàn bộ chapter + lessons trong 1 JOIN query bằng EntityGraph
+        List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+
+        // 2. Lấy toàn bộ bài học đã hoàn thiện trong 1 query duy nhất
+        Set<Long> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId, courseId);
+
+        // 3. Sử dụng MapStruct map kèm ngữ cảnh completedLessonIds để tự động phân phối map trạng thái hoàn thành
+        return courseMapper.toLearningCurriculumChapterResponses(chapters, completedLessonIds);
+    }
+
+    public LearningLessonResponse getLearningLessonDetail(Long userId, Long courseId, Integer lessonId) {
+        List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+        LessonEntity lesson = chapters.stream()
+                .flatMap(ch -> ch.getLessons().stream())
+                .filter(l -> l.getId().equals(lessonId))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        return courseMapper.toLearningLessonResponse(lesson);
     }
 }

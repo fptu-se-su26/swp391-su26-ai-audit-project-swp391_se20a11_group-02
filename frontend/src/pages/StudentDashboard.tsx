@@ -5,6 +5,12 @@ import { dashboardService, type DashboardStatsResponse, type CourseListItemRespo
 import { paymentService } from '../services/paymentService';
 import { getPurchaseHistory, type PurchaseHistoryResponse } from '../services/orderService';
 import { authService } from '../services/authService';
+import {
+  fetchCourseLearningDetail,
+  fetchCourseLearningCurriculum,
+  fetchLearningLessonDetail,
+  type LearningCurriculumChapterResponse
+} from '../services/courseService';
 
 const TX_TYPE_OPTIONS = [
   { value: '', label: 'All Types', bg: 'bg-gray-100 text-gray-700' },
@@ -325,6 +331,58 @@ const problemData: Record<string, ProblemDetail> = {
   }
 };
 
+const EmptyState: React.FC<{
+  icon: string;
+  title: string;
+  description: string;
+  themeColor: 'primary' | 'green' | 'blue';
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+}> = ({ icon, title, description, themeColor, action }) => {
+  const colorMap = {
+    primary: {
+      bg: 'bg-primary-light/50',
+      text: 'text-primary',
+      btnBg: 'bg-primary hover:bg-primary-hover text-white',
+    },
+    green: {
+      bg: 'bg-brand-green-light',
+      text: 'text-brand-green',
+      btnBg: 'bg-brand-green hover:bg-brand-green-hover text-white',
+    },
+    blue: {
+      bg: 'bg-blue-50',
+      text: 'text-brand-blue-light',
+      btnBg: 'bg-brand-blue hover:bg-brand-blue-light text-white',
+    },
+  };
+
+  const colors = colorMap[themeColor] || colorMap.primary;
+
+  return (
+    <div className="w-full flex flex-col items-center justify-center p-8 bg-surface rounded-2xl border border-dashed border-outline-variant shadow-sm transition-all duration-300 hover:shadow-md">
+      <div className={`w-16 h-16 ${colors.bg} ${colors.text} rounded-full flex items-center justify-center mb-4 transition-transform duration-300 hover:scale-105`}>
+        <span className="material-symbols-outlined text-3xl">{icon}</span>
+      </div>
+      <h3 className="text-base font-bold text-text-main mb-1">{title}</h3>
+      <p className="text-xs text-text-muted max-w-sm text-center leading-relaxed">
+        {description}
+      </p>
+      {action && (
+        <button
+          onClick={action.onClick}
+          className={`mt-4 px-5 py-2 ${colors.btnBg} text-xs font-black rounded-xl transition-all shadow-sm`}
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+};
+
+
 export const StudentDashboard: React.FC = () => {
   const { user, refreshBalance, updateUser } = useApp();
   const location = useLocation();
@@ -352,11 +410,17 @@ export const StudentDashboard: React.FC = () => {
   const [contestFilter, setContestFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'ended'>('all');
 
   // Course Player (Learning View) States
+  const [playerCourseId, setPlayerCourseId] = useState<number | null>(null);
   const [playerCourseTitle, setPlayerCourseTitle] = useState<string>('Java Fundamentals to Advanced');
   const [playerCourseAuthor, setPlayerCourseAuthor] = useState<string>('Dr. Alan Turing • Java Level');
   const [playerCourseProgress, setPlayerCourseProgress] = useState<string>('65%');
   const [playerLectureTitle, setPlayerLectureTitle] = useState<string>('1.2 Setting up Environment');
   const [playerVideoThumbnail, setPlayerVideoThumbnail] = useState<string>('https://lh3.googleusercontent.com/aida-public/AB6AXuBgy50UMGsrfiNlaMOGS5hIFfEB9ALLj2hHwL19FjiPxHtPdmdzDshyKCd9cxUE55L1IPGibJJ8XxYWvIOtq6nCmPgaCFoPxxlN64_OwyPrZocxC4bEzFtpL_km1YmpuA-CN4fUVjD5gO2NI7mdCoim7_CAT7njSdYphWceJpEIiRp5PAaZrqeglhZ4z73HAhMVJI5rSTTAUK3BmjBzHCR2ivCNvmKAvTRSv0bZDvGjfSB2GENwq1duU8S0jsS3Bgtxt-P5YEUi6M8');
+  const [playerVideoUrl, setPlayerVideoUrl] = useState<string>('');
+  const [playerTheoryContent, setPlayerTheoryContent] = useState<string>('');
+  const [learningChapters, setLearningChapters] = useState<LearningCurriculumChapterResponse[]>([]);
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
+  const [isPlayerLoading, setIsPlayerLoading] = useState<boolean>(false);
   
   const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'source-code' | 'quiz'>('overview');
   const [curriculumSections, setCurriculumSections] = useState<Record<string, boolean>>({
@@ -364,6 +428,16 @@ export const StudentDashboard: React.FC = () => {
     sec2: false,
     sec3: false
   });
+
+  const getYoutubeEmbedUrl = (url?: string) => {
+    if (!url) return '';
+    const regExp = new RegExp('^.*(youtu.be/|v/|u/\\w/|embed/|watch\\?v=|&v=)([^#&\\?]*).*');
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}`;
+    }
+    return url;
+  };
 
   // Exercises panel inside Course Player
   const [playerExercises, setPlayerExercises] = useState(initialExercises);
@@ -803,7 +877,7 @@ export const StudentDashboard: React.FC = () => {
     return (
       <article 
         key={course.id} 
-        onClick={() => handleOpenCoursePlayer(course.title, course.instructorName, 'Java', `${isCompleted ? 100 : course.progressPercentage}%`, course.thumbnailUrl)}
+        onClick={() => handleOpenCoursePlayer(course.id, course.title, course.instructorName, 'Java', `${isCompleted ? 100 : course.progressPercentage}%`, course.thumbnailUrl)}
         className="w-[calc(100vw-32px)] sm:w-[calc(50vw-24px)] lg:w-[calc(25%-18px)] flex-shrink-0 snap-start bg-surface rounded-2xl overflow-hidden border border-gray-200 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer group shadow-sm text-left"
       >
         <div className="h-[160px] relative overflow-hidden flex items-center justify-center bg-brand-blue">
@@ -872,23 +946,95 @@ export const StudentDashboard: React.FC = () => {
   ];
 
   // Course player triggers
-  const handleOpenCoursePlayer = (title: string, author: string, category: string, progress: string, thumbnail: string) => {
+  const handleOpenCoursePlayer = async (id: number, title: string, author: string, category: string, progress: string, thumbnail: string) => {
+    setPlayerCourseId(id);
     setPlayerCourseTitle(title);
     setPlayerCourseAuthor(`${author} • ${category} Level`);
     setPlayerCourseProgress(progress);
     setPlayerVideoThumbnail(thumbnail);
-
-    if (title.includes('Java')) {
-      setPlayerLectureTitle('1.2 Setting up Environment');
-    } else if (title.includes('Algorithms')) {
-      setPlayerLectureTitle('2.1 Introduction to Time Complexity');
-    } else {
-      setPlayerLectureTitle('1.1 Introduction and Course Scope');
-    }
-
     setPlayerActiveTab('overview');
     setCurrentProblemName(null);
+    setIsPlayerLoading(true);
+
+    // Reset active lesson states immediately to prevent old course data leak
+    setPlayerVideoUrl('');
+    setPlayerTheoryContent('');
+    setLearningChapters([]);
+    setSelectedLessonId(null);
+
     handleTabChange('learning-view');
+
+    try {
+      // 1. Fetch Learning Details (holds active lesson, progress)
+      const detail = await fetchCourseLearningDetail(id);
+      setPlayerCourseTitle(detail.courseTitle);
+      setPlayerCourseAuthor(`${detail.instructorName} • Instructor`);
+      setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+      let activeLessonId = detail.activeLessonId;
+
+      // 2. Fetch Learning Curriculum
+      const chapters = await fetchCourseLearningCurriculum(id);
+      setLearningChapters(chapters);
+
+      // Expand all chapters by default (initialize section toggle state)
+      const initialSections: Record<string, boolean> = {};
+      chapters.forEach((chapter, index) => {
+        initialSections[`sec_${chapter.id}`] = index === 0; // expand first chapter by default
+      });
+      setCurriculumSections(initialSections);
+
+      // 3. Determine which lesson to load
+      if (!activeLessonId && chapters.length > 0 && chapters[0].lessons.length > 0) {
+        activeLessonId = chapters[0].lessons[0].id;
+      }
+
+      if (activeLessonId) {
+        setSelectedLessonId(activeLessonId);
+        const lesson = await fetchLearningLessonDetail(id, activeLessonId);
+        setPlayerLectureTitle(lesson.title);
+        setPlayerVideoUrl(lesson.videoUrl || '');
+        setPlayerTheoryContent(lesson.theoryContent || '');
+      } else {
+        setPlayerLectureTitle('No lessons available');
+        setPlayerVideoUrl('');
+        setPlayerTheoryContent('');
+      }
+    } catch (err) {
+      console.error('Failed to load learning data:', err);
+      // Reset states on error (e.g. course with no lessons in DB)
+      setPlayerLectureTitle('No lessons available');
+      setPlayerVideoUrl('');
+      setPlayerTheoryContent('');
+      setLearningChapters([]);
+      setSelectedLessonId(null);
+      setPlayerCourseProgress('0%');
+    } finally {
+      setIsPlayerLoading(false);
+    }
+  };
+
+  const handleSelectLesson = async (lessonId: number) => {
+    if (!playerCourseId) return;
+    setIsPlayerLoading(true);
+    try {
+      setSelectedLessonId(lessonId);
+      const lesson = await fetchLearningLessonDetail(playerCourseId, lessonId);
+      setPlayerLectureTitle(lesson.title);
+      setPlayerVideoUrl(lesson.videoUrl || '');
+      setPlayerTheoryContent(lesson.theoryContent || '');
+
+      // Optional: Refresh progress and curriculum status on selecting/learning
+      const detail = await fetchCourseLearningDetail(playerCourseId);
+      setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+      const chapters = await fetchCourseLearningCurriculum(playerCourseId);
+      setLearningChapters(chapters);
+    } catch (err) {
+      console.error('Failed to load lesson details:', err);
+    } finally {
+      setIsPlayerLoading(false);
+    }
   };
 
   // Exercises actions
@@ -1065,6 +1211,10 @@ export const StudentDashboard: React.FC = () => {
       </div>
     );
   }
+
+  const ongoingCourses = myCourses.filter(c => c.progressPercentage < 100);
+  const completedCourses = myCourses.filter(c => c.progressPercentage === 100);
+
 
   return (
     <div className="flex-grow w-full flex flex-row relative bg-[#f0f4f9]/40 text-text-main font-body min-h-screen">
@@ -1465,19 +1615,34 @@ export const StudentDashboard: React.FC = () => {
                   <span className="material-symbols-outlined text-primary">play_circle</span>
                   Ongoing Courses
                 </h2>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => scrollLeft(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                  </button>
-                  <button onClick={() => scrollRight(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                  </button>
-                  <button onClick={() => { setMyCoursesFilter('ongoing'); handleTabChange('my-courses'); }} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer ml-2">View All</button>
+                {ongoingCourses.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => scrollLeft(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                      <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </button>
+                    <button onClick={() => scrollRight(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                      <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </button>
+                    <button onClick={() => { setMyCoursesFilter('ongoing'); handleTabChange('my-courses'); }} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer ml-2">View All</button>
+                  </div>
+                )}
+              </div>
+              {ongoingCourses.length > 0 ? (
+                <div ref={ongoingScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {ongoingCourses.map(course => renderCourseCard(course, false))}
                 </div>
-              </div>
-              <div ref={ongoingScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-                {myCourses.filter(c => c.progressPercentage < 100).map(course => renderCourseCard(course, false))}
-              </div>
+              ) : (
+                <EmptyState 
+                  icon="play_circle" 
+                  title="No Ongoing Courses" 
+                  description="You don't have any ongoing courses at the moment. Explore our course catalog to start learning!" 
+                  themeColor="primary"
+                  action={{
+                    label: 'Browse Courses',
+                    onClick: () => navigate('/courses')
+                  }}
+                />
+              )}
             </section>
 
             {/* Completed Courses */}
@@ -1487,18 +1652,29 @@ export const StudentDashboard: React.FC = () => {
                   <span className="material-symbols-outlined text-brand-green">check_circle</span>
                   Completed Courses
                 </h2>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => scrollLeft(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                  </button>
-                  <button onClick={() => scrollRight(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                  </button>
+                {completedCourses.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => scrollLeft(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                      <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </button>
+                    <button onClick={() => scrollRight(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                      <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              {completedCourses.length > 0 ? (
+                <div ref={completedScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {completedCourses.map(course => renderCourseCard(course, true))}
                 </div>
-              </div>
-              <div ref={completedScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-                {myCourses.filter(c => c.progressPercentage === 100).map(course => renderCourseCard(course, true))}
-              </div>
+              ) : (
+                <EmptyState 
+                  icon="check_circle" 
+                  title="No Completed Courses" 
+                  description="You haven't completed any courses yet. Finish your ongoing courses to earn your certificates!" 
+                  themeColor="green"
+                />
+              )}
             </section>
 
             {/* Participated Contests */}
@@ -1508,45 +1684,61 @@ export const StudentDashboard: React.FC = () => {
                   <span className="material-symbols-outlined text-brand-blue-light">emoji_events</span>
                   Participated Contests
                 </h2>
-                <button onClick={() => handleTabChange('contest-history')} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer">View History</button>
+                {participatedContests.length > 0 && (
+                  <button onClick={() => handleTabChange('contest-history')} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer">View History</button>
+                )}
               </div>
-              <div className="bg-surface rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left whitespace-nowrap border-collapse">
-                    <thead className="bg-surface-gray border-b border-gray-100 text-text-muted text-xs font-bold uppercase">
-                      <tr>
-                        <th className="px-6 py-4">Contest Name</th>
-                        <th className="px-6 py-4">Date</th>
-                        <th className="px-6 py-4">Rank</th>
-                        <th className="px-6 py-4 text-right">Score</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 text-sm font-medium text-text-main">
-                      {participatedContests.map((c, idx) => (
-                        <tr key={idx} className="hover:bg-surface-gray/50 transition-colors">
-                          <td className="px-6 py-4 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-primary text-[18px]">
-                              {idx === 0 ? 'trophy' : 'workspace_premium'}
-                            </span>
-                            {c.name}
-                          </td>
-                          <td className="px-6 py-4 text-text-muted">{c.date}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-3 py-1 rounded-md text-sm font-bold ${
-                              idx === 0 ? 'bg-primary-light/30 text-primary' : 
-                              idx === 1 ? 'bg-brand-blue/10 text-brand-blue' : 'bg-gray-100 text-text-main'
-                            }`}>
-                              {c.rank}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">{c.score.split(' ')[0]} <span className="text-text-muted">pts</span></td>
+              {participatedContests.length > 0 ? (
+                <div className="bg-surface rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left whitespace-nowrap border-collapse">
+                      <thead className="bg-surface-gray border-b border-gray-100 text-text-muted text-xs font-bold uppercase">
+                        <tr>
+                          <th className="px-6 py-4">Contest Name</th>
+                          <th className="px-6 py-4">Date</th>
+                          <th className="px-6 py-4">Rank</th>
+                          <th className="px-6 py-4 text-right">Score</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-sm font-medium text-text-main">
+                        {participatedContests.map((c, idx) => (
+                          <tr key={idx} className="hover:bg-surface-gray/50 transition-colors">
+                            <td className="px-6 py-4 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-primary text-[18px]">
+                                {idx === 0 ? 'trophy' : 'workspace_premium'}
+                              </span>
+                              {c.name}
+                            </td>
+                            <td className="px-6 py-4 text-text-muted">{c.date}</td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-md text-sm font-bold ${
+                                idx === 0 ? 'bg-primary-light/30 text-primary' : 
+                                idx === 1 ? 'bg-brand-blue/10 text-brand-blue' : 'bg-gray-100 text-text-main'
+                              }`}>
+                                {c.rank}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">{c.score.split(' ')[0]} <span className="text-text-muted">pts</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <EmptyState 
+                  icon="emoji_events" 
+                  title="No Contests Participated" 
+                  description="You haven't participated in any contests yet. Challenge yourself by joining upcoming contests!" 
+                  themeColor="blue"
+                  action={{
+                    label: 'Browse Contests',
+                    onClick: () => navigate('/contests')
+                  }}
+                />
+              )}
             </section>
+
           </div>
         )}
 
@@ -1615,7 +1807,7 @@ export const StudentDashboard: React.FC = () => {
                 .map(course => (
                   <article 
                     key={course.id} 
-                    onClick={() => handleOpenCoursePlayer(course.title, course.instructorName, 'Java', `${course.progressPercentage}%`, course.thumbnailUrl)}
+                    onClick={() => handleOpenCoursePlayer(course.id, course.title, course.instructorName, 'Java', `${course.progressPercentage}%`, course.thumbnailUrl)}
                     className="bg-surface rounded-xl overflow-hidden border border-gray-200 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer group relative"
                   >
                     <div className="absolute top-3 left-3 z-10 flex gap-1.5">
@@ -1707,27 +1899,44 @@ export const StudentDashboard: React.FC = () => {
                 
                 {/* Video Player Area */}
                 <div className="w-full bg-[#0a0f1d] rounded-2xl overflow-hidden shadow-lg border border-gray-800 aspect-video relative flex items-center justify-center group" style={{ maxHeight: '520px' }}>
-                  <img src={playerVideoThumbnail} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                  
-                  {/* Overlay Play Button */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 group-hover:bg-black/50 transition-colors">
-                    <button className="bg-primary hover:bg-primary-hover hover:scale-105 text-white rounded-full p-5 shadow-2xl transition-all duration-300 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[48px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                    </button>
-                    <p className="text-white/80 text-sm font-semibold mt-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">{playerLectureTitle}</p>
-                  </div>
-
-                  {/* Video Controls Mockup */}
-                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4 flex items-center gap-4 z-20">
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                    <div className="flex-grow h-1 bg-white/20 rounded-full cursor-pointer relative group-timeline">
-                      <div className="absolute left-0 top-0 h-full bg-primary rounded-full" style={{ width: '30%' }}></div>
-                      <div className="absolute w-3 h-3 bg-white rounded-full top-1/2 -translate-y-1/2 shadow opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: '30%' }}></div>
+                  {isPlayerLoading ? (
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                      <p className="text-white/80 text-xs font-semibold">Loading lesson content...</p>
                     </div>
-                    <span className="font-mono text-xs text-white/90">03:45 / 12:45</span>
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">volume_up</span>
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">fullscreen</span>
-                  </div>
+                  ) : playerVideoUrl ? (
+                    <iframe
+                      className="w-full h-full border-none rounded-2xl aspect-video"
+                      src={getYoutubeEmbedUrl(playerVideoUrl)}
+                      title="Lesson Video Player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  ) : (
+                    <>
+                      <img src={playerVideoThumbnail} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                      
+                      {/* Overlay Play Button */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 group-hover:bg-black/50 transition-colors">
+                        <button className="bg-primary hover:bg-primary-hover hover:scale-105 text-white rounded-full p-5 shadow-2xl transition-all duration-300 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[48px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                        </button>
+                        <p className="text-white/80 text-sm font-semibold mt-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">{playerLectureTitle}</p>
+                      </div>
+
+                      {/* Video Controls Mockup */}
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4 flex items-center gap-4 z-20">
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                        <div className="flex-grow h-1 bg-white/20 rounded-full cursor-pointer relative group-timeline">
+                          <div className="absolute left-0 top-0 h-full bg-primary rounded-full" style={{ width: '30%' }}></div>
+                          <div className="absolute w-3 h-3 bg-white rounded-full top-1/2 -translate-y-1/2 shadow opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: '30%' }}></div>
+                        </div>
+                        <span className="font-mono text-xs text-white/90">00:00 / 00:00</span>
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">volume_up</span>
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">fullscreen</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Sub-tabs Navigation */}
@@ -1779,24 +1988,21 @@ export const StudentDashboard: React.FC = () => {
                   
                   {/* Overview */}
                   {playerActiveTab === 'overview' && (
-                    <div className="space-y-4 animate-fade-in">
+                    <div className="space-y-4 animate-fade-in text-left">
                       <h2 className="text-xl font-bold text-text-main">{playerLectureTitle}</h2>
-                      <div className="prose max-w-none text-sm text-text-muted space-y-4 leading-relaxed">
-                        <p>In this lesson, we will cover the essential tools required to build robust Spring Boot applications. A properly configured environment is crucial for avoiding initial setup hurdles and ensuring a smooth development experience.</p>
-                        <h3 className="font-bold text-text-main text-base mt-6">Prerequisites</h3>
-                        <ul className="list-disc pl-5 space-y-2">
-                          <li>Java Development Kit (JDK) 17 or higher installed on your path.</li>
-                          <li>An Integrated Development Environment (IDE) such as IntelliJ IDEA (recommended), Eclipse, or VS Code.</li>
-                          <li>Maven or Gradle build tools (we will focus on Maven).</li>
-                        </ul>
-                        <div className="bg-primary-light/35 p-5 rounded-xl border border-primary/10 flex gap-4 mt-6">
-                          <span className="material-symbols-outlined text-primary text-[24px]">lightbulb</span>
-                          <div>
-                            <p className="font-bold text-text-main text-sm">Pro Tip</p>
-                            <p className="text-xs text-text-muted mt-1 leading-normal">Make sure your JAVA_HOME environment variable is correctly set to your JDK installation path, and verified using "java -version" in your terminal.</p>
-                          </div>
+                      {isPlayerLoading ? (
+                        <div className="space-y-2 py-4">
+                          <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
                         </div>
-                      </div>
+                      ) : playerTheoryContent ? (
+                        <div className="prose max-w-none text-sm text-text-muted space-y-4 leading-relaxed whitespace-pre-wrap">
+                          {playerTheoryContent}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-text-muted italic">No theory content available for this lesson.</p>
+                      )}
                     </div>
                   )}
 
@@ -2082,7 +2288,7 @@ export const StudentDashboard: React.FC = () => {
               </div>
 
               {/* Right Column (Curriculum Sidebar) */}
-              <div className="lg:col-span-3 bg-surface rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col sticky top-24 max-h-[calc(100vh-8rem)]">
+              <div className="lg:col-span-3 bg-surface border-y border-l border-gray-200 shadow-sm overflow-hidden flex flex-col rounded-l-2xl rounded-r-none -mr-4 md:-mr-8 lg:-mr-12">
                 <div className="p-4 bg-slate-50 border-b border-gray-200 flex flex-col gap-2">
                   <h2 className="font-bold text-sm text-text-main flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-[18px]">toc</span>
@@ -2094,79 +2300,66 @@ export const StudentDashboard: React.FC = () => {
                   <p className="text-[11px] font-semibold text-text-muted text-right">{playerCourseProgress.toLowerCase()} completed</p>
                 </div>
 
-                <div className="flex-grow overflow-y-auto divide-y divide-gray-150 max-h-[450px]">
-                  {/* Section 1 */}
-                  <div className="flex flex-col">
-                    <button 
-                      onClick={() => setCurriculumSections({ ...curriculumSections, sec1: !curriculumSections.sec1 })}
-                      className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
-                    >
-                      <span className="font-semibold text-xs text-text-main line-clamp-1">1. Course Introduction</span>
-                      <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${curriculumSections.sec1 ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-                    
-                    <div className={`${curriculumSections.sec1 ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-brand-green text-[16px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate font-medium">1.1 What is Spring Boot?</span>
-                        <span className="text-[10px] text-text-muted font-mono">05:20</span>
-                      </div>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 bg-primary-light/30 border-l-2 border-primary cursor-pointer transition-colors group">
-                        <span className="material-symbols-outlined text-primary text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-primary font-bold flex-1 truncate">1.2 Setting up Environment</span>
-                        <span className="text-[10px] text-primary/80 font-mono">12:45</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Section 2 */}
-                  <div className="flex flex-col">
-                    <button 
-                      onClick={() => setCurriculumSections({ ...curriculumSections, sec2: !curriculumSections.sec2 })}
-                      className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
-                    >
-                      <span className="font-semibold text-xs text-text-main line-clamp-1">2. REST API & Controller</span>
-                      <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${curriculumSections.sec2 ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-                    
-                    <div className={`${curriculumSections.sec2 ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-text-muted text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate">2.1 REST Controller Basics</span>
-                        <span className="text-[10px] text-text-muted font-mono">15:30</span>
-                      </div>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-text-muted text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate">2.2 Request/Response</span>
-                        <span className="text-[10px] text-text-muted font-mono">18:45</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Section 3 */}
-                  <div className="flex flex-col">
-                    <button 
-                      onClick={() => setCurriculumSections({ ...curriculumSections, sec3: !curriculumSections.sec3 })}
-                      className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
-                    >
-                      <span className="font-semibold text-xs text-text-main line-clamp-1">3. Spring Data JPA</span>
-                      <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${curriculumSections.sec3 ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-                    
-                    <div className={`${curriculumSections.sec3 ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-text-muted text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate">3.1 Entities & Repositories</span>
-                        <span className="text-[10px] text-text-muted font-mono">22:15</span>
-                      </div>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-text-muted text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate">3.2 JPA Query Methods</span>
-                        <span className="text-[10px] text-text-muted font-mono">16:40</span>
-                      </div>
-                    </div>
-                  </div>
-
+                <div className="flex-grow divide-y divide-gray-150 overflow-visible">
+                  {learningChapters.length > 0 ? (
+                    learningChapters.map((chapter) => {
+                      const isExpanded = !!curriculumSections[`sec_${chapter.id}`];
+                      return (
+                        <div key={chapter.id} className="flex flex-col">
+                          <button 
+                            onClick={() => setCurriculumSections({ 
+                              ...curriculumSections, 
+                              [`sec_${chapter.id}`]: !isExpanded 
+                            })}
+                            className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
+                          >
+                            <span className="font-semibold text-xs text-text-main line-clamp-1">
+                              {chapter.orderIndex}. {chapter.title}
+                            </span>
+                            <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                              expand_more
+                            </span>
+                          </button>
+                          
+                          <div className={`${isExpanded ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
+                            {chapter.lessons && chapter.lessons.map(lesson => {
+                              const isSelected = selectedLessonId === lesson.id;
+                              return (
+                                <div 
+                                  key={lesson.id} 
+                                  onClick={() => handleSelectLesson(lesson.id)}
+                                  className={`flex items-center gap-2.5 px-4 py-2.5 cursor-pointer border-l-2 transition-colors group ${
+                                    isSelected 
+                                      ? 'bg-primary-light/30 border-primary' 
+                                      : 'border-transparent hover:bg-slate-100'
+                                  }`}
+                                >
+                                  {lesson.isCompleted ? (
+                                    <span className="material-symbols-outlined text-brand-green text-[16px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                      check_circle
+                                    </span>
+                                  ) : (
+                                    <span className={`material-symbols-outlined text-[16px] ${isSelected ? 'text-primary' : 'text-text-muted'}`}>
+                                      radio_button_unchecked
+                                    </span>
+                                  )}
+                                  <span className={`text-xs flex-1 truncate ${
+                                    isSelected 
+                                      ? 'text-primary font-bold' 
+                                      : 'text-text-main group-hover:text-primary'
+                                  }`}>
+                                    {lesson.title}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="p-4 text-center text-xs text-text-muted">No curriculum chapters available.</div>
+                  )}
                 </div>
               </div>
 
