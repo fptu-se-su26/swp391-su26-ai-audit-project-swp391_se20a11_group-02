@@ -26,6 +26,8 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long>, Jpa
     void incrementTotalEnrolledForCourses(@Param("courseIds") List<Long> courseIds);
 
     List<CourseEntity> findByInstructorId(Integer instructorId);
+
+    Optional<CourseEntity> findByIdAndInstructorId(Long id, Integer instructorId);
 }
 
 

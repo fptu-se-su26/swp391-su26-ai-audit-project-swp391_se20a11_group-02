@@ -37,4 +37,22 @@ public interface CourseMapper {
     @Mapping(target = "displayName", source = "user.displayname")
     @Mapping(target = "avatarUrl", source = "user.avatarurl")
     CourseReviewDto toCourseReviewDto(CourseReviewEntity reviewEntity);
+
+    @Mapping(target = "exercises", source = "lessonProblems")
+    com.swp391.coding_platform.dto.response.InstructorLessonResponse toInstructorLessonResponse(LessonEntity lessonEntity);
+
+    @Mapping(target = "id", source = "problem.id")
+    @Mapping(target = "title", source = "problem.title")
+    @Mapping(target = "difficulty", source = "problem.difficulty")
+    com.swp391.coding_platform.dto.response.InstructorExerciseResponse toInstructorExerciseResponse(com.swp391.coding_platform.entity.course.LessonProblemEntity lessonProblemEntity);
+
+    com.swp391.coding_platform.dto.response.InstructorQuizOptionResponse toInstructorQuizOptionResponse(com.swp391.coding_platform.entity.quiz.QuizOptionEntity optionEntity);
+    com.swp391.coding_platform.dto.response.InstructorQuizQuestionResponse toInstructorQuizQuestionResponse(com.swp391.coding_platform.entity.quiz.QuizQuestionEntity questionEntity);
+    com.swp391.coding_platform.dto.response.InstructorQuizResponse toInstructorQuizResponse(com.swp391.coding_platform.entity.quiz.QuizEntity quizEntity);
+
+    com.swp391.coding_platform.dto.response.InstructorChapterResponse toInstructorChapterResponse(ChapterEntity chapterEntity);
+
+    @Mapping(target = "level", constant = "Intermediate")
+    @Mapping(target = "topic", source = "type")
+    com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse toInstructorCourseDetailResponse(CourseEntity courseEntity);
 }

@@ -49,4 +49,12 @@ public class LessonEntity {
     @Builder.Default
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
+
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy("orderIndex ASC")
+    java.util.List<LessonProblemEntity> lessonProblems;
+
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy("id ASC")
+    java.util.List<com.swp391.coding_platform.entity.quiz.QuizEntity> quizzes;
 }

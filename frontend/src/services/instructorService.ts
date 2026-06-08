@@ -93,6 +93,25 @@ export const instructorService = {
     return data.result;
   },
 
+  async getCourseDetail(courseId: string): Promise<any> {
+    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch course details');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+
+
   async getRevenueSummary(filter?: string, startDate?: string, endDate?: string): Promise<InstructorRevenueSummary> {
     let url = `${BASE_URL}/instructor/revenue/summary`;
     const params = new URLSearchParams();

@@ -23,6 +23,7 @@ interface StudentQuestion {
 }
 
 interface Lesson {
+  id?: number;
   title: string;
   video: string;
   overview: string;
@@ -31,9 +32,12 @@ interface Lesson {
   isTrial?: boolean;
   duration?: string;
   theory?: string;
+  exercises?: any[];
+  quizzes?: any[];
 }
 
 interface Chapter {
+  id?: number;
   title: string;
   lessons: Lesson[];
 }
@@ -116,113 +120,7 @@ export const InstructorDashboard: React.FC = () => {
 
   // Active course syllabus details for the WORKSPACE PANEL
   const [workspaceCourseTitle, setWorkspaceCourseTitle] = useState('Data Structures & Algorithms');
-  const [curriculumData, setCurriculumData] = useState<CourseSyllabus>({
-    chapters: [
-      {
-        title: "Getting Started with React & ES6+",
-        lessons: [
-          {
-            title: "Introduction to the Course",
-            video: "01_course_intro.mp4",
-            overview: "Welcome to the course! In this lesson, we will explore the course syllabus, introduce modern full-stack architectures, and align on our learning goals.",
-            code: "None",
-            questions: [
-              {
-                id: 101,
-                author: "Alex Johnson",
-                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80",
-                role: "Student",
-                time: "2 hours ago",
-                text: "Is there a GitHub repository where we can find all the starter templates? Thanks!",
-                replies: [
-                  {
-                    author: "Dr. Jenkins",
-                    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is",
-                    role: "Instructor (You)",
-                    time: "1 hour ago",
-                    text: "Yes, you can download the starter pack env_setup.zip in the 'Source Code' tab! I will also push to GitHub soon."
-                  }
-                ]
-              },
-              {
-                id: 102,
-                author: "Sarah Connor",
-                avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80",
-                role: "Student",
-                time: "4 hours ago",
-                text: "Will this course cover React Server Components and Next.js 14 App Router, or just pure single-page apps?",
-                replies: []
-              }
-            ]
-          },
-          {
-            title: "Setting up Development Environment",
-            video: "02_env_setup.mp4",
-            overview: "In this lesson, we will install Node.js, configure VS Code, set up extensions, and verify everything is working.",
-            code: "env_setup.zip",
-            questions: [
-              {
-                id: 201,
-                author: "Michael Chang",
-                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80",
-                role: "Student",
-                time: "1 day ago",
-                text: "Should I install Node.js v18 or v20? Will it affect the react scripts later in the course?",
-                replies: [
-                  {
-                    author: "Dr. Jenkins",
-                    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is",
-                    role: "Instructor (You)",
-                    time: "12 hours ago",
-                    text: "I recommend Node v20 LTS. It works perfectly with all the libraries used in this course."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        title: "Advanced React & State Management",
-        lessons: [
-          {
-            title: "Mastering React Hooks & API Calls",
-            video: "03_react_hooks.mp4",
-            overview: "Learn how to build custom hooks, manage asynchronous side effects with useEffect, and fetch remote server data cleanly.",
-            code: "hooks_demo.zip",
-            questions: [
-              {
-                id: 301,
-                author: "Emma Stone",
-                avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80",
-                role: "Student",
-                time: "3 hours ago",
-                text: "Why does my custom hook run twice when the page loads? Is this normal behavior or am I doing something wrong?",
-                replies: []
-              }
-            ]
-          },
-          {
-            title: "Redux Toolkit State Architecture",
-            video: "04_redux_toolkit.mp4",
-            overview: "We will introduce global state architecture, slices, actions, and store hooks using the Redux Toolkit.",
-            code: "redux_rtk.zip",
-            questions: [
-              {
-                id: 401,
-                author: "David Beck",
-                avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80",
-                role: "Student",
-                time: "5 hours ago",
-                text: "Can we use Context API instead of Redux Toolkit for smaller modules, or should everything go in the global RTK store?",
-                replies: []
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  });
+  const [curriculumData, setCurriculumData] = useState<CourseSyllabus>({ chapters: [] });
 
   // Selected item (Chapter or Lesson) inside workspace syllabus
   const [selectedItem, setSelectedItem] = useState<{ type: 'chapter' | 'lesson' | null; chIdx: number; lesIdx: number | null }>({ type: null, chIdx: 0, lesIdx: null });
@@ -233,7 +131,7 @@ export const InstructorDashboard: React.FC = () => {
     : null;
 
   // Workspace sub-tabs: 'overview' | 'theory' | 'code' | 'media' | 'qa'
-  const [editorTab, setEditorTab] = useState<'overview' | 'theory' | 'code' | 'media' | 'qa'>('overview');
+  const [editorTab, setEditorTab] = useState<'overview' | 'theory' | 'exercises' | 'code' | 'quiz' | 'media' | 'qa'>('overview');
 
   // Form states for individual creation/editing
   const [chapterTitle, setChapterTitle] = useState('');
@@ -481,62 +379,69 @@ export const InstructorDashboard: React.FC = () => {
     }
   };
 
-  const openSyllabusEditor = (course: InstructorCourse) => {
-    setWorkspaceCourseTitle(course.title);
-    setCourseTitleInput(course.title);
-    setCourseDescInput(course.description);
-    setCourseLevelInput(course.level || 'Intermediate');
-    setCourseTopicInput(course.topic || 'Theory & Practices');
-    
-    // Parse numeric price
-    const numericPrice = course.price ? course.price.replace(/[^\d]/g, '') : '499000';
-    setCoursePriceInput(numericPrice);
-    
-    // Set premium defaults for editing landing details
-    setCourseLongDescInput(`The "${course.title}" course is a transformative journey designed to take you from a beginner to an absolute master. We cover key industry practices, modern design patterns, and provide you with step-by-step guidance on real-world projects.`);
-    
-    setLearnPoints([
-      'Master core concepts of ' + course.title,
-      'Build industry-standard portfolio projects',
-      'Optimize applications for maximum performance',
-      'Understand advanced architectural patterns'
-    ]);
-    
-    setHighlightPoints([
-      '10+ Hands-on Labs',
-      'Professional Visualizations',
-      'Direct Instructor Support',
-      'Official Certificate of Completion'
-    ]);
-    
-    setTechPoints([
-      course.title.includes('Java') ? 'Spring Boot' : course.title.includes('Python') ? 'Python' : 'React.js',
-      'PostgreSQL',
-      'Docker',
-      'Git & GitHub'
-    ]);
-    
-    setPrereqPoints([
-      'Basic programming knowledge',
-      'A computer with at least 8GB RAM',
-      'Familiarity with command line/terminal basics'
-    ]);
-    
-    setAudiencePoints([
-      'Students and aspiring engineers',
-      'Backend/Frontend developers looking to upgrade their skills',
-      'Professionals preparing for coding interviews'
-    ]);
-    
-    setBenefitPoints([
-      'Comprehensive masterclass portfolio projects',
-      'In-depth lifetime access to course syllabus',
-      'Resume-boosting completion certificate'
-    ]);
+  const [isEditorLoading, setIsEditorLoading] = useState(false);
+  const [workspaceCourseId, setWorkspaceCourseId] = useState<string | null>(null);
 
-    // Force selection of the course overview workspace (type: null)
-    setSelectedItem({ type: null, chIdx: 0, lesIdx: null });
-    window.location.hash = '#edit-course';
+  const openSyllabusEditor = async (course: InstructorCourse) => {
+    setIsEditorLoading(true);
+    setWorkspaceCourseId(course.id);
+    setWorkspaceCourseTitle(course.title);
+    
+    try {
+      const detail = await instructorService.getCourseDetail(course.id);
+      
+      setCourseTitleInput(detail.title || course.title);
+      setCourseDescInput(detail.shortDescription || course.description);
+      setCourseLevelInput(detail.level || course.level || 'Intermediate');
+      setCourseTopicInput(detail.topic || course.topic || 'Theory & Practices');
+      
+      const numericPrice = detail.price ? detail.price.toString() : (course.price ? course.price.toString().replace(/[^\d]/g, '') : '0');
+      setCoursePriceInput(numericPrice);
+      
+      setCourseLongDescInput(detail.longDescription || '');
+      
+      setLearnPoints(detail.whatYouLearn ? detail.whatYouLearn.split('#') : []);
+      setHighlightPoints(detail.courseHighlight ? detail.courseHighlight.split('#') : []);
+      setTechPoints(detail.technologyTool ? detail.technologyTool.split('#') : []);
+      setPrereqPoints(detail.prerequisites ? detail.prerequisites.split('#') : []);
+      setAudiencePoints(detail.targetAudience ? detail.targetAudience.split('#') : []);
+      setBenefitPoints(detail.completionBenefits ? detail.completionBenefits.split('#') : []);
+      
+      if (detail.chapters && detail.chapters.length > 0) {
+        const mappedChapters: Chapter[] = detail.chapters.map((ch: any) => ({
+          title: ch.title,
+          id: ch.id,
+          lessons: (ch.lessons || []).map((les: any) => ({
+            id: les.id,
+            title: les.title,
+            video: les.videoUrl || '',
+            overview: '',
+            theory: les.theoryContent || '',
+            code: les.sourceCode || '',
+            isTrial: les.isTrial || false,
+            questions: [],
+            exercises: les.exercises || [],
+            quizzes: les.quizzes || []
+          }))
+        }));
+        setCurriculumData({ chapters: mappedChapters });
+      } else {
+        setCurriculumData({ chapters: [] });
+      }
+      
+      setSelectedItem({ type: null, chIdx: 0, lesIdx: null });
+      window.location.hash = '#edit-course';
+    } catch (err) {
+      console.error('Failed to load course details', err);
+      // Fallback to mock data if it fails, or show alert
+      alert('Could not load course details from server. Fallback to basic details.');
+      setCourseTitleInput(course.title);
+      setCourseDescInput(course.description);
+      setCurriculumData({ chapters: [] });
+      window.location.hash = '#edit-course';
+    } finally {
+      setIsEditorLoading(false);
+    }
   };
 
   const closeSyllabusEditor = () => {
@@ -3562,7 +3467,16 @@ export const InstructorDashboard: React.FC = () => {
                         editorTab === 'theory' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[18px]">description</span> Theory
+                      <span className="material-symbols-outlined text-[18px]">info</span> Theory Content
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('exercises')}
+                      className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
+                        editorTab === 'exercises' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">terminal</span> Exercises
                     </button>
                     <button
                       type="button"
@@ -3571,7 +3485,16 @@ export const InstructorDashboard: React.FC = () => {
                         editorTab === 'code' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[18px]">code</span> Sample Code
+                      <span className="material-symbols-outlined text-[18px]">code</span> Source Code
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('quiz')}
+                      className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
+                        editorTab === 'quiz' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">quiz</span> Quiz
                     </button>
                     <button
                       type="button"
@@ -3589,7 +3512,7 @@ export const InstructorDashboard: React.FC = () => {
                         editorTab === 'qa' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[18px]">forum</span> Q&A Discussion
+                      <span className="material-symbols-outlined text-[18px]">forum</span> Q&A
                       <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-red-100 text-red-600 font-bold border border-red-200/30">
                         {activeLesson.questions.length || 0}
                       </span>
@@ -3671,6 +3594,48 @@ export const InstructorDashboard: React.FC = () => {
                         </div>
                       </div>
                     )}
+                    
+                    {/* TAB: Exercises */}
+                    {editorTab === 'exercises' && (
+                      <div className="flex flex-col gap-5">
+                        <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Coding Exercises</h4>
+                        {(!activeLesson?.exercises || activeLesson.exercises.length === 0) ? (
+                          <div className="bg-slate-50 rounded-xl p-8 text-center border border-dashed border-slate-200">
+                             <span className="material-symbols-outlined text-4xl text-slate-300 mb-3 block">terminal</span>
+                             <h5 className="font-bold text-brand-blue mb-1">No Exercises Yet</h5>
+                             <p className="text-xs text-text-muted mb-4">Add coding problems for students to practice.</p>
+                             <button className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors">
+                               + Create Exercise
+                             </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-3">
+                            {activeLesson.exercises.map((exercise: any) => (
+                              <div key={exercise.id} className="border border-slate-200 bg-white rounded-xl p-4 flex justify-between items-center shadow-sm">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="material-symbols-outlined text-primary text-sm">code</span>
+                                    <h5 className="font-bold text-sm text-brand-blue">{exercise.title}</h5>
+                                  </div>
+                                  <div className="text-[11px] text-text-muted font-semibold flex gap-3">
+                                    <span className={`uppercase px-2 py-0.5 rounded-md ${exercise.difficulty === 'EASY' ? 'bg-green-100 text-green-700' : exercise.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                                      {exercise.difficulty}
+                                    </span>
+                                  </div>
+                                </div>
+                                <button className="text-primary hover:text-primary-hover text-xs font-bold border border-primary/20 hover:border-primary/50 px-3 py-1.5 rounded-lg transition-colors">
+                                  Edit
+                                </button>
+                              </div>
+                            ))}
+                            <button className="mt-2 w-full py-3 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                              <span className="material-symbols-outlined text-sm">add</span>
+                              Add Exercise
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* TAB 3: Sample Code */}
                     {editorTab === 'code' && (
@@ -3725,6 +3690,56 @@ export const InstructorDashboard: React.FC = () => {
                             <span>Save Sample Code</span>
                           </button>
                         </div>
+                      </div>
+                    )}
+
+                    {/* TAB: Quiz */}
+                    {editorTab === 'quiz' && (
+                      <div className="flex flex-col gap-5">
+                        <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Multiple Choice Quiz</h4>
+                        {(!activeLesson?.quizzes || activeLesson.quizzes.length === 0) ? (
+                          <div className="bg-slate-50 rounded-xl p-8 text-center border border-dashed border-slate-200">
+                             <span className="material-symbols-outlined text-4xl text-slate-300 mb-3 block">quiz</span>
+                             <h5 className="font-bold text-brand-blue mb-1">No Quiz Yet</h5>
+                             <p className="text-xs text-text-muted mb-4">Test student knowledge with multiple choice questions.</p>
+                             <button className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors">
+                               + Create Quiz
+                             </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-4">
+                            {activeLesson.quizzes.map((quiz: any) => (
+                              <div key={quiz.id} className="border border-slate-200 bg-white rounded-xl p-5 shadow-sm">
+                                <div className="flex justify-between items-center mb-3">
+                                  <h5 className="font-bold text-sm text-brand-blue flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-amber-500 text-base">quiz</span>
+                                    {quiz.title}
+                                  </h5>
+                                  <button className="text-primary hover:text-primary-hover text-[11px] font-bold">Edit Quiz</button>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  {quiz.questions?.map((q: any, qIdx: number) => (
+                                    <div key={q.id} className="bg-slate-50 rounded-lg p-3 text-xs">
+                                      <div className="font-bold text-brand-blue mb-2">Q{qIdx + 1}: {q.content}</div>
+                                      <ul className="pl-4 space-y-1">
+                                        {q.options?.map((opt: any) => (
+                                          <li key={opt.id} className={`flex items-center gap-2 ${opt.isCorrect ? 'text-green-600 font-bold' : 'text-slate-600'}`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${opt.isCorrect ? 'bg-green-500' : 'bg-slate-300'}`}></span>
+                                            {opt.content}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                            <button className="mt-1 w-full py-3 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                              <span className="material-symbols-outlined text-sm">add</span>
+                              Add Quiz
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
 

@@ -49,4 +49,32 @@ public class InstructorCourseController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
+    @GetMapping("/courses/{id}")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse>> getCourseDetail(
+            @AuthenticationPrincipal Jwt jwt,
+            @org.springframework.web.bind.annotation.PathVariable("id") Long id) {
+        
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        var result = instructorCourseService.getCourseDetail(userId, id);
+
+        return ResponseEntity.ok(ApiResponse.<com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Fetched instructor course detail successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }

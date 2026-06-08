@@ -14,12 +14,33 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse;
+import com.swp391.coding_platform.mapper.CourseMapper;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class InstructorCourseService {
     private final InstructorRepository instructorRepository;
     private final CourseRepository courseRepository;
+    private final CourseMapper courseMapper;
+
+    public InstructorCourseDetailResponse getCourseDetail(Integer userId, Long courseId) {
+        InstructorEntity instructor = getInstructorByUserId(userId);
+        CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        InstructorCourseDetailResponse response = courseMapper.toInstructorCourseDetailResponse(course);
+        
+        if (course.getChapters() != null) {
+            response.setChapters(course.getChapters().stream()
+                    .map(courseMapper::toInstructorChapterResponse)
+                    .collect(Collectors.toList()));
+        }
+        
+        return response;
+    }
 
     public List<InstructorCourseResponse> getCourses(Integer userId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
