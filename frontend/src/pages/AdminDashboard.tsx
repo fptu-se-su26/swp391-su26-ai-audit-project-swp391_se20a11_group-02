@@ -1399,7 +1399,6 @@ export const AdminDashboard: React.FC = () => {
                         { key: 'overview', icon: 'info', label: 'Theory Content' },
                         { key: 'qa', icon: 'forum', label: 'Q&A' },
                         { key: 'exercises', icon: 'terminal', label: 'Exercises' },
-                        { key: 'source-code', icon: 'code', label: 'Source Code' },
                         { key: 'quiz', icon: 'quiz', label: 'Quiz' },
                       ] as const).map((tab) => (
                         <button
@@ -1605,40 +1604,6 @@ export const AdminDashboard: React.FC = () => {
                               </div>
                             </div>
                           )}
-                        </div>
-                      )}
-
-                      {/* Source Code Tab */}
-                      {reviewPlayerTab === 'source-code' && (
-                        <div className="animate-fade-in">
-                          <h2 className="text-lg font-bold text-text-main mb-1">Lesson Resources</h2>
-                          <p className="text-xs text-text-muted mb-4">Download the starting templates and completed source code for this lesson.</p>
-                          <div className="flex flex-col gap-3">
-                            <div className="bg-surface border border-gray-200 p-4 rounded-xl flex items-center justify-between gap-4 hover:border-primary transition-all group">
-                              <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined text-brand-blue text-[28px] bg-slate-100 p-2 rounded-lg">folder_zip</span>
-                                <div>
-                                  <p className="font-bold text-sm text-text-main">lesson-1-starter-template.zip</p>
-                                  <p className="text-[11px] text-text-muted">15.2 MB</p>
-                                </div>
-                              </div>
-                              <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
-                                <span className="material-symbols-outlined text-[16px]">download</span> Download
-                              </button>
-                            </div>
-                            <div className="bg-surface border border-gray-200 p-4 rounded-xl flex items-center justify-between gap-4 hover:border-primary transition-all group">
-                              <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined text-brand-blue text-[28px] bg-slate-100 p-2 rounded-lg">description</span>
-                                <div>
-                                  <p className="font-bold text-sm text-text-main">database-schema-init.sql</p>
-                                  <p className="text-[11px] text-text-muted">2.1 MB</p>
-                                </div>
-                              </div>
-                              <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
-                                <span className="material-symbols-outlined text-[16px]">download</span> Download
-                              </button>
-                            </div>
-                          </div>
                         </div>
                       )}
 
