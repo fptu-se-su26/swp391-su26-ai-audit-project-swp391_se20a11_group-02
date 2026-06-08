@@ -33,9 +33,6 @@ public class LessonEntity {
     @Column(name = "video_url", length = 255)
     String videoUrl;
 
-    @Column(name = "source_code", columnDefinition = "TEXT")
-    String sourceCode;
-
     @Column(name = "is_trial", nullable = false)
     Boolean isTrial;
 

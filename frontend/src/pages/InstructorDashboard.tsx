@@ -27,7 +27,6 @@ interface Lesson {
   title: string;
   video: string;
   overview: string;
-  code: string;
   questions: StudentQuestion[];
   isTrial?: boolean;
   duration?: string;
@@ -139,7 +138,6 @@ export const InstructorDashboard: React.FC = () => {
   const [lessonIsTrial, setLessonIsTrial] = useState(false);
   const [lessonDuration, setLessonDuration] = useState('12:45');
   const [lessonTheory, setLessonTheory] = useState('');
-  const [lessonCode, setLessonCode] = useState('');
 
   // Video uploading states
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -156,7 +154,6 @@ export const InstructorDashboard: React.FC = () => {
       setLessonIsTrial(activeLesson.isTrial || false);
       setLessonDuration(activeLesson.duration || '12:45');
       setLessonTheory(activeLesson.theory || 'Welcome to this lesson. In this theory section, we will cover the core concepts...');
-      setLessonCode(activeLesson.code || 'None');
       setUploadedVideoName(activeLesson.video || null);
     }
   }, [selectedItem.chIdx, selectedItem.lesIdx, selectedItem.type, activeChapter, activeLesson]);
@@ -201,18 +198,6 @@ export const InstructorDashboard: React.FC = () => {
       return { chapters: newChapters };
     });
     alert('Lesson Theory content saved to backend successfully via separate Theory API!');
-  };
-
-  const handleSaveLessonCode = () => {
-    setCurriculumData(prev => {
-      const newChapters = [...prev.chapters];
-      const lesson = newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!];
-      if (lesson) {
-        lesson.code = lessonCode;
-      }
-      return { chapters: newChapters };
-    });
-    alert('Lesson Sample Code saved to backend successfully via separate Code API!');
   };
 
   // Video uploading simulator representing a separate media upload API
@@ -295,21 +280,6 @@ export const InstructorDashboard: React.FC = () => {
     }
   };
 
-  const handleReplaceCode = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setLessonCode(file.name);
-      setCurriculumData(prev => {
-        const newChapters = [...prev.chapters];
-        if (newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!]) {
-          newChapters[selectedItem.chIdx].lessons[selectedItem.lesIdx!].code = file.name;
-        }
-        return { chapters: newChapters };
-      });
-      alert(`Source code "${file.name}" uploaded successfully via separate Code API!`);
-    }
-  };
-
   // Chapter & Lesson addition / deletion
   const handleAddChapterWorkspace = () => {
     setCurriculumData(prev => {
@@ -318,7 +288,7 @@ export const InstructorDashboard: React.FC = () => {
         {
           title: "New Chapter Title",
           lessons: [
-            { title: "First Lesson Overview", video: "01_lesson.mp4", overview: "Provide lesson details...", code: "None", questions: [] }
+            { title: "First Lesson Overview", video: "01_lesson.mp4", overview: "Provide lesson details...", questions: [] }
           ]
         }
       ];
@@ -354,7 +324,6 @@ export const InstructorDashboard: React.FC = () => {
               title: `Lesson ${nextNum} Overview`,
               video: `0${nextNum}_lesson.mp4`,
               overview: "Provide syllabus details...",
-              code: "None",
               questions: []
             }
           ]
@@ -417,7 +386,6 @@ export const InstructorDashboard: React.FC = () => {
             video: les.videoUrl || '',
             overview: '',
             theory: les.theoryContent || '',
-            code: les.sourceCode || '',
             isTrial: les.isTrial || false,
             questions: [],
             exercises: les.exercises || [],
@@ -3480,15 +3448,6 @@ export const InstructorDashboard: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditorTab('code')}
-                      className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
-                        editorTab === 'code' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">code</span> Source Code
-                    </button>
-                    <button
-                      type="button"
                       onClick={() => setEditorTab('quiz')}
                       className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap focus:outline-none ${
                         editorTab === 'quiz' ? 'border-primary text-primary font-bold' : 'border-transparent text-text-muted hover:text-primary'
@@ -3634,62 +3593,6 @@ export const InstructorDashboard: React.FC = () => {
                             </button>
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {/* TAB 3: Sample Code */}
-                    {editorTab === 'code' && (
-                      <div className="flex flex-col gap-5">
-                        <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Sample Code / Project Attachment</h4>
-
-                        <div className="flex flex-col gap-2">
-                          <div className="border border-dashed border-slate-200 bg-slate-50/50 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                                <span className="material-symbols-outlined text-3xl">code_blocks</span>
-                              </div>
-                              <div className="min-w-0">
-                                <span className="text-sm font-bold text-brand-blue truncate block">
-                                  {lessonCode === 'None' ? 'No source code attached' : lessonCode}
-                                </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                  {lessonCode === 'None' ? 'Click replace to upload code archive' : '1.2 MB (ZIP Archive)'}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="relative bg-white border border-slate-200 hover:border-primary px-4 py-2 rounded-xl text-xs font-bold text-brand-blue cursor-pointer transition-all shrink-0 hover:scale-[1.01] active:scale-[0.99] shadow-sm">
-                              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleReplaceCode} />
-                              <span>Replace File</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Dark Code Mockup */}
-                        <div className="bg-[#1e1e1e] text-white p-4 rounded-xl border border-gray-800 font-mono text-xs shadow-md mt-2 flex flex-col gap-2 select-text">
-                          <div className="flex items-center justify-between border-b border-gray-700/50 pb-2 mb-1">
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
-                              <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                              <span className="text-[10px] text-gray-400 ml-2 font-sans font-bold">sample_code.tsx</span>
-                            </div>
-                            <span className="text-[10px] text-gray-500 font-sans">Read Only Mock</span>
-                          </div>
-                          <pre className="text-[11px] leading-relaxed text-indigo-200">
-{`import React from 'react';\n\nexport const CourseDemo = () => {\n  return (\n    <div className="p-6 bg-slate-900 rounded-xl">\n      <h2>Welcome to Spring Boot Curriculum</h2>\n    </div>\n  );\n};`}
-                          </pre>
-                        </div>
-
-                        <div className="flex gap-2 justify-end mt-4 border-t border-gray-100 pt-5">
-                          <button
-                            type="button"
-                            onClick={handleSaveLessonCode}
-                            className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5"
-                          >
-                            <span className="material-symbols-outlined text-sm">save</span>
-                            <span>Save Sample Code</span>
-                          </button>
-                        </div>
                       </div>
                     )}
 

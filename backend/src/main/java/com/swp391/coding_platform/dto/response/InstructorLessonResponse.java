@@ -16,7 +16,6 @@ public class InstructorLessonResponse {
     Integer orderIndex;
     String videoUrl;
     String theoryContent;
-    String sourceCode;
     java.util.List<InstructorExerciseResponse> exercises;
     java.util.List<InstructorQuizResponse> quizzes;
 }
