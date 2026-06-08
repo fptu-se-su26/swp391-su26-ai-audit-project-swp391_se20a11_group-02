@@ -31,6 +31,7 @@ public class ChapterEntity {
     @Column(name = "order_index", nullable = false)
     Integer orderIndex;
 
+
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
     Instant createdAt = Instant.now();
