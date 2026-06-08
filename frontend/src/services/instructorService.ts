@@ -93,6 +93,30 @@ export const instructorService = {
     return data.result;
   },
 
+  async createCourse(courseData: {
+    title: string;
+    shortDescription: string;
+    level: string;
+    topic: string;
+    price: number;
+  }): Promise<InstructorCourse> {
+    const response = await fetch(`${BASE_URL}/instructor/courses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(courseData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create course');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
   async getCourseDetail(courseId: string): Promise<any> {
     const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}`, {
       method: 'GET',
@@ -104,6 +128,61 @@ export const instructorService = {
 
     if (!response.ok) {
       throw new Error('Failed to fetch course details');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async updateCourse(courseId: string, courseData: {
+    title?: string;
+    shortDescription?: string;
+    longDescription?: string;
+    level?: string;
+    topic?: string;
+    price?: number;
+    whatYouLearn?: string;
+    courseHighlight?: string;
+    technologyTool?: string;
+    prerequisites?: string;
+    targetAudience?: string;
+    completionBenefits?: string;
+    chapters?: {
+      id?: number;
+      title: string;
+      lessons: {
+        id?: number;
+        title: string;
+        video: string;
+        theory: string;
+        isTrial: boolean;
+        quizzes?: {
+          id?: number;
+          title: string;
+          questions: {
+            id?: number;
+            content: string;
+            options: {
+              id?: number;
+              content: string;
+              isCorrect: boolean;
+            }[];
+          }[];
+        }[];
+      }[];
+    }[];
+  }): Promise<InstructorCourse> {
+    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(courseData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update course');
     }
 
     const data = await response.json();

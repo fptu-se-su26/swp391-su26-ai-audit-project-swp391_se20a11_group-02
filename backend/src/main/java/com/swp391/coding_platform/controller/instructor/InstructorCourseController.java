@@ -11,10 +11,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
 import java.time.Instant;
 import java.util.List;
+import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
 
 @RestController
 @RequestMapping("/instructor")
@@ -49,6 +53,35 @@ public class InstructorCourseController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
+
+    @PostMapping("/courses")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<InstructorCourseResponse>> createCourse(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody InstructorCourseCreateRequest request) {
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        InstructorCourseResponse result = instructorCourseService.createCourse(userId, request);
+
+        return ResponseEntity.ok(ApiResponse.<InstructorCourseResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Course created successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
     @GetMapping("/courses/{id}")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse>> getCourseDetail(
@@ -77,4 +110,35 @@ public class InstructorCourseController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
+
+    @org.springframework.web.bind.annotation.PutMapping("/courses/{id}")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<InstructorCourseResponse>> updateCourse(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id,
+            @RequestBody com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest request) {
+
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        InstructorCourseResponse result = instructorCourseService.updateCourse(userId, id, request);
+
+        return ResponseEntity.ok(ApiResponse.<InstructorCourseResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Course updated successfully. Status set to PENDING for admin review.")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }
+

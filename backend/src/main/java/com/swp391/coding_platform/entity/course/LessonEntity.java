@@ -47,11 +47,11 @@ public class LessonEntity {
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
 
-    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     java.util.List<LessonProblemEntity> lessonProblems;
 
-    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     java.util.List<com.swp391.coding_platform.entity.quiz.QuizEntity> quizzes;
 }

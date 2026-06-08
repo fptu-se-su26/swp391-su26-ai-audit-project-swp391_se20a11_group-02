@@ -37,7 +37,7 @@ public class QuizEntity {
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
 
-    @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     List<QuizQuestionEntity> questions;
 }

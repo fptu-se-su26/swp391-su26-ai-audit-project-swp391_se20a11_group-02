@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { instructorService } from '../services/instructorService';
 
+/* 
+  Tailwind Safelist for dynamic classes from backend:
+  from-blue-500 to-indigo-600
+  from-emerald-500 to-teal-600
+  from-orange-400 to-primary
+*/
 
 interface QuestionReply {
   author: string;
@@ -144,6 +150,10 @@ export const InstructorDashboard: React.FC = () => {
   const [editingExerciseId, setEditingExerciseId] = useState<number | null>(null);
   const [exerciseTitle, setExerciseTitle] = useState('');
   const [exerciseDifficulty, setExerciseDifficulty] = useState('EASY');
+  const [exerciseDescription, setExerciseDescription] = useState('');
+  const [exerciseInitialCode, setExerciseInitialCode] = useState('');
+  const [exerciseSolutionCode, setExerciseSolutionCode] = useState('');
+  const [exerciseTestCases, setExerciseTestCases] = useState<any[]>([]);
 
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
@@ -219,6 +229,197 @@ export const InstructorDashboard: React.FC = () => {
       return { chapters: newChapters };
     });
     alert('Lesson Theory content saved to backend successfully via separate Theory API!');
+  };
+  // --- Exercise Handlers ---
+  const handleOpenExerciseModal = (exercise?: any) => {
+    if (exercise) {
+      setEditingExerciseId(exercise.id);
+      setExerciseTitle(exercise.title);
+      setExerciseDifficulty(exercise.difficulty);
+      setExerciseDescription(exercise.description || '');
+      setExerciseInitialCode(exercise.initialCode || '');
+      setExerciseSolutionCode(exercise.solutionCode || '');
+      setExerciseTestCases(exercise.testCases || []);
+    } else {
+      setEditingExerciseId(null);
+      setExerciseTitle('');
+      setExerciseDifficulty('EASY');
+      setExerciseDescription('');
+      setExerciseInitialCode('');
+      setExerciseSolutionCode('');
+      setExerciseTestCases([]);
+    }
+    setIsExerciseModalOpen(true);
+  };
+
+  const handleAddTestCase = () => {
+    setExerciseTestCases(prev => [...prev, { id: Date.now(), input: '', expectedOutput: '', isHidden: false }]);
+  };
+
+  const handleUpdateTestCase = (idx: number, field: string, value: any) => {
+    setExerciseTestCases(prev => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleDeleteTestCase = (idx: number) => {
+    setExerciseTestCases(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleSaveExercise = () => {
+    if (!exerciseTitle.trim()) {
+      alert('Exercise title cannot be empty.');
+      return;
+    }
+    setCurriculumData(prev => {
+      const newChapters = prev.chapters.map((ch, cIdx) => {
+        if (cIdx !== selectedItem.chIdx) return ch;
+        const newLessons = ch.lessons.map((les, lIdx) => {
+          if (lIdx !== selectedItem.lesIdx) return les;
+          const currentExercises = les.exercises || [];
+          if (editingExerciseId !== null) {
+            return {
+              ...les,
+              exercises: currentExercises.map(ex => ex.id === editingExerciseId ? { ...ex, title: exerciseTitle, difficulty: exerciseDifficulty, description: exerciseDescription, initialCode: exerciseInitialCode, solutionCode: exerciseSolutionCode, testCases: exerciseTestCases } : ex)
+            };
+          } else {
+            return {
+              ...les,
+              exercises: [...currentExercises, { id: Date.now(), title: exerciseTitle, difficulty: exerciseDifficulty, description: exerciseDescription, initialCode: exerciseInitialCode, solutionCode: exerciseSolutionCode, testCases: exerciseTestCases }]
+            };
+          }
+        });
+        return { ...ch, lessons: newLessons };
+      });
+      return { chapters: newChapters };
+    });
+    setIsExerciseModalOpen(false);
+  };
+
+  const handleDeleteExercise = (id: number) => {
+    setCurriculumData(prev => {
+      const newChapters = prev.chapters.map((ch, cIdx) => {
+        if (cIdx !== selectedItem.chIdx) return ch;
+        const newLessons = ch.lessons.map((les, lIdx) => {
+          if (lIdx !== selectedItem.lesIdx) return les;
+          return { ...les, exercises: (les.exercises || []).filter(ex => ex.id !== id) };
+        });
+        return { ...ch, lessons: newLessons };
+      });
+      return { chapters: newChapters };
+    });
+  };
+
+  // --- Quiz Handlers ---
+  const handleOpenQuizModal = (quiz?: any) => {
+    if (quiz) {
+      setEditingQuizId(quiz.id);
+      setQuizTitle(quiz.title);
+      setQuizQuestions(quiz.questions || []);
+    } else {
+      setEditingQuizId(null);
+      setQuizTitle('');
+      setQuizQuestions([]);
+    }
+    setIsQuizModalOpen(true);
+  };
+
+  const handleAddQuizQuestion = () => {
+    setQuizQuestions(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        content: '',
+        options: [
+          { id: Date.now() + 1, content: '', isCorrect: true },
+          { id: Date.now() + 2, content: '', isCorrect: false }
+        ]
+      }
+    ]);
+  };
+
+  const handleUpdateQuizQuestion = (qIdx: number, newContent: string) => {
+    setQuizQuestions(prev => {
+      const updated = [...prev];
+      updated[qIdx].content = newContent;
+      return updated;
+    });
+  };
+
+  const handleAddQuizOption = (qIdx: number) => {
+    setQuizQuestions(prev => {
+      const updated = [...prev];
+      updated[qIdx].options.push({ id: Date.now(), content: '', isCorrect: false });
+      return updated;
+    });
+  };
+
+  const handleUpdateQuizOption = (qIdx: number, optIdx: number, newContent: string) => {
+    setQuizQuestions(prev => {
+      const updated = [...prev];
+      updated[qIdx].options[optIdx].content = newContent;
+      return updated;
+    });
+  };
+
+  const handleSetCorrectOption = (qIdx: number, optIdx: number) => {
+    setQuizQuestions(prev => {
+      const updated = [...prev];
+      updated[qIdx].options.forEach((opt: any, i: number) => {
+        opt.isCorrect = (i === optIdx);
+      });
+      return updated;
+    });
+  };
+
+  const handleDeleteQuizQuestion = (qIdx: number) => {
+    setQuizQuestions(prev => prev.filter((_, i) => i !== qIdx));
+  };
+
+  const handleSaveQuiz = () => {
+    if (!quizTitle.trim()) {
+      alert('Quiz title cannot be empty.');
+      return;
+    }
+    setCurriculumData(prev => {
+      const newChapters = prev.chapters.map((ch, cIdx) => {
+        if (cIdx !== selectedItem.chIdx) return ch;
+        const newLessons = ch.lessons.map((les, lIdx) => {
+          if (lIdx !== selectedItem.lesIdx) return les;
+          const currentQuizzes = les.quizzes || [];
+          if (editingQuizId !== null) {
+            return {
+              ...les,
+              quizzes: currentQuizzes.map(q => q.id === editingQuizId ? { ...q, title: quizTitle, questions: quizQuestions } : q)
+            };
+          } else {
+            return {
+              ...les,
+              quizzes: [...currentQuizzes, { id: Date.now(), title: quizTitle, questions: quizQuestions }]
+            };
+          }
+        });
+        return { ...ch, lessons: newLessons };
+      });
+      return { chapters: newChapters };
+    });
+    setIsQuizModalOpen(false);
+  };
+
+  const handleDeleteQuiz = (id: number) => {
+    setCurriculumData(prev => {
+      const newChapters = prev.chapters.map((ch, cIdx) => {
+        if (cIdx !== selectedItem.chIdx) return ch;
+        const newLessons = ch.lessons.map((les, lIdx) => {
+          if (lIdx !== selectedItem.lesIdx) return les;
+          return { ...les, quizzes: (les.quizzes || []).filter(q => q.id !== id) };
+        });
+        return { ...ch, lessons: newLessons };
+      });
+      return { chapters: newChapters };
+    });
   };
 
   // Video uploading simulator representing a separate media upload API
@@ -437,32 +638,78 @@ export const InstructorDashboard: React.FC = () => {
     window.location.hash = '#my-courses';
   };
 
-  const handleSaveCourseOverview = () => {
-    if (!courseTitleInput.trim()) {
-      alert('Course Title cannot be empty!');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveAllCourseChanges = async () => {
+    if (!workspaceCourseId) {
+      alert('Không tìm thấy ID khóa học để lưu!');
       return;
     }
-    // Update instructorCourses state to save it permanently
-    setInstructorCourses(prev =>
-      prev.map(c => {
-        if (c.title === workspaceCourseTitle) {
-          return {
-            ...c,
-            title: courseTitleInput.trim(),
-            description: courseDescInput.trim(),
-            level: courseLevelInput,
-            topic: courseTopicInput,
-            price: Number(coursePriceInput).toLocaleString('vi-VN') + ' ₫'
-          };
-        }
-        return c;
-      })
-    );
-    // Update the workspace title as well
-    setWorkspaceCourseTitle(courseTitleInput.trim());
-    alert('Course Landing Page & External Overview details saved successfully!');
-  };
+    if (!courseTitleInput.trim()) {
+      alert('Tiêu đề khóa học không được để trống!');
+      return;
+    }
 
+    setIsSaving(true);
+    try {
+      const updatePayload = {
+        title: courseTitleInput.trim(),
+        shortDescription: courseDescInput.trim(),
+        longDescription: courseLongDescInput.trim(),
+        level: courseLevelInput,
+        topic: courseTopicInput,
+        price: Number(coursePriceInput) || 0,
+        whatYouLearn: learnPoints.filter(p => p.trim()).join('#'),
+        courseHighlight: highlightPoints.filter(p => p.trim()).join('#'),
+        technologyTool: techPoints.filter(p => p.trim()).join('#'),
+        prerequisites: prereqPoints.filter(p => p.trim()).join('#'),
+        targetAudience: audiencePoints.filter(p => p.trim()).join('#'),
+        completionBenefits: benefitPoints.filter(p => p.trim()).join('#'),
+        chapters: curriculumData.chapters.map((ch, cIdx) => ({
+          id: ch.id,
+          title: ch.title,
+          lessons: ch.lessons.map((les, lIdx) => {
+            const isActive = selectedItem.type === 'lesson' && selectedItem.chIdx === cIdx && selectedItem.lesIdx === lIdx;
+            return {
+              id: les.id,
+              title: isActive && lessonTitle.trim() ? lessonTitle.trim() : les.title,
+              video: les.video || '',
+              theory: isActive && lessonTheory !== undefined ? lessonTheory : (les.theory || ''),
+              isTrial: isActive ? lessonIsTrial : !!les.isTrial,
+              quizzes: les.quizzes || []
+            };
+          })
+        }))
+      };
+
+      const updatedCourse = await instructorService.updateCourse(workspaceCourseId, updatePayload);
+
+      // Update local state with the response from server
+      setInstructorCourses(prev =>
+        prev.map(c => {
+          if (c.id === workspaceCourseId) {
+            return {
+              ...c,
+              title: updatedCourse.title,
+              description: updatedCourse.description,
+              level: updatedCourse.level,
+              topic: updatedCourse.topic,
+              price: updatedCourse.price,
+              status: updatedCourse.status,
+            };
+          }
+          return c;
+        })
+      );
+      setWorkspaceCourseTitle(updatedCourse.title);
+      alert('✅ Đã lưu toàn bộ thay đổi! Khóa học đang ở trạng thái "Chờ duyệt" (Pending) để Admin kiểm tra.');
+    } catch (error) {
+      console.error('Failed to save course:', error);
+      alert('❌ Lưu thất bại! Vui lòng kiểm tra kết nối Backend và thử lại.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
 
   const [instructorCourses, setInstructorCourses] = useState<InstructorCourse[]>([]);
@@ -490,12 +737,15 @@ export const InstructorDashboard: React.FC = () => {
     const fetchInstructorCourses = async () => {
       try {
         const coursesData = await instructorService.getCourses();
-        setInstructorCourses(coursesData);
         if (coursesData && coursesData.length > 0) {
+          setInstructorCourses(coursesData);
           setWorkspaceCourseTitle(coursesData[0].title);
+        } else {
+          setInstructorCourses([]);
         }
-      } catch (err) {
-        console.error("Failed to load instructor courses:", err);
+      } catch (error) {
+        console.error('Failed to fetch instructor courses:', error);
+        setInstructorCourses([]);
       }
     };
 
@@ -669,42 +919,48 @@ export const InstructorDashboard: React.FC = () => {
     }
   };
 
-  const handleCreateCourseSubmit = (e: React.FormEvent) => {
+  const handleCreateCourseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Construct new InstructorCourse
-    const newCourse: InstructorCourse = {
-      id: `ic-${Date.now()}`,
-      title: courseTitleInput || 'Untitled Course',
-      level: courseLevelInput,
-      topic: courseTopicInput,
-      price: Number(coursePriceInput).toLocaleString('vi-VN') + ' ₫',
-      studentsCount: 0,
-      rating: 0.0,
-      reviewsCount: 0,
-      status: 'review', // Defaults to 'review' as it was submitted for review
-      icon: courseTopicInput === 'Data Science & AI' ? 'analytics' : 
-            courseTopicInput === 'Algorithms & Data Structures' ? 'data_object' : 
-            courseTopicInput === 'Database Systems' ? 'database' : 
-            courseTopicInput === 'Cloud Computing' ? 'dns' : 'code',
-      gradient: courseLevelInput === 'beginner' || courseLevelInput === 'Beginner' ? 'from-blue-500 to-indigo-600' :
-                courseLevelInput === 'advanced' || courseLevelInput === 'Advanced' ? 'from-emerald-500 to-teal-600' : 'from-orange-400 to-primary',
-      description: courseDescInput || 'No description provided.',
-    };
+    try {
+      const createdCourse = await instructorService.createCourse({
+        title: courseTitleInput || 'Untitled Course',
+        shortDescription: courseDescInput || 'No description provided.',
+        level: courseLevelInput,
+        topic: courseTopicInput,
+        price: Number(coursePriceInput) || 0
+      });
 
-    setInstructorCourses(prev => [newCourse, ...prev]);
-    alert(`Course "${courseTitleInput}" has been successfully created and submitted for review!`);
-    setIsCreateCourseOpen(false);
+      setInstructorCourses(prev => [createdCourse, ...prev]);
+      alert(`Course "${courseTitleInput}" has been successfully created and submitted for review!`);
+      setIsCreateCourseOpen(false);
 
-    // Reset simple values
-    setCourseTitleInput('Mastering Full-Stack React & Node.js');
-    setThumbnailFile(null);
-    setLearnPoints(['Architect scalable MERN applications']);
-    setHighlightPoints(['15+ Real-world Projects']);
-    setTechPoints(['React']);
-    setPrereqPoints(['Basic JavaScript knowledge (ES6+ features)']);
-    setAudiencePoints(['Aspiring Full-Stack Developers']);
-    setBenefitPoints(['Professional Certificate']);
+      // Fetch the updated list from server to ensure sync
+      try {
+        const coursesData = await instructorService.getCourses();
+        if (coursesData && coursesData.length > 0) {
+          setInstructorCourses(coursesData);
+        }
+      } catch (err) {
+        console.error("Failed to refetch courses after creation", err);
+      }
+
+      // Reset simple values
+      setCourseTitleInput('');
+      setCourseDescInput('');
+      setCoursePriceInput('0');
+      setThumbnailFile(null);
+      setLearnPoints(['Architect scalable MERN applications']);
+      setHighlightPoints(['15+ Real-world Projects']);
+      setTechPoints(['React']);
+      setPrereqPoints(['Basic JavaScript knowledge (ES6+ features)']);
+      setAudiencePoints(['Aspiring Full-Stack Developers']);
+      setBenefitPoints(['Professional Certificate']);
+
+    } catch (err) {
+      console.error("Failed to create course", err);
+      alert("There was an error creating your course. Please try again.");
+    }
   };
 
   const resetSimpleCourseForm = () => {
@@ -2831,13 +3087,29 @@ export const InstructorDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[10px] font-bold uppercase tracking-wider">Draft / Pending Approval</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[10px] font-bold uppercase tracking-wider">Chờ duyệt / Pending</span>
+                <button
+                  type="button"
+                  onClick={handleSaveAllCourseChanges}
+                  disabled={isSaving}
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white transition-all text-xs font-bold shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <>
+                      <span className="material-symbols-outlined text-sm animate-spin">sync</span> Đang lưu...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-sm">save</span> 💾 Lưu toàn bộ khóa học
+                    </>
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={closeSyllabusEditor}
                   className="flex items-center gap-1 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-red-600 text-white hover:text-white transition-all text-xs font-bold shadow-md hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <span className="material-symbols-outlined text-sm">close</span> Exit Editor
+                  <span className="material-symbols-outlined text-sm">close</span> Thoát
                 </button>
               </div>
             </div>
@@ -2858,11 +3130,12 @@ export const InstructorDashboard: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={handleSaveCourseOverview}
-                      className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5 shrink-0"
+                      onClick={handleSaveAllCourseChanges}
+                      disabled={isSaving}
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-emerald-500/10 flex items-center gap-1.5 shrink-0 disabled:opacity-50"
                     >
-                      <span className="material-symbols-outlined text-sm font-bold">save</span>
-                      <span>Save Course Details</span>
+                      <span className="material-symbols-outlined text-sm font-bold">{isSaving ? 'sync' : 'save'}</span>
+                      <span>{isSaving ? 'Đang lưu...' : '💾 Lưu toàn bộ khóa học'}</span>
                     </button>
                   </div>
 
@@ -3366,11 +3639,21 @@ export const InstructorDashboard: React.FC = () => {
                   <div className="bg-white rounded-3xl border border-gray-250 p-6 shadow-sm flex justify-end">
                     <button
                       type="button"
-                      onClick={handleSaveCourseOverview}
-                      className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3.5 px-8 rounded-xl transition-all shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.99] flex items-center gap-2"
+                      onClick={handleSaveAllCourseChanges}
+                      disabled={isSaving}
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm py-4 px-10 rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.99] flex items-center gap-2.5 disabled:opacity-50"
                     >
-                      <span className="material-symbols-outlined text-sm font-bold">save</span>
-                      <span>Save Course Overview & Specifications</span>
+                      {isSaving ? (
+                        <>
+                          <span className="material-symbols-outlined text-base animate-spin">sync</span>
+                          <span>Đang lưu toàn bộ thay đổi...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-base">save</span>
+                          <span>💾 Lưu toàn bộ khóa học (Chuyển sang Chờ duyệt)</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -4393,6 +4676,99 @@ export const InstructorDashboard: React.FC = () => {
                     </label>
                   ))}
                 </div>
+              </div>
+
+              {/* Deep Content: Problem Statement & Code */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Problem Statement (Markdown)</label>
+                <textarea
+                  value={exerciseDescription}
+                  onChange={(e) => setExerciseDescription(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue resize-y h-32"
+                  placeholder="Explain the problem here..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-brand-blue uppercase tracking-wider">Initial Code (Base code for student)</label>
+                  <textarea
+                    value={exerciseInitialCode}
+                    onChange={(e) => setExerciseInitialCode(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-slate-200 focus:ring-primary focus:border-primary resize-y h-48"
+                    placeholder="function solve() {\n  // Your code here\n}"
+                    spellCheck="false"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-brand-blue uppercase tracking-wider">Solution Code (Reference)</label>
+                  <textarea
+                    value={exerciseSolutionCode}
+                    onChange={(e) => setExerciseSolutionCode(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-green-400 focus:ring-primary focus:border-primary resize-y h-48"
+                    placeholder="function solve() {\n  return true;\n}"
+                    spellCheck="false"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Test Cases</h4>
+                  <button type="button" onClick={handleAddTestCase} className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">add</span> Add Test Case
+                  </button>
+                </div>
+                
+                {exerciseTestCases.length === 0 ? (
+                  <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
+                    <p className="text-xs text-text-muted font-bold">No test cases added yet.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {exerciseTestCases.map((tc, idx) => (
+                      <div key={tc.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+                        <div className="flex items-start justify-between">
+                          <span className="font-display font-black text-brand-blue text-xs uppercase">Test Case {idx + 1}</span>
+                          <div className="flex items-center gap-3">
+                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={tc.isHidden} 
+                                onChange={(e) => handleUpdateTestCase(idx, 'isHidden', e.target.checked)}
+                                className="rounded text-primary focus:ring-primary"
+                              />
+                              Hidden
+                            </label>
+                            <button type="button" onClick={() => handleDeleteTestCase(idx)} className="text-slate-400 hover:text-red-500 transition-colors">
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Input</label>
+                            <textarea 
+                              value={tc.input} 
+                              onChange={(e) => handleUpdateTestCase(idx, 'input', e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16"
+                              placeholder="e.g. [1, 2, 3]"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Expected Output</label>
+                            <textarea 
+                              value={tc.expectedOutput} 
+                              onChange={(e) => handleUpdateTestCase(idx, 'expectedOutput', e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16"
+                              placeholder="e.g. [3, 2, 1]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
