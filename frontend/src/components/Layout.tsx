@@ -265,6 +265,11 @@ export const Layout: React.FC = () => {
                       <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
                     </Link>
                   )}
+                  {user && user.role !== 'admin' && user.role !== 'instructor' && (
+                    <Link to="/apply-instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">school</span> Become Instructor
+                    </Link>
+                  )}
                   <a href="#" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">person</span> Edit Profile
                   </a>

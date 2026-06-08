@@ -38,6 +38,8 @@ export interface AdminInstructorApplication {
   introduction: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   adminNote?: string;
+  aiScore?: number;
+  aiSummary?: string;
   createdAt: string;
 }
 

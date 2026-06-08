@@ -9,6 +9,7 @@ import { Register } from './pages/Register';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { InstructorDashboard } from './pages/InstructorDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { ApplyInstructor } from './pages/ApplyInstructor';
 import { Courses } from './pages/Courses';
 import { CourseDetail } from './pages/CourseDetail';
 import { Problems } from './pages/Problems';
@@ -47,6 +48,7 @@ function App() {
               {/* Student/User learning dashboard (accessible to all logged in users) */}
               <Route element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']} />}>
                 <Route path="dashboard" element={<StudentDashboard />} />
+                <Route path="apply-instructor" element={<ApplyInstructor />} />
                 <Route path="wallet-transaction" element={<WalletTransaction />} />
                 <Route path="payment-transaction" element={<PaymentTransaction />} />
               </Route>
