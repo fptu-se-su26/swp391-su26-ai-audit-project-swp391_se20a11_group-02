@@ -71,6 +71,7 @@ interface AppContextType {
   ) => Promise<CodeSubmission>;
   registerForContest: (contestId: string) => void;
   refreshBalance: () => Promise<void>;
+  updateUser: (updatedFields: Partial<User>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -404,6 +405,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const updateUser = (updatedFields: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return null;
+      const newU = { ...prev, ...updatedFields };
+      localStorage.setItem('user_info', JSON.stringify(newU));
+      return newU;
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -427,6 +437,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         submitCodeSolution,
         registerForContest,
         refreshBalance,
+        updateUser,
       }}
     >
       {children}

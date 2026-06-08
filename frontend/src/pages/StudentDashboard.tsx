@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { dashboardService, type DashboardStatsResponse, type CourseListItemResponse, type SubmissionStatisticResponse } from '../services/dashboardService';
 import { paymentService } from '../services/paymentService';
 import { getPurchaseHistory, type PurchaseHistoryResponse } from '../services/orderService';
+import { authService } from '../services/authService';
 
 const TX_TYPE_OPTIONS = [
   { value: '', label: 'All Types', bg: 'bg-gray-100 text-gray-700' },
@@ -325,7 +326,7 @@ const problemData: Record<string, ProblemDetail> = {
 };
 
 export const StudentDashboard: React.FC = () => {
-  const { user, refreshBalance } = useApp();
+  const { user, refreshBalance, updateUser } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -408,6 +409,144 @@ export const StudentDashboard: React.FC = () => {
   const [paymentTxTotalPages, setPaymentTxTotalPages] = useState<number>(1);
   const [paymentTxTotalElements, setPaymentTxTotalElements] = useState<number>(0);
   const [isPaymentTxLoading, setIsPaymentTxLoading] = useState<boolean>(false);
+
+  // Edit Profile States
+  const [avatarUrlInput, setAvatarUrlInput] = useState('');
+  const [avatarFileName, setAvatarFileName] = useState('');
+  const [displayNameInput, setDisplayNameInput] = useState('');
+  const [isChangingEmail, setIsChangingEmail] = useState(false);
+  const [newEmailInput, setNewEmailInput] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpInput, setOtpInput] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  // Password visibility states
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [profileStatus, setProfileStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [emailStatus, setEmailStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [passwordStatus, setPasswordStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setAvatarUrlInput(user.avatar || '');
+      setDisplayNameInput(user.name || '');
+      setAvatarFileName('');
+    }
+  }, [user]);
+
+  const handlePasswordChange = (val: string, setter: (v: string) => void) => {
+    // Only allow ASCII printable characters (non-space)
+    // This blocks any accented Vietnamese characters and ignores them.
+    const filtered = val.replace(/[^\x21-\x7E]/g, '');
+    setter(filtered);
+  };
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setProfileStatus({ type: 'error', message: 'Image size must be less than 2MB.' });
+        return;
+      }
+      setAvatarFileName(file.name);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result;
+        if (typeof result === 'string') {
+          setAvatarUrlInput(result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!displayNameInput.trim()) {
+      setProfileStatus({ type: 'error', message: 'Display Name cannot be empty.' });
+      return;
+    }
+    if (updateUser) {
+      updateUser({ avatar: avatarUrlInput, name: displayNameInput });
+    }
+    setProfileStatus({ type: 'success', message: 'Profile details updated successfully!' });
+    setTimeout(() => setProfileStatus(null), 3000);
+  };
+
+  const handleInitiateEmailChange = () => {
+    setIsChangingEmail(true);
+    setOtpSent(false);
+    setNewEmailInput('');
+    setOtpInput('');
+    setEmailStatus(null);
+  };
+
+  const handleSendOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmailInput.trim()) {
+      setEmailStatus({ type: 'error', message: 'New email cannot be empty.' });
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(newEmailInput)) {
+      setEmailStatus({ type: 'error', message: 'Invalid email address format.' });
+      return;
+    }
+    if (newEmailInput === user?.email) {
+      setEmailStatus({ type: 'error', message: 'New email must be different from current email.' });
+      return;
+    }
+    setOtpSent(true);
+    setEmailStatus({ type: 'success', message: 'OTP verification code sent to your new email!' });
+    setTimeout(() => setEmailStatus(null), 4000);
+  };
+
+  const handleVerifyOtpAndChangeEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpInput.trim()) {
+      setEmailStatus({ type: 'error', message: 'Please enter the OTP verification code.' });
+      return;
+    }
+    if (updateUser) {
+      updateUser({ email: newEmailInput });
+    }
+    setEmailStatus({ type: 'success', message: 'Email address updated successfully!' });
+    setIsChangingEmail(false);
+    setOtpSent(false);
+    setNewEmailInput('');
+    setOtpInput('');
+    setTimeout(() => setEmailStatus(null), 3000);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setPasswordStatus({ type: 'error', message: 'All fields are required.' });
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordStatus({ type: 'error', message: 'New password and confirm password do not match.' });
+      return;
+    }
+    try {
+      await authService.changePassword({
+        oldPassword: currentPassword,
+        newPassword: newPassword,
+        confirmNewPassword: confirmNewPassword
+      });
+      setPasswordStatus({ type: 'success', message: 'Password updated successfully!' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (error: any) {
+      setPasswordStatus({ type: 'error', message: error.message || 'Failed to update password.' });
+    }
+    setTimeout(() => setPasswordStatus(null), 3000);
+  };
 
   // Purchase History States
   const [purchaseHistory, setPurchaseHistory] = useState<PurchaseHistoryResponse[]>([]);
@@ -500,7 +639,7 @@ export const StudentDashboard: React.FC = () => {
   // Synchronize Tab with Location Hash
   useEffect(() => {
     const hash = location.hash.replace('#', '');
-    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history'];
+    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history', 'my-profile'];
     if (hash && validTabs.includes(hash)) {
       if (hash === 'payment-transaction') {
         setActiveTab('wallet-transaction');
@@ -519,6 +658,33 @@ export const StudentDashboard: React.FC = () => {
       setActiveTab('dashboard');
     }
   }, [location.hash]);
+
+  // Fetch user info when entering My Profile
+  useEffect(() => {
+    if (user && activeTab === 'my-profile') {
+      authService.getMyInfo()
+        .then(data => {
+          if (data) {
+            setDisplayNameInput(data.displayName || '');
+            setAvatarUrlInput(data.avatarUrl || '');
+            
+            const hasChanges = 
+              data.displayName !== user.name || 
+              (data.avatarUrl || '') !== (user.avatar || '') || 
+              data.email !== user.email;
+
+            if (hasChanges && updateUser) {
+              updateUser({
+                name: data.displayName,
+                avatar: data.avatarUrl,
+                email: data.email
+              });
+            }
+          }
+        })
+        .catch(console.error);
+    }
+  }, [activeTab]);
 
   // Poll balance if QR code is displayed
   useEffect(() => {
@@ -1012,6 +1178,18 @@ export const StudentDashboard: React.FC = () => {
         >
           <span className="material-symbols-outlined">shopping_bag</span>
           <span className="sidebar-text hidden md:inline">Purchase History</span>
+        </button>
+
+        <button 
+          onClick={() => handleTabChange('my-profile')} 
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left ${
+            activeTab === 'my-profile'
+              ? 'bg-primary-light/20 text-primary font-bold border border-primary/10'
+              : 'text-text-main hover:bg-surface-gray hover:text-primary'
+          }`}
+        >
+          <span className="material-symbols-outlined">person</span>
+          <span className="sidebar-text hidden md:inline">My Profile</span>
         </button>
       </aside>
 
@@ -3223,6 +3401,332 @@ export const StudentDashboard: React.FC = () => {
             </div>
           );
         })()}
+
+        {/* Tab: My Profile */}
+        {activeTab === 'my-profile' && (
+          <div className="flex flex-col gap-8 animate-fade-in max-w-4xl mx-auto w-full">
+            {/* Page Header */}
+            <div>
+              <h1 className="font-display font-black text-3xl text-[#12284C] tracking-tight">My Profile</h1>
+              <p className="text-sm text-text-muted mt-1">Manage your account settings, personal details, and security preferences.</p>
+            </div>
+
+            {/* Profile Overview Card */}
+            <div className="bg-surface rounded-2xl shadow-[0_4px_24px_rgba(26,54,93,0.06)] border border-gray-100 p-6 md:p-8 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden">
+              <div className="absolute right-0 bottom-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+              <div className="relative">
+                <img
+                  alt="Profile Avatar"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-primary-light shadow-md"
+                  src={avatarUrlInput || "https://ui-avatars.com/api/?name=You&background=12284C&color=fff"}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=You&background=12284C&color=fff';
+                  }}
+                />
+                <span className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow">
+                  <span className="material-symbols-outlined text-sm">edit</span>
+                </span>
+              </div>
+              <div className="text-center sm:text-left flex-grow">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                  <h2 className="text-2xl font-bold text-surface-navy leading-none">{user?.name}</h2>
+                  <span className="inline-flex items-center gap-1 bg-primary-light/40 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    {user?.role || 'Student'}
+                  </span>
+                </div>
+                <p className="text-sm text-text-muted mt-1.5 font-medium flex items-center justify-center sm:justify-start gap-1">
+                  <span className="material-symbols-outlined text-[16px]">mail</span> {user?.email || 'no-email@nonstopcoding.vn'}
+                </p>
+              </div>
+            </div>
+
+            {/* Update Groups Grid */}
+            <div className="flex flex-col gap-6">
+              
+              {/* Group 1: Avatar & Display Name */}
+              <div className="bg-surface rounded-2xl shadow-[0_4px_24px_rgba(26,54,93,0.06)] border border-gray-100 p-6 md:p-8">
+                <div className="flex items-center gap-3 border-b border-gray-100 pb-4 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-xl">badge</span>
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-lg text-[#12284C]">Personal Information</h3>
+                    <p className="text-xs text-text-muted mt-0.5">Change your public display name and avatar picture.</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleUpdateProfile} className="space-y-5">
+                  {profileStatus && (
+                    <div className={`p-4 rounded-xl text-sm font-semibold flex items-center gap-2 border ${
+                      profileStatus.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                    }`}>
+                      <span className="material-symbols-outlined">{profileStatus.type === 'success' ? 'check_circle' : 'error'}</span>
+                      {profileStatus.message}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-[#12284C] uppercase tracking-wider">Display Name</label>
+                      <input
+                        type="text"
+                        value={displayNameInput}
+                        onChange={(e) => setDisplayNameInput(e.target.value)}
+                        placeholder="Enter display name"
+                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5 justify-center">
+                      <label className="text-xs font-bold text-[#12284C] uppercase tracking-wider">Profile Avatar Image</label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarFileChange}
+                          id="avatar-upload-input"
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="avatar-upload-input"
+                          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-semibold text-[#12284C] hover:border-primary hover:text-primary cursor-pointer transition-all shadow-sm select-none"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">upload</span>
+                          Choose Local Image
+                        </label>
+                        {avatarFileName && (
+                          <span className="text-xs text-text-muted truncate max-w-[150px] font-mono" title={avatarFileName}>
+                            {avatarFileName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-sm transform active:scale-95 text-sm cursor-pointer border-none"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Group 2: Email */}
+              <div className="bg-surface rounded-2xl shadow-[0_4px_24px_rgba(26,54,93,0.06)] border border-gray-100 p-6 md:p-8">
+                <div className="flex items-center gap-3 border-b border-gray-100 pb-4 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#F36F21] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-xl">alternate_email</span>
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-lg text-[#12284C]">Update Email</h3>
+                    <p className="text-xs text-text-muted mt-0.5">Modify the email address connected to your account.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  {emailStatus && (
+                    <div className={`p-4 rounded-xl text-sm font-semibold flex items-center gap-2 border ${
+                      emailStatus.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                    }`}>
+                      <span className="material-symbols-outlined">{emailStatus.type === 'success' ? 'check_circle' : 'error'}</span>
+                      {emailStatus.message}
+                    </div>
+                  )}
+
+                  {/* 1. Current Email (Always shown, read-only) */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-[#12284C] uppercase tracking-wider">Current Email Address</label>
+                    <input
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-text-muted outline-none cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* 2. Default state: Only show current email and "Change Email" button */}
+                  {!isChangingEmail && (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleInitiateEmailChange}
+                        className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-sm transform active:scale-95 text-sm cursor-pointer border-none"
+                      >
+                        Change Email
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 3. Changing email state (shows New Email input) */}
+                  {isChangingEmail && (
+                    <div className="space-y-5">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-[#12284C] uppercase tracking-wider">New Email Address</label>
+                        <input
+                          type="email"
+                          value={newEmailInput}
+                          disabled={otpSent}
+                          onChange={(e) => setNewEmailInput(e.target.value)}
+                          placeholder="Enter new email address"
+                          className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+                        />
+                      </div>
+
+                      {/* 4. OTP Sent state (shows OTP verification input field) */}
+                      {otpSent && (
+                        <div className="flex flex-col gap-1.5 animate-fade-in">
+                          <label className="text-xs font-bold text-[#12284C] uppercase tracking-wider">Enter OTP Code</label>
+                          <input
+                            type="text"
+                            value={otpInput}
+                            onChange={(e) => setOtpInput(e.target.value)}
+                            placeholder="Enter OTP verification code"
+                            className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsChangingEmail(false);
+                            setOtpSent(false);
+                            setNewEmailInput('');
+                            setOtpInput('');
+                          }}
+                          className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-text-main font-bold rounded-xl transition-all text-sm cursor-pointer border-none"
+                        >
+                          Cancel
+                        </button>
+                        {!otpSent ? (
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-sm transform active:scale-95 text-sm cursor-pointer border-none"
+                          >
+                            Send OTP
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleVerifyOtpAndChangeEmail}
+                            className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-sm transform active:scale-95 text-sm cursor-pointer border-none"
+                          >
+                            Verify & Update Email
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Group 3: Password */}
+              <div className="bg-surface rounded-2xl shadow-[0_4px_24px_rgba(26,54,93,0.06)] border border-gray-100 p-6 md:p-8">
+                <div className="flex items-center gap-3 border-b border-gray-100 pb-4 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-xl">lock_reset</span>
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-lg text-[#12284C]">Security & Password</h3>
+                    <p className="text-xs text-text-muted mt-0.5">Keep your account safe by updating your password periodically.</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleUpdatePassword} className="space-y-5">
+                  {passwordStatus && (
+                    <div className={`p-4 rounded-xl text-sm font-semibold flex items-center gap-2 border ${
+                      passwordStatus.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                    }`}>
+                      <span className="material-symbols-outlined">{passwordStatus.type === 'success' ? 'check_circle' : 'error'}</span>
+                      {passwordStatus.message}
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-[#12284C] uppercase tracking-wider">Current Password</label>
+                    <div className="relative">
+                      <input
+                        type={showCurrentPassword ? "text" : "password"}
+                        value={currentPassword}
+                        onChange={(e) => handlePasswordChange(e.target.value, setCurrentPassword)}
+                        placeholder="••••••••"
+                        className="w-full bg-white border border-gray-300 rounded-xl pl-4 pr-10 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-primary transition-colors bg-transparent border-none cursor-pointer flex items-center p-0 outline-none"
+                      >
+                        <span className="material-symbols-outlined text-lg select-none">
+                          {showCurrentPassword ? 'visibility_off' : 'visibility'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-[#12284C] uppercase tracking-wider">New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => handlePasswordChange(e.target.value, setNewPassword)}
+                          placeholder="Enter new password"
+                          className="w-full bg-white border border-gray-300 rounded-xl pl-4 pr-10 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-primary transition-colors bg-transparent border-none cursor-pointer flex items-center p-0 outline-none"
+                        >
+                          <span className="material-symbols-outlined text-lg select-none">
+                            {showNewPassword ? 'visibility_off' : 'visibility'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-[#12284C] uppercase tracking-wider">Confirm New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmNewPassword}
+                          onChange={(e) => handlePasswordChange(e.target.value, setConfirmNewPassword)}
+                          placeholder="Confirm new password"
+                          className="w-full bg-white border border-gray-300 rounded-xl pl-4 pr-10 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-primary transition-colors bg-transparent border-none cursor-pointer flex items-center p-0 outline-none"
+                        >
+                          <span className="material-symbols-outlined text-lg select-none">
+                            {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-sm transform active:scale-95 text-sm cursor-pointer border-none"
+                    >
+                      Update Password
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

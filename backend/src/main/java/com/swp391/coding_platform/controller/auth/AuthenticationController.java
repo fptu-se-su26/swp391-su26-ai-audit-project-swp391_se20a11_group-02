@@ -2,6 +2,7 @@ package com.swp391.coding_platform.controller.auth;
 
 import com.nimbusds.jose.JOSEException;
 import com.swp391.coding_platform.dto.request.AuthenticationRequest;
+import com.swp391.coding_platform.dto.request.ChangePasswordRequest;
 import com.swp391.coding_platform.dto.request.GoogleLoginRequest;
 import com.swp391.coding_platform.dto.request.RegisterRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
@@ -19,6 +20,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
