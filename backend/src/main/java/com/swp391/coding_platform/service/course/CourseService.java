@@ -30,6 +30,12 @@ import com.swp391.coding_platform.dto.request.CourseReviewRequest;
 import com.swp391.coding_platform.entity.course.CourseReviewEntity;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.repository.user.UserRepository;
+import com.swp391.coding_platform.dto.request.CreateCommentRequest;
+import com.swp391.coding_platform.dto.response.LessonCommentResponse;
+import com.swp391.coding_platform.entity.course.LessonCommentEntity;
+import com.swp391.coding_platform.repository.course.LessonCommentRepository;
+import com.swp391.coding_platform.repository.course.LessonRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -55,6 +61,8 @@ public class CourseService {
     ChapterRepository chapterRepository;
     CourseReviewRepository courseReviewRepository;
     UserRepository userRepository;
+    LessonCommentRepository lessonCommentRepository;
+    LessonRepository lessonRepository;
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
@@ -319,4 +327,59 @@ public class CourseService {
 
         return courseMapper.toLearningLessonResponse(lesson);
     }
+
+    public List<LessonCommentResponse> getLessonComments(Integer lessonId) {
+        List<LessonCommentEntity> roots = lessonCommentRepository.findRootCommentsWithRepliesAndUsers(lessonId);
+        return roots.stream().map(this::mapCommentToResponse).toList();
+    }
+
+    @Transactional
+    public LessonCommentResponse addLessonComment(Integer lessonId, Integer userId, CreateCommentRequest request) {
+        LessonEntity lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        LessonCommentEntity parent = null;
+        if (request.getParentId() != null) {
+            parent = lessonCommentRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+
+            if (!parent.getLesson().getId().equals(lessonId)) {
+                throw new AppException(ErrorCode.INVALID_COMMENT_LESSON);
+            }
+
+            // Enforce maximum 1-level deep replies
+            if (parent.getParent() != null) {
+                throw new AppException(ErrorCode.INVALID_COMMENT_LEVEL);
+            }
+        }
+
+        LessonCommentEntity comment = LessonCommentEntity.builder()
+                .lesson(lesson)
+                .user(user)
+                .content(request.getContent())
+                .parent(parent)
+                .build();
+
+        lessonCommentRepository.save(comment);
+        return mapCommentToResponse(comment);
+    }
+
+    private LessonCommentResponse mapCommentToResponse(LessonCommentEntity entity) {
+        List<LessonCommentResponse> replies = entity.getReplies() != null ? 
+                entity.getReplies().stream().map(this::mapCommentToResponse).toList() : List.of();
+
+        return LessonCommentResponse.builder()
+                .id(entity.getId())
+                .author(entity.getUser().getDisplayname())
+                .avatarUrl(entity.getUser().getAvatarurl())
+                .text(entity.getContent())
+                .createdAt(entity.getCreatedAt())
+                .parentId(entity.getParent() != null ? entity.getParent().getId() : null)
+                .replies(replies)
+                .build();
+    }
 }
+

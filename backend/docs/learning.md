@@ -25,3 +25,26 @@ Thì ở giao diện lúc user click vào 1 khóa học để học thì chỉ g
 quiz thì sẽ gọi khi user click vào từng phần đó trong navbar bên dưới khóa học.
 
 Hãy đánh giá workflow này, nếu hợp lý thì hãy lên plan để xây dựng API 1 và API 2 cho tôi
+
+Tiếp theo xây dựng cho tôi API Q/A ở lesson trong course đó
+API này sẻ trả về danh sách comment trong phần lesson đó gồm
++ avatart
++ tên người comment
++ date
++ nội dung comment
++ và có phần trả lời comment nếu có (cũng gồm avatar, tên người trả lời, date, nội dung trả lời)
++ và có phần nút để user có thể comment vào lesson đó
++ và có phần nút để user có thể trả lời comment đó
+
+Và 1 comment root chỉ có thể có 1 level trả lời, không có trả lời sâu hơn nữa. V
+à khi user click vào nút comment hoặc trả lời thì sẻ hiện ra 1 form để user nhập nội dung comment hoặc trả lời,
+sau đó khi submit sẻ gọi API để lưu comment hoặc trả lời đó vào database. 
+Và sau khi lưu thành công thì sẻ tự động cập nhật lại danh sách comment trên giao diện mà 
+không cần phải reload lại trang.
+
+Hãy thiết kế các query một cách tối ưu để lấy được danh sách comment và trả lời của lesson đó, 
+và thiết kế API để lưu comment và trả lời đó vào database.
+
+Sẻ gồm 2 API
++ API 1: Lấy danh sách comment 
++ API 2: comment mới hoặc trả lời lại một comment nào đó

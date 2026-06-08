@@ -9,8 +9,12 @@ import {
   fetchCourseLearningDetail,
   fetchCourseLearningCurriculum,
   fetchLearningLessonDetail,
-  type LearningCurriculumChapterResponse
+  fetchLessonComments,
+  postLessonComment,
+  type LearningCurriculumChapterResponse,
+  type LessonComment
 } from '../services/courseService';
+
 
 const TX_TYPE_OPTIONS = [
   { value: '', label: 'All Types', bg: 'bg-gray-100 text-gray-700' },
@@ -411,11 +415,11 @@ export const StudentDashboard: React.FC = () => {
 
   // Course Player (Learning View) States
   const [playerCourseId, setPlayerCourseId] = useState<number | null>(null);
-  const [playerCourseTitle, setPlayerCourseTitle] = useState<string>('Java Fundamentals to Advanced');
-  const [playerCourseAuthor, setPlayerCourseAuthor] = useState<string>('Dr. Alan Turing • Java Level');
-  const [playerCourseProgress, setPlayerCourseProgress] = useState<string>('65%');
-  const [playerLectureTitle, setPlayerLectureTitle] = useState<string>('1.2 Setting up Environment');
-  const [playerVideoThumbnail, setPlayerVideoThumbnail] = useState<string>('https://lh3.googleusercontent.com/aida-public/AB6AXuBgy50UMGsrfiNlaMOGS5hIFfEB9ALLj2hHwL19FjiPxHtPdmdzDshyKCd9cxUE55L1IPGibJJ8XxYWvIOtq6nCmPgaCFoPxxlN64_OwyPrZocxC4bEzFtpL_km1YmpuA-CN4fUVjD5gO2NI7mdCoim7_CAT7njSdYphWceJpEIiRp5PAaZrqeglhZ4z73HAhMVJI5rSTTAUK3BmjBzHCR2ivCNvmKAvTRSv0bZDvGjfSB2GENwq1duU8S0jsS3Bgtxt-P5YEUi6M8');
+  const [playerCourseTitle, setPlayerCourseTitle] = useState<string>('');
+  const [playerCourseAuthor, setPlayerCourseAuthor] = useState<string>('');
+  const [playerCourseProgress, setPlayerCourseProgress] = useState<string>('0%');
+  const [playerLectureTitle, setPlayerLectureTitle] = useState<string>('');
+  const [playerVideoThumbnail, setPlayerVideoThumbnail] = useState<string>('');
   const [playerVideoUrl, setPlayerVideoUrl] = useState<string>('');
   const [playerTheoryContent, setPlayerTheoryContent] = useState<string>('');
   const [learningChapters, setLearningChapters] = useState<LearningCurriculumChapterResponse[]>([]);
@@ -423,6 +427,26 @@ export const StudentDashboard: React.FC = () => {
   const [isPlayerLoading, setIsPlayerLoading] = useState<boolean>(false);
   
   const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'source-code' | 'quiz'>('overview');
+
+  // Q&A States
+  const [lessonComments, setLessonComments] = useState<LessonComment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState<boolean>(false);
+  const [rootCommentText, setRootCommentText] = useState<string>('');
+  const [replyingCommentId, setReplyingCommentId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState<string>('');
+
+  const loadLessonComments = async (lessonId: number) => {
+    setIsLoadingComments(true);
+    try {
+      const comments = await fetchLessonComments(lessonId);
+      setLessonComments(comments);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
   const [curriculumSections, setCurriculumSections] = useState<Record<string, boolean>>({
     sec1: true,
     sec2: false,
@@ -712,7 +736,10 @@ export const StudentDashboard: React.FC = () => {
 
   // Synchronize Tab with Location Hash
   useEffect(() => {
-    const hash = location.hash.replace('#', '');
+    const rawHash = location.hash.replace('#', '');
+    // Parse hash like 'learning-view?courseId=1' into tab + query params
+    const [hash, queryString] = rawHash.split('?');
+    const hashParams = new URLSearchParams(queryString || '');
     const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history', 'my-profile'];
     if (hash && validTabs.includes(hash)) {
       if (hash === 'payment-transaction') {
@@ -727,6 +754,66 @@ export const StudentDashboard: React.FC = () => {
       if (['wallet-transaction', 'deposit', 'payment-transaction'].includes(hash)) {
         setIsWalletOpen(true);
         refreshBalance().catch(console.error);
+      }
+      // Restore learning-view from URL on page refresh
+      if (hash === 'learning-view') {
+        const courseIdParam = hashParams.get('courseId');
+        if (courseIdParam && !playerCourseId) {
+          const restoredCourseId = parseInt(courseIdParam, 10);
+          if (!isNaN(restoredCourseId)) {
+            // Restore course player state from API
+            setPlayerCourseId(restoredCourseId);
+            setIsPlayerLoading(true);
+            (async () => {
+              try {
+                const detail = await fetchCourseLearningDetail(restoredCourseId);
+                setPlayerCourseTitle(detail.courseTitle);
+                setPlayerCourseAuthor(`${detail.instructorName} • Instructor`);
+                setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+                let activeLessonId = detail.activeLessonId;
+
+                const chapters = await fetchCourseLearningCurriculum(restoredCourseId);
+                setLearningChapters(chapters);
+
+                const initialSections: Record<string, boolean> = {};
+                chapters.forEach((chapter, index) => {
+                  initialSections[`sec_${chapter.id}`] = index === 0;
+                });
+                setCurriculumSections(initialSections);
+
+                if (!activeLessonId && chapters.length > 0 && chapters[0].lessons.length > 0) {
+                  activeLessonId = chapters[0].lessons[0].id;
+                }
+
+                if (activeLessonId) {
+                  setSelectedLessonId(activeLessonId);
+                  const lesson = await fetchLearningLessonDetail(restoredCourseId, activeLessonId);
+                  setPlayerLectureTitle(lesson.title);
+                  setPlayerVideoUrl(lesson.videoUrl || '');
+                  setPlayerTheoryContent(lesson.theoryContent || '');
+                } else {
+                  setPlayerLectureTitle('No lessons available');
+                  setPlayerVideoUrl('');
+                  setPlayerTheoryContent('');
+                }
+              } catch (err) {
+                console.error('Failed to restore learning data on refresh:', err);
+                setPlayerLectureTitle('No lessons available');
+                setPlayerVideoUrl('');
+                setPlayerTheoryContent('');
+                setLearningChapters([]);
+                setSelectedLessonId(null);
+                setPlayerCourseProgress('0%');
+              } finally {
+                setIsPlayerLoading(false);
+              }
+            })();
+          }
+        } else if (!courseIdParam && !playerCourseId) {
+          // No courseId in URL and no active course — redirect to my-courses
+          navigate('#my-courses', { replace: true });
+        }
       }
     } else {
       setActiveTab('dashboard');
@@ -847,6 +934,14 @@ export const StudentDashboard: React.FC = () => {
     }
   }, [user, activeTab]);
 
+  // Load comments when active lesson or active tab changes to 'qa'
+  useEffect(() => {
+    if (selectedLessonId && playerActiveTab === 'qa') {
+      loadLessonComments(selectedLessonId);
+    }
+  }, [selectedLessonId, playerActiveTab]);
+
+
   const ongoingScrollRef = useRef<HTMLDivElement>(null);
   const completedScrollRef = useRef<HTMLDivElement>(null);
 
@@ -924,8 +1019,13 @@ export const StudentDashboard: React.FC = () => {
     );
   };
 
-  const handleTabChange = (tab: string) => {
-    navigate(`#${tab}`);
+  const handleTabChange = (tab: string, params?: Record<string, string>) => {
+    if (params) {
+      const qs = new URLSearchParams(params).toString();
+      navigate(`#${tab}?${qs}`);
+    } else {
+      navigate(`#${tab}`);
+    }
   };
 
   // Activity Graph helper (12 months list)
@@ -962,7 +1062,7 @@ export const StudentDashboard: React.FC = () => {
     setLearningChapters([]);
     setSelectedLessonId(null);
 
-    handleTabChange('learning-view');
+    handleTabChange('learning-view', { courseId: String(id) });
 
     try {
       // 1. Fetch Learning Details (holds active lesson, progress)
@@ -2008,57 +2108,177 @@ export const StudentDashboard: React.FC = () => {
 
                   {/* Q&A */}
                   {playerActiveTab === 'qa' && (
-                    <div className="animate-fade-in">
+                    <div className="animate-fade-in text-left">
                       <h2 className="text-lg font-bold text-text-main mb-4">Questions & Answers in this lesson</h2>
-                      <div className="flex gap-3 mb-6">
-                        <div className="relative flex-1">
-                          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">search</span>
-                          <input className="w-full bg-surface-gray border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors text-text-main" placeholder="Search questions..." type="text" />
-                        </div>
-                        <button className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors whitespace-nowrap">Ask a new question</button>
-                      </div>
                       
-                      <div className="space-y-6">
-                        <div className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                          <div className="flex gap-3">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
-                              <span className="material-symbols-outlined text-text-muted text-[18px]">person</span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="font-bold text-sm text-text-main">Alex Chen</span>
-                                <span className="text-[10px] text-text-muted">2 hours ago</span>
-                              </div>
-                              <p className="text-sm font-semibold text-text-main mb-1">Error initializing Spring Boot application template</p>
-                              <p className="text-xs text-text-muted leading-relaxed line-clamp-2">Getting 'java: error: invalid source release: 17' when compiling. What could be wrong with my JDK configurations?</p>
-                              <div className="flex items-center gap-3 mt-2 text-[11px] text-text-muted font-semibold">
-                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-brand-green text-[14px]">thumb_up</span> 4 likes</span>
-                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-primary text-[14px]">comment</span> 2 replies</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                          <div className="flex gap-3">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
-                              <span className="material-symbols-outlined text-text-muted text-[18px]">person</span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="font-bold text-sm text-text-main">Sarah Jenkins</span>
-                                <span className="text-[10px] text-text-muted">1 day ago</span>
-                              </div>
-                              <p className="text-sm font-semibold text-text-main mb-1">IntelliJ Ultimate vs Community</p>
-                              <p className="text-xs text-text-muted leading-relaxed line-clamp-2">Is IntelliJ Ultimate strictly necessary for Spring Boot projects, or is Community Edition sufficient for general microservice development?</p>
-                              <div className="flex items-center gap-3 mt-2 text-[11px] text-text-muted font-semibold">
-                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">thumb_up</span> 0 likes</span>
-                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">comment</span> 1 reply</span>
-                              </div>
-                            </div>
-                          </div>
+                      {/* Post a new root question form */}
+                      <div className="bg-surface-gray rounded-2xl p-4 border border-gray-100 mb-6">
+                        <textarea
+                          className="w-full bg-surface border-0 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all text-text-main resize-none min-h-[80px]"
+                          placeholder="Ask a question or share your thoughts about this lesson..."
+                          value={rootCommentText}
+                          onChange={(e) => setRootCommentText(e.target.value)}
+                        />
+                        <div className="flex justify-end mt-3">
+                          <button
+                            className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors"
+                            onClick={async () => {
+                              if (!rootCommentText.trim() || !selectedLessonId) return;
+                              try {
+                                await postLessonComment(selectedLessonId, { content: rootCommentText });
+                                setRootCommentText('');
+                                loadLessonComments(selectedLessonId);
+                              } catch (err: any) {
+                                alert(err.message || 'Failed to post comment');
+                              }
+                            }}
+                            disabled={!rootCommentText.trim()}
+                          >
+                            Post Question
+                          </button>
                         </div>
                       </div>
+
+                      {isLoadingComments ? (
+                        <div className="space-y-4 py-4">
+                          <div className="h-12 bg-slate-50 rounded-xl animate-pulse"></div>
+                          <div className="h-12 bg-slate-50 rounded-xl animate-pulse"></div>
+                          <div className="h-12 bg-slate-50 rounded-xl animate-pulse"></div>
+                        </div>
+                      ) : lessonComments.length === 0 ? (
+                        <div className="text-center py-12 bg-surface-gray rounded-2xl border border-dashed border-gray-200">
+                          <span className="material-symbols-outlined text-[48px] text-text-muted mb-2">forum</span>
+                          <p className="text-sm text-text-muted italic">No questions in this lesson yet. Be the first to ask!</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {lessonComments.map((comment) => (
+                            <div key={comment.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                              {/* Root comment */}
+                              <div className="flex gap-3">
+                                {comment.avatar_url ? (
+                                  <img
+                                    src={comment.avatar_url}
+                                    alt={comment.author}
+                                    className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-9 h-9 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-text-muted text-[18px]">person</span>
+                                  </div>
+                                )}
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span className="font-bold text-sm text-text-main">{comment.author}</span>
+                                    <span className="text-[10px] text-text-muted">
+                                      {new Date(comment.createdAt).toLocaleDateString('en-GB', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-text-muted leading-relaxed whitespace-pre-wrap">{comment.text}</p>
+                                  
+                                  <div className="flex items-center gap-3 mt-2">
+                                    <button
+                                      className="flex items-center gap-1 text-[11px] text-primary hover:text-primary-hover font-semibold transition-colors"
+                                      onClick={() => {
+                                        if (replyingCommentId === comment.id) {
+                                          setReplyingCommentId(null);
+                                        } else {
+                                          setReplyingCommentId(comment.id);
+                                          setReplyText('');
+                                        }
+                                      }}
+                                    >
+                                      <span className="material-symbols-outlined text-[14px]">reply</span> Reply
+                                    </button>
+                                  </div>
+
+                                  {/* Reply input form */}
+                                  {replyingCommentId === comment.id && (
+                                    <div className="mt-3 bg-surface-gray rounded-xl p-3 border border-gray-100 flex gap-2">
+                                      <textarea
+                                        className="flex-1 bg-surface border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-text-main focus:outline-none focus:border-primary resize-none min-h-[60px]"
+                                        placeholder={`Reply to ${comment.author}...`}
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                      />
+                                      <div className="flex gap-1 shrink-0">
+                                        <button
+                                          className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                                          onClick={async () => {
+                                            if (!replyText.trim() || !selectedLessonId) return;
+                                            try {
+                                              await postLessonComment(selectedLessonId, {
+                                                content: replyText,
+                                                parentId: comment.id,
+                                              });
+                                              setReplyText('');
+                                              setReplyingCommentId(null);
+                                              loadLessonComments(selectedLessonId);
+                                            } catch (err: any) {
+                                              alert(err.message || 'Failed to post reply');
+                                            }
+                                          }}
+                                          disabled={!replyText.trim()}
+                                        >
+                                          Reply
+                                        </button>
+                                        <button
+                                          className="bg-slate-100 hover:bg-slate-200 text-text-muted px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                                          onClick={() => setReplyingCommentId(null)}
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Nested replies */}
+                              {comment.replies && comment.replies.length > 0 && (
+                                <div className="ml-12 pl-4 border-l-2 border-gray-100 space-y-4 mt-3">
+                                  {comment.replies.map((reply) => (
+                                    <div key={reply.id} className="flex gap-3">
+                                      {reply.avatar_url ? (
+                                        <img
+                                          src={reply.avatar_url}
+                                          alt={reply.author}
+                                          className="w-8 h-8 rounded-full object-cover border border-gray-200 shrink-0"
+                                        />
+                                      ) : (
+                                        <div className="w-8 h-8 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
+                                          <span className="material-symbols-outlined text-text-muted text-[16px]">person</span>
+                                        </div>
+                                      )}
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                          <span className="font-bold text-xs text-text-main">{reply.author}</span>
+                                          <span className="text-[9px] text-text-muted">
+                                            {new Date(reply.createdAt).toLocaleDateString('en-GB', {
+                                              day: '2-digit',
+                                              month: 'short',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                            })}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-text-muted leading-relaxed whitespace-pre-wrap">{reply.text}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -2314,8 +2534,9 @@ export const StudentDashboard: React.FC = () => {
                             className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
                           >
                             <span className="font-semibold text-xs text-text-main line-clamp-1">
-                              {chapter.orderIndex}. {chapter.title}
+                              {chapter.title}
                             </span>
+
                             <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                               expand_more
                             </span>

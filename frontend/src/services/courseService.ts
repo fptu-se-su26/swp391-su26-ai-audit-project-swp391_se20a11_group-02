@@ -901,3 +901,56 @@ export const fetchLearningLessonDetail = async (courseId: number | string, lesso
   const data: ApiResponse<LearningLessonResponse> = await response.json();
   return data.result;
 };
+
+export interface LessonComment {
+  id: number;
+  author: string;
+  avatar_url?: string;
+  text: string;
+  createdAt: string;
+  parentId?: number | null;
+  replies: LessonComment[];
+}
+
+export interface CreateCommentRequest {
+  content: string;
+  parentId?: number | null;
+}
+
+export const fetchLessonComments = async (lessonId: number | string): Promise<LessonComment[]> => {
+  const response = await fetch(`${BASE_URL}/courses/lessons/${lessonId}/comments`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải bình luận bài học');
+  }
+
+  const data: ApiResponse<LessonComment[]> = await response.json();
+  return data.result;
+};
+
+export const postLessonComment = async (lessonId: number | string, data: CreateCommentRequest): Promise<LessonComment> => {
+  const response = await fetch(`${BASE_URL}/courses/lessons/${lessonId}/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể gửi bình luận');
+  }
+
+  const resData: ApiResponse<LessonComment> = await response.json();
+  return resData.result;
+};
+
