@@ -21,8 +21,6 @@ import { ContestProblemSolve } from './pages/ContestProblemSolve';
 import { ContestSubmissions } from './pages/ContestSubmissions';
 import { ContestRanking } from './pages/ContestRanking';
 import { ShoppingCart } from './pages/ShoppingCart';
-import { WalletTransaction } from './pages/WalletTransaction';
-import { PaymentTransaction } from './pages/PaymentTransaction';
 import { ContactUs } from './pages/ContactUs';
 import { TermsOfService } from './pages/TermsOfService';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
@@ -47,8 +45,6 @@ function App() {
               {/* Student/User learning dashboard (accessible to all logged in users) */}
               <Route element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']} />}>
                 <Route path="dashboard" element={<StudentDashboard />} />
-                <Route path="wallet-transaction" element={<WalletTransaction />} />
-                <Route path="payment-transaction" element={<PaymentTransaction />} />
               </Route>
 
               {/* Instructor area (only for instructors) */}

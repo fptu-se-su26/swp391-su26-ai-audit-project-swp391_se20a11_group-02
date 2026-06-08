@@ -177,7 +177,7 @@ export const Layout: React.FC = () => {
   };
 
   // Redirection / Protection logic
-  const privateRoutes = ['/dashboard', '/instructor', '/wallet-transaction', '/payment-transaction', '/shopping-cart'];
+  const privateRoutes = ['/dashboard', '/instructor', '/shopping-cart'];
   const isPrivateRoute = privateRoutes.some(route => location.pathname.startsWith(route));
 
   React.useEffect(() => {
@@ -252,9 +252,18 @@ export const Layout: React.FC = () => {
 
                 {/* Dropdown Menu */}
                 <div className="absolute top-full right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2 cursor-default text-left">
-                  <Link to="/dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">dashboard</span> My Learning
+                  <Link to="/dashboard#dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">dashboard</span> Dashboard
                   </Link>
+                  <Link to="/dashboard#my-profile" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">person</span> My Profile
+                  </Link>
+                  <Link to="/dashboard#deposit" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">payments</span> Deposit
+                  </Link>
+                  {(user?.role === 'admin' || user?.role === 'instructor') && (
+                    <div className="h-px bg-gray-100 my-1 w-full"></div>
+                  )}
                   {user && user.role === 'admin' && (
                     <Link to="/admin" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
                       <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Panel
@@ -265,12 +274,6 @@ export const Layout: React.FC = () => {
                       <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
                     </Link>
                   )}
-                  <a href="#" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">person</span> Edit Profile
-                  </a>
-                  <Link to="/wallet-transaction" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span> Wallet
-                  </Link>
                   <div className="h-px bg-gray-100 my-1 w-full"></div>
                   <button onClick={handleLogout} className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2 w-full text-left">
                     <span className="material-symbols-outlined text-[18px]">logout</span> Logout
