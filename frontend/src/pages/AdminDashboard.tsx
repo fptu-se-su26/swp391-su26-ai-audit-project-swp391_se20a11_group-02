@@ -396,6 +396,7 @@ export const AdminDashboard: React.FC = () => {
   const [customLockReason, setCustomLockReason] = useState<string>('');
   const [decliningAppealUser, setDecliningAppealUser] = useState<AdminUser | null>(null);
   const [declineReasonText, setDeclineReasonText] = useState<string>('');
+  const [approvingAppealUser, setApprovingAppealUser] = useState<AdminUser | null>(null);
 
   const handleUserStatusChange = (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
     const targetUser = users.find(u => u.id === userId);
@@ -3853,20 +3854,11 @@ export const AdminDashboard: React.FC = () => {
                           <div className="flex gap-3 mt-1.5 border-t border-slate-200/65 pt-3.5">
                             {/* Approve Appeal (Unlock Account) */}
                             <button
-                              onClick={async () => {
-                                if (!window.confirm(`Are you sure you want to APPROVE the appeal and unlock account ${u.name}?`)) return;
-                                try {
-                                  const updated = await adminService.setUserLockStatus(u.id, 'ACTIVE');
-                                  setUsers(prev => prev.map(item => item.id === u.id ? updated : item));
-                                  showAdminToast(`Successfully approved appeal and unlocked ${updated.name}`, 'success');
-                                } catch (error) {
-                                  showAdminToast("Failed to approve appeal", 'error');
-                                }
-                              }}
+                              onClick={() => setApprovingAppealUser(u)}
                               className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-sm shadow-emerald-100 flex items-center justify-center gap-1 cursor-pointer border-none"
                             >
                               <span className="material-symbols-outlined text-base">lock_open</span>
-                              <span>Approve & Unlock</span>
+                              <span>Approve &amp; Unlock</span>
                             </button>
 
                             {/* Decline Appeal (Decline Appeal) */}
@@ -4684,6 +4676,91 @@ export const AdminDashboard: React.FC = () => {
               >
                 Confirm Decline
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: APPROVE APPEAL & UNLOCK ================= */}
+      {approvingAppealUser && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full overflow-hidden" style={{ animation: 'fadeInScale 0.2s ease-out' }}>
+            {/* Green header stripe */}
+            <div className="h-1 w-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-green-500"></div>
+
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-emerald-600 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock_open</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                      Approve Appeal
+                    </span>
+                    <h3 className="font-display font-black text-xl text-brand-blue mt-1">Approve &amp; Unlock Account</h3>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setApprovingAppealUser(null)}
+                  className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer text-xl"
+                >
+                  close
+                </button>
+              </div>
+
+              {/* User Info */}
+              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-4 mb-5 flex items-center gap-3">
+                <div className="w-9 h-9 bg-white border border-slate-200 rounded-full flex items-center justify-center shrink-0 shadow-sm">
+                  <span className="material-symbols-outlined text-slate-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">{approvingAppealUser.name}</p>
+                  <p className="text-xs text-text-muted">{approvingAppealUser.email}</p>
+                </div>
+                <span className="ml-auto text-[10px] font-black uppercase bg-red-50 text-red-600 border border-red-200/55 px-2 py-0.5 rounded-md">Locked</span>
+              </div>
+
+              {/* Appeal preview */}
+              {approvingAppealUser.lockAppeal && (
+                <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 mb-5">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-amber-700 mb-1.5">User's Appeal Message</p>
+                  <p className="text-xs font-medium text-slate-700 italic leading-relaxed">"{approvingAppealUser.lockAppeal}"</p>
+                </div>
+              )}
+
+              {/* Confirmation text */}
+              <p className="text-xs text-text-muted leading-relaxed mb-6">
+                This will <strong className="text-emerald-600">unlock the account</strong> of{' '}
+                <strong className="text-slate-800">{approvingAppealUser.name}</strong> and allow them full access to the platform again. This action can be reversed later if needed.
+              </p>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setApprovingAppealUser(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-xl transition-all border border-slate-200/60 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const updated = await adminService.setUserLockStatus(approvingAppealUser.id, 'ACTIVE');
+                      setUsers(prev => prev.map(item => item.id === approvingAppealUser.id ? updated : item));
+                      setApprovingAppealUser(null);
+                      showAdminToast(`Successfully approved appeal and unlocked ${updated.name}`, 'success');
+                    } catch (error) {
+                      showAdminToast('Failed to approve appeal', 'error');
+                    }
+                  }}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-sm shadow-emerald-100 cursor-pointer border-none flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-base">lock_open</span>
+                  <span>Approve &amp; Unlock</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

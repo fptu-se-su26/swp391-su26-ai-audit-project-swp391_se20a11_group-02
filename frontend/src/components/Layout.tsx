@@ -232,88 +232,77 @@ export const Layout: React.FC = () => {
   if (user && user.status === 'LOCKED') {
     return (
       <div
-        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0f0f1a 0%, #1a0a1a 50%, #0a0f1a 100%)', fontFamily: "'Inter', sans-serif" }}
+        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#f0f4f9]"
+        style={{ fontFamily: "'Inter', sans-serif" }}
       >
-        {/* Animated radial glows */}
+        {/* Glowing Backdrop Circles — matches Login/Register */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.15) 0%, transparent 70%)', animation: 'pulse 4s ease-in-out infinite' }}></div>
-          <div className="absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)', animation: 'pulse 6s ease-in-out infinite reverse' }}></div>
-          <div className="absolute top-[40%] left-[50%] w-[400px] h-[400px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.05) 0%, transparent 70%)', transform: 'translateX(-50%)' }}></div>
-          {/* Floating grid lines */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }}></div>
+          <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[120px]"></div>
+          <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-brand-blue/10 rounded-full blur-[120px]"></div>
+          <div className="absolute -bottom-40 left-1/4 w-[600px] h-[600px] bg-brand-green/5 rounded-full blur-[150px]"></div>
         </div>
 
         {/* Main Card */}
-        <div className="relative z-10 w-full max-w-xl" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
+        <div className="relative z-10 w-full max-w-xl" style={{ animation: 'fadeInUp 0.5s ease-out' }}>
 
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding" className="h-10 w-auto opacity-80 drop-shadow-md" />
+            <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding" className="h-16 w-auto drop-shadow-sm" />
           </div>
 
           {/* Card */}
-          <div
-            className="rounded-3xl overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(24px)', border: '1px solid rgba(239,68,68,0.2)', boxShadow: '0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 0 60px rgba(239,68,68,0.08)' }}
-          >
+          <div className="bg-surface rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
             {/* Top danger stripe */}
-            <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #ef4444, #dc2626, #b91c1c)' }}></div>
+            <div className="h-1 w-full bg-gradient-to-r from-red-400 via-red-500 to-red-600"></div>
 
-            <div className="p-8 md:p-10 space-y-7">
+            <div className="p-8 md:p-10 space-y-6">
 
               {/* Icon + Heading */}
               <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mx-auto relative" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(185,28,28,0.1))', border: '1px solid rgba(239,68,68,0.3)', boxShadow: '0 0 40px rgba(239,68,68,0.2)' }}>
-                  <span className="material-symbols-outlined text-red-400 text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1", fontSize: '14px' }}>priority_high</span>
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mx-auto relative bg-red-50 border border-red-100 shadow-sm">
+                  <span className="material-symbols-outlined text-red-500 text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+                  <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
+                    <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1", fontSize: '14px' }}>priority_high</span>
                   </div>
                 </div>
 
                 <div>
-                  <h1 className="font-display font-black text-3xl text-white tracking-tight mb-2">Account Suspended</h1>
-                  <p className="text-sm text-slate-400 leading-relaxed max-w-sm mx-auto">
+                  <h1 className="font-display font-black text-2xl text-brand-blue tracking-tight mb-2">Account Suspended</h1>
+                  <p className="text-sm text-text-muted leading-relaxed max-w-sm mx-auto">
                     Your account access has been temporarily restricted due to a policy violation.
                   </p>
                 </div>
               </div>
 
               {/* Lock Reason Card */}
-              <div
-                className="rounded-2xl p-5 text-left space-y-2"
-                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Reason for Suspension</span>
+              <div className="bg-red-50 border border-red-200/60 rounded-2xl p-5 text-left space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-red-500">Reason for Suspension</span>
                 </div>
-                <p className="text-sm font-medium text-slate-200 leading-relaxed pl-3.5 border-l-2 border-red-500/40">
+                <p className="text-sm font-medium text-slate-700 leading-relaxed pl-3.5 border-l-2 border-red-400/40">
                   {user.lockReason || 'Violation of platform terms of service or community guidelines.'}
                 </p>
               </div>
 
               {/* Appeal Section */}
               {user.lockAppeal ? (
-                <div
-                  className="rounded-2xl p-5 text-left space-y-3"
-                  style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.2)' }}
-                >
+                <div className="bg-emerald-50 border border-emerald-200/60 rounded-2xl p-5 text-left space-y-3">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-emerald-400 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                    <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Appeal Submitted</span>
+                    <span className="material-symbols-outlined text-emerald-600 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-700">Appeal Submitted</span>
                   </div>
-                  <div className="pl-3.5 border-l-2 border-emerald-500/40">
-                    <p className="text-xs text-slate-300 italic leading-relaxed">"{user.lockAppeal}"</p>
+                  <div className="pl-3.5 border-l-2 border-emerald-400/40">
+                    <p className="text-xs text-slate-600 italic leading-relaxed">"{user.lockAppeal}"</p>
                   </div>
-                  <p className="text-[11px] text-emerald-500/80 font-semibold bg-emerald-500/10 px-3 py-2 rounded-xl">
+                  <p className="text-[11px] text-emerald-700 font-semibold bg-emerald-100/70 px-3 py-2 rounded-xl border border-emerald-200/40">
                     ✦ Your appeal is under review. The admin will respond shortly.
                   </p>
                 </div>
               ) : (
                 <form onSubmit={handleAppealSubmit} className="text-left space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2.5">
                       Submit an Appeal
                     </label>
                     <textarea
@@ -322,22 +311,16 @@ export const Layout: React.FC = () => {
                       placeholder="Explain why you believe this suspension was made in error, or provide context that might help the admin review your case..."
                       rows={4}
                       required
-                      className="w-full resize-none rounded-2xl px-4 py-3.5 text-sm font-medium text-slate-200 placeholder-slate-600 transition-all outline-none"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.2)' }}
-                      onFocus={(e) => { e.target.style.border = '1px solid rgba(239,68,68,0.5)'; e.target.style.boxShadow = 'inset 0 2px 8px rgba(0,0,0,0.2), 0 0 0 3px rgba(239,68,68,0.1)'; }}
-                      onBlur={(e) => { e.target.style.border = '1px solid rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'inset 0 2px 8px rgba(0,0,0,0.2)'; }}
+                      className="w-full resize-none rounded-2xl px-4 py-3.5 text-sm font-medium text-text-main placeholder-gray-400 transition-all outline-none border border-gray-200 bg-white shadow-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
                     />
                   </div>
                   {appealError && (
-                    <p className="text-xs font-bold text-red-400 bg-red-500/10 p-3 rounded-xl border border-red-500/20">{appealError}</p>
+                    <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-200">{appealError}</p>
                   )}
                   <button
                     type="submit"
                     disabled={appealSubmitting || !appealText.trim()}
-                    className="w-full text-white font-bold text-sm py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{ background: 'linear-gradient(135deg, #ef4444, #b91c1c)', boxShadow: '0 8px 24px rgba(239,68,68,0.25)', border: 'none', cursor: 'pointer' }}
-                    onMouseEnter={(e) => { if (!appealSubmitting && appealText.trim()) { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 12px 32px rgba(239,68,68,0.35)'; } }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 24px rgba(239,68,68,0.25)'; }}
+                    className="w-full text-white font-bold text-sm py-3 rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-red-500 hover:bg-red-600 shadow-sm hover:shadow-md active:scale-[0.98]"
                   >
                     {appealSubmitting ? (
                       <>
@@ -356,26 +339,23 @@ export const Layout: React.FC = () => {
 
               {/* Divider */}
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }}></div>
-                <span className="text-[10px] text-slate-600 uppercase tracking-wider font-semibold">or</span>
-                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }}></div>
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">or</span>
+                <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
               {/* Contact + Logout */}
-              <div className="space-y-4">
-                <div
-                  className="rounded-2xl p-4 flex items-start gap-3"
-                  style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.15)' }}
-                >
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,0.15)' }}>
-                    <span className="material-symbols-outlined text-indigo-400 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
+              <div className="space-y-3">
+                <div className="rounded-2xl p-4 flex items-start gap-3 bg-blue-50 border border-blue-200/50">
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-brand-blue text-base" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
                   </div>
                   <div className="text-left">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-indigo-400 mb-0.5">Contact Support</p>
-                    <p className="text-xs text-slate-400 mb-1">If you need direct assistance from an administrator:</p>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-brand-blue mb-0.5">Contact Support</p>
+                    <p className="text-xs text-text-muted mb-1">For direct assistance from an administrator:</p>
                     <a
                       href="mailto:support@nonstopcoding.edu.vn"
-                      className="text-sm font-bold text-indigo-300 hover:text-indigo-200 transition-colors underline underline-offset-2"
+                      className="text-sm font-bold text-primary hover:text-primary-hover transition-colors underline underline-offset-2"
                     >
                       support@nonstopcoding.edu.vn
                     </a>
@@ -384,10 +364,7 @@ export const Layout: React.FC = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-2xl transition-all"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8', cursor: 'pointer' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.09)'; (e.currentTarget as HTMLButtonElement).style.color = '#cbd5e1'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLButtonElement).style.color = '#94a3b8'; }}
+                  className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-2xl transition-all text-slate-600 hover:text-slate-800 bg-white hover:bg-gray-50 border border-gray-200 shadow-sm"
                 >
                   <span className="material-symbols-outlined text-lg">logout</span>
                   <span>Sign Out</span>
@@ -398,14 +375,14 @@ export const Layout: React.FC = () => {
           </div>
 
           {/* Footer note */}
-          <p className="text-center text-[11px] text-slate-600 mt-6">
-            Nonstop Coding Platform — Account access suspended
+          <p className="text-center text-[11px] text-text-muted mt-6">
+            Nonstop Coding Platform — Account access restricted
           </p>
         </div>
 
         <style>{`
           @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(24px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
           }
         `}</style>
