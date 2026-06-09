@@ -120,16 +120,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Hợp nhất giỏ hàng khách với DB
         const guestCartStr = localStorage.getItem('guest_cart');
         const guestCart: string[] = guestCartStr ? JSON.parse(guestCartStr) : [];
-        
+
         let mergedCart = [...new Set([...ids.map(id => id.toString()), ...guestCart])];
-        
+
         // Push guest items to backend
         for (const cId of guestCart) {
-           if (!ids.includes(Number(cId))) {
-              await addToCartApi(cId).catch(console.error);
-           }
+          if (!ids.includes(Number(cId))) {
+            await addToCartApi(cId).catch(console.error);
+          }
         }
-        
+
         localStorage.removeItem('guest_cart'); // Clear after merge
         setCart(mergedCart);
       }).catch(err => {
@@ -259,7 +259,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!cart.includes(courseId)) {
       const newCart = [...cart, courseId];
       setCart(newCart);
-      
+
       if (user) {
         try {
           const success = await addToCartApi(courseId);
