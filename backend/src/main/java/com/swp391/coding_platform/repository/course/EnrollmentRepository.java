@@ -8,10 +8,13 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Integer> {
@@ -81,5 +84,9 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, In
 
     @Query("SELECT e FROM EnrollmentEntity e JOIN FETCH e.user u JOIN FETCH e.course c WHERE c.instructor.id = :instructorId ORDER BY e.enrolledAt DESC")
     List<EnrollmentEntity> findEnrollmentsByInstructorId(@Param("instructorId") Integer instructorId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM EnrollmentEntity e WHERE e.user.id = :userId AND e.course.id = :courseId")
+    Optional<EnrollmentEntity> findEnrollmentWithLock(@Param("userId") Long userId, @Param("courseId") Long courseId);
 }
 

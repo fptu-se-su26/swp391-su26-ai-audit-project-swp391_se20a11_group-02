@@ -11,6 +11,10 @@ import {
   fetchLearningLessonDetail,
   fetchLessonComments,
   postLessonComment,
+  fetchQuizByLesson,
+  submitQuiz,
+  completeLesson,
+  type QuizDetail,
   type LearningCurriculumChapterResponse,
   type LessonComment
 } from '../services/courseService';
@@ -426,7 +430,70 @@ export const StudentDashboard: React.FC = () => {
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [isPlayerLoading, setIsPlayerLoading] = useState<boolean>(false);
   
-  const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'source-code' | 'quiz'>('overview');
+  const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'quiz'>('overview');
+
+  // Quiz States
+  const [currentQuiz, setCurrentQuiz] = useState<QuizDetail | null>(null);
+  const [isQuizLoading, setIsQuizLoading] = useState<boolean>(false);
+  const [quizError, setQuizError] = useState<string | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number | null>>({});
+  const [isQuizSubmitting, setIsQuizSubmitting] = useState<boolean>(false);
+  const quizTabRef = useRef<HTMLDivElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  const loadQuizDetail = async (courseId: number, lessonId: number) => {
+    setIsQuizLoading(true);
+    setQuizError(null);
+    try {
+      const quiz = await fetchQuizByLesson(courseId, lessonId);
+      setCurrentQuiz(quiz);
+      const answers: Record<number, number | null> = {};
+      if (quiz.submitted && quiz.questions) {
+        quiz.questions.forEach(q => {
+          answers[q.questionId] = q.selectedOptionId ?? null;
+        });
+      } else {
+        if (quiz.questions) {
+          quiz.questions.forEach(q => {
+            answers[q.questionId] = null;
+          });
+        }
+      }
+      setSelectedAnswers(answers);
+    } catch (err: any) {
+      console.error('Error fetching quiz:', err);
+      setQuizError(err.message || 'Failed to load quiz details');
+      setCurrentQuiz(null);
+    } finally {
+      setIsQuizLoading(false);
+    }
+  };
+
+  const handleQuizSubmit = async () => {
+    if (!playerCourseId || !currentQuiz) return;
+
+    const answers = Object.entries(selectedAnswers).map(([qId, optId]) => ({
+      questionId: parseInt(qId),
+      selectedOptionId: optId
+    }));
+
+    setIsQuizSubmitting(true);
+    try {
+      await submitQuiz(playerCourseId, currentQuiz.quizId, { answers });
+      if (selectedLessonId) {
+        await loadQuizDetail(playerCourseId, selectedLessonId);
+      }
+      // Scroll smoothly to the tab bar (higher view)
+      setTimeout(() => {
+        tabsContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } catch (err: any) {
+      console.error('Error submitting quiz:', err);
+      alert(err.message || 'Failed to submit quiz');
+    } finally {
+      setIsQuizSubmitting(false);
+    }
+  };
 
   // Q&A States
   const [lessonComments, setLessonComments] = useState<LessonComment[]>([]);
@@ -941,6 +1008,13 @@ export const StudentDashboard: React.FC = () => {
     }
   }, [selectedLessonId, playerActiveTab]);
 
+  // Load quiz details when active lesson or active tab changes to 'quiz'
+  useEffect(() => {
+    if (playerCourseId && selectedLessonId && playerActiveTab === 'quiz') {
+      loadQuizDetail(playerCourseId, selectedLessonId);
+    }
+  }, [playerCourseId, selectedLessonId, playerActiveTab]);
+
 
   const ongoingScrollRef = useRef<HTMLDivElement>(null);
   const completedScrollRef = useRef<HTMLDivElement>(null);
@@ -1132,6 +1206,34 @@ export const StudentDashboard: React.FC = () => {
       setLearningChapters(chapters);
     } catch (err) {
       console.error('Failed to load lesson details:', err);
+    } finally {
+      setIsPlayerLoading(false);
+    }
+  };
+
+  const refreshLearningProgress = async (courseId: number | string) => {
+    try {
+      const detail = await fetchCourseLearningDetail(courseId);
+      setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+      const chapters = await fetchCourseLearningCurriculum(courseId);
+      setLearningChapters(chapters);
+    } catch (err) {
+      console.error('Failed to refresh learning progress:', err);
+    }
+  };
+
+  const handleCompleteLesson = async (e: React.MouseEvent, lessonId: number) => {
+    e.stopPropagation();
+    if (!playerCourseId) return;
+
+    setIsPlayerLoading(true);
+    try {
+      await completeLesson(playerCourseId, lessonId);
+      await refreshLearningProgress(playerCourseId);
+    } catch (err: any) {
+      console.error('Failed to complete lesson:', err);
+      alert(err.message || 'Không thể hoàn thành bài học');
     } finally {
       setIsPlayerLoading(false);
     }
@@ -2040,7 +2142,7 @@ export const StudentDashboard: React.FC = () => {
                 </div>
 
                 {/* Sub-tabs Navigation */}
-                <div className="flex border-b border-gray-200 gap-6 overflow-x-auto hide-scrollbar pb-px">
+                <div ref={tabsContainerRef} className="flex border-b border-gray-200 gap-6 overflow-x-auto hide-scrollbar pb-px">
                   <button 
                     onClick={() => { setPlayerActiveTab('overview'); setCurrentProblemName(null); }}
                     className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
@@ -2064,14 +2166,6 @@ export const StudentDashboard: React.FC = () => {
                     }`}
                   >
                     <span className="material-symbols-outlined text-[18px]">terminal</span> Exercises
-                  </button>
-                  <button 
-                    onClick={() => { setPlayerActiveTab('source-code'); setCurrentProblemName(null); }}
-                    className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                      playerActiveTab === 'source-code' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-primary'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">code</span> Source Code
                   </button>
                   <button 
                     onClick={() => { setPlayerActiveTab('quiz'); setCurrentProblemName(null); }}
@@ -2435,72 +2529,207 @@ export const StudentDashboard: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Source Code */}
-                  {playerActiveTab === 'source-code' && (
-                    <div className="animate-fade-in">
-                      <h2 className="text-lg font-bold text-text-main mb-1">Lesson Resources</h2>
-                      <p className="text-xs text-text-muted mb-4">Download the starting templates and completed source code for this lesson.</p>
-                      <div className="flex flex-col gap-3">
-                        <div className="bg-surface border border-gray-200 p-4 rounded-xl flex items-center justify-between gap-4 hover:border-primary transition-all group">
-                          <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-brand-blue text-[28px] bg-slate-100 p-2 rounded-lg">folder_zip</span>
-                            <div>
-                              <p className="font-bold text-sm text-text-main">lesson-1-2-starter-template.zip</p>
-                              <p className="text-[11px] text-text-muted">15.2 MB</p>
-                            </div>
-                          </div>
-                          <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
-                            <span className="material-symbols-outlined text-[16px]">download</span> Download
-                          </button>
-                        </div>
-                        <div className="bg-surface border border-gray-200 p-4 rounded-xl flex items-center justify-between gap-4 hover:border-primary transition-all group">
-                          <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-brand-blue text-[28px] bg-slate-100 p-2 rounded-lg">description</span>
-                            <div>
-                              <p className="font-bold text-sm text-text-main">database-schema-init.sql</p>
-                              <p className="text-[11px] text-text-muted">2.1 MB</p>
-                            </div>
-                          </div>
-                          <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
-                            <span className="material-symbols-outlined text-[16px]">download</span> Download
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Quiz */}
                   {playerActiveTab === 'quiz' && (
-                    <div className="animate-fade-in">
-                      <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
-                        <h2 className="text-lg font-bold text-text-main">Knowledge Check</h2>
-                        <span className="bg-slate-100 text-text-muted border border-gray-200 px-3 py-1 rounded-full text-xs font-bold">Question 1 of 5</span>
-                      </div>
-                      <div className="bg-surface p-2">
-                        <h3 className="text-base font-bold text-text-main mb-4 leading-snug">In Spring Boot, which annotation is used to map HTTP GET requests onto specific handler methods?</h3>
-                        <div className="space-y-3">
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@PostMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@GetMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@RequestMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@PathMapping</span>
-                          </label>
+                    <div ref={quizTabRef} className="animate-fade-in space-y-4">
+                      {isQuizLoading ? (
+                        <div className="flex flex-col items-center justify-center py-16">
+                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                          <p className="text-sm text-text-muted mt-4 font-semibold">Loading quiz details...</p>
                         </div>
-                        <div className="border-t border-gray-100 mt-6 pt-4 flex justify-between items-center">
-                          <a className="text-text-muted hover:text-primary font-bold text-xs transition-colors" href="#">Skip Question</a>
-                          <button className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors">Submit Answer</button>
+                      ) : quizError ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                          <span className="material-symbols-outlined text-gray-300 text-[64px] mb-3">quiz</span>
+                          <h3 className="text-base font-bold text-text-main">No Quiz Available</h3>
+                          <p className="text-xs text-text-muted mt-1 max-w-[320px]">
+                            {quizError.includes('404') || quizError.includes('found') 
+                              ? 'No quiz has been configured for this lesson yet.' 
+                              : quizError}
+                          </p>
                         </div>
-                      </div>
+                      ) : currentQuiz ? (
+                        <div>
+                          {currentQuiz.submitted ? (
+                            /* --- VIEW RESULT STATE --- */
+                            <div className="space-y-6">
+                              {/* Summary Score Card */}
+                              <div className="bg-gradient-to-r from-primary to-brand-blue rounded-3xl p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden">
+                                <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4">
+                                  <span className="material-symbols-outlined text-[180px]">emoji_events</span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                                  <div>
+                                    <span className="bg-white/20 text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Latest Attempt Results</span>
+                                    <h2 className="text-2xl font-black mt-2 leading-tight">{currentQuiz.title}</h2>
+                                    <p className="text-xs text-white/80 mt-1">Submitted at: {currentQuiz.submittedAt ? new Date(currentQuiz.submittedAt).toLocaleString('en-US') : ''}</p>
+                                  </div>
+                                  <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl backdrop-blur-sm self-start md:self-auto">
+                                    <div className="text-center">
+                                      <p className="text-3xl font-black">{currentQuiz.score?.toFixed(1)}%</p>
+                                      <p className="text-[10px] uppercase font-bold text-white/70 tracking-wider">Score</p>
+                                    </div>
+                                    <div className="w-px h-10 bg-white/20"></div>
+                                    <div className="text-center">
+                                      <p className="text-3xl font-black">{currentQuiz.correctQuestion}/{currentQuiz.totalQuestion}</p>
+                                      <p className="text-[10px] uppercase font-bold text-white/70 tracking-wider">Correct Answers</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="mt-5 pt-4 border-t border-white/10 flex justify-between items-center">
+                                  <p className="text-xs font-semibold">
+                                    {currentQuiz.score && currentQuiz.score >= 80 
+                                      ? '🎉 Excellent! You have fully mastered this lesson\'s knowledge.' 
+                                      : currentQuiz.score && currentQuiz.score >= 50 
+                                      ? '👍 Good job! You have passed the quiz.' 
+                                      : '😢 Score not passing. Please try taking the quiz again!'}
+                                  </p>
+                                  <button 
+                                    onClick={() => {
+                                      // Local retake mode
+                                      setCurrentQuiz(prev => prev ? { ...prev, submitted: false } : null);
+                                      const cleared: Record<number, number | null> = {};
+                                      currentQuiz.questions.forEach(q => { cleared[q.questionId] = null; });
+                                      setSelectedAnswers(cleared);
+                                    }}
+                                    className="bg-white hover:bg-slate-100 text-primary px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-sm"
+                                  >
+                                    Retake Quiz
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Review Questions list */}
+                              <div className="space-y-6 mt-6">
+                                {currentQuiz.questions.map((question, qIdx) => {
+                                  return (
+                                    <div key={question.questionId} className="bg-surface border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                                      <div className="flex justify-between items-start gap-4 mb-3">
+                                        <h3 className="text-sm font-bold text-text-main leading-snug flex gap-2">
+                                          <span>{qIdx + 1}.</span>
+                                          <span>{question.content}</span>
+                                        </h3>
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                                          question.isCorrect 
+                                            ? 'bg-green-50 text-brand-green border border-green-200' 
+                                            : 'bg-red-50 text-red-750 border border-red-200'
+                                        }`}>
+                                          {question.isCorrect ? 'Correct' : 'Incorrect'}
+                                        </span>
+                                      </div>
+                                      
+                                      <div className="space-y-2.5">
+                                        {question.options.map((option) => {
+                                          const isSelected = question.selectedOptionId === option.optionId;
+                                          const isCorrectOption = option.isCorrect;
+
+                                          let styleClass = 'border-gray-200 opacity-70';
+                                          let icon = null;
+
+                                          if (isCorrectOption) {
+                                            styleClass = 'border-brand-green bg-green-50 text-brand-green font-bold';
+                                            icon = <span className="material-symbols-outlined text-[16px] text-brand-green">check_circle</span>;
+                                          } else if (isSelected) {
+                                            styleClass = 'border-red-500 bg-red-50 text-red-700 font-bold';
+                                            icon = <span className="material-symbols-outlined text-[16px] text-red-600">cancel</span>;
+                                          }
+
+                                          return (
+                                            <div 
+                                              key={option.optionId} 
+                                              className={`flex items-center justify-between p-3.5 border rounded-xl text-xs transition-all ${styleClass}`}
+                                            >
+                                              <div className="flex items-center gap-3">
+                                                <input 
+                                                  type="radio"
+                                                  disabled
+                                                  checked={isSelected}
+                                                  className="w-4 h-4 text-primary border-gray-300"
+                                                />
+                                                <span className="font-semibold">{option.content}</span>
+                                              </div>
+                                              {icon}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            /* --- VIEW QUIZ TAKING STATE --- */
+                            <div className="space-y-6">
+                              <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                                <h2 className="text-base font-bold text-text-main">{currentQuiz.title}</h2>
+                                <span className="bg-slate-100 text-text-muted border border-gray-200 px-3 py-1 rounded-full text-xs font-bold">
+                                  {Object.values(selectedAnswers).filter(v => v !== null).length} / {currentQuiz.questions.length} Selected
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-5">
+                                {currentQuiz.questions.map((question, qIdx) => (
+                                  <div key={question.questionId} className="bg-surface border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-all">
+                                    <h3 className="text-sm font-bold text-text-main mb-3 leading-snug flex gap-2">
+                                      <span>{qIdx + 1}.</span>
+                                      <span>{question.content}</span>
+                                    </h3>
+                                    <div className="space-y-2.5">
+                                      {question.options.map((option) => {
+                                        const isSelected = selectedAnswers[question.questionId] === option.optionId;
+                                        return (
+                                          <label 
+                                            key={option.optionId} 
+                                            className={`flex items-center gap-3 p-3.5 border rounded-xl cursor-pointer transition-all ${
+                                              isSelected 
+                                                ? 'border-primary bg-primary-light/5 ring-1 ring-primary' 
+                                                : 'border-gray-200 hover:bg-slate-50 hover:border-gray-300'
+                                            }`}
+                                          >
+                                            <input 
+                                              type="radio"
+                                              className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary"
+                                              name={`question-${question.questionId}`}
+                                              checked={isSelected}
+                                              onChange={() => {
+                                                setSelectedAnswers(prev => ({
+                                                  ...prev,
+                                                  [question.questionId]: option.optionId
+                                                }));
+                                              }}
+                                            />
+                                            <span className="text-xs font-semibold text-text-main">{option.content}</span>
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="border-t border-gray-100 mt-6 pt-4 flex justify-end">
+                                <button 
+                                  onClick={handleQuizSubmit}
+                                  disabled={isQuizSubmitting}
+                                  className="bg-primary hover:bg-primary-hover disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-bold text-xs shadow-md shadow-primary/20 transition-all flex items-center gap-2"
+                                >
+                                  {isQuizSubmitting ? (
+                                    <>
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                      Submitting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="material-symbols-outlined text-[16px]">send</span>
+                                      Submit Quiz
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
                   )}
 
@@ -2560,7 +2789,11 @@ export const StudentDashboard: React.FC = () => {
                                       check_circle
                                     </span>
                                   ) : (
-                                    <span className={`material-symbols-outlined text-[16px] ${isSelected ? 'text-primary' : 'text-text-muted'}`}>
+                                    <span 
+                                      onClick={(e) => handleCompleteLesson(e, lesson.id)}
+                                      className={`material-symbols-outlined text-[16px] hover:text-brand-green transition-colors cursor-pointer ${isSelected ? 'text-primary' : 'text-text-muted'}`}
+                                      title="Mark as completed"
+                                    >
                                       radio_button_unchecked
                                     </span>
                                   )}
