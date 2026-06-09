@@ -270,5 +270,30 @@ public class CourseController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
+
+    @PostMapping("/{id}/lessons/{lessonId}/complete")
+    @PreAuthorize("@courseSecurity.canAccessCourse(#id) && @courseSecurity.canAccessLesson(#lessonId)")
+    public ResponseEntity<ApiResponse<Void>> completeLesson(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id,
+            @PathVariable("lessonId") Integer lessonId) {
+
+        if (jwt == null) {
+            return ResponseEntity.status(401).build();
+        }
+        Number idClaim = jwt.getClaim("userId");
+        if (idClaim == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        courseService.completeLesson(idClaim.longValue(), id, lessonId);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Lesson completed successfully")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }
 
