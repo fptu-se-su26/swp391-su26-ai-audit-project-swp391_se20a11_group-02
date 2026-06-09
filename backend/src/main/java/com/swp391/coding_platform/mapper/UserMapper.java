@@ -28,6 +28,8 @@ public interface UserMapper {
     @Mapping(target = "wallet", ignore = true)
     UserEntity toUserEntity(RegisterRequest registerRequest);
 
+    @Mapping(target = "displayName", source = "displayname")
+    @Mapping(target = "avatarUrl", source = "avatarurl")
     UserResponse toUserResponse(UserEntity userEntity);
 
     default Set<String> map(Set<RoleEntity> roles) {

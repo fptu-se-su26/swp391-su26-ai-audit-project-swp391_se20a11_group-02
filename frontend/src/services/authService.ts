@@ -85,5 +85,39 @@ export const authService = {
     if (!response.ok) {
       throw new Error('Đăng xuất không thành công');
     }
+  },
+
+  async changePassword(changePasswordData: any): Promise<void> {
+    const response = await fetch(`${BASE_URL}/me/change-password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // CRITICAL: Required to send HttpOnly cookies
+      body: JSON.stringify(changePasswordData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Thay đổi mật khẩu không thành công');
+    }
+  },
+
+  async getMyInfo(): Promise<any> {
+    const response = await fetch(`${BASE_URL}/me/my-info`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // CRITICAL: Required to send HttpOnly cookies
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Không thể lấy thông tin người dùng');
+    }
+
+    const data = await response.json();
+    return data.result;
   }
 };

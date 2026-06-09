@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { instructorService } from '../services/instructorService';
-
+import { fetchCourseReviews, type CourseReviewStatsResponse } from '../services/courseService';
+import Editor from '@monaco-editor/react';
 /* 
   Tailwind Safelist for dynamic classes from backend:
   from-blue-500 to-indigo-600
@@ -130,6 +131,9 @@ export const InstructorDashboard: React.FC = () => {
   // Selected item (Chapter or Lesson) inside workspace syllabus
   const [selectedItem, setSelectedItem] = useState<{ type: 'chapter' | 'lesson' | null; chIdx: number; lesIdx: number | null }>({ type: null, chIdx: 0, lesIdx: null });
 
+  // Reviews state
+  const [courseReviewsStats, setCourseReviewsStats] = useState<CourseReviewStatsResponse | null>(null);
+
   const activeChapter = curriculumData.chapters[selectedItem.chIdx] || null;
   const activeLesson = (selectedItem.type === 'lesson' && selectedItem.lesIdx !== null)
     ? curriculumData.chapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx] || null
@@ -154,6 +158,19 @@ export const InstructorDashboard: React.FC = () => {
   const [exerciseInitialCode, setExerciseInitialCode] = useState('');
   const [exerciseSolutionCode, setExerciseSolutionCode] = useState('');
   const [exerciseTestCases, setExerciseTestCases] = useState<any[]>([]);
+  const [exerciseInputDesc, setExerciseInputDesc] = useState('');
+  const [exerciseOutputDesc, setExerciseOutputDesc] = useState('');
+  const [exerciseConstraints, setExerciseConstraints] = useState('');
+  const [exerciseExampleInput, setExerciseExampleInput] = useState('');
+  const [exerciseExampleOutput, setExerciseExampleOutput] = useState('');
+  const [exerciseHint, setExerciseHint] = useState('');
+  const [exerciseScore, setExerciseScore] = useState(100);
+  const [exerciseTimeLimit, setExerciseTimeLimit] = useState(2000);
+  const [exerciseMemoryLimit, setExerciseMemoryLimit] = useState(128000);
+
+  const [testCaseGenerationMode, setTestCaseGenerationMode] = useState<'manual' | 'generate'>('manual');
+  const [generatorLanguage, setGeneratorLanguage] = useState('java');
+  const [generatorCode, setGeneratorCode] = useState('');
 
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
@@ -179,6 +196,10 @@ export const InstructorDashboard: React.FC = () => {
     }
   }, [selectedItem.chIdx, selectedItem.lesIdx, selectedItem.type, activeChapter, activeLesson]);
 
+  const handleSaveOverviewDraft = () => {
+    alert('Draft saved temporarily in your browser. Click "Save Course" above to permanently save all changes to the backend.');
+  };
+
   const handleSaveChapter = () => {
     if (!chapterTitle.trim()) {
       alert('Chapter title cannot be empty!');
@@ -189,7 +210,7 @@ export const InstructorDashboard: React.FC = () => {
       newChapters[selectedItem.chIdx].title = chapterTitle.trim();
       return { chapters: newChapters };
     });
-    alert('Chapter info saved to backend successfully via separate API!');
+    alert('Draft saved temporarily in your browser. Click "Save Course" above to permanently save all changes to the backend.');
   };
 
   const handleSaveLessonOverview = () => {
@@ -213,7 +234,7 @@ export const InstructorDashboard: React.FC = () => {
       });
       return { chapters: newChapters };
     });
-    alert('Lesson Overview saved to backend successfully via separate API!');
+    alert('Draft saved temporarily in your browser. Click "Save Course" above to permanently save all changes to the backend.');
   };
 
   const handleSaveLessonTheory = () => {
@@ -228,7 +249,7 @@ export const InstructorDashboard: React.FC = () => {
       });
       return { chapters: newChapters };
     });
-    alert('Lesson Theory content saved to backend successfully via separate Theory API!');
+    alert('Draft saved temporarily in your browser. Click "Save Course" above to permanently save all changes to the backend.');
   };
   // --- Exercise Handlers ---
   const handleOpenExerciseModal = (exercise?: any) => {
@@ -240,6 +261,15 @@ export const InstructorDashboard: React.FC = () => {
       setExerciseInitialCode(exercise.initialCode || '');
       setExerciseSolutionCode(exercise.solutionCode || '');
       setExerciseTestCases(exercise.testCases || []);
+      setExerciseInputDesc(exercise.inputDesc || '');
+      setExerciseOutputDesc(exercise.outputDesc || '');
+      setExerciseConstraints(exercise.constraints || '');
+      setExerciseExampleInput(exercise.exampleInput || '');
+      setExerciseExampleOutput(exercise.exampleOutput || '');
+      setExerciseHint(exercise.hint || '');
+      setExerciseScore(exercise.score ?? 100);
+      setExerciseTimeLimit(exercise.timeLimit ?? 2000);
+      setExerciseMemoryLimit(exercise.memoryLimit ?? 128000);
     } else {
       setEditingExerciseId(null);
       setExerciseTitle('');
@@ -248,7 +278,19 @@ export const InstructorDashboard: React.FC = () => {
       setExerciseInitialCode('');
       setExerciseSolutionCode('');
       setExerciseTestCases([]);
+      setExerciseInputDesc('');
+      setExerciseOutputDesc('');
+      setExerciseConstraints('');
+      setExerciseExampleInput('');
+      setExerciseExampleOutput('');
+      setExerciseHint('');
+      setExerciseScore(100);
+      setExerciseTimeLimit(2000);
+      setExerciseMemoryLimit(128000);
     }
+    setTestCaseGenerationMode('manual');
+    setGeneratorLanguage('java');
+    setGeneratorCode('');
     setIsExerciseModalOpen(true);
   };
 
@@ -282,12 +324,12 @@ export const InstructorDashboard: React.FC = () => {
           if (editingExerciseId !== null) {
             return {
               ...les,
-              exercises: currentExercises.map(ex => ex.id === editingExerciseId ? { ...ex, title: exerciseTitle, difficulty: exerciseDifficulty, description: exerciseDescription, initialCode: exerciseInitialCode, solutionCode: exerciseSolutionCode, testCases: exerciseTestCases } : ex)
+              exercises: currentExercises.map(ex => ex.id === editingExerciseId ? { ...ex, title: exerciseTitle, difficulty: exerciseDifficulty, description: exerciseDescription, initialCode: exerciseInitialCode, solutionCode: exerciseSolutionCode, testCases: exerciseTestCases, inputDesc: exerciseInputDesc, outputDesc: exerciseOutputDesc, constraints: exerciseConstraints, exampleInput: exerciseExampleInput, exampleOutput: exerciseExampleOutput, hint: exerciseHint, score: exerciseScore, timeLimit: exerciseTimeLimit, memoryLimit: exerciseMemoryLimit } : ex)
             };
           } else {
             return {
               ...les,
-              exercises: [...currentExercises, { id: Date.now(), title: exerciseTitle, difficulty: exerciseDifficulty, description: exerciseDescription, initialCode: exerciseInitialCode, solutionCode: exerciseSolutionCode, testCases: exerciseTestCases }]
+              exercises: [...currentExercises, { id: Date.now(), title: exerciseTitle, difficulty: exerciseDifficulty, description: exerciseDescription, initialCode: exerciseInitialCode, solutionCode: exerciseSolutionCode, testCases: exerciseTestCases, inputDesc: exerciseInputDesc, outputDesc: exerciseOutputDesc, constraints: exerciseConstraints, exampleInput: exerciseExampleInput, exampleOutput: exerciseExampleOutput, hint: exerciseHint, score: exerciseScore, timeLimit: exerciseTimeLimit, memoryLimit: exerciseMemoryLimit }]
             };
           }
         });
@@ -618,6 +660,14 @@ export const InstructorDashboard: React.FC = () => {
       } else {
         setCurriculumData({ chapters: [] });
       }
+
+      try {
+        const reviewData = await fetchCourseReviews(course.id);
+        setCourseReviewsStats(reviewData);
+      } catch (err) {
+        console.warn('Failed to load course reviews', err);
+        setCourseReviewsStats(null);
+      }
       
       setSelectedItem({ type: null, chIdx: 0, lesIdx: null });
       window.location.hash = '#edit-course';
@@ -702,10 +752,11 @@ export const InstructorDashboard: React.FC = () => {
         })
       );
       setWorkspaceCourseTitle(updatedCourse.title);
-      alert('✅ Đã lưu toàn bộ thay đổi! Khóa học đang ở trạng thái "Chờ duyệt" (Pending) để Admin kiểm tra.');
+      alert('✅ Course changes saved successfully! It is now pending admin review.');
+      window.location.hash = '#my-courses';
     } catch (error) {
       console.error('Failed to save course:', error);
-      alert('❌ Lưu thất bại! Vui lòng kiểm tra kết nối Backend và thử lại.');
+      alert('❌ Failed to save course! Please check your connection and try again.');
     } finally {
       setIsSaving(false);
     }
@@ -3096,11 +3147,11 @@ export const InstructorDashboard: React.FC = () => {
                 >
                   {isSaving ? (
                     <>
-                      <span className="material-symbols-outlined text-sm animate-spin">sync</span> Đang lưu...
+                      <span className="material-symbols-outlined text-sm animate-spin">sync</span> Saving...
                     </>
                   ) : (
                     <>
-                      <span className="material-symbols-outlined text-sm">save</span> 💾 Lưu toàn bộ khóa học
+                      <span className="material-symbols-outlined text-sm">save</span> Save Course
                     </>
                   )}
                 </button>
@@ -3109,7 +3160,7 @@ export const InstructorDashboard: React.FC = () => {
                   onClick={closeSyllabusEditor}
                   className="flex items-center gap-1 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-red-600 text-white hover:text-white transition-all text-xs font-bold shadow-md hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <span className="material-symbols-outlined text-sm">close</span> Thoát
+                  <span className="material-symbols-outlined text-sm">close</span> Cancel
                 </button>
               </div>
             </div>
@@ -3130,12 +3181,11 @@ export const InstructorDashboard: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={handleSaveAllCourseChanges}
-                      disabled={isSaving}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-emerald-500/10 flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                      onClick={handleSaveOverviewDraft}
+                      className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5 shrink-0"
                     >
-                      <span className="material-symbols-outlined text-sm font-bold">{isSaving ? 'sync' : 'save'}</span>
-                      <span>{isSaving ? 'Đang lưu...' : '💾 Lưu toàn bộ khóa học'}</span>
+                      <span className="material-symbols-outlined text-sm font-bold">save</span>
+                      <span>Save Draft (Temporary)</span>
                     </button>
                   </div>
 
@@ -3490,172 +3540,76 @@ export const InstructorDashboard: React.FC = () => {
                     <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center p-6 bg-slate-50/50 border border-slate-200/40 rounded-2xl">
                       {/* Left: Overall score card */}
                       <div className="flex flex-col items-center gap-2 shrink-0 bg-white border border-slate-200/60 p-5 rounded-2xl shadow-sm w-full lg:w-44 text-center">
-                        <span className="text-5xl font-extrabold text-primary">4.9</span>
+                        <span className="text-5xl font-extrabold text-primary">{courseReviewsStats?.averageRating?.toFixed(1) || '0.0'}</span>
                         <div className="flex text-yellow-400">
-                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span key={star} className={`material-symbols-outlined text-[20px] ${(courseReviewsStats?.averageRating || 0) < star ? 'text-slate-250' : ''}`} style={(courseReviewsStats?.averageRating || 0) >= star ? { fontVariationSettings: '"FILL" 1' } : {}}>star</span>
+                          ))}
                         </div>
                         <span className="text-xs font-bold text-brand-blue uppercase tracking-wider mt-1">Course Rating</span>
-                        <span className="text-[10px] text-text-muted font-semibold mt-0.5">Based on 2,451 reviews</span>
+                        <span className="text-[10px] text-text-muted font-semibold mt-0.5">Based on {courseReviewsStats?.totalReviews || 0} reviews</span>
                       </div>
 
                       {/* Right: Star breakdown bars */}
                       <div className="flex-grow w-full space-y-2.5">
-                        {/* 5 stars */}
-                        <div className="flex items-center gap-4 text-xs font-semibold">
-                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                          </div>
-                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
-                            <div className="bg-primary h-full rounded-full" style={{ width: '85%' }}></div>
-                          </div>
-                          <span className="w-12 text-slate-500 text-left shrink-0">2,083</span>
-                        </div>
-                        {/* 4 stars */}
-                        <div className="flex items-center gap-4 text-xs font-semibold">
-                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                          </div>
-                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
-                            <div className="bg-primary h-full rounded-full" style={{ width: '10%' }}></div>
-                          </div>
-                          <span className="w-12 text-slate-500 text-left shrink-0">245</span>
-                        </div>
-                        {/* 3 stars */}
-                        <div className="flex items-center gap-4 text-xs font-semibold">
-                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                          </div>
-                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
-                            <div className="bg-primary h-full rounded-full" style={{ width: '3%' }}></div>
-                          </div>
-                          <span className="w-12 text-slate-500 text-left shrink-0">74</span>
-                        </div>
-                        {/* 2 stars */}
-                        <div className="flex items-center gap-4 text-xs font-semibold">
-                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                          </div>
-                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
-                            <div className="bg-primary h-full rounded-full" style={{ width: '1%' }}></div>
-                          </div>
-                          <span className="w-12 text-slate-500 text-left shrink-0">24</span>
-                        </div>
-                        {/* 1 star */}
-                        <div className="flex items-center gap-4 text-xs font-semibold">
-                          <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
-                            <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                            <span className="material-symbols-outlined text-[15px] text-slate-250">star</span>
-                          </div>
-                          <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
-                            <div className="bg-primary h-full rounded-full" style={{ width: '1%' }}></div>
-                          </div>
-                          <span className="w-12 text-slate-500 text-left shrink-0">25</span>
-                        </div>
+                        {[5, 4, 3, 2, 1].map((starValue) => {
+                          const count = courseReviewsStats?.starDistribution?.[starValue] || 0;
+                          const total = courseReviewsStats?.totalReviews || 1; // avoid div by 0
+                          const percentage = courseReviewsStats?.totalReviews ? (count / total) * 100 : 0;
+                          return (
+                            <div key={starValue} className="flex items-center gap-4 text-xs font-semibold">
+                              <div className="flex text-yellow-400 shrink-0 w-24 justify-end">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <span key={s} className={`material-symbols-outlined text-[15px] ${s > starValue ? 'text-slate-250' : ''}`} style={s <= starValue ? { fontVariationSettings: '"FILL" 1' } : {}}>star</span>
+                                ))}
+                              </div>
+                              <div className="flex-grow bg-slate-200/60 rounded-full h-2 overflow-hidden">
+                                <div className="bg-primary h-full rounded-full" style={{ width: `${percentage}%` }}></div>
+                              </div>
+                              <span className="w-12 text-slate-500 text-left shrink-0">{count}</span>
+                            </div>
+                          );
+                        })}
+                        {/* End dynamic bars */}
                       </div>
                     </div>
 
                     {/* Feedback cards grid */}
                     <div className="flex flex-col gap-4 mt-2 divide-y divide-slate-100">
-                      {/* Review 1 */}
-                      <div className="pt-5 flex gap-4 items-start">
-                        <img
-                          alt="User Avatar"
-                          className="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shrink-0"
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start gap-4">
-                            <div>
-                              <h5 className="text-xs font-extrabold text-brand-blue">David Thompson</h5>
-                              <div className="flex text-yellow-400 scale-75 origin-left -ml-1 mt-0.5">
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
+                      {courseReviewsStats?.reviews?.content?.map((review) => (
+                        <div key={review.id} className="pt-5 flex gap-4 items-start">
+                          <img
+                            alt="User Avatar"
+                            className="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shrink-0"
+                            src={review.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.displayName)}&background=12284C&color=fff`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start gap-4">
+                              <div>
+                                <h5 className="text-xs font-extrabold text-brand-blue">{review.displayName}</h5>
+                                <div className="flex text-yellow-400 scale-75 origin-left -ml-1 mt-0.5">
+                                  {[1, 2, 3, 4, 5].map((s) => (
+                                    <span key={s} className={`material-symbols-outlined text-[16px] ${s > review.star ? 'text-slate-250' : ''}`} style={s <= review.star ? { fontVariationSettings: '"FILL" 1' } : {}}>star</span>
+                                  ))}
+                                </div>
                               </div>
+                              <span className="text-[10px] text-text-muted font-bold whitespace-nowrap shrink-0">{new Date(review.createdAt).toLocaleDateString()}</span>
                             </div>
-                            <span className="text-[10px] text-text-muted font-bold whitespace-nowrap shrink-0">2 days ago</span>
+                            <p className="text-xs text-text-muted leading-relaxed font-semibold mt-2">
+                              {review.content}
+                            </p>
                           </div>
-                          <p className="text-xs text-text-muted leading-relaxed font-semibold mt-2">
-                            Excellent course! The curriculum was structured extremely well, and the technical illustrations were of premium quality. Highly recommend to any developers preparing to build production-grade web applications.
-                          </p>
                         </div>
-                      </div>
-
-                      {/* Review 2 */}
-                      <div className="pt-5 flex gap-4 items-start">
-                        <img
-                          alt="User Avatar"
-                          className="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shrink-0"
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuB98dPVylZwO6vg95FQaD4k-myG1YhY-VGq7du1S8-pcxrZmnhUwx2VzSs1AkC17Ld9sN1YJQziGrBM5Wxg39W1UFKWDjBJkC4p7QnbHP8aEqlD703-2MHTrqIN65tt0QPlOkZY7JTwMAXIas3lEuSOkuv9JT3HAenrdph26Gza-yDSVOVR0WEfHbnhWYtKN5fNK-bLnyjvw5pHNbtgeUVJysTqy7Xeb6TBV9G1g22LmO1UX_2MQ-DV5vRbsXPHEqko_NPdoIjv-Is"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start gap-4">
-                            <div>
-                              <h5 className="text-xs font-extrabold text-brand-blue">Amanda Lee</h5>
-                              <div className="flex text-yellow-400 scale-75 origin-left -ml-1 mt-0.5">
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: '"FILL" 1' }}>star</span>
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-text-muted font-bold whitespace-nowrap shrink-0">1 week ago</span>
-                          </div>
-                          <p className="text-xs text-text-muted leading-relaxed font-semibold mt-2">
-                            Very comprehensive. The deep dive into backend database systems and the mock testing architectures are incredibly premium. Best money spent on a course this year.
-                          </p>
+                      ))}
+                      {(!courseReviewsStats?.reviews?.content || courseReviewsStats.reviews.content.length === 0) && (
+                        <div className="pt-5 text-sm font-semibold text-slate-500 italic text-center">
+                          No reviews yet.
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* SAVE ACTION */}
-                  <div className="bg-white rounded-3xl border border-gray-250 p-6 shadow-sm flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleSaveAllCourseChanges}
-                      disabled={isSaving}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm py-4 px-10 rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.99] flex items-center gap-2.5 disabled:opacity-50"
-                    >
-                      {isSaving ? (
-                        <>
-                          <span className="material-symbols-outlined text-base animate-spin">sync</span>
-                          <span>Đang lưu toàn bộ thay đổi...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="material-symbols-outlined text-base">save</span>
-                          <span>💾 Lưu toàn bộ khóa học (Chuyển sang Chờ duyệt)</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
+
                 </div>
               )}
 
@@ -3691,7 +3645,7 @@ export const InstructorDashboard: React.FC = () => {
                       className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5"
                     >
                       <span className="material-symbols-outlined text-sm">save</span>
-                      <span>Save Chapter Title</span>
+                      <span>Save Draft (Temporary)</span>
                     </button>
                     <button
                       type="button"
@@ -3824,7 +3778,7 @@ export const InstructorDashboard: React.FC = () => {
                             className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5"
                           >
                             <span className="material-symbols-outlined text-sm">save</span>
-                            <span>Save Lesson Info</span>
+                            <span>Save Draft (Temporary)</span>
                           </button>
                         </div>
                       </div>
@@ -3852,7 +3806,7 @@ export const InstructorDashboard: React.FC = () => {
                             className="bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5"
                           >
                             <span className="material-symbols-outlined text-sm">save</span>
-                            <span>Save Theory Content</span>
+                            <span>Save Draft (Temporary)</span>
                           </button>
                         </div>
                       </div>
@@ -4638,7 +4592,7 @@ export const InstructorDashboard: React.FC = () => {
       {/* ================= MODAL: ADD/EDIT EXERCISE ================= */}
       {isExerciseModalOpen && (
         <div className="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="bg-brand-blue px-6 py-4 flex items-center justify-between shrink-0">
               <h2 className="text-white font-display font-black text-xl flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">code</span>
@@ -4680,7 +4634,7 @@ export const InstructorDashboard: React.FC = () => {
 
               {/* Deep Content: Problem Statement & Code */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Problem Statement (Markdown)</label>
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Problem Statement (Markdown) *</label>
                 <textarea
                   value={exerciseDescription}
                   onChange={(e) => setExerciseDescription(e.target.value)}
@@ -4689,38 +4643,126 @@ export const InstructorDashboard: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-bold text-brand-blue uppercase tracking-wider">Initial Code (Base code for student)</label>
-                  <textarea
-                    value={exerciseInitialCode}
-                    onChange={(e) => setExerciseInitialCode(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-slate-200 focus:ring-primary focus:border-primary resize-y h-48"
-                    placeholder="function solve() {\n  // Your code here\n}"
-                    spellCheck="false"
-                  />
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Input Description</label>
+                  <textarea rows={2} value={exerciseInputDesc} onChange={e => setExerciseInputDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Describe input structure..." />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-bold text-brand-blue uppercase tracking-wider">Solution Code (Reference)</label>
-                  <textarea
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Output Description</label>
+                  <textarea rows={2} value={exerciseOutputDesc} onChange={e => setExerciseOutputDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Describe output structure..." />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Constraints</label>
+                <textarea rows={2} value={exerciseConstraints} onChange={e => setExerciseConstraints(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="e.g. 1 <= nums.length <= 10^5" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Example Input</label>
+                  <textarea rows={2} value={exerciseExampleInput} onChange={e => setExerciseExampleInput(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue" placeholder="Input sample..." />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Example Output</label>
+                  <textarea rows={2} value={exerciseExampleOutput} onChange={e => setExerciseExampleOutput(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue" placeholder="Output sample..." />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Hint</label>
+                <input type="text" value={exerciseHint} onChange={e => setExerciseHint(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Tip or pointer..." />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-brand-blue uppercase tracking-wider">Solution Code (Reference)</label>
+                <div className="w-full h-64 border border-slate-200 rounded-xl overflow-hidden shadow-inner">
+                  <Editor
+                    height="100%"
+                    defaultLanguage="java"
+                    theme="light"
                     value={exerciseSolutionCode}
-                    onChange={(e) => setExerciseSolutionCode(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-green-400 focus:ring-primary focus:border-primary resize-y h-48"
-                    placeholder="function solve() {\n  return true;\n}"
-                    spellCheck="false"
+                    onChange={(value) => setExerciseSolutionCode(value || '')}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      scrollBeyondLastLine: false,
+                      wordWrap: 'on',
+                    }}
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Test Cases</h4>
-                  <button type="button" onClick={handleAddTestCase} className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">add</span> Add Test Case
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Test Cases</h4>
+                    <div className="flex bg-slate-100 rounded-lg p-1">
+                      <button 
+                        type="button" 
+                        onClick={() => setTestCaseGenerationMode('manual')}
+                        className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors ${testCaseGenerationMode === 'manual' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Manual Input
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setTestCaseGenerationMode('generate')}
+                        className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors ${testCaseGenerationMode === 'generate' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Auto Generate
+                      </button>
+                    </div>
+                  </div>
+                  {testCaseGenerationMode === 'manual' && (
+                    <button type="button" onClick={handleAddTestCase} className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">add</span> Add Test Case
+                    </button>
+                  )}
                 </div>
                 
-                {exerciseTestCases.length === 0 ? (
+                {testCaseGenerationMode === 'generate' ? (
+                  <div className="flex flex-col gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-medium text-slate-500">Write code to generate test cases. This code will run on the server.</p>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-bold text-brand-blue">Language:</label>
+                        <select 
+                          value={generatorLanguage}
+                          onChange={(e) => setGeneratorLanguage(e.target.value)}
+                          className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-brand-blue focus:ring-primary focus:border-primary"
+                        >
+                          <option value="c">C</option>
+                          <option value="cpp">C++</option>
+                          <option value="java">Java</option>
+                          <option value="python">Python</option>
+                          <option value="csharp">C#</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="w-full h-64 border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-white">
+                      <Editor
+                        height="100%"
+                        defaultLanguage={generatorLanguage === 'c' || generatorLanguage === 'cpp' ? 'cpp' : generatorLanguage === 'csharp' ? 'csharp' : generatorLanguage}
+                        language={generatorLanguage === 'c' || generatorLanguage === 'cpp' ? 'cpp' : generatorLanguage === 'csharp' ? 'csharp' : generatorLanguage}
+                        theme="light"
+                        value={generatorCode}
+                        onChange={(value) => setGeneratorCode(value || '')}
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 14,
+                          scrollBeyondLastLine: false,
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <button type="button" onClick={() => alert('This will be connected to the backend compiler to run the generator and append the outputs to the Test Cases list.')} className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">play_arrow</span> Run & Generate
+                      </button>
+                    </div>
+                  </div>
+                ) : exerciseTestCases.length === 0 ? (
                   <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
                     <p className="text-xs text-text-muted font-bold">No test cases added yet.</p>
                   </div>
