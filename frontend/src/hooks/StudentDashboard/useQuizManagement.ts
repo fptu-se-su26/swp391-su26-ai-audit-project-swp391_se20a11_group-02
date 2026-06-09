@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { fetchQuizByLesson, submitQuiz, type QuizDetail } from '../services/courseService';
+import { fetchQuizByLesson, submitQuiz, type QuizDetail } from '../../services/courseService';
 
 export const useQuizManagement = () => {
   const [currentQuiz, setCurrentQuiz] = useState<QuizDetail | null>(null);

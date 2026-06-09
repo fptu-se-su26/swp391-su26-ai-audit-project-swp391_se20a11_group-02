@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { fetchCourseLearningDetail, fetchCourseLearningCurriculum, fetchLearningLessonDetail, completeLesson, type LearningCurriculumChapterResponse } from '../services/courseService';
+import { fetchCourseLearningDetail, fetchCourseLearningCurriculum, completeLesson, type LearningCurriculumChapterResponse } from '../../services/courseService';
 
 export const useCourseLearning = () => {
   const [playerCourseId, setPlayerCourseId] = useState<number | null>(null);

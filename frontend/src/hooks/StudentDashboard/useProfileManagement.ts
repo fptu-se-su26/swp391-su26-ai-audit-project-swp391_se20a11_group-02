@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { authService } from '../services/authService';
 
 export const useProfileManagement = (user: any) => {
   const [avatarUrlInput, setAvatarUrlInput] = useState('');

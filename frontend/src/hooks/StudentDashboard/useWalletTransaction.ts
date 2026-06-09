@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { paymentService } from '../services/paymentService';
-import { getPurchaseHistory, type PurchaseHistoryResponse } from '../services/orderService';
+import { type PurchaseHistoryResponse } from '../../services/orderService';
 
 export const useWalletTransaction = () => {
   const [walletTransactions, setWalletTransactions] = useState<any[]>([]);
