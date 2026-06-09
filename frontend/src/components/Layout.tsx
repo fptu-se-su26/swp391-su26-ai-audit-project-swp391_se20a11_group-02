@@ -274,6 +274,11 @@ export const Layout: React.FC = () => {
                       <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
                     </Link>
                   )}
+                  {user && user.role !== 'admin' && user.role !== 'instructor' && (
+                    <Link to="/apply-instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">school</span> Become Instructor
+                    </Link>
+                  )}
                   <div className="h-px bg-gray-100 my-1 w-full"></div>
                   <button onClick={handleLogout} className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2 w-full text-left">
                     <span className="material-symbols-outlined text-[18px]">logout</span> Logout
