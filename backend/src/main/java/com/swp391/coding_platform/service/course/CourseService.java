@@ -5,6 +5,10 @@ import com.swp391.coding_platform.dto.response.CourseListItemResponse;
 import com.swp391.coding_platform.dto.response.CourseDetailResponse;
 import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
+import com.swp391.coding_platform.dto.response.LearningDetailResponse;
+import com.swp391.coding_platform.dto.response.LearningLessonResponse;
+import com.swp391.coding_platform.dto.response.LearningCurriculumChapterResponse;
+import com.swp391.coding_platform.entity.course.LessonEntity;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
@@ -26,6 +30,12 @@ import com.swp391.coding_platform.dto.request.CourseReviewRequest;
 import com.swp391.coding_platform.entity.course.CourseReviewEntity;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.repository.user.UserRepository;
+import com.swp391.coding_platform.dto.request.CreateCommentRequest;
+import com.swp391.coding_platform.dto.response.LessonCommentResponse;
+import com.swp391.coding_platform.entity.course.LessonCommentEntity;
+import com.swp391.coding_platform.repository.course.LessonCommentRepository;
+import com.swp391.coding_platform.repository.course.LessonRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -51,6 +61,8 @@ public class CourseService {
     ChapterRepository chapterRepository;
     CourseReviewRepository courseReviewRepository;
     UserRepository userRepository;
+    LessonCommentRepository lessonCommentRepository;
+    LessonRepository lessonRepository;
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
@@ -257,4 +269,117 @@ public class CourseService {
 
         courseRepository.save(course);
     }
+
+    public LearningDetailResponse getCourseLearningDetail(Long userId, Long courseId) {
+        CourseEntity course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // 1. Tải danh sách bài học đã hoàn thiện bằng EntityGraph để tránh N+1
+        List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+        List<LessonEntity> orderedLessons = chapters.stream()
+                .flatMap(chapter -> chapter.getLessons().stream())
+                .toList();
+
+        if (orderedLessons.isEmpty()) {
+            throw new AppException(ErrorCode.LESSON_NOT_FOUND);
+        }
+
+        // 2. Tải danh sách ID bài học hoàn thành trong 1 query
+        Set<Long> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId, courseId);
+
+        // 3. Tính toán tiến độ bài học hoàn thành
+        int completeLessons = completedLessonIds.size();
+        int totalLessons = orderedLessons.size();
+        int progressPercentage = ProgressUtils.calculatePercentage(completeLessons, totalLessons);
+
+        // 4. Tìm bài học active chưa học đầu tiên, nếu đã học hết chọn bài cuối cùng
+        LessonEntity activeLesson = orderedLessons.stream()
+                .filter(lesson -> !completedLessonIds.contains(lesson.getId().longValue()))
+                .findFirst()
+                .orElse(orderedLessons.get(orderedLessons.size() - 1));
+
+        // 5. Trả về DTO map đa nguồn sạch sẽ bằng MapStruct
+        return courseMapper.toLearningDetailResponse(course, progressPercentage, activeLesson);
+    }
+
+    public List<LearningCurriculumChapterResponse> getCourseLearningCurriculum(Long userId, Long courseId) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
+        // 1. Lấy toàn bộ chapter + lessons trong 1 JOIN query bằng EntityGraph
+        List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+
+        // 2. Lấy toàn bộ bài học đã hoàn thiện trong 1 query duy nhất
+        Set<Long> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId, courseId);
+
+        // 3. Sử dụng MapStruct map kèm ngữ cảnh completedLessonIds để tự động phân phối map trạng thái hoàn thành
+        return courseMapper.toLearningCurriculumChapterResponses(chapters, completedLessonIds);
+    }
+
+    public LearningLessonResponse getLearningLessonDetail(Long userId, Long courseId, Integer lessonId) {
+        List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+        LessonEntity lesson = chapters.stream()
+                .flatMap(ch -> ch.getLessons().stream())
+                .filter(l -> l.getId().equals(lessonId))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        return courseMapper.toLearningLessonResponse(lesson);
+    }
+
+    public List<LessonCommentResponse> getLessonComments(Integer lessonId) {
+        List<LessonCommentEntity> roots = lessonCommentRepository.findRootCommentsWithRepliesAndUsers(lessonId);
+        return roots.stream().map(this::mapCommentToResponse).toList();
+    }
+
+    @Transactional
+    public LessonCommentResponse addLessonComment(Integer lessonId, Integer userId, CreateCommentRequest request) {
+        LessonEntity lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        LessonCommentEntity parent = null;
+        if (request.getParentId() != null) {
+            parent = lessonCommentRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+
+            if (!parent.getLesson().getId().equals(lessonId)) {
+                throw new AppException(ErrorCode.INVALID_COMMENT_LESSON);
+            }
+
+            // Enforce maximum 1-level deep replies
+            if (parent.getParent() != null) {
+                throw new AppException(ErrorCode.INVALID_COMMENT_LEVEL);
+            }
+        }
+
+        LessonCommentEntity comment = LessonCommentEntity.builder()
+                .lesson(lesson)
+                .user(user)
+                .content(request.getContent())
+                .parent(parent)
+                .build();
+
+        lessonCommentRepository.save(comment);
+        return mapCommentToResponse(comment);
+    }
+
+    private LessonCommentResponse mapCommentToResponse(LessonCommentEntity entity) {
+        List<LessonCommentResponse> replies = entity.getReplies() != null ? 
+                entity.getReplies().stream().map(this::mapCommentToResponse).toList() : List.of();
+
+        return LessonCommentResponse.builder()
+                .id(entity.getId())
+                .author(entity.getUser().getDisplayname())
+                .avatarUrl(entity.getUser().getAvatarurl())
+                .text(entity.getContent())
+                .createdAt(entity.getCreatedAt())
+                .parentId(entity.getParent() != null ? entity.getParent().getId() : null)
+                .replies(replies)
+                .build();
+    }
 }
+

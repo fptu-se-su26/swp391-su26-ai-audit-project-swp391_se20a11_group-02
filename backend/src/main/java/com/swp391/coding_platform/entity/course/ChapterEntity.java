@@ -40,5 +40,6 @@ public class ChapterEntity {
     Instant updatedAt = Instant.now();
 
     @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy("orderIndex ASC")
     List<LessonEntity> lessons;
 }
