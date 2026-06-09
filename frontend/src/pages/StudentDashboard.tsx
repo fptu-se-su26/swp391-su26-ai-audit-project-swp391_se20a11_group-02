@@ -13,6 +13,7 @@ import {
   postLessonComment,
   fetchQuizByLesson,
   submitQuiz,
+  completeLesson,
   type QuizDetail,
   type LearningCurriculumChapterResponse,
   type LessonComment
@@ -1205,6 +1206,34 @@ export const StudentDashboard: React.FC = () => {
       setLearningChapters(chapters);
     } catch (err) {
       console.error('Failed to load lesson details:', err);
+    } finally {
+      setIsPlayerLoading(false);
+    }
+  };
+
+  const refreshLearningProgress = async (courseId: number | string) => {
+    try {
+      const detail = await fetchCourseLearningDetail(courseId);
+      setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+      const chapters = await fetchCourseLearningCurriculum(courseId);
+      setLearningChapters(chapters);
+    } catch (err) {
+      console.error('Failed to refresh learning progress:', err);
+    }
+  };
+
+  const handleCompleteLesson = async (e: React.MouseEvent, lessonId: number) => {
+    e.stopPropagation();
+    if (!playerCourseId) return;
+
+    setIsPlayerLoading(true);
+    try {
+      await completeLesson(playerCourseId, lessonId);
+      await refreshLearningProgress(playerCourseId);
+    } catch (err: any) {
+      console.error('Failed to complete lesson:', err);
+      alert(err.message || 'Không thể hoàn thành bài học');
     } finally {
       setIsPlayerLoading(false);
     }
@@ -2760,7 +2789,11 @@ export const StudentDashboard: React.FC = () => {
                                       check_circle
                                     </span>
                                   ) : (
-                                    <span className={`material-symbols-outlined text-[16px] ${isSelected ? 'text-primary' : 'text-text-muted'}`}>
+                                    <span 
+                                      onClick={(e) => handleCompleteLesson(e, lesson.id)}
+                                      className={`material-symbols-outlined text-[16px] hover:text-brand-green transition-colors cursor-pointer ${isSelected ? 'text-primary' : 'text-text-muted'}`}
+                                      title="Mark as completed"
+                                    >
                                       radio_button_unchecked
                                     </span>
                                   )}

@@ -10,6 +10,7 @@ import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
+import com.swp391.coding_platform.repository.course.LessonRepository;
 import com.swp391.coding_platform.repository.payment.WalletRepository;
 import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
 import com.swp391.coding_platform.repository.user.UserDailyActivityRepository;
@@ -26,6 +27,7 @@ import com.swp391.coding_platform.entity.enums.OjVerdict;
 
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Collections;
 import java.util.Arrays;
@@ -50,6 +52,7 @@ public class DashboardService {
     private final UserDailyActivityRepository activityRepository;
     private final CourseMapper courseMapper;
     private final ProblemSubmissionRepository problemSubmissionRepository;
+    private final LessonRepository lessonRepository;
 
     public DashboardStatsResponse getDashboardStats(Integer userId) {
 
@@ -142,10 +145,18 @@ public class DashboardService {
                         c -> c.getCompletedLessonsCount() != null ? c.getCompletedLessonsCount() : 0
                 ));
 
+        // 4.5. Query total lessons dynamically to avoid 0% due to unpopulated total_lessons column in database
+        List<Object[]> lessonCountsRaw = lessonRepository.countLessonsByCourseIds(courseIds);
+        Map<Long, Integer> totalLessonsMap = lessonCountsRaw.stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Number) row[1]).intValue()
+                ));
+
         // 5. Map entities to DTOs and calculate progress using the utility class
         return activeCourses.stream().map(course -> {
             int completed = completedCountsMap.getOrDefault(course.getId(), 0);
-            int total = course.getTotalLessons() != null ? course.getTotalLessons() : 0;
+            int total = totalLessonsMap.getOrDefault(course.getId(), 0);
             int progress = ProgressUtils.calculatePercentage(completed, total);
 
             CourseListItemResponse response = courseMapper.toCourseListItemResponse(course);

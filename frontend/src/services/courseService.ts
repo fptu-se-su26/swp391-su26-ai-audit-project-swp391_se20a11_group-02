@@ -1053,3 +1053,19 @@ export const submitQuiz = async (courseId: number | string, quizId: number | str
   return resData.result;
 };
 
+export const completeLesson = async (courseId: number | string, lessonId: number | string): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}/complete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể hoàn thành bài học');
+  }
+};
+
+
