@@ -231,87 +231,184 @@ export const Layout: React.FC = () => {
 
   if (user && user.status === 'LOCKED') {
     return (
-      <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Glowing Backdrop Circles */}
+      <div
+        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #0f0f1a 0%, #1a0a1a 50%, #0a0f1a 100%)', fontFamily: "'Inter', sans-serif" }}
+      >
+        {/* Animated radial glows */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-red-500/5 rounded-full blur-[120px]"></div>
-          <div className="absolute top-1/3 -right-40 w-[550px] h-[550px] bg-brand-blue/5 rounded-full blur-[130px]"></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.15) 0%, transparent 70%)', animation: 'pulse 4s ease-in-out infinite' }}></div>
+          <div className="absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)', animation: 'pulse 6s ease-in-out infinite reverse' }}></div>
+          <div className="absolute top-[40%] left-[50%] w-[400px] h-[400px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.05) 0%, transparent 70%)', transform: 'translateX(-50%)' }}></div>
+          {/* Floating grid lines */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }}></div>
         </div>
 
-        <div className="relative z-10 w-full max-w-lg bg-surface/90 backdrop-blur-xl border border-red-200/40 rounded-3xl p-8 shadow-2xl text-center space-y-6 bg-white">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-50 text-red-500 border border-red-200/50 shadow-sm shadow-red-100 animate-pulse">
-            <span className="material-symbols-outlined text-4xl icon-fill">lock</span>
+        {/* Main Card */}
+        <div className="relative z-10 w-full max-w-xl" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
+
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding" className="h-10 w-auto opacity-80 drop-shadow-md" />
           </div>
 
-          <div className="space-y-2">
-            <h1 className="font-display font-black text-2xl text-brand-blue tracking-tight">Account Temporarily Locked</h1>
-            <p className="text-sm text-text-muted">Your account has been suspended for violating system policies or terms of service.</p>
-          </div>
+          {/* Card */}
+          <div
+            className="rounded-3xl overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(24px)', border: '1px solid rgba(239,68,68,0.2)', boxShadow: '0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 0 60px rgba(239,68,68,0.08)' }}
+          >
+            {/* Top danger stripe */}
+            <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #ef4444, #dc2626, #b91c1c)' }}></div>
 
-          <div className="bg-red-50/50 border border-red-150 rounded-2xl p-4 text-left space-y-1.5 shadow-sm">
-            <span className="text-[10px] font-black uppercase tracking-wider text-red-500 block">Admin Lock Reason:</span>
-            <p className="text-xs font-semibold text-slate-700 leading-relaxed">
-              {user.lockReason || "No detailed reason provided."}
-            </p>
-          </div>
+            <div className="p-8 md:p-10 space-y-7">
 
-          {user.lockAppeal ? (
-            <div className="bg-emerald-50/45 border border-emerald-200/50 rounded-2xl p-5 text-left space-y-2">
-              <div className="flex items-center gap-2 text-emerald-700">
-                <span className="material-symbols-outlined text-lg icon-fill">check_circle</span>
-                <span className="text-xs font-bold uppercase tracking-wider">Appeal Submitted Successfully</span>
+              {/* Icon + Heading */}
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mx-auto relative" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(185,28,28,0.1))', border: '1px solid rgba(239,68,68,0.3)', boxShadow: '0 0 40px rgba(239,68,68,0.2)' }}>
+                  <span className="material-symbols-outlined text-red-400 text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1", fontSize: '14px' }}>priority_high</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h1 className="font-display font-black text-3xl text-white tracking-tight mb-2">Account Suspended</h1>
+                  <p className="text-sm text-slate-400 leading-relaxed max-w-sm mx-auto">
+                    Your account access has been temporarily restricted due to a policy violation.
+                  </p>
+                </div>
               </div>
-              <p className="text-xs font-medium text-slate-650 italic bg-white/60 p-3 rounded-xl border border-emerald-100/30 leading-relaxed">
-                "{user.lockAppeal}"
-              </p>
-              <p className="text-[10px] text-emerald-600 font-bold leading-normal">
-                * Your appeal is under review. The administrator will respond or unlock your account if approved.
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleAppealSubmit} className="text-left space-y-3">
-              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 px-1">
-                Submit In-System Appeal:
-              </label>
-              <textarea
-                value={appealText}
-                onChange={(e) => setAppealText(e.target.value)}
-                placeholder="Please write your explanation or describe why you believe your account should be unlocked..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-medium focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/20 transition-all text-slate-750 resize-none outline-none"
-                rows={4}
-                required
-              />
-              {appealError && (
-                <p className="text-xs font-bold text-red-500 bg-red-50 p-2.5 rounded-xl border border-red-100">{appealError}</p>
-              )}
-              <button
-                type="submit"
-                disabled={appealSubmitting || !appealText.trim()}
-                className="w-full bg-gradient-to-r from-red-500 to-red-650 hover:from-red-650 hover:to-red-700 text-white font-extrabold text-xs py-3 rounded-2xl transition-all shadow-md shadow-red-100 disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer border-none"
+
+              {/* Lock Reason Card */}
+              <div
+                className="rounded-2xl p-5 text-left space-y-2"
+                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
               >
-                <span className="material-symbols-outlined text-lg">send</span>
-                <span>{appealSubmitting ? 'Submitting...' : 'Submit Appeal'}</span>
-              </button>
-            </form>
-          )}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Reason for Suspension</span>
+                </div>
+                <p className="text-sm font-medium text-slate-200 leading-relaxed pl-3.5 border-l-2 border-red-500/40">
+                  {user.lockReason || 'Violation of platform terms of service or community guidelines.'}
+                </p>
+              </div>
 
-          <div className="h-px bg-slate-200/60 my-2"></div>
+              {/* Appeal Section */}
+              {user.lockAppeal ? (
+                <div
+                  className="rounded-2xl p-5 text-left space-y-3"
+                  style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.2)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-emerald-400 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Appeal Submitted</span>
+                  </div>
+                  <div className="pl-3.5 border-l-2 border-emerald-500/40">
+                    <p className="text-xs text-slate-300 italic leading-relaxed">"{user.lockAppeal}"</p>
+                  </div>
+                  <p className="text-[11px] text-emerald-500/80 font-semibold bg-emerald-500/10 px-3 py-2 rounded-xl">
+                    ✦ Your appeal is under review. The admin will respond shortly.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleAppealSubmit} className="text-left space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
+                      Submit an Appeal
+                    </label>
+                    <textarea
+                      value={appealText}
+                      onChange={(e) => setAppealText(e.target.value)}
+                      placeholder="Explain why you believe this suspension was made in error, or provide context that might help the admin review your case..."
+                      rows={4}
+                      required
+                      className="w-full resize-none rounded-2xl px-4 py-3.5 text-sm font-medium text-slate-200 placeholder-slate-600 transition-all outline-none"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.2)' }}
+                      onFocus={(e) => { e.target.style.border = '1px solid rgba(239,68,68,0.5)'; e.target.style.boxShadow = 'inset 0 2px 8px rgba(0,0,0,0.2), 0 0 0 3px rgba(239,68,68,0.1)'; }}
+                      onBlur={(e) => { e.target.style.border = '1px solid rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'inset 0 2px 8px rgba(0,0,0,0.2)'; }}
+                    />
+                  </div>
+                  {appealError && (
+                    <p className="text-xs font-bold text-red-400 bg-red-500/10 p-3 rounded-xl border border-red-500/20">{appealError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={appealSubmitting || !appealText.trim()}
+                    className="w-full text-white font-bold text-sm py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{ background: 'linear-gradient(135deg, #ef4444, #b91c1c)', boxShadow: '0 8px 24px rgba(239,68,68,0.25)', border: 'none', cursor: 'pointer' }}
+                    onMouseEnter={(e) => { if (!appealSubmitting && appealText.trim()) { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 12px 32px rgba(239,68,68,0.35)'; } }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 24px rgba(239,68,68,0.25)'; }}
+                  >
+                    {appealSubmitting ? (
+                      <>
+                        <span className="material-symbols-outlined text-lg animate-spin">autorenew</span>
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-lg">send</span>
+                        <span>Submit Appeal</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
 
-          <div className="space-y-4">
-            <p className="text-xs text-text-muted">
-              For further assistance or inquiries, please contact the Admin via email:<br />
-              <strong className="text-brand-blue font-bold text-xs select-all">support@nonstopcoding.edu.vn</strong>
-            </p>
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }}></div>
+                <span className="text-[10px] text-slate-600 uppercase tracking-wider font-semibold">or</span>
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }}></div>
+              </div>
 
-            <button
-              onClick={handleLogout}
-              className="px-6 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800 font-bold text-xs transition-all border border-slate-200 cursor-pointer w-full flex items-center justify-center gap-1.5"
-            >
-              <span className="material-symbols-outlined text-lg">logout</span>
-              <span>Logout Account</span>
-            </button>
+              {/* Contact + Logout */}
+              <div className="space-y-4">
+                <div
+                  className="rounded-2xl p-4 flex items-start gap-3"
+                  style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.15)' }}
+                >
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,0.15)' }}>
+                    <span className="material-symbols-outlined text-indigo-400 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-indigo-400 mb-0.5">Contact Support</p>
+                    <p className="text-xs text-slate-400 mb-1">If you need direct assistance from an administrator:</p>
+                    <a
+                      href="mailto:support@nonstopcoding.edu.vn"
+                      className="text-sm font-bold text-indigo-300 hover:text-indigo-200 transition-colors underline underline-offset-2"
+                    >
+                      support@nonstopcoding.edu.vn
+                    </a>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-2xl transition-all"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8', cursor: 'pointer' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.09)'; (e.currentTarget as HTMLButtonElement).style.color = '#cbd5e1'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLButtonElement).style.color = '#94a3b8'; }}
+                >
+                  <span className="material-symbols-outlined text-lg">logout</span>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+
+            </div>
           </div>
+
+          {/* Footer note */}
+          <p className="text-center text-[11px] text-slate-600 mt-6">
+            Nonstop Coding Platform — Account access suspended
+          </p>
         </div>
+
+        <style>{`
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
       </div>
     );
   }
