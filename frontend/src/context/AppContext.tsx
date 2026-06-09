@@ -12,6 +12,9 @@ export interface User {
   role: 'student' | 'instructor' | 'admin';
   avatar: string;
   walletBalance: number;
+  status?: 'ACTIVE' | 'LOCKED';
+  lockReason?: string;
+  lockAppeal?: string;
 }
 
 export interface WalletTransaction {
@@ -160,6 +163,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       role: userRole,
       avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(result.displayName || username)}&background=F36F21&color=fff`,
       walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
+      status: result.status as 'ACTIVE' | 'LOCKED' || 'ACTIVE',
+      lockReason: result.lockReason || '',
+      lockAppeal: result.lockAppeal || '',
     };
 
     setUser(loggedInUser);
@@ -184,6 +190,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       role: userRole,
       avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=User&background=F36F21&color=fff`,
       walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
+      status: result.status as 'ACTIVE' | 'LOCKED' || 'ACTIVE',
+      lockReason: result.lockReason || '',
+      lockAppeal: result.lockAppeal || '',
     };
 
     setUser(loggedInUser);
@@ -208,6 +217,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       role: userRole,
       avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(result.displayName || registerData.displayname)}&background=F36F21&color=fff`,
       walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
+      status: result.status as 'ACTIVE' | 'LOCKED' || 'ACTIVE',
+      lockReason: result.lockReason || '',
+      lockAppeal: result.lockAppeal || '',
     };
 
     setUser(loggedInUser);

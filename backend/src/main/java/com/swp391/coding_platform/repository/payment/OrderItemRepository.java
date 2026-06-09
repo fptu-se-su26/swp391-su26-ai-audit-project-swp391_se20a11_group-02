@@ -16,4 +16,13 @@ public interface OrderItemRepository extends JpaRepository<OrderItemEntity, Inte
            "WHERE c.instructor.id = :instructorId " +
            "AND o.status = 'COMPLETED'")
     List<OrderItemEntity> findCompletedItemsByInstructorId(@Param("instructorId") Integer instructorId);
+
+    @Query("SELECT oi FROM OrderItemEntity oi " +
+           "JOIN FETCH oi.course c " +
+           "JOIN FETCH oi.order o " +
+           "WHERE o.user.id = :userId " +
+           "AND o.status = :status")
+    List<OrderItemEntity> findByOrderUserIdAndOrderStatus(
+            @Param("userId") Integer userId,
+            @Param("status") com.swp391.coding_platform.entity.enums.OrderStatus status);
 }

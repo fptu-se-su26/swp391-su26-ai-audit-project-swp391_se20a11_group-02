@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { ContestSidebar } from './ContestSidebar';
+import { authService } from '../services/authService';
 
 export interface ContestOverviewData {
   id: number;
@@ -20,9 +21,50 @@ export interface ContestOverviewData {
 }
 
 export const Layout: React.FC = () => {
-  const { user, cart, logout } = useApp();
+  const { user, cart, logout, updateUser } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [appealText, setAppealText] = useState('');
+  const [appealSubmitting, setAppealSubmitting] = useState(false);
+  const [appealError, setAppealError] = useState<string | null>(null);
+
+  // Poll or retrieve the user's latest info on mount to ensure status (LOCKED/ACTIVE) is accurate
+  useEffect(() => {
+    if (user?.id) {
+      const fetchLatestUserInfo = async () => {
+        try {
+          const latestInfo = await authService.getMyInfo();
+          if (latestInfo) {
+            updateUser({
+              status: latestInfo.status,
+              lockReason: latestInfo.lockReason,
+              lockAppeal: latestInfo.lockAppeal,
+            });
+          }
+        } catch (err) {
+          console.warn("Failed to fetch latest user info on layout mount:", err);
+        }
+      };
+      fetchLatestUserInfo();
+    }
+  }, [user?.id]);
+
+  const handleAppealSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!appealText.trim()) return;
+    setAppealSubmitting(true);
+    setAppealError(null);
+    try {
+      await authService.submitAppeal(appealText);
+      updateUser({ lockAppeal: appealText });
+      setAppealText('');
+    } catch (err: any) {
+      setAppealError(err.message || 'Failed to submit appeal. Please try again.');
+    } finally {
+      setAppealSubmitting(false);
+    }
+  };
 
   const isInstructorRoute = location.pathname.startsWith('/instructor');
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -187,6 +229,92 @@ export const Layout: React.FC = () => {
     }
   }, [user, isPrivateRoute, navigate]);
 
+  if (user && user.status === 'LOCKED') {
+    return (
+      <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Glowing Backdrop Circles */}
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-red-500/5 rounded-full blur-[120px]"></div>
+          <div className="absolute top-1/3 -right-40 w-[550px] h-[550px] bg-brand-blue/5 rounded-full blur-[130px]"></div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-lg bg-surface/90 backdrop-blur-xl border border-red-200/40 rounded-3xl p-8 shadow-2xl text-center space-y-6 bg-white">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-50 text-red-500 border border-red-200/50 shadow-sm shadow-red-100 animate-pulse">
+            <span className="material-symbols-outlined text-4xl icon-fill">lock</span>
+          </div>
+
+          <div className="space-y-2">
+            <h1 className="font-display font-black text-2xl text-brand-blue tracking-tight">Account Temporarily Locked</h1>
+            <p className="text-sm text-text-muted">Your account has been suspended for violating system policies or terms of service.</p>
+          </div>
+
+          <div className="bg-red-50/50 border border-red-150 rounded-2xl p-4 text-left space-y-1.5 shadow-sm">
+            <span className="text-[10px] font-black uppercase tracking-wider text-red-500 block">Admin Lock Reason:</span>
+            <p className="text-xs font-semibold text-slate-700 leading-relaxed">
+              {user.lockReason || "No detailed reason provided."}
+            </p>
+          </div>
+
+          {user.lockAppeal ? (
+            <div className="bg-emerald-50/45 border border-emerald-200/50 rounded-2xl p-5 text-left space-y-2">
+              <div className="flex items-center gap-2 text-emerald-700">
+                <span className="material-symbols-outlined text-lg icon-fill">check_circle</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Appeal Submitted Successfully</span>
+              </div>
+              <p className="text-xs font-medium text-slate-650 italic bg-white/60 p-3 rounded-xl border border-emerald-100/30 leading-relaxed">
+                "{user.lockAppeal}"
+              </p>
+              <p className="text-[10px] text-emerald-600 font-bold leading-normal">
+                * Your appeal is under review. The administrator will respond or unlock your account if approved.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleAppealSubmit} className="text-left space-y-3">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 px-1">
+                Submit In-System Appeal:
+              </label>
+              <textarea
+                value={appealText}
+                onChange={(e) => setAppealText(e.target.value)}
+                placeholder="Please write your explanation or describe why you believe your account should be unlocked..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-medium focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/20 transition-all text-slate-750 resize-none outline-none"
+                rows={4}
+                required
+              />
+              {appealError && (
+                <p className="text-xs font-bold text-red-500 bg-red-50 p-2.5 rounded-xl border border-red-100">{appealError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={appealSubmitting || !appealText.trim()}
+                className="w-full bg-gradient-to-r from-red-500 to-red-650 hover:from-red-650 hover:to-red-700 text-white font-extrabold text-xs py-3 rounded-2xl transition-all shadow-md shadow-red-100 disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer border-none"
+              >
+                <span className="material-symbols-outlined text-lg">send</span>
+                <span>{appealSubmitting ? 'Submitting...' : 'Submit Appeal'}</span>
+              </button>
+            </form>
+          )}
+
+          <div className="h-px bg-slate-200/60 my-2"></div>
+
+          <div className="space-y-4">
+            <p className="text-xs text-text-muted">
+              For further assistance or inquiries, please contact the Admin via email:<br />
+              <strong className="text-brand-blue font-bold text-xs select-all">support@nonstopcoding.edu.vn</strong>
+            </p>
+
+            <button
+              onClick={handleLogout}
+              className="px-6 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800 font-bold text-xs transition-all border border-slate-200 cursor-pointer w-full flex items-center justify-center gap-1.5"
+            >
+              <span className="material-symbols-outlined text-lg">logout</span>
+              <span>Logout Account</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex flex-col antialiased selection:bg-primary-light selection:text-brand-blue relative">

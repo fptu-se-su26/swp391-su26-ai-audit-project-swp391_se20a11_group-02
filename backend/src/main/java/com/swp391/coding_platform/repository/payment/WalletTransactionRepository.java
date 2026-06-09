@@ -16,4 +16,13 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     List<WalletTransactionEntity> findByWalletIdOrderByCreatedAtDesc(Integer walletId);
     Page<WalletTransactionEntity> findByWalletUserId(Integer userId, Pageable pageable);
     Page<WalletTransactionEntity> findByWalletUserIdAndType(Integer userId, TransactionType type, Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM WalletTransactionEntity t " +
+           "WHERE t.wallet.id = :walletId " +
+           "AND t.type = :type " +
+           "AND t.status = :status")
+    java.math.BigDecimal sumAmountByWalletIdAndTypeAndStatus(
+            @Param("walletId") Integer walletId,
+            @Param("type") TransactionType type,
+            @Param("status") com.swp391.coding_platform.entity.enums.StatusTransaction status);
 }

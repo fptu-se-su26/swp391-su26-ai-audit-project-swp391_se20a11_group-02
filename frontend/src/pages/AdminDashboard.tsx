@@ -110,6 +110,12 @@ const tabHeaderDetails: Record<string, { badge: string; icon: string; title: str
     icon: 'insights',
     title: 'Financial Statistics 📊',
     desc: 'Track platform revenue growth, subscription sales, and analyze instructor payouts.'
+  },
+  appeals: {
+    badge: 'Account Appeals',
+    icon: 'gavel',
+    title: 'Account Lock Appeals ⚖️',
+    desc: 'Review and resolve appeal requests submitted directly by locked users.'
   }
 };
 
@@ -326,7 +332,7 @@ const rankingFormatMinutes = (m: number): string => {
 export const AdminDashboard: React.FC = () => {
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial' | 'appeals'>('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // States for API data
@@ -380,6 +386,60 @@ export const AdminDashboard: React.FC = () => {
   const [reviewCurrentProblem, setReviewCurrentProblem] = useState<string | null>(null);
   const [reviewSolveLang, setReviewSolveLang] = useState('Java');
   const [reviewSolveCode, setReviewSolveCode] = useState('');
+
+  // Account Lock / Appeal States
+  const [userLockAction, setUserLockAction] = useState<{
+    userId: number;
+    userName: string;
+    newStatus: 'ACTIVE' | 'LOCKED';
+  } | null>(null);
+  const [customLockReason, setCustomLockReason] = useState<string>('');
+  const [decliningAppealUser, setDecliningAppealUser] = useState<AdminUser | null>(null);
+  const [declineReasonText, setDeclineReasonText] = useState<string>('');
+
+  const handleUserStatusChange = (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const targetUser = users.find(u => u.id === userId);
+    if (!targetUser) return;
+    if (newStatus === 'LOCKED') {
+      setUserLockAction({
+        userId,
+        userName: targetUser.name,
+        newStatus,
+      });
+      setCustomLockReason('');
+    } else {
+      setUserLockAction({
+        userId,
+        userName: targetUser.name,
+        newStatus,
+      });
+    }
+  };
+
+  const handleUserStatusChangeConfirm = async () => {
+    if (!userLockAction) return;
+    const { userId, newStatus } = userLockAction;
+    try {
+      const updatedUser = await adminService.setUserLockStatus(
+        userId,
+        newStatus,
+        newStatus === 'LOCKED' ? customLockReason.trim() || undefined : undefined
+      );
+      setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u));
+      showAdminToast(
+        `Successfully ${newStatus === 'LOCKED' ? 'locked' : 'unlocked'} account for ${updatedUser.name}.`,
+        'success'
+      );
+    } catch (err: any) {
+      showAdminToast(err.message || 'Failed to update user lock status.', 'error');
+    } finally {
+      setUserLockAction(null);
+    }
+  };
+
+  const pendingAppealsCount = useMemo(() => {
+    return users.filter(u => u.status === 'LOCKED' && u.lockAppeal).length;
+  }, [users]);
 
   // Contest Detail Review Mode states
   const [reviewingContest, setReviewingContest] = useState<AdminContest | null>(null);
@@ -838,21 +898,7 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
-    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      const updated = await adminService.setUserLockStatus(userId, newStatus);
-      setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-      if (selectedUserDetail?.id === userId) {
-        setSelectedUserDetail(updated);
-      }
-      alert(`User status successfully updated to ${newStatus}`);
-    } catch (error) {
-      alert("Failed to update user status");
-    }
-  };
+  // handleUserStatusChange is declared above with modal support
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1239,15 +1285,62 @@ export const AdminDashboard: React.FC = () => {
             <span className="sidebar-text text-sm">Instructor</span>
           </a>
 
-          <a
-            href="#users"
-            onClick={() => setActiveTab('users')}
-            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'users' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+          {/* Nav: Users with collapsible sub-items */}
+          <div className="flex flex-col">
+            <button
+              onClick={() => {
+                setActiveTab(activeTab === 'appeals' ? 'appeals' : 'users');
+              }}
+              className={`group flex items-center justify-between gap-3 px-3 py-3 rounded-xl transition-all duration-200 border-none text-left bg-transparent cursor-pointer ${
+                activeTab === 'users' || activeTab === 'appeals'
+                  ? 'bg-white/10 text-white font-bold border-l-4 border-primary'
+                  : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
-          >
-            <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'users' ? 'text-primary icon-fill' : ''}`}>group</span>
-            <span className="sidebar-text text-sm">Users</span>
-          </a>
+            >
+              <div className="flex items-center gap-3">
+                <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'users' || activeTab === 'appeals' ? 'text-primary icon-fill' : ''}`}>group</span>
+                <span className="sidebar-text text-sm">Users</span>
+              </div>
+              <span className="material-symbols-outlined text-sm text-slate-400">
+                {(activeTab === 'users' || activeTab === 'appeals') ? 'expand_less' : 'expand_more'}
+              </span>
+            </button>
+
+            {/* Sub-menu if active or expanded */}
+            {(activeTab === 'users' || activeTab === 'appeals') && (
+              <div className="pl-8 pr-2 py-1.5 flex flex-col gap-1 bg-white/5 ml-3 mt-1 rounded-r-lg border-l border-white/10">
+                <a
+                  href="#users"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveTab('users');
+                  }}
+                  className={`text-[11px] py-1 px-2.5 rounded-md text-left transition-all ${
+                    activeTab === 'users' ? 'bg-white/10 text-white font-bold' : 'text-slate-400 hover:text-white font-semibold'
+                  }`}
+                >
+                  Users List
+                </a>
+                <a
+                  href="#appeals"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveTab('appeals');
+                  }}
+                  className={`text-[11px] py-1 px-2.5 rounded-md text-left transition-all flex items-center justify-between gap-1.5 ${
+                    activeTab === 'appeals' ? 'bg-white/10 text-white font-bold' : 'text-slate-400 hover:text-white font-semibold'
+                  }`}
+                >
+                  <span>Account Lock Appeals</span>
+                  {pendingAppealsCount > 0 && (
+                    <span className="bg-amber-500 text-white font-black text-[9px] px-1.5 py-0.5 rounded-full shrink-0 animate-pulse">
+                      {pendingAppealsCount}
+                    </span>
+                  )}
+                </a>
+              </div>
+            )}
+          </div>
 
           <a
             href="#financial"
@@ -3656,7 +3749,15 @@ export const AdminDashboard: React.FC = () => {
                                 title={u.isOnline ? 'Online' : 'Offline'}
                               ></span>
                             </td>
-                            <td className="py-4 px-6 font-bold text-slate-900">{u.name}</td>
+                            <td className="py-4 px-6 font-bold text-slate-900">
+                              <div>{u.name}</div>
+                              {u.lockAppeal && (
+                                <div className="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-750 rounded-lg px-2.5 py-1 mt-1.5 inline-flex items-center gap-1 max-w-xs shadow-sm" title={u.lockAppeal}>
+                                  <span className="material-symbols-outlined text-[12px] text-amber-500 font-black animate-pulse">warning</span>
+                                  <span className="truncate">Appeal: {u.lockAppeal}</span>
+                                </div>
+                              )}
+                            </td>
                             <td className="py-4 px-6">{u.email}</td>
                             <td className="py-4 px-6">{new Date(u.registerDate).toLocaleDateString()}</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{u.balance.toLocaleString()} ₫</td>
@@ -3668,14 +3769,14 @@ export const AdminDashboard: React.FC = () => {
                                 className={`border rounded-lg pl-2.5 pr-8 py-1.5 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${
                                   u.status === 'ACTIVE'
                                     ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                    : 'bg-red-50 text-red-600 border-red-200'
+                                    : 'bg-red-50 text-red-650 border-red-200'
                                 }`}
                               >
                                 <option value="ACTIVE" className="bg-white text-emerald-600 font-bold">ACTIVE</option>
                                 <option value="LOCKED" className="bg-white text-red-600 font-bold">LOCKED</option>
                               </select>
                             </td>
-                            <td className="py-4 px-6 text-right">
+                            <td className="py-4 px-6 text-right flex items-center justify-end gap-2">
                               {u.status === 'LOCKED' && (
                                 <button
                                   onClick={() => handleUserStatusChange(u.id, 'ACTIVE')}
@@ -3684,6 +3785,13 @@ export const AdminDashboard: React.FC = () => {
                                   Unlock
                                 </button>
                               )}
+                              <button
+                                onClick={() => setSelectedUserDetail(u)}
+                                className="material-symbols-outlined text-slate-400 hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"
+                                title="View purchases"
+                              >
+                                receipt_long
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -3691,6 +3799,92 @@ export const AdminDashboard: React.FC = () => {
                     </table>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* TAB: USER APPEALS */}
+            {activeTab === 'appeals' && (
+              <div className="bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between text-left">
+                <div className="border-b border-slate-100 pb-5 mb-5">
+                  <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-lg text-primary">gavel</span>
+                    Account Lock Appeals Management
+                  </h3>
+                  <p className="text-xs text-text-muted mt-0.5">Review appeals submitted by locked users, and approve or decline them.</p>
+                </div>
+
+                {/* Appeals Content */}
+                {users.filter(u => u.status === 'LOCKED' && u.lockAppeal).length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
+                    <span className="material-symbols-outlined text-5xl text-slate-300">check_circle</span>
+                    <p className="text-sm font-bold text-slate-800">No appeal requests pending</p>
+                    <p className="text-xs text-text-muted max-w-sm">All appeals have been resolved. There are no pending requests to resolve! ✨</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
+                    {users
+                      .filter(u => u.status === 'LOCKED' && u.lockAppeal)
+                      .map((u) => (
+                        <div key={u.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col gap-4 text-left shadow-sm">
+                          <div className="flex justify-between items-start border-b border-slate-200/60 pb-3">
+                            <div>
+                              <h4 className="font-bold text-slate-900 text-sm">{u.name}</h4>
+                              <p className="text-[11px] text-slate-500 font-medium">{u.email}</p>
+                            </div>
+                            <span className="text-[10px] font-black uppercase bg-red-50 text-red-650 border border-red-200/55 px-2.5 py-0.5 rounded-md">Locked Account</span>
+                          </div>
+
+                          <div className="flex flex-col gap-1.5 bg-white/70 border border-slate-200/50 rounded-xl p-3.5 shadow-inner">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Original Lock Reason:</span>
+                            <p className="text-xs text-slate-650 leading-relaxed font-semibold">{u.lockReason || 'Violation of terms.'}</p>
+                          </div>
+
+                          {/* Appeal Note Section */}
+                          <div className="flex flex-col gap-2 bg-amber-50/45 border border-amber-200/50 rounded-xl p-4">
+                            <div className="flex items-center gap-1.5 text-amber-800 text-[10px] font-black uppercase tracking-wider">
+                              <span className="material-symbols-outlined text-[13px] font-black animate-pulse">warning</span>
+                              User Appeal Message:
+                            </div>
+                            <p className="text-xs font-semibold text-slate-700 italic leading-relaxed">
+                              "{u.lockAppeal}"
+                            </p>
+                          </div>
+
+                          <div className="flex gap-3 mt-1.5 border-t border-slate-200/65 pt-3.5">
+                            {/* Approve Appeal (Unlock Account) */}
+                            <button
+                              onClick={async () => {
+                                if (!window.confirm(`Are you sure you want to APPROVE the appeal and unlock account ${u.name}?`)) return;
+                                try {
+                                  const updated = await adminService.setUserLockStatus(u.id, 'ACTIVE');
+                                  setUsers(prev => prev.map(item => item.id === u.id ? updated : item));
+                                  showAdminToast(`Successfully approved appeal and unlocked ${updated.name}`, 'success');
+                                } catch (error) {
+                                  showAdminToast("Failed to approve appeal", 'error');
+                                }
+                              }}
+                              className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-sm shadow-emerald-100 flex items-center justify-center gap-1 cursor-pointer border-none"
+                            >
+                              <span className="material-symbols-outlined text-base">lock_open</span>
+                              <span>Approve & Unlock</span>
+                            </button>
+
+                            {/* Decline Appeal (Decline Appeal) */}
+                            <button
+                              onClick={() => {
+                                setDecliningAppealUser(u);
+                                setDeclineReasonText('Appeal declined. Reason: [Enter details]');
+                              }}
+                              className="flex-1 bg-red-500 hover:bg-red-650 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-sm shadow-red-100 flex items-center justify-center gap-1 cursor-pointer border-none"
+                            >
+                              <span className="material-symbols-outlined text-base">block</span>
+                              <span>Decline</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -4361,6 +4555,135 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-xs text-text-muted italic bg-slate-50 p-4 rounded-xl text-center">This user has not purchased any courses yet.</p>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: CONFIRM LOCK / UNLOCK USER ================= */}
+      {userLockAction && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left bg-white">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                  userLockAction.newStatus === 'LOCKED' ? 'bg-red-50 text-red-650' : 'bg-emerald-50 text-emerald-650'
+                }`}>
+                  {userLockAction.newStatus === 'LOCKED' ? 'Lock Account' : 'Unlock Account'}
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  {userLockAction.newStatus === 'LOCKED' ? 'Confirm Account Lock' : 'Confirm Account Unlock'}
+                </h3>
+              </div>
+              <button onClick={() => setUserLockAction(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer">close</button>
+            </div>
+
+            <div className="flex items-start gap-3.5 bg-slate-50 p-4 rounded-xl border border-slate-150 mb-6">
+              <span className={`material-symbols-outlined text-3xl shrink-0 mt-0.5 ${
+                userLockAction.newStatus === 'LOCKED' ? 'text-red-500' : 'text-emerald-500'
+              }`}>
+                {userLockAction.newStatus === 'LOCKED' ? 'lock' : 'lock_open'}
+              </span>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-slate-700">Target User: {userLockAction.userName}</p>
+                <p className="text-xs text-text-muted leading-relaxed">
+                  {userLockAction.newStatus === 'LOCKED'
+                    ? 'Are you sure you want to lock this user? They will be immediately blocked from signing in or using any platform services.'
+                    : 'Are you sure you want to unlock this user? They will be restored and able to log in and access their wallet and courses.'}
+                </p>
+              </div>
+            </div>
+
+            {userLockAction.newStatus === 'LOCKED' && (
+              <div className="mb-6">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Lock Reason:</label>
+                <textarea
+                  value={customLockReason}
+                  onChange={(e) => setCustomLockReason(e.target.value)}
+                  placeholder="Enter the reason why you are locking this user (e.g. Terms of Service violation...)"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-red-500 transition-colors font-medium text-slate-700 resize-none"
+                  rows={3}
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setUserLockAction(null)}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-slate-200/60 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUserStatusChangeConfirm}
+                className={`flex-1 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm cursor-pointer border-none ${
+                  userLockAction.newStatus === 'LOCKED' ? 'bg-red-500 hover:bg-red-650 shadow-red-200' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-250'
+                }`}
+              >
+                {userLockAction.newStatus === 'LOCKED' ? 'Lock Account' : 'Unlock Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: DECLINE APPEAL ================= */}
+      {decliningAppealUser && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left bg-white">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-red-50 text-red-650">
+                  Decline Appeal
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  Decline Appeal
+                </h3>
+              </div>
+              <button onClick={() => setDecliningAppealUser(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer">close</button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <p className="text-xs text-text-muted leading-relaxed">
+                You are declining the appeal from <strong>{decliningAppealUser.name}</strong>. Please enter the reason for rejection. This reason will be displayed to the user on their locked screen.
+              </p>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500">Rejection Reason:</label>
+                <textarea
+                  value={declineReasonText}
+                  onChange={(e) => setDeclineReasonText(e.target.value)}
+                  placeholder="Enter rejection reason..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-red-500 transition-colors font-medium text-slate-700 resize-none outline-none"
+                  rows={3}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDecliningAppealUser(null)}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-slate-200/60 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const updated = await adminService.setUserLockStatus(decliningAppealUser.id, 'LOCKED', declineReasonText);
+                    setUsers(prev => prev.map(item => item.id === decliningAppealUser.id ? updated : item));
+                    setDecliningAppealUser(null);
+                    showAdminToast(`Successfully declined appeal from account ${updated.name}`, 'info');
+                  } catch (error) {
+                    showAdminToast("Error declining appeal", 'error');
+                  }
+                }}
+                disabled={!declineReasonText.trim()}
+                className="flex-1 bg-red-500 hover:bg-red-650 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm cursor-pointer border-none disabled:opacity-50"
+              >
+                Confirm Decline
+              </button>
             </div>
           </div>
         </div>

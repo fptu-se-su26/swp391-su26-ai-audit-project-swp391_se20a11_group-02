@@ -85,8 +85,6 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.INVALID_USERNAME_OR_PASSWORD);
         }
 
-        userEntity.validateStatus();
-
         String accessToken = generateToken(userEntity, false);
         String refreshToken = generateToken(userEntity, true);
 
@@ -165,8 +163,6 @@ public class AuthenticationService {
                 userOauthAccountRepository.save(oauthAccount);
             }
 
-            userEntity.validateStatus();
-
             String accessToken = generateToken(userEntity, false);
             String refreshToken = generateToken(userEntity, true);
 
@@ -244,7 +240,6 @@ public class AuthenticationService {
         UserEntity userEntity = userRepository.findByUsernameWithWallet(username)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_USERNAME_OR_PASSWORD));
 
-        userEntity.validateStatus();
         String accessToken = generateToken(userEntity, false);
         String refreshToken = generateToken(userEntity, true);
 
