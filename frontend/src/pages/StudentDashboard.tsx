@@ -5,6 +5,20 @@ import { dashboardService, type DashboardStatsResponse, type CourseListItemRespo
 import { paymentService } from '../services/paymentService';
 import { getPurchaseHistory, type PurchaseHistoryResponse } from '../services/orderService';
 import { authService } from '../services/authService';
+import {
+  fetchCourseLearningDetail,
+  fetchCourseLearningCurriculum,
+  fetchLearningLessonDetail,
+  fetchLessonComments,
+  postLessonComment,
+  fetchQuizByLesson,
+  submitQuiz,
+  completeLesson,
+  type QuizDetail,
+  type LearningCurriculumChapterResponse,
+  type LessonComment
+} from '../services/courseService';
+
 
 const TX_TYPE_OPTIONS = [
   { value: '', label: 'All Types', bg: 'bg-gray-100 text-gray-700' },
@@ -14,316 +28,66 @@ const TX_TYPE_OPTIONS = [
   { value: 'AWARD', label: 'Award', bg: 'bg-amber-100 text-amber-700' }
 ];
 
-// Mock datasets exactly as they are in the HTML
-export const initialMyCourses = [
-  {
-    id: 'java-adv',
-    title: 'Java Fundamentals to Advanced',
-    author: 'Dr. Alan Turing',
-    category: 'Java',
-    progress: '65%',
-    progressVal: 65,
-    rating: 4.8,
-    ratingsCount: '1,240',
-    status: 'ongoing',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgy50UMGsrfiNlaMOGS5hIFfEB9ALLj2hHwL19FjiPxHtPdmdzDshyKCd9cxUE55L1IPGibJJ8XxYWvIOtq6nCmPgaCFoPxxlN64_OwyPrZocxC4bEzFtpL_km1YmpuA-CN4fUVjD5gO2NI7mdCoim7_CAT7njSdYphWceJpEIiRp5PAaZrqeglhZ4z73HAhMVJI5rSTTAUK3BmjBzHCR2ivCNvmKAvTRSv0bZDvGjfSB2GENwq1duU8S0jsS3Bgtxt-P5YEUi6M8'
-  },
-  {
-    id: 'dsa',
-    title: 'Data Structures & Algorithms',
-    author: 'Ada Lovelace',
-    category: 'Algorithms',
-    progress: '32%',
-    progressVal: 32,
-    rating: 4.9,
-    ratingsCount: '2,150',
-    status: 'ongoing',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBrLRPGmTw2WKOVjaU8vt3rWbyU_IutkyQCHmjb4756OHz94BzCcaaqOAypjovZ890SBIthYzF12ggMvhxo0w-S_OQizNFa5DtyTQfi3KxxxubXCobRHCPMK2auxCeFzRISNcp72GUb3AXRG4IbJSc1j1jqMRfbhbXBZFOzuEs9Zyv3mgRrXDRBAujfgQw5_uGSeKQI340ZtVWM81ZNu887j7-Ee2CMIXLXPiIRuva9t7_xMz7YydCPH56sKDASIrKT-SFU_pzI-q0'
-  },
-  {
-    id: 'uiux',
-    title: 'UI/UX Fundamentals',
-    author: 'Don Norman',
-    category: 'Design',
-    progress: '48%',
-    progressVal: 48,
-    rating: 4.7,
-    ratingsCount: '840',
-    status: 'ongoing',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgMrlXcL6UyewsliLmYzTFGeK46VPXPWa0zqiFJFG3Hab-pyZxWtLpBIjHojZqQVgPRMLB8VMpFNSPznwO6UAHzZ2jcFWs6K0BKMoB0OD6WHKwN5vItAHep9ax_z9Omyl1BaSD9pXR8rHPLTMdus-Dh94N_UEM2V5mfs9b6xxFTVdKN7cmXk6y3CyGBnmOA0TKw6rbul5AenrOgS9aOiP0BR-apj6wQfoZlBJkkBtbvlPlXsTpO_CtKv-ITYmOrUJqs6SnUAzYMLw'
-  },
-  {
-    id: 'react-master',
-    title: 'React Masterclass',
-    author: 'Dan Abramov',
-    category: 'Frontend',
-    progress: '12%',
-    progressVal: 12,
-    rating: 4.6,
-    ratingsCount: '950',
-    status: 'ongoing',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDH38LU6e0yGxqrzZGQbdoxvw8ZMxy9gZPrCBCgMDBLa6vPS_quf5UAkp5VGyisE1ULnbzo9YYRhi8yTbWwl4UR6GVxXTz4-1sX-6PRw-ySY0em1pyh4D3F-VFRK4jIMlxj13KIG8hO_VPvC3PhAOls8fxw8ObhSCtHS6pnkg4VYl9tgu9e7MPzOVA5pB3h_BUM1EvsEu7pax7zpF--vWRIg5LCFhkUGjn_vWsZbht95_EyogbW4JoDYHSaDrmZ5uYj5r7NBCz-cHg'
-  },
-  {
-    id: 'py-begin',
-    title: 'Python for Beginners',
-    author: 'Grace Hopper',
-    category: 'Python',
-    progress: '100%',
-    progressVal: 100,
-    rating: 4.9,
-    ratingsCount: '3,400',
-    status: 'completed',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDprSKVqEq347pPqZ9M8ZWp_6T-Pvi_68sA90ExU-mSJXsImRMFa4q4dLHkArN6WOv5WFywpvaSZBRAHvu_Dx0r6w9yK_mlTECqCeq9Wg3oBbgZTv9n5f5XBS7cYcelKHCSqcutDcmpUqgS0-UThBEEYGjKVVlqjNkMD5LeFuWllGb4uhmZZ8l2nvSElcuet9dv6J2P59fo1VSbODozVKEkm5a4gpdTPT1T6CEHtGUDY7Lv6jRnLSmwUI2aNOpki1r5UtOOo4ccDQQ'
-  },
-  {
-    id: 'sql-db',
-    title: 'SQL Database Basics',
-    author: 'Linus Torvalds',
-    category: 'Database',
-    progress: '100%',
-    progressVal: 100,
-    rating: 4.5,
-    ratingsCount: '1,120',
-    status: 'completed',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAgPQoJfVaRjxXQvS7N25MLctJghBgjcZCo8n2wpzkZMyEuTKFIvYs8qJ2OMD4PEp3G9tRzvqizo-W5TB-OIXup91n-sqoxw6_rFv5ZF7yMaaV5SWkkzoIX9SKxkU7xITu5AyPYUDImqxHExSi0alwlwCBoyyJ7vCnwTnwGJDlY9rskNWGjxxW-zx-A3-RRo_W1zlMWhLftwYj33PdKOQgv3aJAGj69mGWeFoSUXXRlcY-kkal5mjfr19Uf3qELIcDhvG1oiKO4s90'
-  },
-  {
-    id: 'lin-alg',
-    title: 'Linear Algebra for Devs',
-    author: 'Carl Gauss',
-    category: 'Math',
-    progress: '100%',
-    progressVal: 100,
-    rating: 4.8,
-    ratingsCount: '780',
-    status: 'completed',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBVomxWSJhKP4gY1tskEgBnc-uwlSGtjxGtlSCu0HYXgC2f8u-C8XBTqyfCbNtkTOh-QTmmyM2zQ3DabmlPoGAYyb_-BF4abtgwbZTrvvdbrcHBB7qmM1iUbRT5ZrIlwrYluTtcIEbeJf1Z_SDdboaLdzEWI2_bXGyIfZUUBr8yhoXgTsTyxW8XDIWq-o9FsZ9ICfSnvG5hRd6zraHfF7QIeuddoBdBlwpGAZExwYjtoUNqqZd-hwOexQZqZKm9xwlZSzsgu5iQn7E'
-  },
-  {
-    id: 'sys-design',
-    title: 'System Design Crash Course',
-    author: 'Martin Fowler',
-    category: 'Architecture',
-    progress: '100%',
-    progressVal: 100,
-    rating: 4.9,
-    ratingsCount: '1,850',
-    status: 'completed',
-    thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
-  }
-];
+// Mock data for contest participation display
+const participatedContests: any[] = [];
+const contestHistoryData: any[] = [];
 
-
-
-const participatedContests = [
-  { name: 'Weekly Algorithm Sprint #45', date: 'Oct 24, 2026', rank: '124 / 2450', score: '350 pts' },
-  { name: 'Data Structures Challenge Series', date: 'Oct 15, 2026', rank: '342 / 1800', score: '280 pts' },
-  { name: 'Intro to DP Challenge', date: 'Oct 01, 2026', rank: '950 / 4102', score: '150 pts' }
-];
-
-const contestHistoryData = [
-  {
-    name: 'Weekly Algorithm Sprint #45',
-    status: 'Ongoing',
-    date: 'Oct 24, 2026',
-    startDate: 'Oct 24, 2026 08:00 AM',
-    endDate: 'Oct 27, 2026 08:00 AM',
-    problemsSolved: '3/5',
-    timeSpent: '2h 15m',
-    rank: '124 / 2450',
-    score: '350 pts',
-    category: 'Sprint League',
-    difficulty: 'Medium',
-    xpEarned: '+50 XP'
-  },
-  {
-    name: 'Data Structures Challenge Series',
-    status: 'Ended',
-    date: 'Oct 15, 2026',
-    startDate: 'Oct 15, 2026 09:00 AM',
-    endDate: 'Oct 15, 2026 12:00 PM',
-    problemsSolved: '4/5',
-    timeSpent: '3h 10m',
-    rank: '342 / 1800',
-    score: '280 pts',
-    category: 'Structure Series',
-    difficulty: 'Hard',
-    xpEarned: '+100 XP'
-  },
-  {
-    name: 'Intro to DP Challenge',
-    status: 'Ended',
-    date: 'Oct 01, 2026',
-    startDate: 'Oct 01, 2026 02:00 PM',
-    endDate: 'Oct 01, 2026 05:00 PM',
-    problemsSolved: '2/5',
-    timeSpent: '1h 45m',
-    rank: '950 / 4102',
-    score: '150 pts',
-    category: 'Past Arena',
-    difficulty: 'Easy',
-    xpEarned: '+30 XP'
-  },
-  {
-    name: 'Code Masters Championship 2026',
-    status: 'Upcoming',
-    date: 'Nov 15, 2026',
-    startDate: 'Nov 15, 2026 08:00 AM',
-    endDate: 'Nov 15, 2026 11:00 AM',
-    problemsSolved: 'N/A',
-    timeSpent: 'N/A',
-    rank: 'Registered',
-    score: 'N/A',
-    category: 'Mega Prize',
-    difficulty: 'Hard',
-    xpEarned: 'Pending'
-  },
-  {
-    name: 'SQL Mastery Arena',
-    status: 'Upcoming',
-    date: 'Nov 25, 2026',
-    startDate: 'Nov 25, 2026 10:00 AM',
-    endDate: 'Nov 25, 2026 01:00 PM',
-    problemsSolved: 'N/A',
-    timeSpent: 'N/A',
-    rank: 'Registered',
-    score: 'N/A',
-    category: 'Database Skill',
-    difficulty: 'Medium',
-    xpEarned: 'Pending'
-  }
-];
-
-
-
-const initialExercises = [
-  { name: 'Two Sum', difficulty: 'Easy', difficultyClass: 'bg-green-50 text-brand-green border border-green-150', submissions: '1,245', completed: true },
-  { name: 'Reverse Linked List', difficulty: 'Easy', difficultyClass: 'bg-green-50 text-brand-green border border-green-150', submissions: '850', completed: false },
-  { name: 'Spring Context Hierarchy Solver', difficulty: 'Medium', difficultyClass: 'bg-primary-light/50 text-primary border border-primary/20', submissions: '420', completed: false }
-];
-
-interface ProblemDetail {
-  difficulty: string;
-  difficultyClass: string;
+const EmptyState: React.FC<{
+  icon: string;
+  title: string;
   description: string;
-  code: Record<string, string>;
-}
+  themeColor: 'primary' | 'green' | 'blue';
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+}> = ({ icon, title, description, themeColor, action }) => {
+  const colorMap = {
+    primary: {
+      bg: 'bg-primary-light/50',
+      text: 'text-primary',
+      btnBg: 'bg-primary hover:bg-primary-hover text-white',
+    },
+    green: {
+      bg: 'bg-brand-green-light',
+      text: 'text-brand-green',
+      btnBg: 'bg-brand-green hover:bg-brand-green-hover text-white',
+    },
+    blue: {
+      bg: 'bg-blue-50',
+      text: 'text-brand-blue-light',
+      btnBg: 'bg-brand-blue hover:bg-brand-blue-light text-white',
+    },
+  };
 
-const problemData: Record<string, ProblemDetail> = {
-  "Two Sum": {
-    difficulty: "Easy",
-    difficultyClass: "bg-green-50 text-brand-green border border-green-150",
-    description: `
-      <p class="mb-4">Given an array of integers <code class="bg-surface-gray px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">nums</code> and an integer <code class="bg-surface-gray px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">target</code>, return <em>indices of the two numbers such that they add up to <code class="bg-surface-gray px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">target</code></em>.</p>
-      <p class="mb-4">You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice.</p>
-      <p class="mb-4">You can return the answer in any order.</p>
-      <div class="grid md:grid-cols-2 gap-4 my-4">
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 1:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> nums = [2,7,11,15], target = 9</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> [0,1]</p>
-                  <p><span class="text-text-main font-semibold">Explanation:</span> Because nums[0] + nums[1] == 9, we return [0, 1].</p>
-              </div>
-          </div>
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 2:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> nums = [3,2,4], target = 6</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> [1,2]</p>
-              </div>
-          </div>
+  const colors = colorMap[themeColor] || colorMap.primary;
+
+  return (
+    <div className="w-full flex flex-col items-center justify-center p-8 bg-surface rounded-2xl border border-dashed border-outline-variant shadow-sm transition-all duration-300 hover:shadow-md">
+      <div className={`w-16 h-16 ${colors.bg} ${colors.text} rounded-full flex items-center justify-center mb-4 transition-transform duration-300 hover:scale-105`}>
+        <span className="material-symbols-outlined text-3xl">{icon}</span>
       </div>
-      <div class="space-y-2 mb-4">
-          <h4 class="font-bold text-xs text-text-main">Constraints:</h4>
-          <ul class="list-disc pl-5 text-xs text-text-muted space-y-1">
-              <li><code class="bg-surface-gray px-1 rounded font-mono text-[11px]">2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
-              <li><code class="bg-surface-gray px-1 rounded font-mono text-[11px]">-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-              <li><code class="bg-surface-gray px-1 rounded font-mono text-[11px]">-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
-              <li>Only one valid answer exists.</li>
-          </ul>
-      </div>
-    `,
-    code: {
-      "Java": `class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Write your Java code here\n        return new int[] {};\n    }\n}`,
-      "C++": `class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        // Write your C++ code here\n        return {};\n    }\n};`,
-      "Python": `class Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n        # Write your Python code here\n        pass`
-    }
-  },
-  "Reverse Linked List": {
-    difficulty: "Easy",
-    difficultyClass: "bg-green-50 text-brand-green border border-green-150",
-    description: `
-      <p class="mb-4">Given the <code class="bg-surface-gray px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">head</code> of a singly linked list, reverse the list, and return <em>its reversed list</em>.</p>
-      <div class="grid md:grid-cols-2 gap-4 my-4">
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 1:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> head = [1,2,3,4,5]</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> [5,4,3,2,1]</p>
-              </div>
-          </div>
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 2:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> head = [1,2]</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> [2,1]</p>
-              </div>
-          </div>
-      </div>
-      <div class="space-y-2 mb-4">
-          <h4 class="font-bold text-xs text-text-main">Constraints:</h4>
-          <ul class="list-disc pl-5 text-xs text-text-muted space-y-1">
-              <li>The number of nodes in the list is the range <code class="bg-surface-gray px-1 rounded font-mono text-[11px]">[0, 5000]</code>.</li>
-              <li><code class="bg-surface-gray px-1 rounded font-mono text-[11px]">-5000 &lt;= Node.val &lt;= 5000</code></li>
-          </ul>
-      </div>
-    `,
-    code: {
-      "Java": `/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode reverseList(ListNode head) {\n        // Write your Java code here\n        return null;\n    }\n}`,
-      "C++": `/**\n * Definition for singly-linked list.\n * struct ListNode {\n *     int val;\n *     ListNode *next;\n *     ListNode() : val(0), next(nullptr) {}\n *     ListNode(x) : val(x), next(nullptr) {}\n *     ListNode(x, ListNode *next) : val(x), next(next) {}\n * };\n */\nclass Solution {\npublic:\n    ListNode* reverseList(ListNode* head) {\n        // Write your C++ code here\n        return nullptr;\n    }\n};`,
-      "Python": `# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:\n        # Write your Python code here\n        pass`
-    }
-  },
-  "Spring Context Hierarchy Solver": {
-    difficulty: "Medium",
-    difficultyClass: "bg-primary-light/50 text-primary border border-primary/20",
-    description: `
-      <p class="mb-4">Given a hierarchical relationship of Spring ApplicationContext names and their respective registered beans, resolve if a child context can correctly lookup a bean defined in its parent context or its own context, following standard hierarchical bean lookup rules.</p>
-      <div class="grid md:grid-cols-2 gap-4 my-4">
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 1:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> contextParents = { "child": "parent" }, contextBeans = { "parent": ["userService"], "child": ["orderService"] }, lookupContext = "child", beanName = "userService"</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> true</p>
-                  <p><span class="text-text-main font-semibold">Explanation:</span> The child context can find the "userService" bean because it is defined in its parent context.</p>
-              </div>
-          </div>
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 2:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> contextParents = { "child": "parent" }, contextBeans = { "parent": ["userService"], "child": ["orderService"] }, lookupContext = "parent", beanName = "orderService"</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> false</p>
-                  <p><span class="text-text-main font-semibold">Explanation:</span> The parent context cannot see beans defined in the child context.</p>
-              </div>
-          </div>
-      </div>
-      <div class="space-y-2 mb-4">
-          <h4 class="font-bold text-xs text-text-main">Constraints:</h4>
-          <ul class="list-disc pl-5 text-xs text-text-muted space-y-1">
-              <li>Lookups must trace parents recursively until the root context is reached.</li>
-              <li>Context names and Bean names are case-sensitive.</li>
-          </ul>
-      </div>
-    `,
-    code: {
-      "Java": `class Solution {\n    public boolean resolveBeanLookup(Map<String, String> contextParents, Map<String, List<String>> contextBeans, String lookupContext, String beanName) {\n        // Write your Java code here\n        return false;\n    }\n}`,
-      "C++": `class Solution {\npublic:\n    bool resolveBeanLookup(unordered_map<string, string>& contextParents, unordered_map<string, vector<string>>& contextBeans, string lookupContext, string beanName) {\n        // Write your C++ code here\n        return false;\n    }\n};`,
-      "Python": `class Solution:\n    def resolveBeanLookup(self, contextParents: Dict[str, str], contextBeans: Dict[str, List[str]], lookupContext: str, beanName: str) -> bool:\n        # Write your Python code here\n        return False`
-    }
-  }
+      <h3 className="text-base font-bold text-text-main mb-1">{title}</h3>
+      <p className="text-xs text-text-muted max-w-sm text-center leading-relaxed">
+        {description}
+      </p>
+      {action && (
+        <button
+          onClick={action.onClick}
+          className={`mt-4 px-5 py-2 ${colors.btnBg} text-xs font-black rounded-xl transition-all shadow-sm`}
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
 };
+
+
+
+
+
+
 
 export const StudentDashboard: React.FC = () => {
   const { user, refreshBalance, updateUser } = useApp();
@@ -352,21 +116,120 @@ export const StudentDashboard: React.FC = () => {
   const [contestFilter, setContestFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'ended'>('all');
 
   // Course Player (Learning View) States
-  const [playerCourseTitle, setPlayerCourseTitle] = useState<string>('Java Fundamentals to Advanced');
-  const [playerCourseAuthor, setPlayerCourseAuthor] = useState<string>('Dr. Alan Turing • Java Level');
-  const [playerCourseProgress, setPlayerCourseProgress] = useState<string>('65%');
-  const [playerLectureTitle, setPlayerLectureTitle] = useState<string>('1.2 Setting up Environment');
-  const [playerVideoThumbnail, setPlayerVideoThumbnail] = useState<string>('https://lh3.googleusercontent.com/aida-public/AB6AXuBgy50UMGsrfiNlaMOGS5hIFfEB9ALLj2hHwL19FjiPxHtPdmdzDshyKCd9cxUE55L1IPGibJJ8XxYWvIOtq6nCmPgaCFoPxxlN64_OwyPrZocxC4bEzFtpL_km1YmpuA-CN4fUVjD5gO2NI7mdCoim7_CAT7njSdYphWceJpEIiRp5PAaZrqeglhZ4z73HAhMVJI5rSTTAUK3BmjBzHCR2ivCNvmKAvTRSv0bZDvGjfSB2GENwq1duU8S0jsS3Bgtxt-P5YEUi6M8');
+  const [playerCourseId, setPlayerCourseId] = useState<number | null>(null);
+  const [playerCourseTitle, setPlayerCourseTitle] = useState<string>('');
+  const [playerCourseAuthor, setPlayerCourseAuthor] = useState<string>('');
+  const [playerCourseProgress, setPlayerCourseProgress] = useState<string>('0%');
+  const [playerLectureTitle, setPlayerLectureTitle] = useState<string>('');
+  const [playerVideoThumbnail, setPlayerVideoThumbnail] = useState<string>('');
+  const [playerVideoUrl, setPlayerVideoUrl] = useState<string>('');
+  const [playerTheoryContent, setPlayerTheoryContent] = useState<string>('');
+  const [learningChapters, setLearningChapters] = useState<LearningCurriculumChapterResponse[]>([]);
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
+  const [isPlayerLoading, setIsPlayerLoading] = useState<boolean>(false);
   
-  const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'source-code' | 'quiz'>('overview');
+  const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'quiz'>('overview');
+
+  // Quiz States
+  const [currentQuiz, setCurrentQuiz] = useState<QuizDetail | null>(null);
+  const [isQuizLoading, setIsQuizLoading] = useState<boolean>(false);
+  const [quizError, setQuizError] = useState<string | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number | null>>({});
+  const [isQuizSubmitting, setIsQuizSubmitting] = useState<boolean>(false);
+  const quizTabRef = useRef<HTMLDivElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  const loadQuizDetail = async (courseId: number, lessonId: number) => {
+    setIsQuizLoading(true);
+    setQuizError(null);
+    try {
+      const quiz = await fetchQuizByLesson(courseId, lessonId);
+      setCurrentQuiz(quiz);
+      const answers: Record<number, number | null> = {};
+      if (quiz.submitted && quiz.questions) {
+        quiz.questions.forEach(q => {
+          answers[q.questionId] = q.selectedOptionId ?? null;
+        });
+      } else {
+        if (quiz.questions) {
+          quiz.questions.forEach(q => {
+            answers[q.questionId] = null;
+          });
+        }
+      }
+      setSelectedAnswers(answers);
+    } catch (err: any) {
+      console.error('Error fetching quiz:', err);
+      setQuizError(err.message || 'Failed to load quiz details');
+      setCurrentQuiz(null);
+    } finally {
+      setIsQuizLoading(false);
+    }
+  };
+
+  const handleQuizSubmit = async () => {
+    if (!playerCourseId || !currentQuiz) return;
+
+    const answers = Object.entries(selectedAnswers).map(([qId, optId]) => ({
+      questionId: parseInt(qId),
+      selectedOptionId: optId
+    }));
+
+    setIsQuizSubmitting(true);
+    try {
+      await submitQuiz(playerCourseId, currentQuiz.quizId, { answers });
+      if (selectedLessonId) {
+        await loadQuizDetail(playerCourseId, selectedLessonId);
+      }
+      // Scroll smoothly to the tab bar (higher view)
+      setTimeout(() => {
+        tabsContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } catch (err: any) {
+      console.error('Error submitting quiz:', err);
+      alert(err.message || 'Failed to submit quiz');
+    } finally {
+      setIsQuizSubmitting(false);
+    }
+  };
+
+  // Q&A States
+  const [lessonComments, setLessonComments] = useState<LessonComment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState<boolean>(false);
+  const [rootCommentText, setRootCommentText] = useState<string>('');
+  const [replyingCommentId, setReplyingCommentId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState<string>('');
+
+  const loadLessonComments = async (lessonId: number) => {
+    setIsLoadingComments(true);
+    try {
+      const comments = await fetchLessonComments(lessonId);
+      setLessonComments(comments);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
   const [curriculumSections, setCurriculumSections] = useState<Record<string, boolean>>({
     sec1: true,
     sec2: false,
     sec3: false
   });
 
+  const getYoutubeEmbedUrl = (url?: string) => {
+    if (!url) return '';
+    const regExp = new RegExp('^.*(youtu.be/|v/|u/\\w/|embed/|watch\\?v=|&v=)([^#&\\?]*).*');
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}`;
+    }
+    return url;
+  };
+
   // Exercises panel inside Course Player
-  const [playerExercises, setPlayerExercises] = useState(initialExercises);
+  const [playerExercises, setPlayerExercises] = useState<any[]>([]);
   const [currentProblemName, setCurrentProblemName] = useState<string | null>(null);
   const [solveLang, setSolveLang] = useState<string>('Java');
   const [solveCode, setSolveCode] = useState<string>('');
@@ -638,7 +501,10 @@ export const StudentDashboard: React.FC = () => {
 
   // Synchronize Tab with Location Hash
   useEffect(() => {
-    const hash = location.hash.replace('#', '');
+    const rawHash = location.hash.replace('#', '');
+    // Parse hash like 'learning-view?courseId=1' into tab + query params
+    const [hash, queryString] = rawHash.split('?');
+    const hashParams = new URLSearchParams(queryString || '');
     const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history', 'my-profile'];
     if (hash && validTabs.includes(hash)) {
       if (hash === 'payment-transaction') {
@@ -653,6 +519,66 @@ export const StudentDashboard: React.FC = () => {
       if (['wallet-transaction', 'deposit', 'payment-transaction'].includes(hash)) {
         setIsWalletOpen(true);
         refreshBalance().catch(console.error);
+      }
+      // Restore learning-view from URL on page refresh
+      if (hash === 'learning-view') {
+        const courseIdParam = hashParams.get('courseId');
+        if (courseIdParam && !playerCourseId) {
+          const restoredCourseId = parseInt(courseIdParam, 10);
+          if (!isNaN(restoredCourseId)) {
+            // Restore course player state from API
+            setPlayerCourseId(restoredCourseId);
+            setIsPlayerLoading(true);
+            (async () => {
+              try {
+                const detail = await fetchCourseLearningDetail(restoredCourseId);
+                setPlayerCourseTitle(detail.courseTitle);
+                setPlayerCourseAuthor(`${detail.instructorName} • Instructor`);
+                setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+                let activeLessonId = detail.activeLessonId;
+
+                const chapters = await fetchCourseLearningCurriculum(restoredCourseId);
+                setLearningChapters(chapters);
+
+                const initialSections: Record<string, boolean> = {};
+                chapters.forEach((chapter, index) => {
+                  initialSections[`sec_${chapter.id}`] = index === 0;
+                });
+                setCurriculumSections(initialSections);
+
+                if (!activeLessonId && chapters.length > 0 && chapters[0].lessons.length > 0) {
+                  activeLessonId = chapters[0].lessons[0].id;
+                }
+
+                if (activeLessonId) {
+                  setSelectedLessonId(activeLessonId);
+                  const lesson = await fetchLearningLessonDetail(restoredCourseId, activeLessonId);
+                  setPlayerLectureTitle(lesson.title);
+                  setPlayerVideoUrl(lesson.videoUrl || '');
+                  setPlayerTheoryContent(lesson.theoryContent || '');
+                } else {
+                  setPlayerLectureTitle('No lessons available');
+                  setPlayerVideoUrl('');
+                  setPlayerTheoryContent('');
+                }
+              } catch (err) {
+                console.error('Failed to restore learning data on refresh:', err);
+                setPlayerLectureTitle('No lessons available');
+                setPlayerVideoUrl('');
+                setPlayerTheoryContent('');
+                setLearningChapters([]);
+                setSelectedLessonId(null);
+                setPlayerCourseProgress('0%');
+              } finally {
+                setIsPlayerLoading(false);
+              }
+            })();
+          }
+        } else if (!courseIdParam && !playerCourseId) {
+          // No courseId in URL and no active course — redirect to my-courses
+          navigate('#my-courses', { replace: true });
+        }
       }
     } else {
       setActiveTab('dashboard');
@@ -773,6 +699,21 @@ export const StudentDashboard: React.FC = () => {
     }
   }, [user, activeTab]);
 
+  // Load comments when active lesson or active tab changes to 'qa'
+  useEffect(() => {
+    if (selectedLessonId && playerActiveTab === 'qa') {
+      loadLessonComments(selectedLessonId);
+    }
+  }, [selectedLessonId, playerActiveTab]);
+
+  // Load quiz details when active lesson or active tab changes to 'quiz'
+  useEffect(() => {
+    if (playerCourseId && selectedLessonId && playerActiveTab === 'quiz') {
+      loadQuizDetail(playerCourseId, selectedLessonId);
+    }
+  }, [playerCourseId, selectedLessonId, playerActiveTab]);
+
+
   const ongoingScrollRef = useRef<HTMLDivElement>(null);
   const completedScrollRef = useRef<HTMLDivElement>(null);
 
@@ -803,7 +744,7 @@ export const StudentDashboard: React.FC = () => {
     return (
       <article 
         key={course.id} 
-        onClick={() => handleOpenCoursePlayer(course.title, course.instructorName, 'Java', `${isCompleted ? 100 : course.progressPercentage}%`, course.thumbnailUrl)}
+        onClick={() => handleOpenCoursePlayer(course.id, course.title, course.instructorName, 'Java', `${isCompleted ? 100 : course.progressPercentage}%`, course.thumbnailUrl)}
         className="w-[calc(100vw-32px)] sm:w-[calc(50vw-24px)] lg:w-[calc(25%-18px)] flex-shrink-0 snap-start bg-surface rounded-2xl overflow-hidden border border-gray-200 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer group shadow-sm text-left"
       >
         <div className="h-[160px] relative overflow-hidden flex items-center justify-center bg-brand-blue">
@@ -850,8 +791,13 @@ export const StudentDashboard: React.FC = () => {
     );
   };
 
-  const handleTabChange = (tab: string) => {
-    navigate(`#${tab}`);
+  const handleTabChange = (tab: string, params?: Record<string, string>) => {
+    if (params) {
+      const qs = new URLSearchParams(params).toString();
+      navigate(`#${tab}?${qs}`);
+    } else {
+      navigate(`#${tab}`);
+    }
   };
 
   // Activity Graph helper (12 months list)
@@ -872,46 +818,146 @@ export const StudentDashboard: React.FC = () => {
   ];
 
   // Course player triggers
-  const handleOpenCoursePlayer = (title: string, author: string, category: string, progress: string, thumbnail: string) => {
+  const handleOpenCoursePlayer = async (id: number, title: string, author: string, category: string, progress: string, thumbnail: string) => {
+    setPlayerCourseId(id);
     setPlayerCourseTitle(title);
     setPlayerCourseAuthor(`${author} • ${category} Level`);
     setPlayerCourseProgress(progress);
     setPlayerVideoThumbnail(thumbnail);
-
-    if (title.includes('Java')) {
-      setPlayerLectureTitle('1.2 Setting up Environment');
-    } else if (title.includes('Algorithms')) {
-      setPlayerLectureTitle('2.1 Introduction to Time Complexity');
-    } else {
-      setPlayerLectureTitle('1.1 Introduction and Course Scope');
-    }
-
     setPlayerActiveTab('overview');
     setCurrentProblemName(null);
-    handleTabChange('learning-view');
+    setIsPlayerLoading(true);
+
+    // Reset active lesson states immediately to prevent old course data leak
+    setPlayerVideoUrl('');
+    setPlayerTheoryContent('');
+    setLearningChapters([]);
+    setSelectedLessonId(null);
+
+    handleTabChange('learning-view', { courseId: String(id) });
+
+    try {
+      // 1. Fetch Learning Details (holds active lesson, progress)
+      const detail = await fetchCourseLearningDetail(id);
+      setPlayerCourseTitle(detail.courseTitle);
+      setPlayerCourseAuthor(`${detail.instructorName} • Instructor`);
+      setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+      let activeLessonId = detail.activeLessonId;
+
+      // 2. Fetch Learning Curriculum
+      const chapters = await fetchCourseLearningCurriculum(id);
+      setLearningChapters(chapters);
+
+      // Expand all chapters by default (initialize section toggle state)
+      const initialSections: Record<string, boolean> = {};
+      chapters.forEach((chapter, index) => {
+        initialSections[`sec_${chapter.id}`] = index === 0; // expand first chapter by default
+      });
+      setCurriculumSections(initialSections);
+
+      // 3. Determine which lesson to load
+      if (!activeLessonId && chapters.length > 0 && chapters[0].lessons.length > 0) {
+        activeLessonId = chapters[0].lessons[0].id;
+      }
+
+      if (activeLessonId) {
+        setSelectedLessonId(activeLessonId);
+        const lesson = await fetchLearningLessonDetail(id, activeLessonId);
+        setPlayerLectureTitle(lesson.title);
+        setPlayerVideoUrl(lesson.videoUrl || '');
+        setPlayerTheoryContent(lesson.theoryContent || '');
+      } else {
+        setPlayerLectureTitle('No lessons available');
+        setPlayerVideoUrl('');
+        setPlayerTheoryContent('');
+      }
+    } catch (err) {
+      console.error('Failed to load learning data:', err);
+      // Reset states on error (e.g. course with no lessons in DB)
+      setPlayerLectureTitle('No lessons available');
+      setPlayerVideoUrl('');
+      setPlayerTheoryContent('');
+      setLearningChapters([]);
+      setSelectedLessonId(null);
+      setPlayerCourseProgress('0%');
+    } finally {
+      setIsPlayerLoading(false);
+    }
+  };
+
+  const handleSelectLesson = async (lessonId: number) => {
+    if (!playerCourseId) return;
+    setIsPlayerLoading(true);
+    try {
+      setSelectedLessonId(lessonId);
+      const lesson = await fetchLearningLessonDetail(playerCourseId, lessonId);
+      setPlayerLectureTitle(lesson.title);
+      setPlayerVideoUrl(lesson.videoUrl || '');
+      setPlayerTheoryContent(lesson.theoryContent || '');
+
+      // Optional: Refresh progress and curriculum status on selecting/learning
+      const detail = await fetchCourseLearningDetail(playerCourseId);
+      setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+      const chapters = await fetchCourseLearningCurriculum(playerCourseId);
+      setLearningChapters(chapters);
+    } catch (err) {
+      console.error('Failed to load lesson details:', err);
+    } finally {
+      setIsPlayerLoading(false);
+    }
+  };
+
+  const refreshLearningProgress = async (courseId: number | string) => {
+    try {
+      const detail = await fetchCourseLearningDetail(courseId);
+      setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+      const chapters = await fetchCourseLearningCurriculum(courseId);
+      setLearningChapters(chapters);
+    } catch (err) {
+      console.error('Failed to refresh learning progress:', err);
+    }
+  };
+
+  const handleCompleteLesson = async (e: React.MouseEvent, lessonId: number) => {
+    e.stopPropagation();
+    if (!playerCourseId) return;
+
+    setIsPlayerLoading(true);
+    try {
+      await completeLesson(playerCourseId, lessonId);
+      await refreshLearningProgress(playerCourseId);
+    } catch (err: any) {
+      console.error('Failed to complete lesson:', err);
+      alert(err.message || 'Không thể hoàn thành bài học');
+    } finally {
+      setIsPlayerLoading(false);
+    }
   };
 
   // Exercises actions
   const handleStartSolveProblem = (problemName: string) => {
-    const problem = problemData[problemName];
+    const problem = null; // Mock data removed, use API instead
     if (!problem) return;
 
     setCurrentProblemName(problemName);
     setSolveLang('Java');
-    setSolveCode(problem.code['Java']);
+    setSolveCode('');
     setSolveResult(null);
   };
 
   const handleLanguageChange = (lang: string) => {
     setSolveLang(lang);
-    if (currentProblemName && problemData[currentProblemName]) {
-      setSolveCode(problemData[currentProblemName].code[lang]);
+    if (currentProblemName) {
+      setSolveCode('');
     }
   };
 
   const handleResetCode = () => {
-    if (currentProblemName && problemData[currentProblemName]) {
-      setSolveCode(problemData[currentProblemName].code[solveLang]);
+    if (currentProblemName) {
+      setSolveCode('');
     }
   };
 
@@ -1065,6 +1111,10 @@ export const StudentDashboard: React.FC = () => {
       </div>
     );
   }
+
+  const ongoingCourses = myCourses.filter(c => c.progressPercentage < 100);
+  const completedCourses = myCourses.filter(c => c.progressPercentage === 100);
+
 
   return (
     <div className="flex-grow w-full flex flex-row relative bg-[#f0f4f9]/40 text-text-main font-body min-h-screen">
@@ -1465,19 +1515,34 @@ export const StudentDashboard: React.FC = () => {
                   <span className="material-symbols-outlined text-primary">play_circle</span>
                   Ongoing Courses
                 </h2>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => scrollLeft(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                  </button>
-                  <button onClick={() => scrollRight(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                  </button>
-                  <button onClick={() => { setMyCoursesFilter('ongoing'); handleTabChange('my-courses'); }} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer ml-2">View All</button>
+                {ongoingCourses.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => scrollLeft(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                      <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </button>
+                    <button onClick={() => scrollRight(ongoingScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                      <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </button>
+                    <button onClick={() => { setMyCoursesFilter('ongoing'); handleTabChange('my-courses'); }} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer ml-2">View All</button>
+                  </div>
+                )}
+              </div>
+              {ongoingCourses.length > 0 ? (
+                <div ref={ongoingScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {ongoingCourses.map(course => renderCourseCard(course, false))}
                 </div>
-              </div>
-              <div ref={ongoingScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-                {myCourses.filter(c => c.progressPercentage < 100).map(course => renderCourseCard(course, false))}
-              </div>
+              ) : (
+                <EmptyState 
+                  icon="play_circle" 
+                  title="No Ongoing Courses" 
+                  description="You don't have any ongoing courses at the moment. Explore our course catalog to start learning!" 
+                  themeColor="primary"
+                  action={{
+                    label: 'Browse Courses',
+                    onClick: () => navigate('/courses')
+                  }}
+                />
+              )}
             </section>
 
             {/* Completed Courses */}
@@ -1487,18 +1552,29 @@ export const StudentDashboard: React.FC = () => {
                   <span className="material-symbols-outlined text-brand-green">check_circle</span>
                   Completed Courses
                 </h2>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => scrollLeft(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                  </button>
-                  <button onClick={() => scrollRight(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                  </button>
+                {completedCourses.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => scrollLeft(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                      <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </button>
+                    <button onClick={() => scrollRight(completedScrollRef)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-colors bg-surface shadow-sm">
+                      <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              {completedCourses.length > 0 ? (
+                <div ref={completedScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {completedCourses.map(course => renderCourseCard(course, true))}
                 </div>
-              </div>
-              <div ref={completedScrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-                {myCourses.filter(c => c.progressPercentage === 100).map(course => renderCourseCard(course, true))}
-              </div>
+              ) : (
+                <EmptyState 
+                  icon="check_circle" 
+                  title="No Completed Courses" 
+                  description="You haven't completed any courses yet. Finish your ongoing courses to earn your certificates!" 
+                  themeColor="green"
+                />
+              )}
             </section>
 
             {/* Participated Contests */}
@@ -1508,45 +1584,61 @@ export const StudentDashboard: React.FC = () => {
                   <span className="material-symbols-outlined text-brand-blue-light">emoji_events</span>
                   Participated Contests
                 </h2>
-                <button onClick={() => handleTabChange('contest-history')} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer">View History</button>
+                {participatedContests.length > 0 && (
+                  <button onClick={() => handleTabChange('contest-history')} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer">View History</button>
+                )}
               </div>
-              <div className="bg-surface rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left whitespace-nowrap border-collapse">
-                    <thead className="bg-surface-gray border-b border-gray-100 text-text-muted text-xs font-bold uppercase">
-                      <tr>
-                        <th className="px-6 py-4">Contest Name</th>
-                        <th className="px-6 py-4">Date</th>
-                        <th className="px-6 py-4">Rank</th>
-                        <th className="px-6 py-4 text-right">Score</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 text-sm font-medium text-text-main">
-                      {participatedContests.map((c, idx) => (
-                        <tr key={idx} className="hover:bg-surface-gray/50 transition-colors">
-                          <td className="px-6 py-4 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-primary text-[18px]">
-                              {idx === 0 ? 'trophy' : 'workspace_premium'}
-                            </span>
-                            {c.name}
-                          </td>
-                          <td className="px-6 py-4 text-text-muted">{c.date}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-3 py-1 rounded-md text-sm font-bold ${
-                              idx === 0 ? 'bg-primary-light/30 text-primary' : 
-                              idx === 1 ? 'bg-brand-blue/10 text-brand-blue' : 'bg-gray-100 text-text-main'
-                            }`}>
-                              {c.rank}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">{c.score.split(' ')[0]} <span className="text-text-muted">pts</span></td>
+              {participatedContests.length > 0 ? (
+                <div className="bg-surface rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left whitespace-nowrap border-collapse">
+                      <thead className="bg-surface-gray border-b border-gray-100 text-text-muted text-xs font-bold uppercase">
+                        <tr>
+                          <th className="px-6 py-4">Contest Name</th>
+                          <th className="px-6 py-4">Date</th>
+                          <th className="px-6 py-4">Rank</th>
+                          <th className="px-6 py-4 text-right">Score</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-sm font-medium text-text-main">
+                        {participatedContests.map((c, idx) => (
+                          <tr key={idx} className="hover:bg-surface-gray/50 transition-colors">
+                            <td className="px-6 py-4 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-primary text-[18px]">
+                                {idx === 0 ? 'trophy' : 'workspace_premium'}
+                              </span>
+                              {c.name}
+                            </td>
+                            <td className="px-6 py-4 text-text-muted">{c.date}</td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-md text-sm font-bold ${
+                                idx === 0 ? 'bg-primary-light/30 text-primary' : 
+                                idx === 1 ? 'bg-brand-blue/10 text-brand-blue' : 'bg-gray-100 text-text-main'
+                              }`}>
+                                {c.rank}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">{c.score.split(' ')[0]} <span className="text-text-muted">pts</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <EmptyState 
+                  icon="emoji_events" 
+                  title="No Contests Participated" 
+                  description="You haven't participated in any contests yet. Challenge yourself by joining upcoming contests!" 
+                  themeColor="blue"
+                  action={{
+                    label: 'Browse Contests',
+                    onClick: () => navigate('/contests')
+                  }}
+                />
+              )}
             </section>
+
           </div>
         )}
 
@@ -1615,7 +1707,7 @@ export const StudentDashboard: React.FC = () => {
                 .map(course => (
                   <article 
                     key={course.id} 
-                    onClick={() => handleOpenCoursePlayer(course.title, course.instructorName, 'Java', `${course.progressPercentage}%`, course.thumbnailUrl)}
+                    onClick={() => handleOpenCoursePlayer(course.id, course.title, course.instructorName, 'Java', `${course.progressPercentage}%`, course.thumbnailUrl)}
                     className="bg-surface rounded-xl overflow-hidden border border-gray-200 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer group relative"
                   >
                     <div className="absolute top-3 left-3 z-10 flex gap-1.5">
@@ -1707,31 +1799,48 @@ export const StudentDashboard: React.FC = () => {
                 
                 {/* Video Player Area */}
                 <div className="w-full bg-[#0a0f1d] rounded-2xl overflow-hidden shadow-lg border border-gray-800 aspect-video relative flex items-center justify-center group" style={{ maxHeight: '520px' }}>
-                  <img src={playerVideoThumbnail} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                  
-                  {/* Overlay Play Button */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 group-hover:bg-black/50 transition-colors">
-                    <button className="bg-primary hover:bg-primary-hover hover:scale-105 text-white rounded-full p-5 shadow-2xl transition-all duration-300 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[48px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                    </button>
-                    <p className="text-white/80 text-sm font-semibold mt-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">{playerLectureTitle}</p>
-                  </div>
-
-                  {/* Video Controls Mockup */}
-                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4 flex items-center gap-4 z-20">
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                    <div className="flex-grow h-1 bg-white/20 rounded-full cursor-pointer relative group-timeline">
-                      <div className="absolute left-0 top-0 h-full bg-primary rounded-full" style={{ width: '30%' }}></div>
-                      <div className="absolute w-3 h-3 bg-white rounded-full top-1/2 -translate-y-1/2 shadow opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: '30%' }}></div>
+                  {isPlayerLoading ? (
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                      <p className="text-white/80 text-xs font-semibold">Loading lesson content...</p>
                     </div>
-                    <span className="font-mono text-xs text-white/90">03:45 / 12:45</span>
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">volume_up</span>
-                    <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">fullscreen</span>
-                  </div>
+                  ) : playerVideoUrl ? (
+                    <iframe
+                      className="w-full h-full border-none rounded-2xl aspect-video"
+                      src={getYoutubeEmbedUrl(playerVideoUrl)}
+                      title="Lesson Video Player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  ) : (
+                    <>
+                      <img src={playerVideoThumbnail} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                      
+                      {/* Overlay Play Button */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 group-hover:bg-black/50 transition-colors">
+                        <button className="bg-primary hover:bg-primary-hover hover:scale-105 text-white rounded-full p-5 shadow-2xl transition-all duration-300 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[48px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                        </button>
+                        <p className="text-white/80 text-sm font-semibold mt-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">{playerLectureTitle}</p>
+                      </div>
+
+                      {/* Video Controls Mockup */}
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-4 flex items-center gap-4 z-20">
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                        <div className="flex-grow h-1 bg-white/20 rounded-full cursor-pointer relative group-timeline">
+                          <div className="absolute left-0 top-0 h-full bg-primary rounded-full" style={{ width: '30%' }}></div>
+                          <div className="absolute w-3 h-3 bg-white rounded-full top-1/2 -translate-y-1/2 shadow opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: '30%' }}></div>
+                        </div>
+                        <span className="font-mono text-xs text-white/90">00:00 / 00:00</span>
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">volume_up</span>
+                        <span className="material-symbols-outlined text-white hover:text-primary cursor-pointer transition-colors">fullscreen</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Sub-tabs Navigation */}
-                <div className="flex border-b border-gray-200 gap-6 overflow-x-auto hide-scrollbar pb-px">
+                <div ref={tabsContainerRef} className="flex border-b border-gray-200 gap-6 overflow-x-auto hide-scrollbar pb-px">
                   <button 
                     onClick={() => { setPlayerActiveTab('overview'); setCurrentProblemName(null); }}
                     className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
@@ -1757,14 +1866,6 @@ export const StudentDashboard: React.FC = () => {
                     <span className="material-symbols-outlined text-[18px]">terminal</span> Exercises
                   </button>
                   <button 
-                    onClick={() => { setPlayerActiveTab('source-code'); setCurrentProblemName(null); }}
-                    className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                      playerActiveTab === 'source-code' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-primary'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">code</span> Source Code
-                  </button>
-                  <button 
                     onClick={() => { setPlayerActiveTab('quiz'); setCurrentProblemName(null); }}
                     className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
                       playerActiveTab === 'quiz' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-primary'
@@ -1779,80 +1880,197 @@ export const StudentDashboard: React.FC = () => {
                   
                   {/* Overview */}
                   {playerActiveTab === 'overview' && (
-                    <div className="space-y-4 animate-fade-in">
+                    <div className="space-y-4 animate-fade-in text-left">
                       <h2 className="text-xl font-bold text-text-main">{playerLectureTitle}</h2>
-                      <div className="prose max-w-none text-sm text-text-muted space-y-4 leading-relaxed">
-                        <p>In this lesson, we will cover the essential tools required to build robust Spring Boot applications. A properly configured environment is crucial for avoiding initial setup hurdles and ensuring a smooth development experience.</p>
-                        <h3 className="font-bold text-text-main text-base mt-6">Prerequisites</h3>
-                        <ul className="list-disc pl-5 space-y-2">
-                          <li>Java Development Kit (JDK) 17 or higher installed on your path.</li>
-                          <li>An Integrated Development Environment (IDE) such as IntelliJ IDEA (recommended), Eclipse, or VS Code.</li>
-                          <li>Maven or Gradle build tools (we will focus on Maven).</li>
-                        </ul>
-                        <div className="bg-primary-light/35 p-5 rounded-xl border border-primary/10 flex gap-4 mt-6">
-                          <span className="material-symbols-outlined text-primary text-[24px]">lightbulb</span>
-                          <div>
-                            <p className="font-bold text-text-main text-sm">Pro Tip</p>
-                            <p className="text-xs text-text-muted mt-1 leading-normal">Make sure your JAVA_HOME environment variable is correctly set to your JDK installation path, and verified using "java -version" in your terminal.</p>
-                          </div>
+                      {isPlayerLoading ? (
+                        <div className="space-y-2 py-4">
+                          <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
                         </div>
-                      </div>
+                      ) : playerTheoryContent ? (
+                        <div className="prose max-w-none text-sm text-text-muted space-y-4 leading-relaxed whitespace-pre-wrap">
+                          {playerTheoryContent}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-text-muted italic">No theory content available for this lesson.</p>
+                      )}
                     </div>
                   )}
 
                   {/* Q&A */}
                   {playerActiveTab === 'qa' && (
-                    <div className="animate-fade-in">
+                    <div className="animate-fade-in text-left">
                       <h2 className="text-lg font-bold text-text-main mb-4">Questions & Answers in this lesson</h2>
-                      <div className="flex gap-3 mb-6">
-                        <div className="relative flex-1">
-                          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">search</span>
-                          <input className="w-full bg-surface-gray border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors text-text-main" placeholder="Search questions..." type="text" />
-                        </div>
-                        <button className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors whitespace-nowrap">Ask a new question</button>
-                      </div>
                       
-                      <div className="space-y-6">
-                        <div className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                          <div className="flex gap-3">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
-                              <span className="material-symbols-outlined text-text-muted text-[18px]">person</span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="font-bold text-sm text-text-main">Alex Chen</span>
-                                <span className="text-[10px] text-text-muted">2 hours ago</span>
-                              </div>
-                              <p className="text-sm font-semibold text-text-main mb-1">Error initializing Spring Boot application template</p>
-                              <p className="text-xs text-text-muted leading-relaxed line-clamp-2">Getting 'java: error: invalid source release: 17' when compiling. What could be wrong with my JDK configurations?</p>
-                              <div className="flex items-center gap-3 mt-2 text-[11px] text-text-muted font-semibold">
-                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-brand-green text-[14px]">thumb_up</span> 4 likes</span>
-                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-primary text-[14px]">comment</span> 2 replies</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                          <div className="flex gap-3">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
-                              <span className="material-symbols-outlined text-text-muted text-[18px]">person</span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="font-bold text-sm text-text-main">Sarah Jenkins</span>
-                                <span className="text-[10px] text-text-muted">1 day ago</span>
-                              </div>
-                              <p className="text-sm font-semibold text-text-main mb-1">IntelliJ Ultimate vs Community</p>
-                              <p className="text-xs text-text-muted leading-relaxed line-clamp-2">Is IntelliJ Ultimate strictly necessary for Spring Boot projects, or is Community Edition sufficient for general microservice development?</p>
-                              <div className="flex items-center gap-3 mt-2 text-[11px] text-text-muted font-semibold">
-                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">thumb_up</span> 0 likes</span>
-                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">comment</span> 1 reply</span>
-                              </div>
-                            </div>
-                          </div>
+                      {/* Post a new root question form */}
+                      <div className="bg-surface-gray rounded-2xl p-4 border border-gray-100 mb-6">
+                        <textarea
+                          className="w-full bg-surface border-0 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all text-text-main resize-none min-h-[80px]"
+                          placeholder="Ask a question or share your thoughts about this lesson..."
+                          value={rootCommentText}
+                          onChange={(e) => setRootCommentText(e.target.value)}
+                        />
+                        <div className="flex justify-end mt-3">
+                          <button
+                            className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors"
+                            onClick={async () => {
+                              if (!rootCommentText.trim() || !selectedLessonId) return;
+                              try {
+                                await postLessonComment(selectedLessonId, { content: rootCommentText });
+                                setRootCommentText('');
+                                loadLessonComments(selectedLessonId);
+                              } catch (err: any) {
+                                alert(err.message || 'Failed to post comment');
+                              }
+                            }}
+                            disabled={!rootCommentText.trim()}
+                          >
+                            Post Question
+                          </button>
                         </div>
                       </div>
+
+                      {isLoadingComments ? (
+                        <div className="space-y-4 py-4">
+                          <div className="h-12 bg-slate-50 rounded-xl animate-pulse"></div>
+                          <div className="h-12 bg-slate-50 rounded-xl animate-pulse"></div>
+                          <div className="h-12 bg-slate-50 rounded-xl animate-pulse"></div>
+                        </div>
+                      ) : lessonComments.length === 0 ? (
+                        <div className="text-center py-12 bg-surface-gray rounded-2xl border border-dashed border-gray-200">
+                          <span className="material-symbols-outlined text-[48px] text-text-muted mb-2">forum</span>
+                          <p className="text-sm text-text-muted italic">No questions in this lesson yet. Be the first to ask!</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {lessonComments.map((comment) => (
+                            <div key={comment.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                              {/* Root comment */}
+                              <div className="flex gap-3">
+                                {comment.avatar_url ? (
+                                  <img
+                                    src={comment.avatar_url}
+                                    alt={comment.author}
+                                    className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-9 h-9 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-text-muted text-[18px]">person</span>
+                                  </div>
+                                )}
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span className="font-bold text-sm text-text-main">{comment.author}</span>
+                                    <span className="text-[10px] text-text-muted">
+                                      {new Date(comment.createdAt).toLocaleDateString('en-GB', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-text-muted leading-relaxed whitespace-pre-wrap">{comment.text}</p>
+                                  
+                                  <div className="flex items-center gap-3 mt-2">
+                                    <button
+                                      className="flex items-center gap-1 text-[11px] text-primary hover:text-primary-hover font-semibold transition-colors"
+                                      onClick={() => {
+                                        if (replyingCommentId === comment.id) {
+                                          setReplyingCommentId(null);
+                                        } else {
+                                          setReplyingCommentId(comment.id);
+                                          setReplyText('');
+                                        }
+                                      }}
+                                    >
+                                      <span className="material-symbols-outlined text-[14px]">reply</span> Reply
+                                    </button>
+                                  </div>
+
+                                  {/* Reply input form */}
+                                  {replyingCommentId === comment.id && (
+                                    <div className="mt-3 bg-surface-gray rounded-xl p-3 border border-gray-100 flex gap-2">
+                                      <textarea
+                                        className="flex-1 bg-surface border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-text-main focus:outline-none focus:border-primary resize-none min-h-[60px]"
+                                        placeholder={`Reply to ${comment.author}...`}
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                      />
+                                      <div className="flex gap-1 shrink-0">
+                                        <button
+                                          className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                                          onClick={async () => {
+                                            if (!replyText.trim() || !selectedLessonId) return;
+                                            try {
+                                              await postLessonComment(selectedLessonId, {
+                                                content: replyText,
+                                                parentId: comment.id,
+                                              });
+                                              setReplyText('');
+                                              setReplyingCommentId(null);
+                                              loadLessonComments(selectedLessonId);
+                                            } catch (err: any) {
+                                              alert(err.message || 'Failed to post reply');
+                                            }
+                                          }}
+                                          disabled={!replyText.trim()}
+                                        >
+                                          Reply
+                                        </button>
+                                        <button
+                                          className="bg-slate-100 hover:bg-slate-200 text-text-muted px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                                          onClick={() => setReplyingCommentId(null)}
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Nested replies */}
+                              {comment.replies && comment.replies.length > 0 && (
+                                <div className="ml-12 pl-4 border-l-2 border-gray-100 space-y-4 mt-3">
+                                  {comment.replies.map((reply) => (
+                                    <div key={reply.id} className="flex gap-3">
+                                      {reply.avatar_url ? (
+                                        <img
+                                          src={reply.avatar_url}
+                                          alt={reply.author}
+                                          className="w-8 h-8 rounded-full object-cover border border-gray-200 shrink-0"
+                                        />
+                                      ) : (
+                                        <div className="w-8 h-8 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center shrink-0">
+                                          <span className="material-symbols-outlined text-text-muted text-[16px]">person</span>
+                                        </div>
+                                      )}
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                          <span className="font-bold text-xs text-text-main">{reply.author}</span>
+                                          <span className="text-[9px] text-text-muted">
+                                            {new Date(reply.createdAt).toLocaleDateString('en-GB', {
+                                              day: '2-digit',
+                                              month: 'short',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                            })}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-text-muted leading-relaxed whitespace-pre-wrap">{reply.text}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1913,8 +2131,8 @@ export const StudentDashboard: React.FC = () => {
                             </button>
                             <div className="flex items-center gap-3">
                               <h3 className="text-base font-bold text-text-main">{currentProblemName}</h3>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${problemData[currentProblemName]?.difficultyClass}`}>
-                                {problemData[currentProblemName]?.difficulty}
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700">
+                                Difficulty
                               </span>
                             </div>
                           </div>
@@ -1922,8 +2140,9 @@ export const StudentDashboard: React.FC = () => {
                           {/* Description Panel */}
                           <div 
                             className="prose max-w-none text-sm text-text-muted leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: problemData[currentProblemName]?.description }}
-                          />
+                          >
+                            <p>Problem description not available. Please use the API to fetch problem details.</p>
+                          </div>
 
                           {/* Dark Editor Canvas */}
                           <div className="border border-gray-200 rounded-xl overflow-hidden bg-[#1e1e1e] shadow-lg flex flex-col">
@@ -2009,72 +2228,207 @@ export const StudentDashboard: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Source Code */}
-                  {playerActiveTab === 'source-code' && (
-                    <div className="animate-fade-in">
-                      <h2 className="text-lg font-bold text-text-main mb-1">Lesson Resources</h2>
-                      <p className="text-xs text-text-muted mb-4">Download the starting templates and completed source code for this lesson.</p>
-                      <div className="flex flex-col gap-3">
-                        <div className="bg-surface border border-gray-200 p-4 rounded-xl flex items-center justify-between gap-4 hover:border-primary transition-all group">
-                          <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-brand-blue text-[28px] bg-slate-100 p-2 rounded-lg">folder_zip</span>
-                            <div>
-                              <p className="font-bold text-sm text-text-main">lesson-1-2-starter-template.zip</p>
-                              <p className="text-[11px] text-text-muted">15.2 MB</p>
-                            </div>
-                          </div>
-                          <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
-                            <span className="material-symbols-outlined text-[16px]">download</span> Download
-                          </button>
-                        </div>
-                        <div className="bg-surface border border-gray-200 p-4 rounded-xl flex items-center justify-between gap-4 hover:border-primary transition-all group">
-                          <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-brand-blue text-[28px] bg-slate-100 p-2 rounded-lg">description</span>
-                            <div>
-                              <p className="font-bold text-sm text-text-main">database-schema-init.sql</p>
-                              <p className="text-[11px] text-text-muted">2.1 MB</p>
-                            </div>
-                          </div>
-                          <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all">
-                            <span className="material-symbols-outlined text-[16px]">download</span> Download
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Quiz */}
                   {playerActiveTab === 'quiz' && (
-                    <div className="animate-fade-in">
-                      <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
-                        <h2 className="text-lg font-bold text-text-main">Knowledge Check</h2>
-                        <span className="bg-slate-100 text-text-muted border border-gray-200 px-3 py-1 rounded-full text-xs font-bold">Question 1 of 5</span>
-                      </div>
-                      <div className="bg-surface p-2">
-                        <h3 className="text-base font-bold text-text-main mb-4 leading-snug">In Spring Boot, which annotation is used to map HTTP GET requests onto specific handler methods?</h3>
-                        <div className="space-y-3">
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@PostMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@GetMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@RequestMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@PathMapping</span>
-                          </label>
+                    <div ref={quizTabRef} className="animate-fade-in space-y-4">
+                      {isQuizLoading ? (
+                        <div className="flex flex-col items-center justify-center py-16">
+                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                          <p className="text-sm text-text-muted mt-4 font-semibold">Loading quiz details...</p>
                         </div>
-                        <div className="border-t border-gray-100 mt-6 pt-4 flex justify-between items-center">
-                          <a className="text-text-muted hover:text-primary font-bold text-xs transition-colors" href="#">Skip Question</a>
-                          <button className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors">Submit Answer</button>
+                      ) : quizError ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                          <span className="material-symbols-outlined text-gray-300 text-[64px] mb-3">quiz</span>
+                          <h3 className="text-base font-bold text-text-main">No Quiz Available</h3>
+                          <p className="text-xs text-text-muted mt-1 max-w-[320px]">
+                            {quizError.includes('404') || quizError.includes('found') 
+                              ? 'No quiz has been configured for this lesson yet.' 
+                              : quizError}
+                          </p>
                         </div>
-                      </div>
+                      ) : currentQuiz ? (
+                        <div>
+                          {currentQuiz.submitted ? (
+                            /* --- VIEW RESULT STATE --- */
+                            <div className="space-y-6">
+                              {/* Summary Score Card */}
+                              <div className="bg-gradient-to-r from-primary to-brand-blue rounded-3xl p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden">
+                                <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4">
+                                  <span className="material-symbols-outlined text-[180px]">emoji_events</span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                                  <div>
+                                    <span className="bg-white/20 text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Latest Attempt Results</span>
+                                    <h2 className="text-2xl font-black mt-2 leading-tight">{currentQuiz.title}</h2>
+                                    <p className="text-xs text-white/80 mt-1">Submitted at: {currentQuiz.submittedAt ? new Date(currentQuiz.submittedAt).toLocaleString('en-US') : ''}</p>
+                                  </div>
+                                  <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl backdrop-blur-sm self-start md:self-auto">
+                                    <div className="text-center">
+                                      <p className="text-3xl font-black">{currentQuiz.score?.toFixed(1)}%</p>
+                                      <p className="text-[10px] uppercase font-bold text-white/70 tracking-wider">Score</p>
+                                    </div>
+                                    <div className="w-px h-10 bg-white/20"></div>
+                                    <div className="text-center">
+                                      <p className="text-3xl font-black">{currentQuiz.correctQuestion}/{currentQuiz.totalQuestion}</p>
+                                      <p className="text-[10px] uppercase font-bold text-white/70 tracking-wider">Correct Answers</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="mt-5 pt-4 border-t border-white/10 flex justify-between items-center">
+                                  <p className="text-xs font-semibold">
+                                    {currentQuiz.score && currentQuiz.score >= 80 
+                                      ? '🎉 Excellent! You have fully mastered this lesson\'s knowledge.' 
+                                      : currentQuiz.score && currentQuiz.score >= 50 
+                                      ? '👍 Good job! You have passed the quiz.' 
+                                      : '😢 Score not passing. Please try taking the quiz again!'}
+                                  </p>
+                                  <button 
+                                    onClick={() => {
+                                      // Local retake mode
+                                      setCurrentQuiz(prev => prev ? { ...prev, submitted: false } : null);
+                                      const cleared: Record<number, number | null> = {};
+                                      currentQuiz.questions.forEach(q => { cleared[q.questionId] = null; });
+                                      setSelectedAnswers(cleared);
+                                    }}
+                                    className="bg-white hover:bg-slate-100 text-primary px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-sm"
+                                  >
+                                    Retake Quiz
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Review Questions list */}
+                              <div className="space-y-6 mt-6">
+                                {currentQuiz.questions.map((question, qIdx) => {
+                                  return (
+                                    <div key={question.questionId} className="bg-surface border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                                      <div className="flex justify-between items-start gap-4 mb-3">
+                                        <h3 className="text-sm font-bold text-text-main leading-snug flex gap-2">
+                                          <span>{qIdx + 1}.</span>
+                                          <span>{question.content}</span>
+                                        </h3>
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                                          question.isCorrect 
+                                            ? 'bg-green-50 text-brand-green border border-green-200' 
+                                            : 'bg-red-50 text-red-750 border border-red-200'
+                                        }`}>
+                                          {question.isCorrect ? 'Correct' : 'Incorrect'}
+                                        </span>
+                                      </div>
+                                      
+                                      <div className="space-y-2.5">
+                                        {question.options.map((option) => {
+                                          const isSelected = question.selectedOptionId === option.optionId;
+                                          const isCorrectOption = option.isCorrect;
+
+                                          let styleClass = 'border-gray-200 opacity-70';
+                                          let icon = null;
+
+                                          if (isCorrectOption) {
+                                            styleClass = 'border-brand-green bg-green-50 text-brand-green font-bold';
+                                            icon = <span className="material-symbols-outlined text-[16px] text-brand-green">check_circle</span>;
+                                          } else if (isSelected) {
+                                            styleClass = 'border-red-500 bg-red-50 text-red-700 font-bold';
+                                            icon = <span className="material-symbols-outlined text-[16px] text-red-600">cancel</span>;
+                                          }
+
+                                          return (
+                                            <div 
+                                              key={option.optionId} 
+                                              className={`flex items-center justify-between p-3.5 border rounded-xl text-xs transition-all ${styleClass}`}
+                                            >
+                                              <div className="flex items-center gap-3">
+                                                <input 
+                                                  type="radio"
+                                                  disabled
+                                                  checked={isSelected}
+                                                  className="w-4 h-4 text-primary border-gray-300"
+                                                />
+                                                <span className="font-semibold">{option.content}</span>
+                                              </div>
+                                              {icon}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            /* --- VIEW QUIZ TAKING STATE --- */
+                            <div className="space-y-6">
+                              <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                                <h2 className="text-base font-bold text-text-main">{currentQuiz.title}</h2>
+                                <span className="bg-slate-100 text-text-muted border border-gray-200 px-3 py-1 rounded-full text-xs font-bold">
+                                  {Object.values(selectedAnswers).filter(v => v !== null).length} / {currentQuiz.questions.length} Selected
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-5">
+                                {currentQuiz.questions.map((question, qIdx) => (
+                                  <div key={question.questionId} className="bg-surface border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-all">
+                                    <h3 className="text-sm font-bold text-text-main mb-3 leading-snug flex gap-2">
+                                      <span>{qIdx + 1}.</span>
+                                      <span>{question.content}</span>
+                                    </h3>
+                                    <div className="space-y-2.5">
+                                      {question.options.map((option) => {
+                                        const isSelected = selectedAnswers[question.questionId] === option.optionId;
+                                        return (
+                                          <label 
+                                            key={option.optionId} 
+                                            className={`flex items-center gap-3 p-3.5 border rounded-xl cursor-pointer transition-all ${
+                                              isSelected 
+                                                ? 'border-primary bg-primary-light/5 ring-1 ring-primary' 
+                                                : 'border-gray-200 hover:bg-slate-50 hover:border-gray-300'
+                                            }`}
+                                          >
+                                            <input 
+                                              type="radio"
+                                              className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary"
+                                              name={`question-${question.questionId}`}
+                                              checked={isSelected}
+                                              onChange={() => {
+                                                setSelectedAnswers(prev => ({
+                                                  ...prev,
+                                                  [question.questionId]: option.optionId
+                                                }));
+                                              }}
+                                            />
+                                            <span className="text-xs font-semibold text-text-main">{option.content}</span>
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="border-t border-gray-100 mt-6 pt-4 flex justify-end">
+                                <button 
+                                  onClick={handleQuizSubmit}
+                                  disabled={isQuizSubmitting}
+                                  className="bg-primary hover:bg-primary-hover disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-bold text-xs shadow-md shadow-primary/20 transition-all flex items-center gap-2"
+                                >
+                                  {isQuizSubmitting ? (
+                                    <>
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                      Submitting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="material-symbols-outlined text-[16px]">send</span>
+                                      Submit Quiz
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
                   )}
 
@@ -2082,7 +2436,7 @@ export const StudentDashboard: React.FC = () => {
               </div>
 
               {/* Right Column (Curriculum Sidebar) */}
-              <div className="lg:col-span-3 bg-surface rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col sticky top-24 max-h-[calc(100vh-8rem)]">
+              <div className="lg:col-span-3 bg-surface border-y border-l border-gray-200 shadow-sm overflow-hidden flex flex-col rounded-l-2xl rounded-r-none -mr-4 md:-mr-8 lg:-mr-12">
                 <div className="p-4 bg-slate-50 border-b border-gray-200 flex flex-col gap-2">
                   <h2 className="font-bold text-sm text-text-main flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-[18px]">toc</span>
@@ -2094,79 +2448,71 @@ export const StudentDashboard: React.FC = () => {
                   <p className="text-[11px] font-semibold text-text-muted text-right">{playerCourseProgress.toLowerCase()} completed</p>
                 </div>
 
-                <div className="flex-grow overflow-y-auto divide-y divide-gray-150 max-h-[450px]">
-                  {/* Section 1 */}
-                  <div className="flex flex-col">
-                    <button 
-                      onClick={() => setCurriculumSections({ ...curriculumSections, sec1: !curriculumSections.sec1 })}
-                      className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
-                    >
-                      <span className="font-semibold text-xs text-text-main line-clamp-1">1. Course Introduction</span>
-                      <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${curriculumSections.sec1 ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-                    
-                    <div className={`${curriculumSections.sec1 ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-brand-green text-[16px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate font-medium">1.1 What is Spring Boot?</span>
-                        <span className="text-[10px] text-text-muted font-mono">05:20</span>
-                      </div>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 bg-primary-light/30 border-l-2 border-primary cursor-pointer transition-colors group">
-                        <span className="material-symbols-outlined text-primary text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-primary font-bold flex-1 truncate">1.2 Setting up Environment</span>
-                        <span className="text-[10px] text-primary/80 font-mono">12:45</span>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex-grow divide-y divide-gray-150 overflow-visible">
+                  {learningChapters.length > 0 ? (
+                    learningChapters.map((chapter) => {
+                      const isExpanded = !!curriculumSections[`sec_${chapter.id}`];
+                      return (
+                        <div key={chapter.id} className="flex flex-col">
+                          <button 
+                            onClick={() => setCurriculumSections({ 
+                              ...curriculumSections, 
+                              [`sec_${chapter.id}`]: !isExpanded 
+                            })}
+                            className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
+                          >
+                            <span className="font-semibold text-xs text-text-main line-clamp-1">
+                              {chapter.title}
+                            </span>
 
-                  {/* Section 2 */}
-                  <div className="flex flex-col">
-                    <button 
-                      onClick={() => setCurriculumSections({ ...curriculumSections, sec2: !curriculumSections.sec2 })}
-                      className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
-                    >
-                      <span className="font-semibold text-xs text-text-main line-clamp-1">2. REST API & Controller</span>
-                      <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${curriculumSections.sec2 ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-                    
-                    <div className={`${curriculumSections.sec2 ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-text-muted text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate">2.1 REST Controller Basics</span>
-                        <span className="text-[10px] text-text-muted font-mono">15:30</span>
-                      </div>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-text-muted text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate">2.2 Request/Response</span>
-                        <span className="text-[10px] text-text-muted font-mono">18:45</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Section 3 */}
-                  <div className="flex flex-col">
-                    <button 
-                      onClick={() => setCurriculumSections({ ...curriculumSections, sec3: !curriculumSections.sec3 })}
-                      className="w-full flex items-center justify-between p-3.5 hover:bg-surface-gray transition-colors text-left bg-white border-none cursor-pointer"
-                    >
-                      <span className="font-semibold text-xs text-text-main line-clamp-1">3. Spring Data JPA</span>
-                      <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${curriculumSections.sec3 ? 'rotate-180' : ''}`}>expand_more</span>
-                    </button>
-                    
-                    <div className={`${curriculumSections.sec3 ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-text-muted text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate">3.1 Entities & Repositories</span>
-                        <span className="text-[10px] text-text-muted font-mono">22:15</span>
-                      </div>
-                      <div className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-100 cursor-pointer border-l-2 border-transparent transition-colors group">
-                        <span className="material-symbols-outlined text-text-muted text-[16px]">radio_button_unchecked</span>
-                        <span className="text-xs text-text-main group-hover:text-primary transition-colors flex-1 truncate">3.2 JPA Query Methods</span>
-                        <span className="text-[10px] text-text-muted font-mono">16:40</span>
-                      </div>
-                    </div>
-                  </div>
-
+                            <span className={`material-symbols-outlined text-text-muted text-[18px] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                              expand_more
+                            </span>
+                          </button>
+                          
+                          <div className={`${isExpanded ? 'flex' : 'hidden'} flex-col bg-slate-50`}>
+                            {chapter.lessons && chapter.lessons.map(lesson => {
+                              const isSelected = selectedLessonId === lesson.id;
+                              return (
+                                <div 
+                                  key={lesson.id} 
+                                  onClick={() => handleSelectLesson(lesson.id)}
+                                  className={`flex items-center gap-2.5 px-4 py-2.5 cursor-pointer border-l-2 transition-colors group ${
+                                    isSelected 
+                                      ? 'bg-primary-light/30 border-primary' 
+                                      : 'border-transparent hover:bg-slate-100'
+                                  }`}
+                                >
+                                  {lesson.isCompleted ? (
+                                    <span className="material-symbols-outlined text-brand-green text-[16px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                      check_circle
+                                    </span>
+                                  ) : (
+                                    <span 
+                                      onClick={(e) => handleCompleteLesson(e, lesson.id)}
+                                      className={`material-symbols-outlined text-[16px] hover:text-brand-green transition-colors cursor-pointer ${isSelected ? 'text-primary' : 'text-text-muted'}`}
+                                      title="Mark as completed"
+                                    >
+                                      radio_button_unchecked
+                                    </span>
+                                  )}
+                                  <span className={`text-xs flex-1 truncate ${
+                                    isSelected 
+                                      ? 'text-primary font-bold' 
+                                      : 'text-text-main group-hover:text-primary'
+                                  }`}>
+                                    {lesson.title}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="p-4 text-center text-xs text-text-muted">No curriculum chapters available.</div>
+                  )}
                 </div>
               </div>
 

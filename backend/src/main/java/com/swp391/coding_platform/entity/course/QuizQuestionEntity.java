@@ -3,7 +3,6 @@ package com.swp391.coding_platform.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
 import java.time.Instant;
 import java.util.List;
 
@@ -14,19 +13,19 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "chapters", schema = "public")
-public class ChapterEntity {
+@Table(name = "quiz_questions", schema = "public")
+public class QuizQuestionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    CourseEntity course;
+    @JoinColumn(name = "quiz_id", nullable = false)
+    QuizEntity quiz;
 
-    @Column(name = "title", nullable = false, length = 255)
-    String title;
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    String content;
 
     @Column(name = "order_index", nullable = false)
     Integer orderIndex;
@@ -39,7 +38,7 @@ public class ChapterEntity {
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
 
-    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @OrderBy("orderIndex ASC")
-    List<LessonEntity> lessons;
+    List<QuizOptionEntity> options;
 }

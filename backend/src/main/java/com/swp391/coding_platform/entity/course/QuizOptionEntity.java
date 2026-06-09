@@ -3,9 +3,7 @@ package com.swp391.coding_platform.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
 import java.time.Instant;
-import java.util.List;
 
 @Getter
 @Setter
@@ -14,22 +12,25 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "chapters", schema = "public")
-public class ChapterEntity {
+@Table(name = "quiz_options", schema = "public")
+public class QuizOptionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    CourseEntity course;
+    @JoinColumn(name = "question_id", nullable = false)
+    QuizQuestionEntity question;
 
-    @Column(name = "title", nullable = false, length = 255)
-    String title;
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    String content;
 
     @Column(name = "order_index", nullable = false)
     Integer orderIndex;
+
+    @Column(name = "is_correct", nullable = false)
+    Boolean isCorrect;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -38,8 +39,4 @@ public class ChapterEntity {
     @Builder.Default
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
-
-    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @OrderBy("orderIndex ASC")
-    List<LessonEntity> lessons;
 }

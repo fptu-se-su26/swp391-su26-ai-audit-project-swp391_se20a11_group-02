@@ -86,6 +86,7 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(8000, "Comment not found", HttpStatus.NOT_FOUND),
     COURSE_REVIEW_ALREADY_EXISTS(8101, "User already reviewed this course", HttpStatus.CONFLICT),
     INVALID_COMMENT_LESSON(8102, "Invalid comment lesson", HttpStatus.BAD_REQUEST),
+    INVALID_COMMENT_LEVEL(8103, "Replies can only be added to root comments (1-level nesting maximum)", HttpStatus.BAD_REQUEST),
 
     CONTEST_NOT_FOUND(9000, "Contest not found", HttpStatus.NOT_FOUND),
     CONTEST_PASSWORD_INVALID(9003, "Contest password is invalid", HttpStatus.UNAUTHORIZED),

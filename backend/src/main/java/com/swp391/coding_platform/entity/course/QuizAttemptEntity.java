@@ -3,7 +3,6 @@ package com.swp391.coding_platform.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
 import java.time.Instant;
 import java.util.List;
 
@@ -14,22 +13,31 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "chapters", schema = "public")
-public class ChapterEntity {
+@Table(name = "quiz_attempts", schema = "public")
+public class QuizAttemptEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
+    @Column(name = "user_id", nullable = false)
+    Integer userId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    CourseEntity course;
+    @JoinColumn(name = "quiz_id", nullable = false)
+    QuizEntity quiz;
 
-    @Column(name = "title", nullable = false, length = 255)
-    String title;
+    @Column(name = "total_question", nullable = false)
+    Integer totalQuestion;
 
-    @Column(name = "order_index", nullable = false)
-    Integer orderIndex;
+    @Column(name = "correct_question", nullable = false)
+    Integer correctQuestion;
+
+    @Column(name = "score", nullable = false)
+    Double score;
+
+    @Column(name = "submitted_at")
+    Instant submittedAt;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -39,7 +47,6 @@ public class ChapterEntity {
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
 
-    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @OrderBy("orderIndex ASC")
-    List<LessonEntity> lessons;
+    @OneToMany(mappedBy = "quizAttempt", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<QuizAttemptAnswerEntity> answers;
 }
