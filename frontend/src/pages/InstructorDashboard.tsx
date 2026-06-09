@@ -678,7 +678,7 @@ export const InstructorDashboard: React.FC = () => {
   const [courseRegPage, setCourseRegPage] = useState<number>(1);
   const [breakdownPage, setBreakdownPage] = useState<number>(1);
 
-  const [revenueFilter, setRevenueFilter] = useState<string>('this-month');
+  const [revenueFilter, setRevenueFilter] = useState<string>('all');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [appliedStartDate, setAppliedStartDate] = useState<string>('');
@@ -1272,7 +1272,9 @@ export const InstructorDashboard: React.FC = () => {
     (breakdownPage - 1) * BREAKDOWN_PER_PAGE,
     breakdownPage * BREAKDOWN_PER_PAGE
   );
-  const monthlyChartData = backendMonthlyChartData;
+  const monthlyChartData = useMemo(() => {
+    return chartViewMode === '12m' ? backendMonthlyChartData : backendMonthlyChartData.slice(-6);
+  }, [chartViewMode, backendMonthlyChartData]);
   // Removed unused monthlyEnrollmentChartData declaration
   const trendFilteredTransactions = { length: totalTrendRegistrationsState };
   const courseRegistrations = courseRegistrationsState;
@@ -1282,7 +1284,7 @@ export const InstructorDashboard: React.FC = () => {
     (courseRegPage - 1) * REGISTRATIONS_PER_PAGE,
     courseRegPage * REGISTRATIONS_PER_PAGE
   );
-
+ 
   const chartPoints = useMemo(() => {
     const maxAmount = Math.max(...monthlyChartData.map(m => m.amount), 1000000);
     const roundMax = Math.ceil(maxAmount / 1000000) * 1000000;
@@ -1297,8 +1299,9 @@ export const InstructorDashboard: React.FC = () => {
     const chartWidth = width - paddingLeft - paddingRight;
     const chartHeight = height - paddingTop - paddingBottom;
     
+    const divisions = monthlyChartData.length - 1 || 1;
     const points = monthlyChartData.map((m, idx) => {
-      const x = paddingLeft + (idx * (chartWidth / 11));
+      const x = paddingLeft + (idx * (chartWidth / divisions));
       const y = paddingTop + chartHeight - (m.amount / roundMax) * chartHeight;
       return {
         x,
@@ -1953,12 +1956,39 @@ export const InstructorDashboard: React.FC = () => {
                   <div className="bg-white rounded-2xl p-5 md:p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-center mb-6">
                       <div>
-                        <h3 className="font-display font-bold text-lg text-brand-blue uppercase tracking-wider">Revenue Trend</h3>
-                        <p className="text-xs text-slate-400 mt-0.5">Visual representation of gross earnings variations over time.</p>
+                        <h3 className="font-display font-bold text-lg text-brand-blue uppercase tracking-wider">
+                          {chartViewMode === '12m' ? '12-Month' : '6-Month'} Revenue Trend
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Visual representation of gross earnings variations over {chartViewMode === '12m' ? 'a year' : '6 months'}.
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-slate-50 border border-slate-200/40 p-2 rounded-xl">
-                        <span className="w-3 h-3 bg-primary rounded-full"></span>
-                        <span>Gross Revenue</span>
+                      <div className="flex items-center gap-3.5 flex-wrap sm:flex-nowrap">
+                        {/* 12 Months / 6 Months view mode selector */}
+                        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/40 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setChartViewMode('6m')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 select-none ${
+                              chartViewMode === '6m' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500 hover:text-brand-blue'
+                            }`}
+                          >
+                            6 Months
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setChartViewMode('12m')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 select-none ${
+                              chartViewMode === '12m' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500 hover:text-brand-blue'
+                            }`}
+                          >
+                            12 Months
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-slate-50 border border-slate-200/40 p-2 rounded-xl">
+                          <span className="w-3 h-3 bg-primary rounded-full"></span>
+                          <span>Gross Revenue</span>
+                        </div>
                       </div>
                     </div>
 
@@ -2968,12 +2998,39 @@ export const InstructorDashboard: React.FC = () => {
                   <div className="lg:col-span-6 bg-surface rounded-3xl p-6 border border-slate-200/50 ambient-shadow flex flex-col justify-between">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                       <div>
-                        <h3 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">12-Month Revenue Trend</h3>
-                        <p className="text-xs text-text-muted mt-0.5">Visual representation of monthly gross earnings variations over a year.</p>
+                        <h3 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">
+                          {chartViewMode === '12m' ? '12-Month' : '6-Month'} Revenue Trend
+                        </h3>
+                        <p className="text-xs text-text-muted mt-0.5">
+                          Visual representation of monthly gross earnings variations over {chartViewMode === '12m' ? 'a year' : '6 months'}.
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-slate-50 border border-slate-200/40 p-2 rounded-xl">
-                        <span className="w-3 h-3 bg-primary rounded-full"></span>
-                        <span>Monthly Gross Revenue</span>
+                      <div className="flex items-center gap-3.5 flex-wrap sm:flex-nowrap">
+                        {/* 12 Months / 6 Months view mode selector */}
+                        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/40 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setChartViewMode('6m')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 select-none ${
+                              chartViewMode === '6m' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500 hover:text-brand-blue'
+                            }`}
+                          >
+                            6 Months
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setChartViewMode('12m')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 select-none ${
+                              chartViewMode === '12m' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500 hover:text-brand-blue'
+                            }`}
+                          >
+                            12 Months
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold text-brand-blue bg-slate-50 border border-slate-200/40 p-2 rounded-xl">
+                          <span className="w-3 h-3 bg-primary rounded-full"></span>
+                          <span>Monthly Gross Revenue</span>
+                        </div>
                       </div>
                     </div>
 
