@@ -77,3 +77,4 @@ export const CookiesPolicy: React.FC = () => {
     </div>
   );
 };
+
