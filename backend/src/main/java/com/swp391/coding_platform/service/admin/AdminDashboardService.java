@@ -7,6 +7,9 @@ import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopCo
 import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopInstructor;
 import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopProblem;
 import com.swp391.coding_platform.dto.response.AdminDepositHistoryResponse;
+import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse;
+import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse.MonthlyFinancialRecord;
+import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse.TopRevenueCourse;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.enums.ContestStatus;
@@ -15,6 +18,7 @@ import com.swp391.coding_platform.entity.enums.StatusTransaction;
 import com.swp391.coding_platform.entity.enums.TransactionType;
 import com.swp391.coding_platform.entity.enums.UserStatus;
 import com.swp391.coding_platform.entity.payment.OrderEntity;
+import com.swp391.coding_platform.entity.payment.OrderItemEntity;
 import com.swp391.coding_platform.entity.payment.WalletTransactionEntity;
 import com.swp391.coding_platform.entity.problem.ProblemEntity;
 import com.swp391.coding_platform.entity.user.UserEntity;
@@ -24,6 +28,7 @@ import com.swp391.coding_platform.repository.contest.ContestRepository;
 import com.swp391.coding_platform.repository.course.CourseRepository;
 import com.swp391.coding_platform.repository.instructor.InstructorRepository;
 import com.swp391.coding_platform.repository.payment.OrderRepository;
+import com.swp391.coding_platform.repository.payment.OrderItemRepository;
 import com.swp391.coding_platform.repository.payment.WalletTransactionRepository;
 import com.swp391.coding_platform.repository.problem.ProblemRepository;
 import com.swp391.coding_platform.repository.problem.ProblemSubmissionRepository;
@@ -56,6 +61,7 @@ public class AdminDashboardService {
     InstructorRepository instructorRepository;
     ProblemRepository problemRepository;
     OrderRepository orderRepository;
+    OrderItemRepository orderItemRepository;
     WalletTransactionRepository walletTransactionRepository;
     CategoryRepository categoryRepository;
     ProblemSubmissionRepository problemSubmissionRepository;
@@ -291,5 +297,132 @@ public class AdminDashboardService {
         }
 
         return topProblems;
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public AdminFinancialStatsResponse getFinancialStats() {
+        // Query completed orders
+        List<OrderEntity> allCompletedOrders = orderRepository.findAll().stream()
+                .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
+                .collect(Collectors.toList());
+
+        // Query successful AWARD transactions (if any)
+        List<WalletTransactionEntity> awards = walletTransactionRepository.findAll().stream()
+                .filter(t -> t.getType() == TransactionType.AWARD && t.getStatus() == StatusTransaction.SUCCESS)
+                .collect(Collectors.toList());
+
+        // 1. Get Monthly Financial Records (Last 12 Months)
+        List<MonthlyFinancialRecord> financialMonthlyRecords = getMonthlyFinancialRecords(allCompletedOrders, awards);
+
+        // 2. Get Top Revenue Generating Courses
+        List<TopRevenueCourse> topRevenueCourses = getTopRevenueCoursesData();
+
+        return AdminFinancialStatsResponse.builder()
+                .financialMonthlyRecords(financialMonthlyRecords)
+                .topRevenueCourses(topRevenueCourses)
+                .build();
+    }
+
+    private List<MonthlyFinancialRecord> getMonthlyFinancialRecords(
+            List<OrderEntity> completedOrders, List<WalletTransactionEntity> awards) {
+
+        List<MonthlyFinancialRecord> records = new ArrayList<>();
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("MMM yy", Locale.ENGLISH);
+        DateTimeFormatter datePrefixFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        LocalDate today = LocalDate.now();
+
+        // Server & Marketing simulated expenses
+        Map<String, Long> marketingMap = new HashMap<>();
+        marketingMap.put("Jul 25", 1000000L);
+        marketingMap.put("Aug 25", 1200000L);
+        marketingMap.put("Sep 25", 1000000L);
+        marketingMap.put("Oct 25", 1500000L);
+        marketingMap.put("Nov 25", 1500000L);
+        marketingMap.put("Dec 25", 2000000L);
+        marketingMap.put("Jan 26", 800000L);
+        marketingMap.put("Feb 26", 1000000L);
+        marketingMap.put("Mar 26", 1500000L);
+        marketingMap.put("Apr 26", 1200000L);
+        marketingMap.put("May 26", 1800000L);
+        marketingMap.put("Jun 26", 2000000L);
+
+        Instant oneYearAgo = today.minusMonths(11).withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        for (int i = 11; i >= 0; i--) {
+            LocalDate monthDate = today.minusMonths(i);
+            String label = monthDate.format(labelFormatter);
+            String datePrefix = monthDate.format(datePrefixFormatter);
+
+            // Server cost simulation
+            long serverCost = (monthDate.isBefore(LocalDate.of(2025, 11, 1))) ? 1200000L : 1500000L;
+            long marketingCost = marketingMap.getOrDefault(label, 1500000L);
+
+            records.add(new MonthlyFinancialRecord(label, datePrefix, 0L, 0L, 0L, serverCost, marketingCost));
+        }
+
+        Map<String, MonthlyFinancialRecord> recordMap = records.stream()
+                .collect(Collectors.toMap(MonthlyFinancialRecord::getLabel, r -> r));
+
+        // Aggregate completed orders for gross revenue and sales counts
+        for (OrderEntity order : completedOrders) {
+            if (order.getCreatedAt() != null && order.getCreatedAt().isAfter(oneYearAgo)) {
+                LocalDate date = order.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+                String label = date.format(labelFormatter);
+                MonthlyFinancialRecord rec = recordMap.get(label);
+                if (rec != null) {
+                    rec.setGross(rec.getGross() + order.getTotalAmount().longValue());
+                    long itemsCount = order.getOrderItems() != null ? order.getOrderItems().size() : 0;
+                    rec.setCount(rec.getCount() + itemsCount);
+                }
+            }
+        }
+
+        // Aggregate awards
+        for (WalletTransactionEntity tx : awards) {
+            if (tx.getCreatedAt() != null && tx.getCreatedAt().isAfter(oneYearAgo)) {
+                LocalDate date = tx.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+                String label = date.format(labelFormatter);
+                MonthlyFinancialRecord rec = recordMap.get(label);
+                if (rec != null) {
+                    rec.setRewards(rec.getRewards() + tx.getAmount().longValue());
+                }
+            }
+        }
+
+        return records;
+    }
+
+    private List<TopRevenueCourse> getTopRevenueCoursesData() {
+        List<OrderItemEntity> completedOrderItems = orderItemRepository.findAll().stream()
+                .filter(item -> item.getOrder().getStatus() == OrderStatus.COMPLETED)
+                .collect(Collectors.toList());
+
+        Map<CourseEntity, List<OrderItemEntity>> itemsByCourse = completedOrderItems.stream()
+                .filter(item -> item.getCourse() != null)
+                .collect(Collectors.groupingBy(OrderItemEntity::getCourse));
+
+        List<TopRevenueCourse> topRevenueCourses = itemsByCourse.entrySet().stream()
+                .map(entry -> {
+                    CourseEntity course = entry.getKey();
+                    List<OrderItemEntity> items = entry.getValue();
+                    long sold = items.size();
+                    long gross = items.stream().mapToLong(item -> item.getPrice().longValue()).sum();
+                    long payout = Math.round(gross * 0.7);
+                    long plat = Math.round(gross * 0.3);
+                    String tutor = course.getInstructor() != null ? course.getInstructor().getFullName() : "Unknown Instructor";
+                    return new TopRevenueCourse(course.getTitle(), tutor, sold, gross, payout, plat);
+                })
+                .sorted((c1, c2) -> Long.compare(c2.getGross(), c1.getGross()))
+                .collect(Collectors.toList());
+
+        // Pad with mock data if database has no courses to prevent empty state
+        if (topRevenueCourses.isEmpty()) {
+            topRevenueCourses.add(new TopRevenueCourse("Mastering Full-Stack React & Node.js", "Dr. Jenkins", 340, 169660000L, 118762000L, 50898000L));
+            topRevenueCourses.add(new TopRevenueCourse("Java Algorithms & Coding Arena", "Alice Miller", 210, 81690000L, 57183000L, 24507000L));
+            topRevenueCourses.add(new TopRevenueCourse("Go Microservices & Dockerized Deployments", "John Doe", 80, 52000000L, 36400000L, 15600000L));
+            topRevenueCourses.add(new TopRevenueCourse("Python Data Science and Machine Learning", "Dr. Jenkins", 50, 29950000L, 20965000L, 8985000L));
+        }
+
+        return topRevenueCourses;
     }
 }
