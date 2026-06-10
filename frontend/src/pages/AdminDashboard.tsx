@@ -635,10 +635,23 @@ export const AdminDashboard: React.FC = () => {
   const [newContestStartTime, setNewContestStartTime] = useState('');
   const [newContestEndTime, setNewContestEndTime] = useState('');
 
-  const dashboardTimeFilter = '12';
-
   // SVG Chart Computations
-  const financialChartData = useMemo(() => adminService.getFinancialChartData(), []);
+  const financialChartData = useMemo(() => {
+    return stats?.financialChartData || [
+      { label: 'Jul 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Aug 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Sep 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Oct 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Nov 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Dec 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Jan 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Feb 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Mar 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Apr 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'May 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Jun 26', amount: 0, count: 0, usersCount: 0 }
+    ];
+  }, [stats]);
 
   // Financial Page state variables
   const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '3months' | '9months' | '12months' | 'custom'>('12months');
@@ -783,59 +796,29 @@ export const AdminDashboard: React.FC = () => {
 
   // Top course categories data and computations for SVG Donut Chart
   const categoryChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    // Simulate slight filter variations
-    const multiplier = months / 12;
-    return [
-      { name: 'Web Developer', count: Math.round(180 * multiplier), color: '#F36F21' },
-      { name: 'Data Science & AI', count: Math.round(140 * multiplier), color: '#12284C' },
-      { name: 'Mobile App', count: Math.round(95 * multiplier), color: '#10B981' },
-      { name: 'Cloud Computing', count: Math.round(65 * multiplier), color: '#3B82F6' },
-      { name: 'Others', count: Math.round(40 * multiplier), color: '#6B7280' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topCategories || [];
+  }, [stats]);
 
   const categoryTotal = useMemo(() => categoryChartData.reduce((sum, c) => sum + c.count, 0), [categoryChartData]);
 
   // Top courses data and computations for SVG Donut Chart
   const topCoursesChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'React Full-Stack', instructor: 'Dr. Jenkins', count: Math.round(120 * multiplier), color: '#F36F21' },
-      { name: 'Java Algorithms', instructor: 'Alice Miller', count: Math.round(95 * multiplier), color: '#10B981' },
-      { name: 'Go Microservices', instructor: 'John Doe', count: Math.round(80 * multiplier), color: '#3B82F6' },
-      { name: 'Python ML', instructor: 'Dr. Jenkins', count: Math.round(50 * multiplier), color: '#6366F1' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topCourses || [];
+  }, [stats]);
 
   const topCoursesTotal = useMemo(() => topCoursesChartData.reduce((sum, c) => sum + c.count, 0), [topCoursesChartData]);
 
   // Top instructors data and computations for SVG Donut Chart
   const topInstructorsChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'Dr. Jenkins', count: Math.round(170 * multiplier), color: '#F36F21' },
-      { name: 'Alice Miller', count: Math.round(115 * multiplier), color: '#12284C' },
-      { name: 'John Doe', count: Math.round(80 * multiplier), color: '#10B981' },
-      { name: 'Sarah Connor', count: Math.round(55 * multiplier), color: '#3B82F6' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topInstructors || [];
+  }, [stats]);
 
   const topInstructorsTotal = useMemo(() => topInstructorsChartData.reduce((sum, c) => sum + c.count, 0), [topInstructorsChartData]);
 
   // Top problems data and computations for SVG Donut Chart
   const topProblemsChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'Two Sum', difficulty: 'EASY', count: Math.round(350 * multiplier), color: '#F36F21' },
-      { name: 'Binary Search', difficulty: 'EASY', count: Math.round(240 * multiplier), color: '#12284C' },
-      { name: 'Longest Path', difficulty: 'HARD', count: Math.round(180 * multiplier), color: '#10B981' },
-      { name: 'Valid Parentheses', difficulty: 'MEDIUM', count: Math.round(150 * multiplier), color: '#3B82F6' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topProblems || [];
+  }, [stats]);
 
   const topProblemsTotal = useMemo(() => topProblemsChartData.reduce((sum, c) => sum + c.count, 0), [topProblemsChartData]);
 

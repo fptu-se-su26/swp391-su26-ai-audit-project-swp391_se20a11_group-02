@@ -8,11 +8,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
+        List<UserEntity> findAllByCreatedAtAfter(Instant after);
+        long countByStatus(com.swp391.coding_platform.entity.enums.UserStatus status);
         @Modifying
         @Query("UPDATE UserEntity u SET u.score = COALESCE(u.score, 0) + :score WHERE u.id = :userId")
         void incrementUserScore(@Param("userId") Integer userId, @Param("score") Integer score);

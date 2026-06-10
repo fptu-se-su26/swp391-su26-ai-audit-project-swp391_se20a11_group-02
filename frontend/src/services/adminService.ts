@@ -7,6 +7,11 @@ export interface AdminDashboardStats {
   totalCourses: number;
   totalInstructors: number;
   totalProblems: number;
+  financialChartData?: { label: string; amount: number; count: number; usersCount: number }[];
+  topCategories?: { name: string; count: number; color: string }[];
+  topCourses?: { name: string; instructor: string; count: number; color: string }[];
+  topInstructors?: { name: string; count: number; color: string }[];
+  topProblems?: { name: string; difficulty: string; count: number; color: string }[];
 }
 
 export interface AdminCourse {
