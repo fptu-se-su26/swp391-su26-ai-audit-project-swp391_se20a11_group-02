@@ -9,7 +9,8 @@ import type {
   AdminUser,
   AdminProblem,
   AdminContest,
-  AdminDepositHistory
+  AdminDepositHistory,
+  AdminProblemTestcase
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -370,6 +371,15 @@ export const AdminDashboard: React.FC = () => {
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
   const [editingProblemId, setEditingProblemId] = useState<number | null>(null);
+
+  // Testcase state variables
+  const [isTestcaseModalOpen, setIsTestcaseModalOpen] = useState(false);
+  const [testcaseProblem, setTestcaseProblem] = useState<AdminProblem | null>(null);
+  const [testcasesList, setTestcasesList] = useState<Omit<AdminProblemTestcase, 'id'>[]>([]);
+  const [testcaseTab, setTestcaseTab] = useState<'manual' | 'upload'>('manual');
+  const [zipFile, setZipFile] = useState<File | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [isSavingTestcases, setIsSavingTestcases] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
 
   // Course Player Review Mode states
@@ -439,6 +449,10 @@ export const AdminDashboard: React.FC = () => {
       setIsEditProblemOpen(false);
       setEditingProblemId(null);
       setIsCreateContestOpen(false);
+      setIsTestcaseModalOpen(false);
+      setTestcaseProblem(null);
+      setTestcasesList([]);
+      setZipFile(null);
 
       if (currentHash === '#courses') {
         setActiveTab('courses');
@@ -1002,21 +1016,123 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleActivateProblem = async (problemId: number) => {
-    const countStr = prompt("Add Test Cases to Activate this problem.\nEnter number of test cases to add (e.g. 5, 10):", "5");
-    if (countStr === null) return;
-    const count = parseInt(countStr);
-    if (isNaN(count) || count <= 0) {
-      alert("Please enter a valid positive number.");
-      return;
-    }
+  const handleOpenTestcaseModal = async (p: AdminProblem) => {
+    setTestcaseProblem(p);
+    setTestcaseTab('manual');
+    setZipFile(null);
+    setIsTestcaseModalOpen(true);
     try {
-      const updated = await adminService.activateProblem(problemId, count);
-      setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
-      alert("Problem successfully activated and moved to Private/Draft Problems!");
+      const existing = await adminService.getProblemTestcases(p.id);
+      if (existing && existing.length > 0) {
+        setTestcasesList(existing.map(tc => ({
+          problemId: tc.problemId,
+          inputData: tc.inputData,
+          expectedOutput: tc.expectedOutput,
+          orderIndex: tc.orderIndex
+        })));
+      } else {
+        setTestcasesList([{ problemId: p.id, inputData: '', expectedOutput: '', orderIndex: 0 }]);
+      }
     } catch (error) {
-      alert("Failed to activate problem.");
+      console.error("Failed to load test cases:", error);
+      setTestcasesList([{ problemId: p.id, inputData: '', expectedOutput: '', orderIndex: 0 }]);
     }
+  };
+
+  const handleSaveTestcases = async () => {
+    if (!testcaseProblem) return;
+    setIsSavingTestcases(true);
+    try {
+      let savedTcs: AdminProblemTestcase[] = [];
+      if (testcaseTab === 'manual') {
+        const invalid = testcasesList.some(tc => !tc.inputData.trim() || !tc.expectedOutput.trim());
+        if (invalid) {
+          alert("Please fill in both Input Data and Expected Output for all test cases.");
+          setIsSavingTestcases(false);
+          return;
+        }
+        savedTcs = await adminService.saveProblemTestcases(testcaseProblem.id, testcasesList);
+      } else {
+        if (!zipFile) {
+          alert("Please select a .zip archive containing test cases.");
+          setIsSavingTestcases(false);
+          return;
+        }
+        savedTcs = await adminService.uploadTestcaseZip(testcaseProblem.id, zipFile);
+      }
+
+      setProblems(prev => prev.map(p => p.id === testcaseProblem.id ? {
+        ...p,
+        totalTestcases: savedTcs.length,
+        isActive: savedTcs.length > 0
+      } : p));
+
+      alert(`Successfully saved ${savedTcs.length} test cases for "${testcaseProblem.title}"!`);
+      setIsTestcaseModalOpen(false);
+      setTestcaseProblem(null);
+      setTestcasesList([]);
+      setZipFile(null);
+    } catch (error) {
+      alert("Failed to save test cases.");
+    } finally {
+      setIsSavingTestcases(false);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.name.endsWith('.zip')) {
+        setZipFile(file);
+      } else {
+        alert("Only .zip files are supported.");
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.name.endsWith('.zip')) {
+        setZipFile(file);
+      } else {
+        alert("Only .zip files are supported.");
+      }
+    }
+  };
+
+  const handleAddManualRow = () => {
+    if (!testcaseProblem) return;
+    setTestcasesList(prev => [...prev, {
+      problemId: testcaseProblem.id,
+      inputData: '',
+      expectedOutput: '',
+      orderIndex: prev.length
+    }]);
+  };
+
+  const handleRemoveManualRow = (index: number) => {
+    setTestcasesList(prev => {
+      const filtered = prev.filter((_, idx) => idx !== index);
+      return filtered.map((tc, idx) => ({ ...tc, orderIndex: idx }));
+    });
+  };
+
+  const handleManualRowChange = (index: number, field: 'inputData' | 'expectedOutput', value: string) => {
+    setTestcasesList(prev => prev.map((tc, idx) => idx === index ? { ...tc, [field]: value } : tc));
   };
 
   const handleCreateContestSubmit = async (e: React.FormEvent) => {
@@ -3364,7 +3480,7 @@ export const AdminDashboard: React.FC = () => {
                                 <div className="flex items-center justify-center gap-2">
                                   {!p.isActive ? (
                                     <button
-                                      onClick={() => handleActivateProblem(p.id)}
+                                      onClick={() => handleOpenTestcaseModal(p)}
                                       className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
                                     >
                                       <span className="material-symbols-outlined text-[14px]">tune</span> Add Test Cases
@@ -4580,13 +4696,263 @@ export const AdminDashboard: React.FC = () => {
                 <label className="text-slate-700">Make this problem public immediately</label>
               </div>
 
-              <button
-                type="submit"
-                className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4"
-              >
-                {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
-              </button>
+              <div className="flex gap-4 mt-4 w-full">
+                {isEditProblemOpen && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentProb = problems.find(p => p.id === editingProblemId);
+                      if (currentProb) {
+                        handleOpenTestcaseModal(currentProb);
+                      }
+                    }}
+                    className="flex-1 bg-white hover:bg-slate-50 text-indigo-600 border border-indigo-200 hover:border-indigo-300 font-bold text-sm py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base font-black">tune</span>
+                    Edit Test Cases
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className={`${isEditProblemOpen ? 'flex-1' : 'w-full'} bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md cursor-pointer`}
+                >
+                  {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
+                </button>
+              </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: TESTCASE BUILDER ================= */}
+      {isTestcaseModalOpen && testcaseProblem && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200/50 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col animate-fade-in text-left overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex justify-between items-start p-6 border-b border-slate-150/70">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-orange-50 px-2 py-0.5 rounded-md">
+                  Problem testcases
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  Manage Test Cases
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Define inputs and outputs for <span className="font-bold text-slate-800">"{testcaseProblem.title}"</span>.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsTestcaseModalOpen(false);
+                  setTestcaseProblem(null);
+                  setTestcasesList([]);
+                  setZipFile(null);
+                }}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors cursor-pointer border-none bg-transparent"
+              >
+                close
+              </button>
+            </div>
+
+            {/* Tab Selector */}
+            <div className="flex border-b border-slate-150/50 px-6 bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setTestcaseTab('manual')}
+                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
+                  testcaseTab === 'manual'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm font-black">edit_note</span>
+                Manual test cases ({testcasesList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTestcaseTab('upload')}
+                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
+                  testcaseTab === 'upload'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm font-black">folder_zip</span>
+                Upload ZIP Archive
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 text-xs font-semibold">
+              
+              {/* TAB 1: MANUAL BUILDER */}
+              {testcaseTab === 'manual' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50/80 p-3 rounded-xl border border-slate-100 mb-2">
+                    <div>
+                      <p className="font-bold text-slate-700">Manual Entry</p>
+                      <p className="text-[10px] text-text-muted mt-0.5">Provide plain text inputs and correct outputs. Evaluation uses exact match or whitespace normalization.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddManualRow}
+                      className="bg-white hover:bg-slate-50 text-primary border border-primary/20 hover:border-primary/40 font-black px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-base font-black">add</span> Add Row
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-3 max-h-[40vh] overflow-y-auto pr-1">
+                    {testcasesList.map((tc, idx) => (
+                      <div key={idx} className="flex gap-3 bg-slate-50/40 p-4 rounded-xl border border-slate-200/50 hover:border-slate-350 transition-all items-start relative group">
+                        
+                        {/* TC Index Badge */}
+                        <div className="flex flex-col items-center justify-center bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-[10px] w-9 h-9 rounded-lg mt-1 shrink-0">
+                          <span>TC</span>
+                          <span>#{idx + 1}</span>
+                        </div>
+
+                        {/* Textareas Side-by-Side */}
+                        <div className="grid grid-cols-2 gap-3 flex-1">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Input Data</label>
+                            <textarea
+                              rows={3}
+                              value={tc.inputData}
+                              onChange={(e) => handleManualRowChange(idx, 'inputData', e.target.value)}
+                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
+                              placeholder="e.g. 5\n1 2 3"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Expected Output</label>
+                            <textarea
+                              rows={3}
+                              value={tc.expectedOutput}
+                              onChange={(e) => handleManualRowChange(idx, 'expectedOutput', e.target.value)}
+                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
+                              placeholder="e.g. 15"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Remove Action */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveManualRow(idx)}
+                          disabled={testcasesList.length === 1}
+                          className={`material-symbols-outlined text-red-500 hover:text-red-750 transition-colors cursor-pointer border-none bg-transparent self-center p-1.5 rounded-lg hover:bg-red-50 ${
+                            testcasesList.length === 1 ? 'opacity-30 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          delete
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: ZIP ARCHIVE UPLOAD */}
+              {testcaseTab === 'upload' && (
+                <div className="flex flex-col gap-4">
+                  <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 leading-relaxed text-slate-600">
+                    <p className="font-bold text-slate-800">ZIP File Requirements:</p>
+                    <ul className="list-disc pl-4 mt-1 text-[11px] text-text-muted flex flex-col gap-0.5">
+                      <li>The archive must contain test case files matching patterns: <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.in</code> and <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.out</code> or <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.ans</code>.</li>
+                      <li>File base names must match to pair input/output (e.g. <code className="font-semibold text-slate-800">input_01.in</code> pairs with <code className="font-semibold text-slate-800">input_01.out</code>).</li>
+                      <li>Maximum upload size is <strong>20 MB</strong>.</li>
+                    </ul>
+                  </div>
+
+                  {/* Drag and Drop Zone */}
+                  <div
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-3 transition-all ${
+                      dragActive
+                        ? 'border-primary bg-orange-50/30'
+                        : zipFile
+                        ? 'border-emerald-400 bg-emerald-50/10'
+                        : 'border-slate-250 hover:border-slate-400'
+                    }`}
+                  >
+                    <span className={`material-symbols-outlined text-4xl ${zipFile ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      {zipFile ? 'task' : 'cloud_upload'}
+                    </span>
+                    <div className="text-center">
+                      {zipFile ? (
+                        <p className="text-sm font-bold text-slate-800">"{zipFile.name}"</p>
+                      ) : (
+                        <p className="text-sm text-slate-600 font-bold">
+                          Drag and drop your testcase ZIP here, or <label className="text-primary hover:underline cursor-pointer">browse files<input type="file" onChange={handleFileChange} className="hidden" accept=".zip" /></label>
+                        </p>
+                      )}
+                      <p className="text-[10px] text-text-muted mt-1">Supports standard compressed .zip archives.</p>
+                    </div>
+                  </div>
+
+                  {/* Selected File Card Details */}
+                  {zipFile && (
+                    <div className="flex justify-between items-center bg-emerald-50/40 border border-emerald-150 p-3.5 rounded-xl animate-fade-in">
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-emerald-600 bg-white p-2 rounded-lg border border-emerald-100">folder_zip</span>
+                        <div>
+                          <p className="font-bold text-slate-800">{zipFile.name}</p>
+                          <p className="text-[10px] text-slate-500">{(zipFile.size / 1024).toFixed(1)} KB • Ready for upload</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setZipFile(null)}
+                        className="text-[10px] text-red-500 hover:text-red-750 bg-white border border-red-100 hover:border-red-200 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer"
+                      >
+                        Remove File
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-slate-150/70 p-4 bg-slate-50/50 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTestcaseModalOpen(false);
+                  setTestcaseProblem(null);
+                  setTestcasesList([]);
+                  setZipFile(null);
+                }}
+                className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 hover:border-slate-300 font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveTestcases}
+                disabled={isSavingTestcases}
+                className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingTestcases ? (
+                  <>
+                    <span className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm font-black">save</span>
+                    Save Test Cases
+                  </>
+                )}
+              </button>
+            </div>
+
           </div>
         </div>
       )}

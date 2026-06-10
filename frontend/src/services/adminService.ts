@@ -99,6 +99,35 @@ export interface AdminProblem {
   acceptedSubmissions: number;
 }
 
+export interface AdminProblemTestcase {
+  id?: number;
+  problemId: number;
+  inputData: string;
+  expectedOutput: string;
+  orderIndex: number;
+  token?: string;
+}
+
+let mockProblemTestcases: Record<number, AdminProblemTestcase[]> = {
+  1: [
+    { id: 101, problemId: 1, inputData: "nums = [2,7,11,15]\ntarget = 9", expectedOutput: "[0,1]", orderIndex: 0 },
+    { id: 102, problemId: 1, inputData: "nums = [3,2,4]\ntarget = 6", expectedOutput: "[1,2]", orderIndex: 1 },
+    { id: 103, problemId: 1, inputData: "nums = [3,3]\ntarget = 6", expectedOutput: "[0,1]", orderIndex: 2 },
+    { id: 104, problemId: 1, inputData: "nums = [1,5,9,12]\ntarget = 14", expectedOutput: "[-1,-1]", orderIndex: 3 }
+  ],
+  2: [
+    { id: 201, problemId: 2, inputData: "s = \"abcabcbb\"", expectedOutput: "3", orderIndex: 0 },
+    { id: 202, problemId: 2, inputData: "s = \"bbbbb\"", expectedOutput: "1", orderIndex: 1 },
+    { id: 203, problemId: 2, inputData: "s = \"pwwkew\"", expectedOutput: "3", orderIndex: 2 },
+    { id: 204, problemId: 2, inputData: "s = \"\"", expectedOutput: "0", orderIndex: 3 },
+    { id: 205, problemId: 2, inputData: "s = \"au\"", expectedOutput: "2", orderIndex: 4 }
+  ],
+  3: [
+    { id: 301, problemId: 3, inputData: "nums1 = [1,3], nums2 = [2]", expectedOutput: "2.00000", orderIndex: 0 },
+    { id: 302, problemId: 3, inputData: "nums1 = [1,2], nums2 = [3,4]", expectedOutput: "2.50000", orderIndex: 1 }
+  ]
+};
+
 export interface AdminContest {
   id: number;
   title: string;
@@ -919,5 +948,77 @@ export const adminService = {
       { label: 'May 26', amount: 22000000, count: 44, usersCount: 45 },
       { label: 'Jun 26', amount: 24580000, count: 49, usersCount: 52 }
     ];
+  },
+
+  async getProblemTestcases(problemId: number): Promise<AdminProblemTestcase[]> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Using mock data for Problem Testcases:", err);
+    }
+    await delay(200);
+    return mockProblemTestcases[problemId] || [];
+  },
+
+  async saveProblemTestcases(problemId: number, testcases: Omit<AdminProblemTestcase, 'id'>[]): Promise<AdminProblemTestcase[]> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testcases),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        await this.activateProblem(problemId, data.result.length);
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Mocking save problem testcases:", err);
+    }
+    await delay(300);
+    const saved = testcases.map((tc, idx) => ({
+      ...tc,
+      id: idx + 1 + (mockProblemTestcases[problemId]?.length || 0) * 10,
+      problemId
+    }));
+    mockProblemTestcases[problemId] = saved;
+    mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, totalTestcases: saved.length, isActive: saved.length > 0 } : p);
+    return saved;
+  },
+
+  async uploadTestcaseZip(problemId: number, file: File): Promise<AdminProblemTestcase[]> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases/upload`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        await this.activateProblem(problemId, data.result.length);
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Mocking upload testcase zip:", err);
+    }
+    await delay(500);
+    const simulatedCount = 5;
+    const mockTcs: AdminProblemTestcase[] = Array.from({ length: simulatedCount }).map((_, idx) => ({
+      id: idx + 1000,
+      problemId,
+      inputData: `// Simulated input from zip for case ${idx + 1}`,
+      expectedOutput: `// Simulated expected output from zip for case ${idx + 1}`,
+      orderIndex: idx
+    }));
+    mockProblemTestcases[problemId] = mockTcs;
+    mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, totalTestcases: simulatedCount, isActive: true } : p);
+    return mockTcs;
   }
 };
