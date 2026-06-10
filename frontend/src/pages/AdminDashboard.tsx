@@ -824,6 +824,7 @@ export const AdminDashboard: React.FC = () => {
 
   // Action handlers
   const handleReviewCourse = (course: AdminCourse) => {
+    setActiveTab('courses');
     setReviewingCourse(course);
     setReviewPlayerTab('overview');
     setReviewLectureTitle('1.1 Course Introduction');
