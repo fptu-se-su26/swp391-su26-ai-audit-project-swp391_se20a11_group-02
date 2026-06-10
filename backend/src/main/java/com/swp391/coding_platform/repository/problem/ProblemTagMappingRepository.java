@@ -10,4 +10,5 @@ import java.util.List;
 public interface ProblemTagMappingRepository extends JpaRepository<ProblemTagMappingEntity, Integer> {
     List<ProblemTagMappingEntity> findByProblemId(Integer problemId);
     List<ProblemTagMappingEntity> findByProblemIdIn(List<Integer> problemIds);
+    void deleteByProblemId(Integer problemId);
 }

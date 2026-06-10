@@ -89,7 +89,40 @@ export interface AdminProblem {
   solutions?: string;
   totalSubmissions: number;
   acceptedSubmissions: number;
+  tags?: string[];
+  starterTemplates?: Record<string, string>;
 }
+
+export interface AdminProblemTestcase {
+  id?: number;
+  problemId: number;
+  inputData: string;
+  expectedOutput: string;
+  orderIndex: number;
+  token?: string;
+}
+
+/*
+let mockProblemTestcases: Record<number, AdminProblemTestcase[]> = {
+  1: [
+    { id: 101, problemId: 1, inputData: "nums = [2,7,11,15]\ntarget = 9", expectedOutput: "[0,1]", orderIndex: 0 },
+    { id: 102, problemId: 1, inputData: "nums = [3,2,4]\ntarget = 6", expectedOutput: "[1,2]", orderIndex: 1 },
+    { id: 103, problemId: 1, inputData: "nums = [3,3]\ntarget = 6", expectedOutput: "[0,1]", orderIndex: 2 },
+    { id: 104, problemId: 1, inputData: "nums = [1,5,9,12]\ntarget = 14", expectedOutput: "[-1,-1]", orderIndex: 3 }
+  ],
+  2: [
+    { id: 201, problemId: 2, inputData: "s = \"abcabcbb\"", expectedOutput: "3", orderIndex: 0 },
+    { id: 202, problemId: 2, inputData: "s = \"bbbbb\"", expectedOutput: "1", orderIndex: 1 },
+    { id: 203, problemId: 2, inputData: "s = \"pwwkew\"", expectedOutput: "3", orderIndex: 2 },
+    { id: 204, problemId: 2, inputData: "s = \"\"", expectedOutput: "0", orderIndex: 3 },
+    { id: 205, problemId: 2, inputData: "s = \"au\"", expectedOutput: "2", orderIndex: 4 }
+  ],
+  3: [
+    { id: 301, problemId: 3, inputData: "nums1 = [1,3], nums2 = [2]", expectedOutput: "2.00000", orderIndex: 0 },
+    { id: 302, problemId: 3, inputData: "nums1 = [1,2], nums2 = [3,4]", expectedOutput: "2.50000", orderIndex: 1 }
+  ]
+};
+*/
 
 export interface AdminContest {
   id: number;
@@ -325,6 +358,7 @@ let mockUsers: AdminUser[] = [
   }
 ];
 
+/*
 let mockProblems: AdminProblem[] = [
   {
     id: 1,
@@ -442,6 +476,7 @@ let mockProblems: AdminProblem[] = [
     acceptedSubmissions: 0
   }
 ];
+*/
 
 let mockContests: AdminContest[] = [
   {
@@ -724,131 +759,101 @@ export const adminService = {
 
   // Problems
   async getProblems(): Promise<AdminProblem[]> {
-    try {
-      const response = await fetch(`${BASE_URL}/admin/problems`, { credentials: 'include' });
-      if (response.ok) {
-        const data = await response.json();
-        return data.result;
-      }
-    } catch (err) {
-      console.warn("Using mock data for Problems:", err);
+    const response = await fetch(`${BASE_URL}/admin/problems`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch admin problems');
     }
-    await delay(300);
-    return mockProblems;
+    const data = await response.json();
+    return data.result;
   },
 
   async createProblem(problem: Omit<AdminProblem, 'id' | 'createdAt' | 'createdBy' | 'isActive' | 'totalSubmissions' | 'acceptedSubmissions'>): Promise<AdminProblem> {
-    try {
-      const response = await fetch(`${BASE_URL}/admin/problems`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(problem),
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data.result;
-      }
-    } catch (err) {
-      console.warn("Mocking create problem:", err);
+    const response = await fetch(`${BASE_URL}/admin/problems`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(problem),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create problem');
     }
-    await delay(400);
-    const newProb: AdminProblem = {
-      ...problem,
-      id: mockProblems.length + 1,
-      createdAt: new Date().toISOString(),
-      createdBy: 9999, // Admin
-      isActive: problem.totalTestcases > 0,
-      totalSubmissions: 0,
-      acceptedSubmissions: 0
-    };
-    mockProblems.push(newProb);
-    mockStats.totalProblems += 1;
-    return newProb;
+    const data = await response.json();
+    return data.result;
   },
 
   async updateProblemScope(problemId: number, problemScope: 'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE'): Promise<AdminProblem> {
-    try {
-      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/scope`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ problemScope }),
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data.result;
-      }
-    } catch (err) {
-      console.warn("Mocking update problem scope:", err);
+    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/scope`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ problemScope }),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update problem scope');
     }
-    await delay(200);
-    mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, problemScope } : p);
-    return mockProblems.find(p => p.id === problemId)!;
+    const data = await response.json();
+    return data.result;
   },
 
   async updateProblemPublicStatus(problemId: number, isPublic: boolean): Promise<AdminProblem> {
-    try {
-      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/public`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isPublic }),
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data.result;
-      }
-    } catch (err) {
-      console.warn("Mocking update problem public status:", err);
+    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/public`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isPublic }),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update problem public status');
     }
-    await delay(200);
-    mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, isPublic } : p);
-    return mockProblems.find(p => p.id === problemId)!;
+    const data = await response.json();
+    return data.result;
   },
 
   async activateProblem(problemId: number, totalTestcases: number): Promise<AdminProblem> {
-    try {
-      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/activate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ totalTestcases }),
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data.result;
-      }
-    } catch (err) {
-      console.warn("Mocking activate problem:", err);
+    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/activate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ totalTestcases }),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to activate problem');
     }
-    await delay(200);
-    mockProblems = mockProblems.map(p => p.id === problemId ? { ...p, totalTestcases, isActive: totalTestcases > 0 } : p);
-    return mockProblems.find(p => p.id === problemId)!;
+    const data = await response.json();
+    return data.result;
   },
 
   async updateProblem(problemId: number, problem: Omit<AdminProblem, 'id' | 'createdAt' | 'createdBy' | 'isActive' | 'totalSubmissions' | 'acceptedSubmissions'>): Promise<AdminProblem> {
-    try {
-      const response = await fetch(`${BASE_URL}/admin/problems/${problemId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(problem),
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data.result;
-      }
-    } catch (err) {
-      console.warn("Mocking update problem:", err);
+    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(problem),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update problem');
     }
-    await delay(400);
-    mockProblems = mockProblems.map(p => p.id === problemId ? {
-      ...p,
-      ...problem,
-      isActive: problem.totalTestcases > 0
-    } : p);
-    return mockProblems.find(p => p.id === problemId)!;
+    const data = await response.json();
+    return data.result;
+  },
+
+  async deleteProblem(problemId: number): Promise<void> {
+    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete problem');
+    }
+  },
+
+  async getTags(): Promise<{ id: number; name: string; slug: string }[]> {
+    const response = await fetch(`${BASE_URL}/admin/problems/tags`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch problem tags');
+    }
+    const data = await response.json();
+    return data.result;
   },
 
   // Contests
@@ -911,5 +916,45 @@ export const adminService = {
       { label: 'May 26', amount: 22000000, count: 44, usersCount: 45 },
       { label: 'Jun 26', amount: 24580000, count: 49, usersCount: 52 }
     ];
+  },
+
+  async getProblemTestcases(problemId: number): Promise<AdminProblemTestcase[]> {
+    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to load test cases from database');
+    }
+    const data = await response.json();
+    return data.result || [];
+  },
+
+  async saveProblemTestcases(problemId: number, testcases: Omit<AdminProblemTestcase, 'id'>[]): Promise<AdminProblemTestcase[]> {
+    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testcases),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to save test cases to database');
+    }
+    const data = await response.json();
+    await this.activateProblem(problemId, data.result.length);
+    return data.result;
+  },
+
+  async uploadTestcaseZip(problemId: number, file: File): Promise<AdminProblemTestcase[]> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases/upload`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to upload ZIP archive to database');
+    }
+    const data = await response.json();
+    await this.activateProblem(problemId, data.result.length);
+    return data.result;
   }
 };

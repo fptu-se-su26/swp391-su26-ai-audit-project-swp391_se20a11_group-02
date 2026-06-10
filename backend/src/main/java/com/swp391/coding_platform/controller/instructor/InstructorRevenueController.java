@@ -158,6 +158,7 @@ public class InstructorRevenueController {
             return ResponseEntity.status(401).build();
         }
 
+
         InstructorCourseRegistrationsResponse result = instructorService.getCourseRegistrations(userId, trendTimeframe);
         return ResponseEntity.ok(ApiResponse.<InstructorCourseRegistrationsResponse>builder()
                 .status(200)

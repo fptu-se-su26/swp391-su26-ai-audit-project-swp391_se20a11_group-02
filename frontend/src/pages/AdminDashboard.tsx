@@ -9,7 +9,8 @@ import type {
   AdminUser,
   AdminProblem,
   AdminContest,
-  AdminDepositHistory
+  AdminDepositHistory,
+  AdminProblemTestcase
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -341,6 +342,11 @@ export const AdminDashboard: React.FC = () => {
 
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
+  const [globalToast, setGlobalToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showGlobalToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setGlobalToast({ message, type });
+    setTimeout(() => setGlobalToast(null), 3000);
+  };
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
@@ -351,7 +357,7 @@ export const AdminDashboard: React.FC = () => {
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
-  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest'>('repository');
+  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
 
   // Modal / review panel states
@@ -361,7 +367,29 @@ export const AdminDashboard: React.FC = () => {
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
   const [editingProblemId, setEditingProblemId] = useState<number | null>(null);
+
+  // Testcase state variables
+  const [isTestcaseModalOpen, setIsTestcaseModalOpen] = useState(false);
+  const [testcaseProblem, setTestcaseProblem] = useState<AdminProblem | null>(null);
+  const [testcasesList, setTestcasesList] = useState<Omit<AdminProblemTestcase, 'id'>[]>([]);
+  const [testcaseTab, setTestcaseTab] = useState<'manual' | 'upload'>('manual');
+  const [zipFile, setZipFile] = useState<File | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [isSavingTestcases, setIsSavingTestcases] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
+
+  // Confirmation Modal state
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmModalTitle, setConfirmModalTitle] = useState('');
+  const [confirmModalMessage, setConfirmModalMessage] = useState('');
+  const [confirmModalAction, setConfirmModalAction] = useState<(() => void) | null>(null);
+
+  const triggerConfirm = (title: string, message: string, action: () => void) => {
+    setConfirmModalTitle(title);
+    setConfirmModalMessage(message);
+    setConfirmModalAction(() => action);
+    setIsConfirmModalOpen(true);
+  };
 
   // Course Player Review Mode states
   const [reviewingCourse, setReviewingCourse] = useState<AdminCourse | null>(null);
@@ -430,6 +458,10 @@ export const AdminDashboard: React.FC = () => {
       setIsEditProblemOpen(false);
       setEditingProblemId(null);
       setIsCreateContestOpen(false);
+      setIsTestcaseModalOpen(false);
+      setTestcaseProblem(null);
+      setTestcasesList([]);
+      setZipFile(null);
 
       if (currentHash === '#courses') {
         setActiveTab('courses');
@@ -535,7 +567,8 @@ export const AdminDashboard: React.FC = () => {
         usersRes,
         probsRes,
         contestsRes,
-        recentDepositsRes
+        recentDepositsRes,
+        tagsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
@@ -544,7 +577,8 @@ export const AdminDashboard: React.FC = () => {
         adminService.getUsers(),
         adminService.getProblems(),
         adminService.getContests(),
-        adminService.getRecentDeposits()
+        adminService.getRecentDeposits(),
+        adminService.getTags()
       ]);
 
       setStats(statsRes);
@@ -555,6 +589,7 @@ export const AdminDashboard: React.FC = () => {
       setProblems(probsRes);
       setContests(contestsRes);
       setRecentDeposits(recentDepositsRes);
+      setAllTags(tagsRes || []);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -584,6 +619,14 @@ export const AdminDashboard: React.FC = () => {
   const [newProbMemoryLimit, setNewProbMemoryLimit] = useState(128000);
   const [newProbIsPublic, setNewProbIsPublic] = useState(true);
   const [newProbSolutions, setNewProbSolutions] = useState('');
+  const [newProbTags, setNewProbTags] = useState<string[]>([]);
+  const [newProbStarterC, setNewProbStarterC] = useState('');
+  const [newProbStarterCpp, setNewProbStarterCpp] = useState('');
+  const [newProbStarterJava, setNewProbStarterJava] = useState('');
+  const [newProbStarterPython, setNewProbStarterPython] = useState('');
+  const [newProbStarterCsharp, setNewProbStarterCsharp] = useState('');
+  const [allTags, setAllTags] = useState<{ id: number; name: string; slug: string }[]>([]);
+  const [starterActiveTab, setStarterActiveTab] = useState<'C' | 'C++' | 'Java' | 'Python 3' | 'C#'>('C');
 
   // Add Contest form state
   const [newContestTitle, setNewContestTitle] = useState('');
@@ -816,9 +859,9 @@ export const AdminDashboard: React.FC = () => {
       // reload stats
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
-      alert(`Successfully ${status.toLowerCase()} course application.`);
+      showGlobalToast(`Successfully ${status.toLowerCase()} course application.`, "success");
     } catch (error) {
-      alert("Failed to process course approval");
+      showGlobalToast("Failed to process course approval", "error");
     }
   };
 
@@ -834,36 +877,47 @@ export const AdminDashboard: React.FC = () => {
       ]);
       setStats(newStats);
       setInstructors(newInsts);
-      alert(`Successfully ${status.toLowerCase()} instructor application.`);
+      showGlobalToast(`Successfully ${status.toLowerCase()} instructor application.`, "success");
     } catch (error) {
-      alert("Failed to process instructor application approval");
+      showGlobalToast("Failed to process instructor application approval", "error");
     }
   };
 
   const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
     const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      const updated = await adminService.setUserLockStatus(userId, newStatus);
-      setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-      if (selectedUserDetail?.id === userId) {
-        setSelectedUserDetail(updated);
+    triggerConfirm(
+      "Change User Status",
+      confirmMsg,
+      async () => {
+        try {
+          const updated = await adminService.setUserLockStatus(userId, newStatus);
+          setUsers(prev => prev.map(u => u.id === userId ? updated : u));
+          if (selectedUserDetail?.id === userId) {
+            setSelectedUserDetail(updated);
+          }
+          showGlobalToast(`User status successfully updated to ${newStatus}`, "success");
+        } catch (error) {
+          showGlobalToast("Failed to update user status", "error");
+        }
       }
-      alert(`User status successfully updated to ${newStatus}`);
-    } catch (error) {
-      alert("Failed to update user status");
-    }
+    );
   };
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      alert("Please fill in the title and description.");
+      showGlobalToast("Please fill in the title and description.", "error");
       return;
     }
 
     try {
+      const starterTemplates: Record<string, string> = {};
+      if (newProbStarterC) starterTemplates['C'] = newProbStarterC;
+      if (newProbStarterCpp) starterTemplates['C++'] = newProbStarterCpp;
+      if (newProbStarterJava) starterTemplates['Java'] = newProbStarterJava;
+      if (newProbStarterPython) starterTemplates['Python 3'] = newProbStarterPython;
+      if (newProbStarterCsharp) starterTemplates['C#'] = newProbStarterCsharp;
+
       const newProb = await adminService.createProblem({
         title: newProbTitle.trim(),
         description: newProbDesc.trim(),
@@ -880,7 +934,9 @@ export const AdminDashboard: React.FC = () => {
         memoryLimitKb: newProbMemoryLimit,
         isPublic: newProbIsPublic,
         score: newProbScore,
-        solutions: newProbSolutions.trim()
+        solutions: newProbSolutions.trim(),
+        tags: newProbTags,
+        starterTemplates
       });
 
       setProblems(prev => [...prev, newProb]);
@@ -902,10 +958,17 @@ export const AdminDashboard: React.FC = () => {
       setNewProbMemoryLimit(128000);
       setNewProbIsPublic(true);
       setNewProbSolutions('');
+      setNewProbTags([]);
+      setNewProbStarterC('');
+      setNewProbStarterCpp('');
+      setNewProbStarterJava('');
+      setNewProbStarterPython('');
+      setNewProbStarterCsharp('');
+      setStarterActiveTab('C');
 
-      alert(`Problem "${newProb.title}" created successfully!`);
+      showGlobalToast(`Problem "${newProb.title}" created successfully!`, "success");
     } catch (error) {
-      alert("Failed to create problem");
+      showGlobalToast("Failed to create problem", "error");
     }
   };
 
@@ -926,6 +989,13 @@ export const AdminDashboard: React.FC = () => {
     setNewProbMemoryLimit(p.memoryLimitKb);
     setNewProbIsPublic(p.isPublic);
     setNewProbSolutions(p.solutions || '');
+    setNewProbTags(p.tags || []);
+    setNewProbStarterC(p.starterTemplates?.['C'] || '');
+    setNewProbStarterCpp(p.starterTemplates?.['C++'] || '');
+    setNewProbStarterJava(p.starterTemplates?.['Java'] || '');
+    setNewProbStarterPython(p.starterTemplates?.['Python 3'] || '');
+    setNewProbStarterCsharp(p.starterTemplates?.['C#'] || '');
+    setStarterActiveTab('C');
     setIsEditProblemOpen(true);
   };
 
@@ -933,12 +1003,19 @@ export const AdminDashboard: React.FC = () => {
     e.preventDefault();
     if (editingProblemId === null) return;
     if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      alert("Please fill in the title and description.");
+      showGlobalToast("Please fill in the title and description.", "error");
       return;
     }
 
     try {
       const existingProb = problems.find(p => p.id === editingProblemId);
+      const starterTemplates: Record<string, string> = {};
+      if (newProbStarterC) starterTemplates['C'] = newProbStarterC;
+      if (newProbStarterCpp) starterTemplates['C++'] = newProbStarterCpp;
+      if (newProbStarterJava) starterTemplates['Java'] = newProbStarterJava;
+      if (newProbStarterPython) starterTemplates['Python 3'] = newProbStarterPython;
+      if (newProbStarterCsharp) starterTemplates['C#'] = newProbStarterCsharp;
+
       const updatedProb = await adminService.updateProblem(editingProblemId, {
         title: newProbTitle.trim(),
         description: newProbDesc.trim(),
@@ -955,7 +1032,9 @@ export const AdminDashboard: React.FC = () => {
         memoryLimitKb: newProbMemoryLimit,
         isPublic: newProbIsPublic,
         score: newProbScore,
-        solutions: newProbSolutions.trim()
+        solutions: newProbSolutions.trim(),
+        tags: newProbTags,
+        starterTemplates
       });
 
       setProblems(prev => prev.map(p => p.id === editingProblemId ? updatedProb : p));
@@ -978,10 +1057,17 @@ export const AdminDashboard: React.FC = () => {
       setNewProbMemoryLimit(128000);
       setNewProbIsPublic(true);
       setNewProbSolutions('');
+      setNewProbTags([]);
+      setNewProbStarterC('');
+      setNewProbStarterCpp('');
+      setNewProbStarterJava('');
+      setNewProbStarterPython('');
+      setNewProbStarterCsharp('');
+      setStarterActiveTab('C');
 
-      alert(`Problem "${updatedProb.title}" updated successfully!`);
+      showGlobalToast(`Problem "${updatedProb.title}" updated successfully!`, "success");
     } catch (error) {
-      alert("Failed to update problem");
+      showGlobalToast("Failed to update problem", "error");
     }
   };
 
@@ -990,7 +1076,7 @@ export const AdminDashboard: React.FC = () => {
       const updated = await adminService.updateProblemScope(problemId, scope);
       setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
     } catch (error) {
-      alert("Failed to update problem scope.");
+      showGlobalToast("Failed to update problem scope.", "error");
     }
   };
 
@@ -998,45 +1084,175 @@ export const AdminDashboard: React.FC = () => {
     try {
       const updated = await adminService.updateProblemPublicStatus(problemId, isPublic);
       setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
-      alert(`Problem successfully ${isPublic ? "published" : "made private"}.`);
+      showGlobalToast(`Problem successfully ${isPublic ? "published" : "made private"}.`, "success");
     } catch (error) {
-      alert("Failed to update publication status.");
+      showGlobalToast("Failed to update publication status.", "error");
     }
   };
 
-  const handleActivateProblem = async (problemId: number) => {
-    const countStr = prompt("Add Test Cases to Activate this problem.\nEnter number of test cases to add (e.g. 5, 10):", "5");
-    if (countStr === null) return;
-    const count = parseInt(countStr);
-    if (isNaN(count) || count <= 0) {
-      alert("Please enter a valid positive number.");
-      return;
-    }
+  const handleDeleteProblemClick = async (problemId: number) => {
+    triggerConfirm(
+      "Delete Problem",
+      "Are you sure you want to delete this programming problem? This action cannot be undone.",
+      async () => {
+        try {
+          await adminService.deleteProblem(problemId);
+          setProblems(prev => prev.filter(p => p.id !== problemId));
+          showGlobalToast("Problem deleted successfully.", "success");
+        } catch (error) {
+          showGlobalToast("Failed to delete problem.", "error");
+        }
+      }
+    );
+  };
+
+  const handleOpenTestcaseModal = async (p: AdminProblem) => {
+    setTestcaseProblem(p);
+    setTestcaseTab('manual');
+    setZipFile(null);
+    setIsTestcaseModalOpen(true);
     try {
-      const updated = await adminService.activateProblem(problemId, count);
-      setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
-      alert("Problem successfully activated and moved to Private/Draft Problems!");
+      const existing = await adminService.getProblemTestcases(p.id);
+      if (existing && existing.length > 0) {
+        setTestcasesList(existing.map(tc => ({
+          problemId: tc.problemId,
+          inputData: tc.inputData,
+          expectedOutput: tc.expectedOutput,
+          orderIndex: tc.orderIndex
+        })));
+      } else {
+        setTestcasesList([{ problemId: p.id, inputData: '', expectedOutput: '', orderIndex: 0 }]);
+      }
     } catch (error) {
-      alert("Failed to activate problem.");
+      console.error("Failed to load test cases:", error);
+      setTestcasesList([{ problemId: p.id, inputData: '', expectedOutput: '', orderIndex: 0 }]);
     }
+  };
+
+  const handleSaveTestcases = async () => {
+    if (!testcaseProblem) return;
+    setIsSavingTestcases(true);
+    try {
+      let savedTcs: AdminProblemTestcase[] = [];
+      if (testcaseTab === 'manual') {
+        const invalid = testcasesList.some(tc => !tc.inputData.trim() || !tc.expectedOutput.trim());
+        if (invalid) {
+          showGlobalToast("Please fill in both Input Data and Expected Output for all test cases.", "error");
+          setIsSavingTestcases(false);
+          return;
+        }
+        savedTcs = await adminService.saveProblemTestcases(testcaseProblem.id, testcasesList);
+      } else {
+        if (!zipFile) {
+          showGlobalToast("Please select a .zip archive containing test cases.", "error");
+          setIsSavingTestcases(false);
+          return;
+        }
+        savedTcs = await adminService.uploadTestcaseZip(testcaseProblem.id, zipFile);
+      }
+
+      setProblems(prev => prev.map(p => p.id === testcaseProblem.id ? {
+        ...p,
+        totalTestcases: savedTcs.length,
+        isActive: savedTcs.length > 0,
+        isPublic: savedTcs.length > 0 ? true : p.isPublic
+      } : p));
+
+      showGlobalToast(`Successfully saved ${savedTcs.length} test cases for "${testcaseProblem.title}"!`, "success");
+
+      // Auto-jump/switch to the corresponding scope tab
+      const scope = testcaseProblem.problemScope;
+      if (scope === 'PRACTICE') {
+        setProblemSubTab('practice');
+      } else if (scope === 'CONTEST') {
+        setProblemSubTab('contest');
+      } else if (scope === 'SHARED') {
+        setProblemSubTab('shared');
+      }
+
+      setIsTestcaseModalOpen(false);
+      setTestcaseProblem(null);
+      setTestcasesList([]);
+      setZipFile(null);
+    } catch (error) {
+      showGlobalToast("Failed to save test cases.", "error");
+    } finally {
+      setIsSavingTestcases(false);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.name.endsWith('.zip')) {
+        setZipFile(file);
+      } else {
+        showGlobalToast("Only .zip files are supported.", "error");
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.name.endsWith('.zip')) {
+        setZipFile(file);
+      } else {
+        showGlobalToast("Only .zip files are supported.", "error");
+      }
+    }
+  };
+
+  const handleAddManualRow = () => {
+    if (!testcaseProblem) return;
+    setTestcasesList(prev => [...prev, {
+      problemId: testcaseProblem.id,
+      inputData: '',
+      expectedOutput: '',
+      orderIndex: prev.length
+    }]);
+  };
+
+  const handleRemoveManualRow = (index: number) => {
+    setTestcasesList(prev => {
+      const filtered = prev.filter((_, idx) => idx !== index);
+      return filtered.map((tc, idx) => ({ ...tc, orderIndex: idx }));
+    });
+  };
+
+  const handleManualRowChange = (index: number, field: 'inputData' | 'expectedOutput', value: string) => {
+    setTestcasesList(prev => prev.map((tc, idx) => idx === index ? { ...tc, [field]: value } : tc));
   };
 
   const handleCreateContestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newContestTitle.trim() || !newContestStartTime || !newContestEndTime) {
-      alert("Please fill in the title and duration dates.");
+      showGlobalToast("Please fill in the title and duration dates.", "error");
       return;
     }
 
     if (newContestPassword !== newContestConfirmPassword) {
-      alert("Passwords do not match!");
+      showGlobalToast("Passwords do not match!", "error");
       return;
     }
 
     const start = new Date(newContestStartTime).getTime();
     const end = new Date(newContestEndTime).getTime();
     if (end <= start) {
-      alert("End Time must be after Start Time!");
+      showGlobalToast("End Time must be after Start Time!", "error");
       return;
     }
 
@@ -1069,9 +1285,9 @@ export const AdminDashboard: React.FC = () => {
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
 
-      alert(`Contest "${newContest.title}" created successfully!`);
+      showGlobalToast(`Contest "${newContest.title}" created successfully!`, "success");
     } catch (error) {
-      alert("Failed to create contest");
+      showGlobalToast("Failed to create contest", "error");
     }
   };
 
@@ -1109,6 +1325,8 @@ export const AdminDashboard: React.FC = () => {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'PRACTICE';
       } else if (problemSubTab === 'contest') {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'CONTEST';
+      } else if (problemSubTab === 'shared') {
+        matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'SHARED';
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -3249,6 +3467,16 @@ export const AdminDashboard: React.FC = () => {
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
                     Contest Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'CONTEST').length})
                   </button>
+                  <button
+                    onClick={() => setProblemSubTab('shared')}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'shared'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-primary'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">share</span>
+                    Shared Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'SHARED').length})
+                  </button>
                 </div>
 
                 {/* Problems List Table */}
@@ -3286,7 +3514,15 @@ export const AdminDashboard: React.FC = () => {
                                 {totalSubs.toLocaleString()}
                               </td>
                               <td className="py-4 px-6 text-right font-mono font-bold text-slate-800">
-                                {acceptedRate}%
+                                <div className="flex flex-col items-end gap-1.5">
+                                  <span>{acceptedRate}%</span>
+                                  <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                    <div 
+                                      className="h-full bg-emerald-500 rounded-full transition-all" 
+                                      style={{ width: `${acceptedRate}%` }}
+                                    />
+                                  </div>
+                                </div>
                               </td>
                               <td className="py-4 px-6 text-center">
                                 <select
@@ -3331,7 +3567,7 @@ export const AdminDashboard: React.FC = () => {
                                 <div className="flex items-center justify-center gap-2">
                                   {!p.isActive ? (
                                     <button
-                                      onClick={() => handleActivateProblem(p.id)}
+                                      onClick={() => handleOpenTestcaseModal(p)}
                                       className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
                                     >
                                       <span className="material-symbols-outlined text-[14px]">tune</span> Add Test Cases
@@ -3344,6 +3580,12 @@ export const AdminDashboard: React.FC = () => {
                                       <span className="material-symbols-outlined text-[14px]">edit</span> Edit
                                     </button>
                                   )}
+                                  <button
+                                    onClick={() => handleDeleteProblemClick(p.id)}
+                                    className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">delete</span> Delete
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -4204,6 +4446,13 @@ export const AdminDashboard: React.FC = () => {
                   setNewProbMemoryLimit(128000);
                   setNewProbIsPublic(true);
                   setNewProbSolutions('');
+                  setNewProbTags([]);
+                  setNewProbStarterC('');
+                  setNewProbStarterCpp('');
+                  setNewProbStarterJava('');
+                  setNewProbStarterPython('');
+                  setNewProbStarterCsharp('');
+                  setStarterActiveTab('C');
                 }}
                 className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -4236,6 +4485,38 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Tags Section */}
+              {allTags.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-muted">Problem Tags</label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {allTags.map(tag => {
+                      const isSelected = newProbTags.includes(tag.name);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setNewProbTags(newProbTags.filter(t => t !== tag.name));
+                            } else {
+                              setNewProbTags([...newProbTags, tag.name]);
+                            }
+                          }}
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all border ${
+                            isSelected 
+                              ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-extrabold' 
+                              : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          }`}
+                        >
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Problem Description *</label>
@@ -4289,6 +4570,74 @@ export const AdminDashboard: React.FC = () => {
                 <input type="text" value={newProbHint} onChange={e => setNewProbHint(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Tip or pointer..." />
               </div>
 
+              {/* Starter Templates Tabbed Editor */}
+              <div className="flex flex-col gap-1 border border-slate-200/60 rounded-2xl p-4 bg-slate-50/50">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-text-muted font-black uppercase tracking-wider text-[10px]">Starter Code Templates (Optional)</label>
+                  <div className="flex gap-1.5">
+                    {(['C', 'C++', 'Java', 'Python 3', 'C#'] as const).map(lang => (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setStarterActiveTab(lang)}
+                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
+                          starterActiveTab === lang 
+                            ? 'bg-indigo-600 text-white shadow-sm' 
+                            : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-100'
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {starterActiveTab === 'C' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterC}
+                    onChange={e => setNewProbStarterC(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="void solve() {&#10;}"
+                  />
+                )}
+                {starterActiveTab === 'C++' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterCpp}
+                    onChange={e => setNewProbStarterCpp(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution {&#10;public:&#10;    void solve() {&#10;    }&#10;};"
+                  />
+                )}
+                {starterActiveTab === 'Java' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterJava}
+                    onChange={e => setNewProbStarterJava(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution {&#10;    public void solve() {&#10;    }&#10;}"
+                  />
+                )}
+                {starterActiveTab === 'Python 3' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterPython}
+                    onChange={e => setNewProbStarterPython(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution:&#10;    def solve(self):&#10;        pass"
+                  />
+                )}
+                {starterActiveTab === 'C#' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterCsharp}
+                    onChange={e => setNewProbStarterCsharp(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="public class Solution {&#10;    public void Solve() {&#10;    }&#10;}"
+                  />
+                )}
+              </div>
+
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Solution Code</label>
                 <textarea rows={2} value={newProbSolutions} onChange={e => setNewProbSolutions(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono" placeholder="Sample solution code..." />
@@ -4299,13 +4648,263 @@ export const AdminDashboard: React.FC = () => {
                 <label className="text-slate-700">Make this problem public immediately</label>
               </div>
 
-              <button
-                type="submit"
-                className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4"
-              >
-                {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
-              </button>
+              <div className="flex gap-4 mt-4 w-full">
+                {isEditProblemOpen && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentProb = problems.find(p => p.id === editingProblemId);
+                      if (currentProb) {
+                        handleOpenTestcaseModal(currentProb);
+                      }
+                    }}
+                    className="flex-1 bg-white hover:bg-slate-50 text-indigo-600 border border-indigo-200 hover:border-indigo-300 font-bold text-sm py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base font-black">tune</span>
+                    Edit Test Cases
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className={`${isEditProblemOpen ? 'flex-1' : 'w-full'} bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md cursor-pointer`}
+                >
+                  {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
+                </button>
+              </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: TESTCASE BUILDER ================= */}
+      {isTestcaseModalOpen && testcaseProblem && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200/50 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col animate-fade-in text-left overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex justify-between items-start p-6 border-b border-slate-150/70">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-orange-50 px-2 py-0.5 rounded-md">
+                  Problem testcases
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  Manage Test Cases
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Define inputs and outputs for <span className="font-bold text-slate-800">"{testcaseProblem.title}"</span>.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsTestcaseModalOpen(false);
+                  setTestcaseProblem(null);
+                  setTestcasesList([]);
+                  setZipFile(null);
+                }}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors cursor-pointer border-none bg-transparent"
+              >
+                close
+              </button>
+            </div>
+
+            {/* Tab Selector */}
+            <div className="flex border-b border-slate-150/50 px-6 bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setTestcaseTab('manual')}
+                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
+                  testcaseTab === 'manual'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm font-black">edit_note</span>
+                Manual test cases ({testcasesList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTestcaseTab('upload')}
+                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
+                  testcaseTab === 'upload'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm font-black">folder_zip</span>
+                Upload ZIP Archive
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 text-xs font-semibold">
+              
+              {/* TAB 1: MANUAL BUILDER */}
+              {testcaseTab === 'manual' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50/80 p-3 rounded-xl border border-slate-100 mb-2">
+                    <div>
+                      <p className="font-bold text-slate-700">Manual Entry</p>
+                      <p className="text-[10px] text-text-muted mt-0.5">Provide plain text inputs and correct outputs. Evaluation uses exact match or whitespace normalization.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddManualRow}
+                      className="bg-white hover:bg-slate-50 text-primary border border-primary/20 hover:border-primary/40 font-black px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-base font-black">add</span> Add Row
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-3 max-h-[40vh] overflow-y-auto pr-1">
+                    {testcasesList.map((tc, idx) => (
+                      <div key={idx} className="flex gap-3 bg-slate-50/40 p-4 rounded-xl border border-slate-200/50 hover:border-slate-350 transition-all items-start relative group">
+                        
+                        {/* TC Index Badge */}
+                        <div className="flex flex-col items-center justify-center bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-[10px] w-9 h-9 rounded-lg mt-1 shrink-0">
+                          <span>TC</span>
+                          <span>#{idx + 1}</span>
+                        </div>
+
+                        {/* Textareas Side-by-Side */}
+                        <div className="grid grid-cols-2 gap-3 flex-1">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Input Data</label>
+                            <textarea
+                              rows={3}
+                              value={tc.inputData}
+                              onChange={(e) => handleManualRowChange(idx, 'inputData', e.target.value)}
+                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
+                              placeholder="e.g. 5\n1 2 3"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Expected Output</label>
+                            <textarea
+                              rows={3}
+                              value={tc.expectedOutput}
+                              onChange={(e) => handleManualRowChange(idx, 'expectedOutput', e.target.value)}
+                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
+                              placeholder="e.g. 15"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Remove Action */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveManualRow(idx)}
+                          disabled={testcasesList.length === 1}
+                          className={`material-symbols-outlined text-red-500 hover:text-red-750 transition-colors cursor-pointer border-none bg-transparent self-center p-1.5 rounded-lg hover:bg-red-50 ${
+                            testcasesList.length === 1 ? 'opacity-30 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          delete
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: ZIP ARCHIVE UPLOAD */}
+              {testcaseTab === 'upload' && (
+                <div className="flex flex-col gap-4">
+                  <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 leading-relaxed text-slate-600">
+                    <p className="font-bold text-slate-800">ZIP File Requirements:</p>
+                    <ul className="list-disc pl-4 mt-1 text-[11px] text-text-muted flex flex-col gap-0.5">
+                      <li>The archive must contain test case files matching patterns: <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.in</code> and <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.out</code> or <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.ans</code>.</li>
+                      <li>File base names must match to pair input/output (e.g. <code className="font-semibold text-slate-800">input_01.in</code> pairs with <code className="font-semibold text-slate-800">input_01.out</code>).</li>
+                      <li>Maximum upload size is <strong>20 MB</strong>.</li>
+                    </ul>
+                  </div>
+
+                  {/* Drag and Drop Zone */}
+                  <div
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-3 transition-all ${
+                      dragActive
+                        ? 'border-primary bg-orange-50/30'
+                        : zipFile
+                        ? 'border-emerald-400 bg-emerald-50/10'
+                        : 'border-slate-250 hover:border-slate-400'
+                    }`}
+                  >
+                    <span className={`material-symbols-outlined text-4xl ${zipFile ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      {zipFile ? 'task' : 'cloud_upload'}
+                    </span>
+                    <div className="text-center">
+                      {zipFile ? (
+                        <p className="text-sm font-bold text-slate-800">"{zipFile.name}"</p>
+                      ) : (
+                        <p className="text-sm text-slate-600 font-bold">
+                          Drag and drop your testcase ZIP here, or <label className="text-primary hover:underline cursor-pointer">browse files<input type="file" onChange={handleFileChange} className="hidden" accept=".zip" /></label>
+                        </p>
+                      )}
+                      <p className="text-[10px] text-text-muted mt-1">Supports standard compressed .zip archives.</p>
+                    </div>
+                  </div>
+
+                  {/* Selected File Card Details */}
+                  {zipFile && (
+                    <div className="flex justify-between items-center bg-emerald-50/40 border border-emerald-150 p-3.5 rounded-xl animate-fade-in">
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-emerald-600 bg-white p-2 rounded-lg border border-emerald-100">folder_zip</span>
+                        <div>
+                          <p className="font-bold text-slate-800">{zipFile.name}</p>
+                          <p className="text-[10px] text-slate-500">{(zipFile.size / 1024).toFixed(1)} KB • Ready for upload</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setZipFile(null)}
+                        className="text-[10px] text-red-500 hover:text-red-750 bg-white border border-red-100 hover:border-red-200 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer"
+                      >
+                        Remove File
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-slate-150/70 p-4 bg-slate-50/50 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTestcaseModalOpen(false);
+                  setTestcaseProblem(null);
+                  setTestcasesList([]);
+                  setZipFile(null);
+                }}
+                className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 hover:border-slate-300 font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveTestcases}
+                disabled={isSavingTestcases}
+                className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingTestcases ? (
+                  <>
+                    <span className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm font-black">save</span>
+                    Save Test Cases
+                  </>
+                )}
+              </button>
+            </div>
+
           </div>
         </div>
       )}
@@ -4382,6 +4981,58 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-surface w-full max-w-sm rounded-2xl p-6 border border-slate-200/50 shadow-2xl scale-100 transform transition-all duration-300 flex flex-col gap-4 text-left">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-red-500 text-[24px] bg-red-50 p-2 rounded-xl">warning</span>
+              <h3 className="text-sm font-black text-slate-900">{confirmModalTitle || "Confirm Action"}</h3>
+            </div>
+            <p className="text-xs font-bold text-slate-500 leading-relaxed">
+              {confirmModalMessage}
+            </p>
+            <div className="flex justify-end gap-2.5 mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                  setConfirmModalAction(null);
+                }}
+                className="px-4 py-2 text-[10px] font-black text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmModalAction) confirmModalAction();
+                  setIsConfirmModalOpen(false);
+                  setConfirmModalAction(null);
+                }}
+                className="px-4 py-2 text-[10px] font-black text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Global Toast Alert */}
+      {globalToast && (
+        <div className={`fixed bottom-6 right-6 z-[999] text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in ${
+          globalToast.type === 'success' ? 'bg-green-600 border border-green-500' :
+          globalToast.type === 'error' ? 'bg-red-600 border border-red-500' : 'bg-brand-blue border border-brand-blue-light'
+        }`}>
+          <span className="material-symbols-outlined text-[18px]">
+            {globalToast.type === 'success' ? 'check_circle' :
+             globalToast.type === 'error' ? 'error' : 'info'}
+          </span>
+          <span>{globalToast.message}</span>
         </div>
       )}
     </div>

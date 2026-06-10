@@ -103,4 +103,7 @@ public class ProblemEntity {
 
     @Column(name = "solutions", columnDefinition = "TEXT")
     String solutions;
+
+    @Column(name = "starter_templates", columnDefinition = "TEXT")
+    String starterTemplates;
 }

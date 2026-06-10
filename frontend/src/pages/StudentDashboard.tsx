@@ -11,6 +11,10 @@ import {
   fetchLearningLessonDetail,
   fetchLessonComments,
   postLessonComment,
+  fetchQuizByLesson,
+  submitQuiz,
+  completeLesson,
+  type QuizDetail,
   type LearningCurriculumChapterResponse,
   type LessonComment
 } from '../services/courseService';
@@ -24,316 +28,9 @@ const TX_TYPE_OPTIONS = [
   { value: 'AWARD', label: 'Award', bg: 'bg-amber-100 text-amber-700' }
 ];
 
-// Mock datasets exactly as they are in the HTML
-export const initialMyCourses = [
-  {
-    id: 'java-adv',
-    title: 'Java Fundamentals to Advanced',
-    author: 'Dr. Alan Turing',
-    category: 'Java',
-    progress: '65%',
-    progressVal: 65,
-    rating: 4.8,
-    ratingsCount: '1,240',
-    status: 'ongoing',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgy50UMGsrfiNlaMOGS5hIFfEB9ALLj2hHwL19FjiPxHtPdmdzDshyKCd9cxUE55L1IPGibJJ8XxYWvIOtq6nCmPgaCFoPxxlN64_OwyPrZocxC4bEzFtpL_km1YmpuA-CN4fUVjD5gO2NI7mdCoim7_CAT7njSdYphWceJpEIiRp5PAaZrqeglhZ4z73HAhMVJI5rSTTAUK3BmjBzHCR2ivCNvmKAvTRSv0bZDvGjfSB2GENwq1duU8S0jsS3Bgtxt-P5YEUi6M8'
-  },
-  {
-    id: 'dsa',
-    title: 'Data Structures & Algorithms',
-    author: 'Ada Lovelace',
-    category: 'Algorithms',
-    progress: '32%',
-    progressVal: 32,
-    rating: 4.9,
-    ratingsCount: '2,150',
-    status: 'ongoing',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBrLRPGmTw2WKOVjaU8vt3rWbyU_IutkyQCHmjb4756OHz94BzCcaaqOAypjovZ890SBIthYzF12ggMvhxo0w-S_OQizNFa5DtyTQfi3KxxxubXCobRHCPMK2auxCeFzRISNcp72GUb3AXRG4IbJSc1j1jqMRfbhbXBZFOzuEs9Zyv3mgRrXDRBAujfgQw5_uGSeKQI340ZtVWM81ZNu887j7-Ee2CMIXLXPiIRuva9t7_xMz7YydCPH56sKDASIrKT-SFU_pzI-q0'
-  },
-  {
-    id: 'uiux',
-    title: 'UI/UX Fundamentals',
-    author: 'Don Norman',
-    category: 'Design',
-    progress: '48%',
-    progressVal: 48,
-    rating: 4.7,
-    ratingsCount: '840',
-    status: 'ongoing',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgMrlXcL6UyewsliLmYzTFGeK46VPXPWa0zqiFJFG3Hab-pyZxWtLpBIjHojZqQVgPRMLB8VMpFNSPznwO6UAHzZ2jcFWs6K0BKMoB0OD6WHKwN5vItAHep9ax_z9Omyl1BaSD9pXR8rHPLTMdus-Dh94N_UEM2V5mfs9b6xxFTVdKN7cmXk6y3CyGBnmOA0TKw6rbul5AenrOgS9aOiP0BR-apj6wQfoZlBJkkBtbvlPlXsTpO_CtKv-ITYmOrUJqs6SnUAzYMLw'
-  },
-  {
-    id: 'react-master',
-    title: 'React Masterclass',
-    author: 'Dan Abramov',
-    category: 'Frontend',
-    progress: '12%',
-    progressVal: 12,
-    rating: 4.6,
-    ratingsCount: '950',
-    status: 'ongoing',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDH38LU6e0yGxqrzZGQbdoxvw8ZMxy9gZPrCBCgMDBLa6vPS_quf5UAkp5VGyisE1ULnbzo9YYRhi8yTbWwl4UR6GVxXTz4-1sX-6PRw-ySY0em1pyh4D3F-VFRK4jIMlxj13KIG8hO_VPvC3PhAOls8fxw8ObhSCtHS6pnkg4VYl9tgu9e7MPzOVA5pB3h_BUM1EvsEu7pax7zpF--vWRIg5LCFhkUGjn_vWsZbht95_EyogbW4JoDYHSaDrmZ5uYj5r7NBCz-cHg'
-  },
-  {
-    id: 'py-begin',
-    title: 'Python for Beginners',
-    author: 'Grace Hopper',
-    category: 'Python',
-    progress: '100%',
-    progressVal: 100,
-    rating: 4.9,
-    ratingsCount: '3,400',
-    status: 'completed',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDprSKVqEq347pPqZ9M8ZWp_6T-Pvi_68sA90ExU-mSJXsImRMFa4q4dLHkArN6WOv5WFywpvaSZBRAHvu_Dx0r6w9yK_mlTECqCeq9Wg3oBbgZTv9n5f5XBS7cYcelKHCSqcutDcmpUqgS0-UThBEEYGjKVVlqjNkMD5LeFuWllGb4uhmZZ8l2nvSElcuet9dv6J2P59fo1VSbODozVKEkm5a4gpdTPT1T6CEHtGUDY7Lv6jRnLSmwUI2aNOpki1r5UtOOo4ccDQQ'
-  },
-  {
-    id: 'sql-db',
-    title: 'SQL Database Basics',
-    author: 'Linus Torvalds',
-    category: 'Database',
-    progress: '100%',
-    progressVal: 100,
-    rating: 4.5,
-    ratingsCount: '1,120',
-    status: 'completed',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAgPQoJfVaRjxXQvS7N25MLctJghBgjcZCo8n2wpzkZMyEuTKFIvYs8qJ2OMD4PEp3G9tRzvqizo-W5TB-OIXup91n-sqoxw6_rFv5ZF7yMaaV5SWkkzoIX9SKxkU7xITu5AyPYUDImqxHExSi0alwlwCBoyyJ7vCnwTnwGJDlY9rskNWGjxxW-zx-A3-RRo_W1zlMWhLftwYj33PdKOQgv3aJAGj69mGWeFoSUXXRlcY-kkal5mjfr19Uf3qELIcDhvG1oiKO4s90'
-  },
-  {
-    id: 'lin-alg',
-    title: 'Linear Algebra for Devs',
-    author: 'Carl Gauss',
-    category: 'Math',
-    progress: '100%',
-    progressVal: 100,
-    rating: 4.8,
-    ratingsCount: '780',
-    status: 'completed',
-    thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBVomxWSJhKP4gY1tskEgBnc-uwlSGtjxGtlSCu0HYXgC2f8u-C8XBTqyfCbNtkTOh-QTmmyM2zQ3DabmlPoGAYyb_-BF4abtgwbZTrvvdbrcHBB7qmM1iUbRT5ZrIlwrYluTtcIEbeJf1Z_SDdboaLdzEWI2_bXGyIfZUUBr8yhoXgTsTyxW8XDIWq-o9FsZ9ICfSnvG5hRd6zraHfF7QIeuddoBdBlwpGAZExwYjtoUNqqZd-hwOexQZqZKm9xwlZSzsgu5iQn7E'
-  },
-  {
-    id: 'sys-design',
-    title: 'System Design Crash Course',
-    author: 'Martin Fowler',
-    category: 'Architecture',
-    progress: '100%',
-    progressVal: 100,
-    rating: 4.9,
-    ratingsCount: '1,850',
-    status: 'completed',
-    thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
-  }
-];
-
-
-
-const participatedContests = [
-  { name: 'Weekly Algorithm Sprint #45', date: 'Oct 24, 2026', rank: '124 / 2450', score: '350 pts' },
-  { name: 'Data Structures Challenge Series', date: 'Oct 15, 2026', rank: '342 / 1800', score: '280 pts' },
-  { name: 'Intro to DP Challenge', date: 'Oct 01, 2026', rank: '950 / 4102', score: '150 pts' }
-];
-
-const contestHistoryData = [
-  {
-    name: 'Weekly Algorithm Sprint #45',
-    status: 'Ongoing',
-    date: 'Oct 24, 2026',
-    startDate: 'Oct 24, 2026 08:00 AM',
-    endDate: 'Oct 27, 2026 08:00 AM',
-    problemsSolved: '3/5',
-    timeSpent: '2h 15m',
-    rank: '124 / 2450',
-    score: '350 pts',
-    category: 'Sprint League',
-    difficulty: 'Medium',
-    xpEarned: '+50 XP'
-  },
-  {
-    name: 'Data Structures Challenge Series',
-    status: 'Ended',
-    date: 'Oct 15, 2026',
-    startDate: 'Oct 15, 2026 09:00 AM',
-    endDate: 'Oct 15, 2026 12:00 PM',
-    problemsSolved: '4/5',
-    timeSpent: '3h 10m',
-    rank: '342 / 1800',
-    score: '280 pts',
-    category: 'Structure Series',
-    difficulty: 'Hard',
-    xpEarned: '+100 XP'
-  },
-  {
-    name: 'Intro to DP Challenge',
-    status: 'Ended',
-    date: 'Oct 01, 2026',
-    startDate: 'Oct 01, 2026 02:00 PM',
-    endDate: 'Oct 01, 2026 05:00 PM',
-    problemsSolved: '2/5',
-    timeSpent: '1h 45m',
-    rank: '950 / 4102',
-    score: '150 pts',
-    category: 'Past Arena',
-    difficulty: 'Easy',
-    xpEarned: '+30 XP'
-  },
-  {
-    name: 'Code Masters Championship 2026',
-    status: 'Upcoming',
-    date: 'Nov 15, 2026',
-    startDate: 'Nov 15, 2026 08:00 AM',
-    endDate: 'Nov 15, 2026 11:00 AM',
-    problemsSolved: 'N/A',
-    timeSpent: 'N/A',
-    rank: 'Registered',
-    score: 'N/A',
-    category: 'Mega Prize',
-    difficulty: 'Hard',
-    xpEarned: 'Pending'
-  },
-  {
-    name: 'SQL Mastery Arena',
-    status: 'Upcoming',
-    date: 'Nov 25, 2026',
-    startDate: 'Nov 25, 2026 10:00 AM',
-    endDate: 'Nov 25, 2026 01:00 PM',
-    problemsSolved: 'N/A',
-    timeSpent: 'N/A',
-    rank: 'Registered',
-    score: 'N/A',
-    category: 'Database Skill',
-    difficulty: 'Medium',
-    xpEarned: 'Pending'
-  }
-];
-
-
-
-const initialExercises = [
-  { name: 'Two Sum', difficulty: 'Easy', difficultyClass: 'bg-green-50 text-brand-green border border-green-150', submissions: '1,245', completed: true },
-  { name: 'Reverse Linked List', difficulty: 'Easy', difficultyClass: 'bg-green-50 text-brand-green border border-green-150', submissions: '850', completed: false },
-  { name: 'Spring Context Hierarchy Solver', difficulty: 'Medium', difficultyClass: 'bg-primary-light/50 text-primary border border-primary/20', submissions: '420', completed: false }
-];
-
-interface ProblemDetail {
-  difficulty: string;
-  difficultyClass: string;
-  description: string;
-  code: Record<string, string>;
-}
-
-const problemData: Record<string, ProblemDetail> = {
-  "Two Sum": {
-    difficulty: "Easy",
-    difficultyClass: "bg-green-50 text-brand-green border border-green-150",
-    description: `
-      <p class="mb-4">Given an array of integers <code class="bg-surface-gray px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">nums</code> and an integer <code class="bg-surface-gray px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">target</code>, return <em>indices of the two numbers such that they add up to <code class="bg-surface-gray px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">target</code></em>.</p>
-      <p class="mb-4">You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice.</p>
-      <p class="mb-4">You can return the answer in any order.</p>
-      <div class="grid md:grid-cols-2 gap-4 my-4">
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 1:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> nums = [2,7,11,15], target = 9</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> [0,1]</p>
-                  <p><span class="text-text-main font-semibold">Explanation:</span> Because nums[0] + nums[1] == 9, we return [0, 1].</p>
-              </div>
-          </div>
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 2:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> nums = [3,2,4], target = 6</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> [1,2]</p>
-              </div>
-          </div>
-      </div>
-      <div class="space-y-2 mb-4">
-          <h4 class="font-bold text-xs text-text-main">Constraints:</h4>
-          <ul class="list-disc pl-5 text-xs text-text-muted space-y-1">
-              <li><code class="bg-surface-gray px-1 rounded font-mono text-[11px]">2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
-              <li><code class="bg-surface-gray px-1 rounded font-mono text-[11px]">-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-              <li><code class="bg-surface-gray px-1 rounded font-mono text-[11px]">-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
-              <li>Only one valid answer exists.</li>
-          </ul>
-      </div>
-    `,
-    code: {
-      "Java": `class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Write your Java code here\n        return new int[] {};\n    }\n}`,
-      "C++": `class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        // Write your C++ code here\n        return {};\n    }\n};`,
-      "Python": `class Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n        # Write your Python code here\n        pass`
-    }
-  },
-  "Reverse Linked List": {
-    difficulty: "Easy",
-    difficultyClass: "bg-green-50 text-brand-green border border-green-150",
-    description: `
-      <p class="mb-4">Given the <code class="bg-surface-gray px-1.5 py-0.5 rounded border border-gray-200 font-mono text-xs">head</code> of a singly linked list, reverse the list, and return <em>its reversed list</em>.</p>
-      <div class="grid md:grid-cols-2 gap-4 my-4">
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 1:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> head = [1,2,3,4,5]</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> [5,4,3,2,1]</p>
-              </div>
-          </div>
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 2:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> head = [1,2]</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> [2,1]</p>
-              </div>
-          </div>
-      </div>
-      <div class="space-y-2 mb-4">
-          <h4 class="font-bold text-xs text-text-main">Constraints:</h4>
-          <ul class="list-disc pl-5 text-xs text-text-muted space-y-1">
-              <li>The number of nodes in the list is the range <code class="bg-surface-gray px-1 rounded font-mono text-[11px]">[0, 5000]</code>.</li>
-              <li><code class="bg-surface-gray px-1 rounded font-mono text-[11px]">-5000 &lt;= Node.val &lt;= 5000</code></li>
-          </ul>
-      </div>
-    `,
-    code: {
-      "Java": `/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode reverseList(ListNode head) {\n        // Write your Java code here\n        return null;\n    }\n}`,
-      "C++": `/**\n * Definition for singly-linked list.\n * struct ListNode {\n *     int val;\n *     ListNode *next;\n *     ListNode() : val(0), next(nullptr) {}\n *     ListNode(x) : val(x), next(nullptr) {}\n *     ListNode(x, ListNode *next) : val(x), next(next) {}\n * };\n */\nclass Solution {\npublic:\n    ListNode* reverseList(ListNode* head) {\n        // Write your C++ code here\n        return nullptr;\n    }\n};`,
-      "Python": `# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:\n        # Write your Python code here\n        pass`
-    }
-  },
-  "Spring Context Hierarchy Solver": {
-    difficulty: "Medium",
-    difficultyClass: "bg-primary-light/50 text-primary border border-primary/20",
-    description: `
-      <p class="mb-4">Given a hierarchical relationship of Spring ApplicationContext names and their respective registered beans, resolve if a child context can correctly lookup a bean defined in its parent context or its own context, following standard hierarchical bean lookup rules.</p>
-      <div class="grid md:grid-cols-2 gap-4 my-4">
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 1:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> contextParents = { "child": "parent" }, contextBeans = { "parent": ["userService"], "child": ["orderService"] }, lookupContext = "child", beanName = "userService"</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> true</p>
-                  <p><span class="text-text-main font-semibold">Explanation:</span> The child context can find the "userService" bean because it is defined in its parent context.</p>
-              </div>
-          </div>
-          <div class="bg-surface-gray border border-gray-200 p-4 rounded-xl">
-              <p class="font-bold text-xs text-text-main mb-2">Example 2:</p>
-              <div class="font-mono text-xs text-text-muted space-y-1">
-                  <p><span class="text-text-main font-semibold">Input:</span> contextParents = { "child": "parent" }, contextBeans = { "parent": ["userService"], "child": ["orderService"] }, lookupContext = "parent", beanName = "orderService"</p>
-                  <p><span class="text-text-main font-semibold">Output:</span> false</p>
-                  <p><span class="text-text-main font-semibold">Explanation:</span> The parent context cannot see beans defined in the child context.</p>
-              </div>
-          </div>
-      </div>
-      <div class="space-y-2 mb-4">
-          <h4 class="font-bold text-xs text-text-main">Constraints:</h4>
-          <ul class="list-disc pl-5 text-xs text-text-muted space-y-1">
-              <li>Lookups must trace parents recursively until the root context is reached.</li>
-              <li>Context names and Bean names are case-sensitive.</li>
-          </ul>
-      </div>
-    `,
-    code: {
-      "Java": `class Solution {\n    public boolean resolveBeanLookup(Map<String, String> contextParents, Map<String, List<String>> contextBeans, String lookupContext, String beanName) {\n        // Write your Java code here\n        return false;\n    }\n}`,
-      "C++": `class Solution {\npublic:\n    bool resolveBeanLookup(unordered_map<string, string>& contextParents, unordered_map<string, vector<string>>& contextBeans, string lookupContext, string beanName) {\n        // Write your C++ code here\n        return false;\n    }\n};`,
-      "Python": `class Solution:\n    def resolveBeanLookup(self, contextParents: Dict[str, str], contextBeans: Dict[str, List[str]], lookupContext: str, beanName: str) -> bool:\n        # Write your Python code here\n        return False`
-    }
-  }
-};
+// Mock data for contest participation display
+const participatedContests: any[] = [];
+const contestHistoryData: any[] = [];
 
 const EmptyState: React.FC<{
   icon: string;
@@ -387,6 +84,11 @@ const EmptyState: React.FC<{
 };
 
 
+
+
+
+
+
 export const StudentDashboard: React.FC = () => {
   const { user, refreshBalance, updateUser } = useApp();
   const location = useLocation();
@@ -426,7 +128,70 @@ export const StudentDashboard: React.FC = () => {
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [isPlayerLoading, setIsPlayerLoading] = useState<boolean>(false);
   
-  const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'source-code' | 'quiz'>('overview');
+  const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'quiz'>('overview');
+
+  // Quiz States
+  const [currentQuiz, setCurrentQuiz] = useState<QuizDetail | null>(null);
+  const [isQuizLoading, setIsQuizLoading] = useState<boolean>(false);
+  const [quizError, setQuizError] = useState<string | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number | null>>({});
+  const [isQuizSubmitting, setIsQuizSubmitting] = useState<boolean>(false);
+  const quizTabRef = useRef<HTMLDivElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  const loadQuizDetail = async (courseId: number, lessonId: number) => {
+    setIsQuizLoading(true);
+    setQuizError(null);
+    try {
+      const quiz = await fetchQuizByLesson(courseId, lessonId);
+      setCurrentQuiz(quiz);
+      const answers: Record<number, number | null> = {};
+      if (quiz.submitted && quiz.questions) {
+        quiz.questions.forEach(q => {
+          answers[q.questionId] = q.selectedOptionId ?? null;
+        });
+      } else {
+        if (quiz.questions) {
+          quiz.questions.forEach(q => {
+            answers[q.questionId] = null;
+          });
+        }
+      }
+      setSelectedAnswers(answers);
+    } catch (err: any) {
+      console.error('Error fetching quiz:', err);
+      setQuizError(err.message || 'Failed to load quiz details');
+      setCurrentQuiz(null);
+    } finally {
+      setIsQuizLoading(false);
+    }
+  };
+
+  const handleQuizSubmit = async () => {
+    if (!playerCourseId || !currentQuiz) return;
+
+    const answers = Object.entries(selectedAnswers).map(([qId, optId]) => ({
+      questionId: parseInt(qId),
+      selectedOptionId: optId
+    }));
+
+    setIsQuizSubmitting(true);
+    try {
+      await submitQuiz(playerCourseId, currentQuiz.quizId, { answers });
+      if (selectedLessonId) {
+        await loadQuizDetail(playerCourseId, selectedLessonId);
+      }
+      // Scroll smoothly to the tab bar (higher view)
+      setTimeout(() => {
+        tabsContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } catch (err: any) {
+      console.error('Error submitting quiz:', err);
+      alert(err.message || 'Failed to submit quiz');
+    } finally {
+      setIsQuizSubmitting(false);
+    }
+  };
 
   // Q&A States
   const [lessonComments, setLessonComments] = useState<LessonComment[]>([]);
@@ -464,7 +229,7 @@ export const StudentDashboard: React.FC = () => {
   };
 
   // Exercises panel inside Course Player
-  const [playerExercises, setPlayerExercises] = useState(initialExercises);
+  const [playerExercises, setPlayerExercises] = useState<any[]>([]);
   const [currentProblemName, setCurrentProblemName] = useState<string | null>(null);
   const [solveLang, setSolveLang] = useState<string>('Java');
   const [solveCode, setSolveCode] = useState<string>('');
@@ -941,6 +706,13 @@ export const StudentDashboard: React.FC = () => {
     }
   }, [selectedLessonId, playerActiveTab]);
 
+  // Load quiz details when active lesson or active tab changes to 'quiz'
+  useEffect(() => {
+    if (playerCourseId && selectedLessonId && playerActiveTab === 'quiz') {
+      loadQuizDetail(playerCourseId, selectedLessonId);
+    }
+  }, [playerCourseId, selectedLessonId, playerActiveTab]);
+
 
   const ongoingScrollRef = useRef<HTMLDivElement>(null);
   const completedScrollRef = useRef<HTMLDivElement>(null);
@@ -1137,27 +909,55 @@ export const StudentDashboard: React.FC = () => {
     }
   };
 
+  const refreshLearningProgress = async (courseId: number | string) => {
+    try {
+      const detail = await fetchCourseLearningDetail(courseId);
+      setPlayerCourseProgress(`${detail.progressPercentage}%`);
+
+      const chapters = await fetchCourseLearningCurriculum(courseId);
+      setLearningChapters(chapters);
+    } catch (err) {
+      console.error('Failed to refresh learning progress:', err);
+    }
+  };
+
+  const handleCompleteLesson = async (e: React.MouseEvent, lessonId: number) => {
+    e.stopPropagation();
+    if (!playerCourseId) return;
+
+    setIsPlayerLoading(true);
+    try {
+      await completeLesson(playerCourseId, lessonId);
+      await refreshLearningProgress(playerCourseId);
+    } catch (err: any) {
+      console.error('Failed to complete lesson:', err);
+      alert(err.message || 'Không thể hoàn thành bài học');
+    } finally {
+      setIsPlayerLoading(false);
+    }
+  };
+
   // Exercises actions
   const handleStartSolveProblem = (problemName: string) => {
-    const problem = problemData[problemName];
+    const problem = null; // Mock data removed, use API instead
     if (!problem) return;
 
     setCurrentProblemName(problemName);
     setSolveLang('Java');
-    setSolveCode(problem.code['Java']);
+    setSolveCode('');
     setSolveResult(null);
   };
 
   const handleLanguageChange = (lang: string) => {
     setSolveLang(lang);
-    if (currentProblemName && problemData[currentProblemName]) {
-      setSolveCode(problemData[currentProblemName].code[lang]);
+    if (currentProblemName) {
+      setSolveCode('');
     }
   };
 
   const handleResetCode = () => {
-    if (currentProblemName && problemData[currentProblemName]) {
-      setSolveCode(problemData[currentProblemName].code[solveLang]);
+    if (currentProblemName) {
+      setSolveCode('');
     }
   };
 
@@ -2040,7 +1840,7 @@ export const StudentDashboard: React.FC = () => {
                 </div>
 
                 {/* Sub-tabs Navigation */}
-                <div className="flex border-b border-gray-200 gap-6 overflow-x-auto hide-scrollbar pb-px">
+                <div ref={tabsContainerRef} className="flex border-b border-gray-200 gap-6 overflow-x-auto hide-scrollbar pb-px">
                   <button 
                     onClick={() => { setPlayerActiveTab('overview'); setCurrentProblemName(null); }}
                     className={`pb-3 px-1 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
@@ -2331,8 +2131,8 @@ export const StudentDashboard: React.FC = () => {
                             </button>
                             <div className="flex items-center gap-3">
                               <h3 className="text-base font-bold text-text-main">{currentProblemName}</h3>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${problemData[currentProblemName]?.difficultyClass}`}>
-                                {problemData[currentProblemName]?.difficulty}
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700">
+                                Difficulty
                               </span>
                             </div>
                           </div>
@@ -2340,8 +2140,9 @@ export const StudentDashboard: React.FC = () => {
                           {/* Description Panel */}
                           <div 
                             className="prose max-w-none text-sm text-text-muted leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: problemData[currentProblemName]?.description }}
-                          />
+                          >
+                            <p>Problem description not available. Please use the API to fetch problem details.</p>
+                          </div>
 
                           {/* Dark Editor Canvas */}
                           <div className="border border-gray-200 rounded-xl overflow-hidden bg-[#1e1e1e] shadow-lg flex flex-col">
@@ -2429,36 +2230,205 @@ export const StudentDashboard: React.FC = () => {
 
                   {/* Quiz */}
                   {playerActiveTab === 'quiz' && (
-                    <div className="animate-fade-in">
-                      <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
-                        <h2 className="text-lg font-bold text-text-main">Knowledge Check</h2>
-                        <span className="bg-slate-100 text-text-muted border border-gray-200 px-3 py-1 rounded-full text-xs font-bold">Question 1 of 5</span>
-                      </div>
-                      <div className="bg-surface p-2">
-                        <h3 className="text-base font-bold text-text-main mb-4 leading-snug">In Spring Boot, which annotation is used to map HTTP GET requests onto specific handler methods?</h3>
-                        <div className="space-y-3">
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@PostMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@GetMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@RequestMapping</span>
-                          </label>
-                          <label className="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl hover:bg-surface-gray hover:border-primary cursor-pointer transition-all">
-                            <input className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary" name="quiz1" type="radio" />
-                            <span className="text-sm font-medium text-text-main">@PathMapping</span>
-                          </label>
+                    <div ref={quizTabRef} className="animate-fade-in space-y-4">
+                      {isQuizLoading ? (
+                        <div className="flex flex-col items-center justify-center py-16">
+                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                          <p className="text-sm text-text-muted mt-4 font-semibold">Loading quiz details...</p>
                         </div>
-                        <div className="border-t border-gray-100 mt-6 pt-4 flex justify-between items-center">
-                          <a className="text-text-muted hover:text-primary font-bold text-xs transition-colors" href="#">Skip Question</a>
-                          <button className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-bold text-xs transition-colors">Submit Answer</button>
+                      ) : quizError ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                          <span className="material-symbols-outlined text-gray-300 text-[64px] mb-3">quiz</span>
+                          <h3 className="text-base font-bold text-text-main">No Quiz Available</h3>
+                          <p className="text-xs text-text-muted mt-1 max-w-[320px]">
+                            {quizError.includes('404') || quizError.includes('found') 
+                              ? 'No quiz has been configured for this lesson yet.' 
+                              : quizError}
+                          </p>
                         </div>
-                      </div>
+                      ) : currentQuiz ? (
+                        <div>
+                          {currentQuiz.submitted ? (
+                            /* --- VIEW RESULT STATE --- */
+                            <div className="space-y-6">
+                              {/* Summary Score Card */}
+                              <div className="bg-gradient-to-r from-primary to-brand-blue rounded-3xl p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden">
+                                <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4">
+                                  <span className="material-symbols-outlined text-[180px]">emoji_events</span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                                  <div>
+                                    <span className="bg-white/20 text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Latest Attempt Results</span>
+                                    <h2 className="text-2xl font-black mt-2 leading-tight">{currentQuiz.title}</h2>
+                                    <p className="text-xs text-white/80 mt-1">Submitted at: {currentQuiz.submittedAt ? new Date(currentQuiz.submittedAt).toLocaleString('en-US') : ''}</p>
+                                  </div>
+                                  <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl backdrop-blur-sm self-start md:self-auto">
+                                    <div className="text-center">
+                                      <p className="text-3xl font-black">{currentQuiz.score?.toFixed(1)}%</p>
+                                      <p className="text-[10px] uppercase font-bold text-white/70 tracking-wider">Score</p>
+                                    </div>
+                                    <div className="w-px h-10 bg-white/20"></div>
+                                    <div className="text-center">
+                                      <p className="text-3xl font-black">{currentQuiz.correctQuestion}/{currentQuiz.totalQuestion}</p>
+                                      <p className="text-[10px] uppercase font-bold text-white/70 tracking-wider">Correct Answers</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="mt-5 pt-4 border-t border-white/10 flex justify-between items-center">
+                                  <p className="text-xs font-semibold">
+                                    {currentQuiz.score && currentQuiz.score >= 80 
+                                      ? '🎉 Excellent! You have fully mastered this lesson\'s knowledge.' 
+                                      : currentQuiz.score && currentQuiz.score >= 50 
+                                      ? '👍 Good job! You have passed the quiz.' 
+                                      : '😢 Score not passing. Please try taking the quiz again!'}
+                                  </p>
+                                  <button 
+                                    onClick={() => {
+                                      // Local retake mode
+                                      setCurrentQuiz(prev => prev ? { ...prev, submitted: false } : null);
+                                      const cleared: Record<number, number | null> = {};
+                                      currentQuiz.questions.forEach(q => { cleared[q.questionId] = null; });
+                                      setSelectedAnswers(cleared);
+                                    }}
+                                    className="bg-white hover:bg-slate-100 text-primary px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-sm"
+                                  >
+                                    Retake Quiz
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Review Questions list */}
+                              <div className="space-y-6 mt-6">
+                                {currentQuiz.questions.map((question, qIdx) => {
+                                  return (
+                                    <div key={question.questionId} className="bg-surface border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                                      <div className="flex justify-between items-start gap-4 mb-3">
+                                        <h3 className="text-sm font-bold text-text-main leading-snug flex gap-2">
+                                          <span>{qIdx + 1}.</span>
+                                          <span>{question.content}</span>
+                                        </h3>
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                                          question.isCorrect 
+                                            ? 'bg-green-50 text-brand-green border border-green-200' 
+                                            : 'bg-red-50 text-red-750 border border-red-200'
+                                        }`}>
+                                          {question.isCorrect ? 'Correct' : 'Incorrect'}
+                                        </span>
+                                      </div>
+                                      
+                                      <div className="space-y-2.5">
+                                        {question.options.map((option) => {
+                                          const isSelected = question.selectedOptionId === option.optionId;
+                                          const isCorrectOption = option.isCorrect;
+
+                                          let styleClass = 'border-gray-200 opacity-70';
+                                          let icon = null;
+
+                                          if (isCorrectOption) {
+                                            styleClass = 'border-brand-green bg-green-50 text-brand-green font-bold';
+                                            icon = <span className="material-symbols-outlined text-[16px] text-brand-green">check_circle</span>;
+                                          } else if (isSelected) {
+                                            styleClass = 'border-red-500 bg-red-50 text-red-700 font-bold';
+                                            icon = <span className="material-symbols-outlined text-[16px] text-red-600">cancel</span>;
+                                          }
+
+                                          return (
+                                            <div 
+                                              key={option.optionId} 
+                                              className={`flex items-center justify-between p-3.5 border rounded-xl text-xs transition-all ${styleClass}`}
+                                            >
+                                              <div className="flex items-center gap-3">
+                                                <input 
+                                                  type="radio"
+                                                  disabled
+                                                  checked={isSelected}
+                                                  className="w-4 h-4 text-primary border-gray-300"
+                                                />
+                                                <span className="font-semibold">{option.content}</span>
+                                              </div>
+                                              {icon}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            /* --- VIEW QUIZ TAKING STATE --- */
+                            <div className="space-y-6">
+                              <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                                <h2 className="text-base font-bold text-text-main">{currentQuiz.title}</h2>
+                                <span className="bg-slate-100 text-text-muted border border-gray-200 px-3 py-1 rounded-full text-xs font-bold">
+                                  {Object.values(selectedAnswers).filter(v => v !== null).length} / {currentQuiz.questions.length} Selected
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-5">
+                                {currentQuiz.questions.map((question, qIdx) => (
+                                  <div key={question.questionId} className="bg-surface border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-all">
+                                    <h3 className="text-sm font-bold text-text-main mb-3 leading-snug flex gap-2">
+                                      <span>{qIdx + 1}.</span>
+                                      <span>{question.content}</span>
+                                    </h3>
+                                    <div className="space-y-2.5">
+                                      {question.options.map((option) => {
+                                        const isSelected = selectedAnswers[question.questionId] === option.optionId;
+                                        return (
+                                          <label 
+                                            key={option.optionId} 
+                                            className={`flex items-center gap-3 p-3.5 border rounded-xl cursor-pointer transition-all ${
+                                              isSelected 
+                                                ? 'border-primary bg-primary-light/5 ring-1 ring-primary' 
+                                                : 'border-gray-200 hover:bg-slate-50 hover:border-gray-300'
+                                            }`}
+                                          >
+                                            <input 
+                                              type="radio"
+                                              className="w-4.5 h-4.5 text-primary border-gray-300 focus:ring-primary"
+                                              name={`question-${question.questionId}`}
+                                              checked={isSelected}
+                                              onChange={() => {
+                                                setSelectedAnswers(prev => ({
+                                                  ...prev,
+                                                  [question.questionId]: option.optionId
+                                                }));
+                                              }}
+                                            />
+                                            <span className="text-xs font-semibold text-text-main">{option.content}</span>
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="border-t border-gray-100 mt-6 pt-4 flex justify-end">
+                                <button 
+                                  onClick={handleQuizSubmit}
+                                  disabled={isQuizSubmitting}
+                                  className="bg-primary hover:bg-primary-hover disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-bold text-xs shadow-md shadow-primary/20 transition-all flex items-center gap-2"
+                                >
+                                  {isQuizSubmitting ? (
+                                    <>
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                      Submitting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="material-symbols-outlined text-[16px]">send</span>
+                                      Submit Quiz
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
                   )}
 
@@ -2518,7 +2488,11 @@ export const StudentDashboard: React.FC = () => {
                                       check_circle
                                     </span>
                                   ) : (
-                                    <span className={`material-symbols-outlined text-[16px] ${isSelected ? 'text-primary' : 'text-text-muted'}`}>
+                                    <span 
+                                      onClick={(e) => handleCompleteLesson(e, lesson.id)}
+                                      className={`material-symbols-outlined text-[16px] hover:text-brand-green transition-colors cursor-pointer ${isSelected ? 'text-primary' : 'text-text-muted'}`}
+                                      title="Mark as completed"
+                                    >
                                       radio_button_unchecked
                                     </span>
                                   )}

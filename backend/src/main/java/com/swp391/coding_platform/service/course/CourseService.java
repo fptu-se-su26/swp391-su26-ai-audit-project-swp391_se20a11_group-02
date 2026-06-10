@@ -15,6 +15,7 @@ import com.swp391.coding_platform.mapper.CourseMapper;
 import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.course.ChapterEntity;
 import com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity;
+import com.swp391.coding_platform.entity.progress.LessonProgressEntity;
 import com.swp391.coding_platform.entity.enums.EnrollmentStatus;
 import com.swp391.coding_platform.repository.course.CourseRepository;
 import com.swp391.coding_platform.repository.course.ChapterRepository;
@@ -44,6 +45,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -380,6 +382,58 @@ public class CourseService {
                 .parentId(entity.getParent() != null ? entity.getParent().getId() : null)
                 .replies(replies)
                 .build();
+    }
+
+    @Transactional
+    public void completeLesson(Long userId, Long courseId, Integer lessonId) {
+        // 1. Kiểm tra sự tồn tại của Course & Lesson
+        CourseEntity course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        LessonEntity lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        // 2. Kiểm tra Lesson có thuộc Course không
+        if (lesson.getChapter() == null || lesson.getChapter().getCourse() == null || 
+            !lesson.getChapter().getCourse().getId().equals(courseId)) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        // 3. Lấy Pessimistic Lock trên Enrollment của User để đồng bộ hóa, tránh race condition
+        enrollmentRepository.findEnrollmentWithLock(userId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_ENROLLED));
+
+        // 4. Kiểm tra xem bài học đã hoàn thành chưa
+        boolean isAlreadyCompleted = lessonProgressRepository.existsByLessonIdAndUserId(lessonId, userId);
+        if (isAlreadyCompleted) {
+            log.info("[completeLesson] Lesson {} already completed by user {}", lessonId, userId);
+            return; // Idempotent
+        }
+
+        // 5. Thêm bản ghi tiến độ bài học (lesson_progress)
+        UserEntity user = userRepository.findById(userId.intValue())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        LessonProgressEntity progress = LessonProgressEntity.builder()
+                .user(user)
+                .course(course)
+                .lessonId(lessonId)
+                .completedAt(Instant.now())
+                .build();
+        lessonProgressRepository.save(progress);
+
+        // 6. Cập nhật hoặc khởi tạo tổng số bài học đã hoàn thành (completed_lessons_count)
+        CompletedLessonsCountEntity countEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId, courseId)
+                .orElseGet(() -> CompletedLessonsCountEntity.builder()
+                        .user(user)
+                        .course(course)
+                        .completedLessonsCount(0)
+                        .build());
+
+        countEntity.setCompletedLessonsCount(countEntity.getCompletedLessonsCount() + 1);
+        completedLessonCountRepository.save(countEntity);
+        log.info("[completeLesson] User {} completed lesson {} in course {}. Completed count: {}", 
+                userId, lessonId, courseId, countEntity.getCompletedLessonsCount());
     }
 }
 
