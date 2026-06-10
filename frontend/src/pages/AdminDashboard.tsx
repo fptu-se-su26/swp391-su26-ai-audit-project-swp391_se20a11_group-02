@@ -342,6 +342,11 @@ export const AdminDashboard: React.FC = () => {
 
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
+  const [globalToast, setGlobalToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showGlobalToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setGlobalToast({ message, type });
+    setTimeout(() => setGlobalToast(null), 3000);
+  };
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
@@ -352,7 +357,7 @@ export const AdminDashboard: React.FC = () => {
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
-  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest'>('repository');
+  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
 
   // Modal / review panel states
@@ -372,6 +377,19 @@ export const AdminDashboard: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [isSavingTestcases, setIsSavingTestcases] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
+
+  // Confirmation Modal state
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmModalTitle, setConfirmModalTitle] = useState('');
+  const [confirmModalMessage, setConfirmModalMessage] = useState('');
+  const [confirmModalAction, setConfirmModalAction] = useState<(() => void) | null>(null);
+
+  const triggerConfirm = (title: string, message: string, action: () => void) => {
+    setConfirmModalTitle(title);
+    setConfirmModalMessage(message);
+    setConfirmModalAction(() => action);
+    setIsConfirmModalOpen(true);
+  };
 
   // Course Player Review Mode states
   const [reviewingCourse, setReviewingCourse] = useState<AdminCourse | null>(null);
@@ -549,7 +567,8 @@ export const AdminDashboard: React.FC = () => {
         usersRes,
         probsRes,
         contestsRes,
-        recentDepositsRes
+        recentDepositsRes,
+        tagsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
@@ -558,7 +577,8 @@ export const AdminDashboard: React.FC = () => {
         adminService.getUsers(),
         adminService.getProblems(),
         adminService.getContests(),
-        adminService.getRecentDeposits()
+        adminService.getRecentDeposits(),
+        adminService.getTags()
       ]);
 
       setStats(statsRes);
@@ -569,6 +589,7 @@ export const AdminDashboard: React.FC = () => {
       setProblems(probsRes);
       setContests(contestsRes);
       setRecentDeposits(recentDepositsRes);
+      setAllTags(tagsRes || []);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -598,6 +619,14 @@ export const AdminDashboard: React.FC = () => {
   const [newProbMemoryLimit, setNewProbMemoryLimit] = useState(128000);
   const [newProbIsPublic, setNewProbIsPublic] = useState(true);
   const [newProbSolutions, setNewProbSolutions] = useState('');
+  const [newProbTags, setNewProbTags] = useState<string[]>([]);
+  const [newProbStarterC, setNewProbStarterC] = useState('');
+  const [newProbStarterCpp, setNewProbStarterCpp] = useState('');
+  const [newProbStarterJava, setNewProbStarterJava] = useState('');
+  const [newProbStarterPython, setNewProbStarterPython] = useState('');
+  const [newProbStarterCsharp, setNewProbStarterCsharp] = useState('');
+  const [allTags, setAllTags] = useState<{ id: number; name: string; slug: string }[]>([]);
+  const [starterActiveTab, setStarterActiveTab] = useState<'C' | 'C++' | 'Java' | 'Python 3' | 'C#'>('C');
 
   // Add Contest form state
   const [newContestTitle, setNewContestTitle] = useState('');
@@ -830,9 +859,9 @@ export const AdminDashboard: React.FC = () => {
       // reload stats
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
-      alert(`Successfully ${status.toLowerCase()} course application.`);
+      showGlobalToast(`Successfully ${status.toLowerCase()} course application.`, "success");
     } catch (error) {
-      alert("Failed to process course approval");
+      showGlobalToast("Failed to process course approval", "error");
     }
   };
 
@@ -848,36 +877,47 @@ export const AdminDashboard: React.FC = () => {
       ]);
       setStats(newStats);
       setInstructors(newInsts);
-      alert(`Successfully ${status.toLowerCase()} instructor application.`);
+      showGlobalToast(`Successfully ${status.toLowerCase()} instructor application.`, "success");
     } catch (error) {
-      alert("Failed to process instructor application approval");
+      showGlobalToast("Failed to process instructor application approval", "error");
     }
   };
 
   const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
     const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      const updated = await adminService.setUserLockStatus(userId, newStatus);
-      setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-      if (selectedUserDetail?.id === userId) {
-        setSelectedUserDetail(updated);
+    triggerConfirm(
+      "Change User Status",
+      confirmMsg,
+      async () => {
+        try {
+          const updated = await adminService.setUserLockStatus(userId, newStatus);
+          setUsers(prev => prev.map(u => u.id === userId ? updated : u));
+          if (selectedUserDetail?.id === userId) {
+            setSelectedUserDetail(updated);
+          }
+          showGlobalToast(`User status successfully updated to ${newStatus}`, "success");
+        } catch (error) {
+          showGlobalToast("Failed to update user status", "error");
+        }
       }
-      alert(`User status successfully updated to ${newStatus}`);
-    } catch (error) {
-      alert("Failed to update user status");
-    }
+    );
   };
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      alert("Please fill in the title and description.");
+      showGlobalToast("Please fill in the title and description.", "error");
       return;
     }
 
     try {
+      const starterTemplates: Record<string, string> = {};
+      if (newProbStarterC) starterTemplates['C'] = newProbStarterC;
+      if (newProbStarterCpp) starterTemplates['C++'] = newProbStarterCpp;
+      if (newProbStarterJava) starterTemplates['Java'] = newProbStarterJava;
+      if (newProbStarterPython) starterTemplates['Python 3'] = newProbStarterPython;
+      if (newProbStarterCsharp) starterTemplates['C#'] = newProbStarterCsharp;
+
       const newProb = await adminService.createProblem({
         title: newProbTitle.trim(),
         description: newProbDesc.trim(),
@@ -894,7 +934,9 @@ export const AdminDashboard: React.FC = () => {
         memoryLimitKb: newProbMemoryLimit,
         isPublic: newProbIsPublic,
         score: newProbScore,
-        solutions: newProbSolutions.trim()
+        solutions: newProbSolutions.trim(),
+        tags: newProbTags,
+        starterTemplates
       });
 
       setProblems(prev => [...prev, newProb]);
@@ -916,10 +958,17 @@ export const AdminDashboard: React.FC = () => {
       setNewProbMemoryLimit(128000);
       setNewProbIsPublic(true);
       setNewProbSolutions('');
+      setNewProbTags([]);
+      setNewProbStarterC('');
+      setNewProbStarterCpp('');
+      setNewProbStarterJava('');
+      setNewProbStarterPython('');
+      setNewProbStarterCsharp('');
+      setStarterActiveTab('C');
 
-      alert(`Problem "${newProb.title}" created successfully!`);
+      showGlobalToast(`Problem "${newProb.title}" created successfully!`, "success");
     } catch (error) {
-      alert("Failed to create problem");
+      showGlobalToast("Failed to create problem", "error");
     }
   };
 
@@ -940,6 +989,13 @@ export const AdminDashboard: React.FC = () => {
     setNewProbMemoryLimit(p.memoryLimitKb);
     setNewProbIsPublic(p.isPublic);
     setNewProbSolutions(p.solutions || '');
+    setNewProbTags(p.tags || []);
+    setNewProbStarterC(p.starterTemplates?.['C'] || '');
+    setNewProbStarterCpp(p.starterTemplates?.['C++'] || '');
+    setNewProbStarterJava(p.starterTemplates?.['Java'] || '');
+    setNewProbStarterPython(p.starterTemplates?.['Python 3'] || '');
+    setNewProbStarterCsharp(p.starterTemplates?.['C#'] || '');
+    setStarterActiveTab('C');
     setIsEditProblemOpen(true);
   };
 
@@ -947,12 +1003,19 @@ export const AdminDashboard: React.FC = () => {
     e.preventDefault();
     if (editingProblemId === null) return;
     if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      alert("Please fill in the title and description.");
+      showGlobalToast("Please fill in the title and description.", "error");
       return;
     }
 
     try {
       const existingProb = problems.find(p => p.id === editingProblemId);
+      const starterTemplates: Record<string, string> = {};
+      if (newProbStarterC) starterTemplates['C'] = newProbStarterC;
+      if (newProbStarterCpp) starterTemplates['C++'] = newProbStarterCpp;
+      if (newProbStarterJava) starterTemplates['Java'] = newProbStarterJava;
+      if (newProbStarterPython) starterTemplates['Python 3'] = newProbStarterPython;
+      if (newProbStarterCsharp) starterTemplates['C#'] = newProbStarterCsharp;
+
       const updatedProb = await adminService.updateProblem(editingProblemId, {
         title: newProbTitle.trim(),
         description: newProbDesc.trim(),
@@ -969,7 +1032,9 @@ export const AdminDashboard: React.FC = () => {
         memoryLimitKb: newProbMemoryLimit,
         isPublic: newProbIsPublic,
         score: newProbScore,
-        solutions: newProbSolutions.trim()
+        solutions: newProbSolutions.trim(),
+        tags: newProbTags,
+        starterTemplates
       });
 
       setProblems(prev => prev.map(p => p.id === editingProblemId ? updatedProb : p));
@@ -992,10 +1057,17 @@ export const AdminDashboard: React.FC = () => {
       setNewProbMemoryLimit(128000);
       setNewProbIsPublic(true);
       setNewProbSolutions('');
+      setNewProbTags([]);
+      setNewProbStarterC('');
+      setNewProbStarterCpp('');
+      setNewProbStarterJava('');
+      setNewProbStarterPython('');
+      setNewProbStarterCsharp('');
+      setStarterActiveTab('C');
 
-      alert(`Problem "${updatedProb.title}" updated successfully!`);
+      showGlobalToast(`Problem "${updatedProb.title}" updated successfully!`, "success");
     } catch (error) {
-      alert("Failed to update problem");
+      showGlobalToast("Failed to update problem", "error");
     }
   };
 
@@ -1004,7 +1076,7 @@ export const AdminDashboard: React.FC = () => {
       const updated = await adminService.updateProblemScope(problemId, scope);
       setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
     } catch (error) {
-      alert("Failed to update problem scope.");
+      showGlobalToast("Failed to update problem scope.", "error");
     }
   };
 
@@ -1012,10 +1084,26 @@ export const AdminDashboard: React.FC = () => {
     try {
       const updated = await adminService.updateProblemPublicStatus(problemId, isPublic);
       setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
-      alert(`Problem successfully ${isPublic ? "published" : "made private"}.`);
+      showGlobalToast(`Problem successfully ${isPublic ? "published" : "made private"}.`, "success");
     } catch (error) {
-      alert("Failed to update publication status.");
+      showGlobalToast("Failed to update publication status.", "error");
     }
+  };
+
+  const handleDeleteProblemClick = async (problemId: number) => {
+    triggerConfirm(
+      "Delete Problem",
+      "Are you sure you want to delete this programming problem? This action cannot be undone.",
+      async () => {
+        try {
+          await adminService.deleteProblem(problemId);
+          setProblems(prev => prev.filter(p => p.id !== problemId));
+          showGlobalToast("Problem deleted successfully.", "success");
+        } catch (error) {
+          showGlobalToast("Failed to delete problem.", "error");
+        }
+      }
+    );
   };
 
   const handleOpenTestcaseModal = async (p: AdminProblem) => {
@@ -1049,14 +1137,14 @@ export const AdminDashboard: React.FC = () => {
       if (testcaseTab === 'manual') {
         const invalid = testcasesList.some(tc => !tc.inputData.trim() || !tc.expectedOutput.trim());
         if (invalid) {
-          alert("Please fill in both Input Data and Expected Output for all test cases.");
+          showGlobalToast("Please fill in both Input Data and Expected Output for all test cases.", "error");
           setIsSavingTestcases(false);
           return;
         }
         savedTcs = await adminService.saveProblemTestcases(testcaseProblem.id, testcasesList);
       } else {
         if (!zipFile) {
-          alert("Please select a .zip archive containing test cases.");
+          showGlobalToast("Please select a .zip archive containing test cases.", "error");
           setIsSavingTestcases(false);
           return;
         }
@@ -1066,16 +1154,28 @@ export const AdminDashboard: React.FC = () => {
       setProblems(prev => prev.map(p => p.id === testcaseProblem.id ? {
         ...p,
         totalTestcases: savedTcs.length,
-        isActive: savedTcs.length > 0
+        isActive: savedTcs.length > 0,
+        isPublic: savedTcs.length > 0 ? true : p.isPublic
       } : p));
 
-      alert(`Successfully saved ${savedTcs.length} test cases for "${testcaseProblem.title}"!`);
+      showGlobalToast(`Successfully saved ${savedTcs.length} test cases for "${testcaseProblem.title}"!`, "success");
+
+      // Auto-jump/switch to the corresponding scope tab
+      const scope = testcaseProblem.problemScope;
+      if (scope === 'PRACTICE') {
+        setProblemSubTab('practice');
+      } else if (scope === 'CONTEST') {
+        setProblemSubTab('contest');
+      } else if (scope === 'SHARED') {
+        setProblemSubTab('shared');
+      }
+
       setIsTestcaseModalOpen(false);
       setTestcaseProblem(null);
       setTestcasesList([]);
       setZipFile(null);
     } catch (error) {
-      alert("Failed to save test cases.");
+      showGlobalToast("Failed to save test cases.", "error");
     } finally {
       setIsSavingTestcases(false);
     }
@@ -1100,7 +1200,7 @@ export const AdminDashboard: React.FC = () => {
       if (file.name.endsWith('.zip')) {
         setZipFile(file);
       } else {
-        alert("Only .zip files are supported.");
+        showGlobalToast("Only .zip files are supported.", "error");
       }
     }
   };
@@ -1111,7 +1211,7 @@ export const AdminDashboard: React.FC = () => {
       if (file.name.endsWith('.zip')) {
         setZipFile(file);
       } else {
-        alert("Only .zip files are supported.");
+        showGlobalToast("Only .zip files are supported.", "error");
       }
     }
   };
@@ -1140,19 +1240,19 @@ export const AdminDashboard: React.FC = () => {
   const handleCreateContestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newContestTitle.trim() || !newContestStartTime || !newContestEndTime) {
-      alert("Please fill in the title and duration dates.");
+      showGlobalToast("Please fill in the title and duration dates.", "error");
       return;
     }
 
     if (newContestPassword !== newContestConfirmPassword) {
-      alert("Passwords do not match!");
+      showGlobalToast("Passwords do not match!", "error");
       return;
     }
 
     const start = new Date(newContestStartTime).getTime();
     const end = new Date(newContestEndTime).getTime();
     if (end <= start) {
-      alert("End Time must be after Start Time!");
+      showGlobalToast("End Time must be after Start Time!", "error");
       return;
     }
 
@@ -1185,9 +1285,9 @@ export const AdminDashboard: React.FC = () => {
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
 
-      alert(`Contest "${newContest.title}" created successfully!`);
+      showGlobalToast(`Contest "${newContest.title}" created successfully!`, "success");
     } catch (error) {
-      alert("Failed to create contest");
+      showGlobalToast("Failed to create contest", "error");
     }
   };
 
@@ -1225,6 +1325,8 @@ export const AdminDashboard: React.FC = () => {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'PRACTICE';
       } else if (problemSubTab === 'contest') {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'CONTEST';
+      } else if (problemSubTab === 'shared') {
+        matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'SHARED';
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -3400,6 +3502,16 @@ export const AdminDashboard: React.FC = () => {
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
                     Contest Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'CONTEST').length})
                   </button>
+                  <button
+                    onClick={() => setProblemSubTab('shared')}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'shared'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-primary'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">share</span>
+                    Shared Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'SHARED').length})
+                  </button>
                 </div>
 
                 {/* Problems List Table */}
@@ -3437,7 +3549,15 @@ export const AdminDashboard: React.FC = () => {
                                 {totalSubs.toLocaleString()}
                               </td>
                               <td className="py-4 px-6 text-right font-mono font-bold text-slate-800">
-                                {acceptedRate}%
+                                <div className="flex flex-col items-end gap-1.5">
+                                  <span>{acceptedRate}%</span>
+                                  <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                    <div 
+                                      className="h-full bg-emerald-500 rounded-full transition-all" 
+                                      style={{ width: `${acceptedRate}%` }}
+                                    />
+                                  </div>
+                                </div>
                               </td>
                               <td className="py-4 px-6 text-center">
                                 <select
@@ -3495,6 +3615,12 @@ export const AdminDashboard: React.FC = () => {
                                       <span className="material-symbols-outlined text-[14px]">edit</span> Edit
                                     </button>
                                   )}
+                                  <button
+                                    onClick={() => handleDeleteProblemClick(p.id)}
+                                    className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">delete</span> Delete
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -4355,6 +4481,13 @@ export const AdminDashboard: React.FC = () => {
                   setNewProbMemoryLimit(128000);
                   setNewProbIsPublic(true);
                   setNewProbSolutions('');
+                  setNewProbTags([]);
+                  setNewProbStarterC('');
+                  setNewProbStarterCpp('');
+                  setNewProbStarterJava('');
+                  setNewProbStarterPython('');
+                  setNewProbStarterCsharp('');
+                  setStarterActiveTab('C');
                 }}
                 className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -4387,6 +4520,38 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Tags Section */}
+              {allTags.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-muted">Problem Tags</label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {allTags.map(tag => {
+                      const isSelected = newProbTags.includes(tag.name);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setNewProbTags(newProbTags.filter(t => t !== tag.name));
+                            } else {
+                              setNewProbTags([...newProbTags, tag.name]);
+                            }
+                          }}
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all border ${
+                            isSelected 
+                              ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-extrabold' 
+                              : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          }`}
+                        >
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Problem Description *</label>
@@ -4438,6 +4603,74 @@ export const AdminDashboard: React.FC = () => {
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Hint</label>
                 <input type="text" value={newProbHint} onChange={e => setNewProbHint(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Tip or pointer..." />
+              </div>
+
+              {/* Starter Templates Tabbed Editor */}
+              <div className="flex flex-col gap-1 border border-slate-200/60 rounded-2xl p-4 bg-slate-50/50">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-text-muted font-black uppercase tracking-wider text-[10px]">Starter Code Templates (Optional)</label>
+                  <div className="flex gap-1.5">
+                    {(['C', 'C++', 'Java', 'Python 3', 'C#'] as const).map(lang => (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setStarterActiveTab(lang)}
+                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
+                          starterActiveTab === lang 
+                            ? 'bg-indigo-600 text-white shadow-sm' 
+                            : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-100'
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {starterActiveTab === 'C' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterC}
+                    onChange={e => setNewProbStarterC(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="void solve() {&#10;}"
+                  />
+                )}
+                {starterActiveTab === 'C++' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterCpp}
+                    onChange={e => setNewProbStarterCpp(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution {&#10;public:&#10;    void solve() {&#10;    }&#10;};"
+                  />
+                )}
+                {starterActiveTab === 'Java' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterJava}
+                    onChange={e => setNewProbStarterJava(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution {&#10;    public void solve() {&#10;    }&#10;}"
+                  />
+                )}
+                {starterActiveTab === 'Python 3' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterPython}
+                    onChange={e => setNewProbStarterPython(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution:&#10;    def solve(self):&#10;        pass"
+                  />
+                )}
+                {starterActiveTab === 'C#' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterCsharp}
+                    onChange={e => setNewProbStarterCsharp(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="public class Solution {&#10;    public void Solve() {&#10;    }&#10;}"
+                  />
+                )}
               </div>
 
               <div className="flex flex-col gap-1">
@@ -4783,6 +5016,58 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-surface w-full max-w-sm rounded-2xl p-6 border border-slate-200/50 shadow-2xl scale-100 transform transition-all duration-300 flex flex-col gap-4 text-left">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-red-500 text-[24px] bg-red-50 p-2 rounded-xl">warning</span>
+              <h3 className="text-sm font-black text-slate-900">{confirmModalTitle || "Confirm Action"}</h3>
+            </div>
+            <p className="text-xs font-bold text-slate-500 leading-relaxed">
+              {confirmModalMessage}
+            </p>
+            <div className="flex justify-end gap-2.5 mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                  setConfirmModalAction(null);
+                }}
+                className="px-4 py-2 text-[10px] font-black text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmModalAction) confirmModalAction();
+                  setIsConfirmModalOpen(false);
+                  setConfirmModalAction(null);
+                }}
+                className="px-4 py-2 text-[10px] font-black text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Global Toast Alert */}
+      {globalToast && (
+        <div className={`fixed bottom-6 right-6 z-[999] text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in ${
+          globalToast.type === 'success' ? 'bg-green-600 border border-green-500' :
+          globalToast.type === 'error' ? 'bg-red-600 border border-red-500' : 'bg-brand-blue border border-brand-blue-light'
+        }`}>
+          <span className="material-symbols-outlined text-[18px]">
+            {globalToast.type === 'success' ? 'check_circle' :
+             globalToast.type === 'error' ? 'error' : 'info'}
+          </span>
+          <span>{globalToast.message}</span>
         </div>
       )}
     </div>
