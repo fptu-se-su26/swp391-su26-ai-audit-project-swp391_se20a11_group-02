@@ -344,7 +344,7 @@ export const AdminDashboard: React.FC = () => {
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
-  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
+  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'AI_REJECTED'>('ALL');
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
   const [userOnlineFilter, setUserOnlineFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
@@ -3477,7 +3477,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <h2 className="text-2xl font-display font-black text-brand-blue">Active Instructors & Applicants</h2>
                   <div className="flex gap-2">
-                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (
+                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED', 'AI_REJECTED'].map((filterVal) => (
                       <button
                         key={filterVal}
                         onClick={() => setInstructorAppFilter(filterVal as any)}
@@ -3486,7 +3486,7 @@ export const AdminDashboard: React.FC = () => {
                           : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
                           }`}
                       >
-                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : 'Rejected Applications'}
+                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : filterVal === 'REJECTED' ? 'Rejected Applications' : 'AI Auto-Rejected'}
                       </button>
                     ))}
                   </div>
@@ -3507,7 +3507,9 @@ export const AdminDashboard: React.FC = () => {
                               </div>
                               <div className="flex flex-col items-end gap-1.5">
                                 <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                  app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
+                                  app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' :
+                                  app.status === 'AI_REJECTED' ? 'bg-rose-50 text-rose-500 border border-rose-100' :
+                                  'bg-red-50 text-red-500'
                                   }`}>{app.status}</span>
                                 <div className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md border ${
                                   app.aiScore !== undefined && app.aiScore !== null
@@ -4180,30 +4182,42 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* AI Audit Report Card */}
-              <div className={`p-4 rounded-xl border ${
+              <div className={`p-5 rounded-2xl border flex flex-col gap-4 text-xs ${
                 selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null
                   ? selectedAppForReview.aiScore >= 80
-                    ? 'bg-emerald-50/50 border-emerald-100'
+                    ? 'bg-emerald-50/40 border-emerald-200/60'
                     : selectedAppForReview.aiScore >= 50
-                    ? 'bg-amber-50/50 border-amber-100'
-                    : 'bg-rose-50/50 border-rose-100'
+                    ? 'bg-amber-50/40 border-amber-200/60'
+                    : 'bg-rose-50/40 border-rose-200/60'
                   : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className="flex justify-between items-center mb-2.5">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-700">
-                    <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-                    AI Pre-Screening Audit
+                {/* Header */}
+                <div className="flex justify-between items-center border-b border-slate-200/50 pb-3">
+                  <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-slate-700">
+                    <span className="material-symbols-outlined text-[16px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
+                    AI Pre-Screening Audit Report
                   </div>
                   {selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null ? (
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
-                      selectedAppForReview.aiScore >= 80
-                        ? 'bg-emerald-500 text-white'
-                        : selectedAppForReview.aiScore >= 50
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-rose-500 text-white'
-                    }`}>
-                      AI SCORE: {selectedAppForReview.aiScore}/100
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border ${
+                        selectedAppForReview.aiRecommendation === 'RECOMMENDED'
+                          ? 'bg-emerald-500 text-white border-emerald-600'
+                          : selectedAppForReview.aiRecommendation === 'REVIEW_REQUIRED'
+                          ? 'bg-amber-500 text-white border-amber-600'
+                          : 'bg-rose-500 text-white border-rose-600'
+                      }`}>
+                        {selectedAppForReview.aiRecommendation || 'REVIEW_REQUIRED'}
+                      </span>
+                      <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${
+                        selectedAppForReview.aiScore >= 80
+                          ? 'bg-emerald-55 text-emerald-700 border-emerald-200'
+                          : selectedAppForReview.aiScore >= 50
+                          ? 'bg-amber-55 text-amber-700 border-amber-200'
+                          : 'bg-rose-55 text-rose-700 border-rose-200'
+                      }`}>
+                        SCORE: {selectedAppForReview.aiScore}/100
+                      </span>
+                    </div>
                   ) : (
                     <span className="text-[10px] font-black uppercase bg-slate-200 text-slate-600 px-2 py-0.5 rounded animate-pulse">
                       Analyzing CV...
@@ -4211,10 +4225,82 @@ export const AdminDashboard: React.FC = () => {
                   )}
                 </div>
 
-                {selectedAppForReview.aiSummary ? (
-                  <p className="text-slate-600 leading-relaxed text-xs italic bg-white/70 p-3 rounded-lg border border-slate-100">
-                    "{selectedAppForReview.aiSummary}"
-                  </p>
+                {/* AI Screening Details */}
+                {selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null ? (
+                  <div className="flex flex-col gap-3.5">
+                    {/* Specialization & Exp Years */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/85 p-3 rounded-xl border border-slate-100 shadow-sm">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Detected Specialization</span>
+                        <span className="font-extrabold text-brand-blue text-sm">
+                          {selectedAppForReview.aiSpecialization || 'Other'}
+                        </span>
+                      </div>
+                      <div className="bg-white/85 p-3 rounded-xl border border-slate-100 shadow-sm">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Estimated Experience</span>
+                        <span className="font-extrabold text-brand-blue text-sm">
+                          {selectedAppForReview.aiExperienceYears !== undefined && selectedAppForReview.aiExperienceYears !== null
+                            ? `${selectedAppForReview.aiExperienceYears} Year${selectedAppForReview.aiExperienceYears !== 1 ? 's' : ''}`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Technologies */}
+                    <div className="bg-white/85 p-3.5 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Extracted Technologies</span>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {selectedAppForReview.aiTechnologies
+                          ? selectedAppForReview.aiTechnologies.split(',').map((tech, i) => (
+                              <span key={i} className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px] border border-slate-200/60">
+                                {tech.trim()}
+                              </span>
+                            ))
+                          : <span className="text-slate-400 italic">None detected</span>
+                        }
+                      </div>
+                    </div>
+
+                    {/* Strengths & Weaknesses */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-emerald-50/40 p-3.5 rounded-xl border border-emerald-100/50">
+                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">check_circle</span> Strengths
+                        </span>
+                        <ul className="list-disc list-inside space-y-1.5 text-slate-700 leading-relaxed pl-1 text-[11px]">
+                          {selectedAppForReview.aiStrengths
+                            ? selectedAppForReview.aiStrengths.split(';').map((str, i) => (
+                                <li key={i}>{str.trim()}</li>
+                              ))
+                            : <li>No notable strengths identified</li>
+                          }
+                        </ul>
+                      </div>
+                      <div className="bg-rose-50/40 p-3.5 rounded-xl border border-rose-100/50">
+                        <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">cancel</span> Weaknesses
+                        </span>
+                        <ul className="list-disc list-inside space-y-1.5 text-slate-700 leading-relaxed pl-1 text-[11px]">
+                          {selectedAppForReview.aiWeaknesses
+                            ? selectedAppForReview.aiWeaknesses.split(';').map((weak, i) => (
+                                <li key={i}>{weak.trim()}</li>
+                              ))
+                            : <li>No notable weaknesses identified</li>
+                          }
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* AI Summary */}
+                    {selectedAppForReview.aiSummary && (
+                      <div className="bg-white/85 p-3.5 rounded-xl border border-slate-100 shadow-sm">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pre-Screening Summary</span>
+                        <p className="text-slate-600 leading-relaxed italic mt-1 font-medium">
+                          "{selectedAppForReview.aiSummary}"
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-slate-400 italic text-[11px] p-2 bg-white/50 rounded-lg">
                     CV analysis score and summary are being generated. Please wait and refresh if you just submitted.

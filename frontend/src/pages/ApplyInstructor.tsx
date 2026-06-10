@@ -9,10 +9,16 @@ interface ApplicationStatusResponse {
   email: string;
   cvUrl: string;
   introduction: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'AI_REJECTED';
   adminNote?: string;
   aiScore?: number;
   aiSummary?: string;
+  aiSpecialization?: string;
+  aiTechnologies?: string;
+  aiExperienceYears?: number;
+  aiStrengths?: string;
+  aiWeaknesses?: string;
+  aiRecommendation?: string;
   createdAt: string;
 }
 
@@ -65,7 +71,7 @@ export const ApplyInstructor: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cvFile || !introduction.trim()) {
-      setErrorMsg('Please select a PDF CV file and fill out the introduction.');
+      setErrorMsg('Please select a PDF or DOCX CV file and fill out the introduction.');
       return;
     }
 
@@ -262,11 +268,15 @@ export const ApplyInstructor: React.FC = () => {
           
           {/* Submission Form */}
           <div className="lg:col-span-8 bg-white rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.06)] p-6 md:p-8 border border-gray-100">
-            {currentApp && currentApp.status === 'REJECTED' && (
+            {currentApp && (currentApp.status === 'REJECTED' || currentApp.status === 'AI_REJECTED') && (
               <div className="bg-red-50 border border-red-100 text-red-600 p-5 rounded-xl flex flex-col gap-2 mb-6">
                 <div className="flex items-center gap-2 font-bold text-sm">
                   <span className="material-symbols-outlined text-[20px]">cancel</span>
-                  <span>Your previous application has been Rejected</span>
+                  <span>
+                    {currentApp.status === 'AI_REJECTED'
+                      ? 'Your previous application was Auto-Rejected by AI (Score < 50)'
+                      : 'Your previous application has been Rejected by Admin'}
+                  </span>
                 </div>
                 {currentApp.adminNote && (
                   <p className="text-xs text-red-500 italic ml-7">Rejection Reason: "{currentApp.adminNote}"</p>
@@ -292,12 +302,12 @@ export const ApplyInstructor: React.FC = () => {
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-brand-blue" htmlFor="cvFile">Upload CV (PDF)</label>
+                <label className="text-sm font-bold text-brand-blue" htmlFor="cvFile">Upload CV (PDF or DOCX)</label>
                 <input
                   className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                   id="cvFile"
                   name="cvFile"
-                  accept=".pdf"
+                  accept=".pdf,.docx"
                   required
                   type="file"
                   onChange={(e) => {
@@ -307,7 +317,7 @@ export const ApplyInstructor: React.FC = () => {
                   }}
                 />
                 <p className="text-xs text-text-muted mt-1">
-                  Please upload your CV in PDF format. The AI system will read data directly from this file for evaluation.
+                  Please upload your CV in PDF or DOCX format. The AI system will read data directly from this file for evaluation.
                 </p>
               </div>
 

@@ -36,10 +36,16 @@ export interface AdminInstructorApplication {
   email: string;
   cvUrl: string;
   introduction: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'AI_REJECTED';
   adminNote?: string;
   aiScore?: number;
   aiSummary?: string;
+  aiSpecialization?: string;
+  aiTechnologies?: string;
+  aiExperienceYears?: number;
+  aiStrengths?: string;
+  aiWeaknesses?: string;
+  aiRecommendation?: string;
   createdAt: string;
 }
 

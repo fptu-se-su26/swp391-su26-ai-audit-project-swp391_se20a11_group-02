@@ -26,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -65,10 +67,12 @@ public class InstructorApplicationService {
         }
 
         // Check if there is already a pending application
-        Optional<InstructorApplicationEntity> pendingOpt = applicationRepository
-                .findFirstByUserIdAndStatusOrderByCreatedAtDesc(userId, InstructorAppStatus.PENDING);
-        if (pendingOpt.isPresent()) {
-            throw new AppException(ErrorCode.APPLICATION_PENDING);
+        List<InstructorApplicationEntity> userApps = applicationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        if (!userApps.isEmpty()) {
+            InstructorAppStatus latestStatus = userApps.get(0).getStatus();
+            if (latestStatus == InstructorAppStatus.PENDING) {
+                throw new AppException(ErrorCode.APPLICATION_PENDING);
+            }
         }
 
         if (cvFile == null || cvFile.isEmpty()) {
@@ -80,15 +84,25 @@ public class InstructorApplicationService {
         }
 
         String originalFilename = cvFile.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
+        if (originalFilename == null || (!originalFilename.toLowerCase().endsWith(".pdf") && !originalFilename.toLowerCase().endsWith(".docx"))) {
             throw new AppException(ErrorCode.INVALID_CV_FORMAT);
         }
 
-        // Try parsing the PDF synchronously to validate if it's a valid and readable CV PDF
-        try (InputStream is = cvFile.getInputStream();
-             PDDocument document = Loader.loadPDF(is.readAllBytes())) {
-            PDFTextStripper stripper = new PDFTextStripper();
-            String text = stripper.getText(document);
+        // Try parsing the file synchronously to validate if it's a valid and readable CV (PDF or DOCX)
+        try (InputStream is = cvFile.getInputStream()) {
+            String text = "";
+            if (originalFilename.toLowerCase().endsWith(".pdf")) {
+                try (PDDocument document = Loader.loadPDF(is.readAllBytes())) {
+                    PDFTextStripper stripper = new PDFTextStripper();
+                    text = stripper.getText(document);
+                }
+            } else {
+                try (XWPFDocument doc = new XWPFDocument(is)) {
+                    XWPFWordExtractor extractor = new XWPFWordExtractor(doc);
+                    text = extractor.getText();
+                }
+            }
+
             if (text == null || text.trim().isEmpty()) {
                 throw new AppException(ErrorCode.INVALID_CV_CONTENT);
             }
@@ -119,7 +133,7 @@ public class InstructorApplicationService {
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Failed to parse PDF during CV upload validation: {}", e.getMessage());
+            log.error("Failed to parse file during CV upload validation: {}", e.getMessage());
             throw new AppException(ErrorCode.INVALID_CV_FORMAT);
         }
 
@@ -183,11 +197,11 @@ public class InstructorApplicationService {
                 java.io.File baseDir = backendDir.exists() && backendDir.isDirectory() ? backendDir : rootDir;
                 java.io.File localFile = new java.io.File(baseDir, "uploads/cvs/" + filename);
 
-                log.info("Reading local PDF file: {}", localFile.getAbsolutePath());
+                log.info("Reading local file: {}", localFile.getAbsolutePath());
                 bytes = java.nio.file.Files.readAllBytes(localFile.toPath());
             } else if (cvUrl != null && (cvUrl.startsWith("http://") || cvUrl.startsWith("https://"))) {
                 // Remote URL fallback
-                log.info("Downloading PDF from URL: {}", cvUrl);
+                log.info("Downloading file from URL: {}", cvUrl);
                 URL url = URI.create(cvUrl).toURL();
                 try (InputStream in = url.openStream()) {
                     bytes = in.readAllBytes();
@@ -195,17 +209,26 @@ public class InstructorApplicationService {
             }
 
             if (bytes != null) {
-                try (PDDocument document = Loader.loadPDF(bytes)) {
-                    PDFTextStripper stripper = new PDFTextStripper();
-                    cvText = stripper.getText(document);
-                    log.info("Extracted text successfully from CV PDF.");
+                String cvUrlLower = cvUrl != null ? cvUrl.toLowerCase() : "";
+                if (cvUrlLower.endsWith(".docx")) {
+                    try (XWPFDocument doc = new XWPFDocument(new java.io.ByteArrayInputStream(bytes))) {
+                        XWPFWordExtractor extractor = new XWPFWordExtractor(doc);
+                        cvText = extractor.getText();
+                        log.info("Extracted text successfully from CV DOCX.");
+                    }
+                } else {
+                    try (PDDocument document = Loader.loadPDF(bytes)) {
+                        PDFTextStripper stripper = new PDFTextStripper();
+                        cvText = stripper.getText(document);
+                        log.info("Extracted text successfully from CV PDF.");
+                    }
                 }
             } else {
                 log.warn("Invalid CV URL. Skipping text extraction.");
             }
         } catch (Exception e) {
-            log.error("Failed to parse PDF from CV URL: {}. Error: {}", application.getCvUrl(), e.getMessage());
-            cvText = "Không thể tải hoặc trích xuất văn bản từ CV PDF. Lỗi: " + e.getMessage();
+            log.error("Failed to parse CV from URL: {}. Error: {}", application.getCvUrl(), e.getMessage());
+            cvText = "Không thể tải hoặc trích xuất văn bản từ CV. Lỗi: " + e.getMessage();
         }
 
         // Call Gemini (or fallback)
@@ -214,9 +237,18 @@ public class InstructorApplicationService {
         // Update database
         application.setAiScore(evaluation.score);
         application.setAiSummary(evaluation.summary);
-        if (evaluation.score <= 50) {
-            application.setStatus(InstructorAppStatus.REJECTED);
-            application.setAdminNote("Hệ thống tự động từ chối do điểm đánh giá hồ sơ bằng AI từ 50 trở xuống (" + evaluation.score + "/100).");
+        application.setAiSpecialization(evaluation.specialization);
+        application.setAiTechnologies(evaluation.technologies);
+        application.setAiExperienceYears(evaluation.experienceYears);
+        application.setAiStrengths(evaluation.strengths);
+        application.setAiWeaknesses(evaluation.weaknesses);
+        application.setAiRecommendation(evaluation.recommendation);
+
+        if (evaluation.score < 50) {
+            application.setStatus(InstructorAppStatus.AI_REJECTED);
+            application.setAdminNote("Hệ thống tự động từ chối do điểm đánh giá hồ sơ bằng AI dưới 50 (" + evaluation.score + "/100).");
+        } else {
+            application.setStatus(InstructorAppStatus.PENDING);
         }
         applicationRepository.save(application);
         log.info("Background AI CV evaluation complete for application ID: {}. Score: {}", applicationId, evaluation.score);
@@ -310,6 +342,12 @@ public class InstructorApplicationService {
                 .adminNote(entity.getAdminNote())
                 .aiScore(entity.getAiScore())
                 .aiSummary(entity.getAiSummary())
+                .aiSpecialization(entity.getAiSpecialization())
+                .aiTechnologies(entity.getAiTechnologies())
+                .aiExperienceYears(entity.getAiExperienceYears())
+                .aiStrengths(entity.getAiStrengths())
+                .aiWeaknesses(entity.getAiWeaknesses())
+                .aiRecommendation(entity.getAiRecommendation())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

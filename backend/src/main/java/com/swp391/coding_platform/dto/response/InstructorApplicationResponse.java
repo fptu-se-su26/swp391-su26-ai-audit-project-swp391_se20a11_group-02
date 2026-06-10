@@ -21,5 +21,11 @@ public class InstructorApplicationResponse {
     String adminNote;
     Integer aiScore;
     String aiSummary;
+    String aiSpecialization;
+    String aiTechnologies;
+    Double aiExperienceYears;
+    String aiStrengths;
+    String aiWeaknesses;
+    String aiRecommendation;
     Instant createdAt;
 }
