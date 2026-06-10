@@ -38,6 +38,53 @@ export interface AdminFinancialStats {
   topRevenueCourses: TopRevenueCourse[];
 }
 
+export interface OrderDetails {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  courses: string;
+  grossAmount: number;
+  instructorShare: number;
+  platformCut: number;
+  date: string;
+}
+
+export interface AwardDetails {
+  id: string;
+  userName: string;
+  userEmail: string;
+  amount: number;
+  date: string;
+  referenceId: string;
+}
+
+export interface SaleDetails {
+  orderId: string;
+  courseTitle: string;
+  instructorName: string;
+  customerName: string;
+  price: number;
+  date: string;
+}
+
+export interface MonthlyFinancialBreakdown {
+  label: string;
+  datePrefix: string;
+  gross: number;
+  count: number;
+  rewards: number;
+  server: number;
+  marketing: number;
+  netProfit: number;
+}
+
+export interface AdminFinancialDetails {
+  orders: OrderDetails[];
+  awards: AwardDetails[];
+  sales: SaleDetails[];
+  monthlyBreakdowns: MonthlyFinancialBreakdown[];
+}
+
 export interface AdminCourse {
   id: string;
   instructorId: number;
@@ -980,6 +1027,15 @@ export const adminService = {
         { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
       ]
     };
+  },
+
+  async getFinancialDetails(): Promise<AdminFinancialDetails> {
+    const response = await fetch(`${BASE_URL}/admin/dashboard/financial/details`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch financial audit details');
+    }
+    const data = await response.json();
+    return data.result;
   },
 
   async getProblemTestcases(problemId: number): Promise<AdminProblemTestcase[]> {

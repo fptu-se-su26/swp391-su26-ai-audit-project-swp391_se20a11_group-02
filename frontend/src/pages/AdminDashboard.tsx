@@ -325,6 +325,156 @@ const rankingFormatMinutes = (m: number): string => {
   return `${hrs}h ${mins}m`;
 };
 
+const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }> = ({ details }) => {
+  const [selectedYear, setSelectedYear] = useState<string>('ALL');
+
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set<string>();
+    (details?.monthlyBreakdowns || []).forEach(b => {
+      if (b.datePrefix && b.datePrefix.length >= 4) {
+        const year = b.datePrefix.substring(0, 4);
+        yearsSet.add(year);
+      }
+    });
+    return Array.from(yearsSet).sort().reverse();
+  }, [details]);
+
+  const filteredBreakdowns = useMemo(() => {
+    const list = details?.monthlyBreakdowns || [];
+    if (selectedYear === 'ALL') return list;
+    return list.filter(b => b.datePrefix && b.datePrefix.startsWith(selectedYear));
+  }, [details, selectedYear]);
+
+  const summary = useMemo(() => {
+    let gross = 0;
+    let count = 0;
+    let rewards = 0;
+    let server = 0;
+    let marketing = 0;
+    let netProfit = 0;
+
+    filteredBreakdowns.forEach(item => {
+      gross += item.gross || 0;
+      count += item.count || 0;
+      rewards += item.rewards || 0;
+      server += item.server || 0;
+      marketing += item.marketing || 0;
+      netProfit += item.netProfit || 0;
+    });
+
+    const platformShare = Math.round(gross * 0.3);
+    const instructorShare = Math.round(gross * 0.7);
+    const gatewayFees = Math.round(gross * 0.02);
+
+    return {
+      gross,
+      count,
+      rewards,
+      server,
+      marketing,
+      netProfit,
+      platformShare,
+      instructorShare,
+      gatewayFees
+    };
+  }, [filteredBreakdowns]);
+
+  return (
+    <div className="flex flex-col gap-5 text-slate-800">
+      {/* Year Selector */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-600">Lọc theo năm báo cáo:</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-brand-blue outline-none cursor-pointer"
+          >
+            <option value="ALL">Toàn bộ thời gian hoạt động</option>
+            {availableYears.map(yr => (
+              <option key={yr} value={yr}>Năm {yr}</option>
+            ))}
+          </select>
+        </div>
+        <span className="text-[10px] font-black uppercase text-slate-400">
+          Thời gian: {selectedYear === 'ALL' ? 'Từ đầu hoạt động' : `Năm ${selectedYear}`}
+        </span>
+      </div>
+
+      {/* KPI summaries for selected range */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Doanh thu gộp (Gross)</p>
+          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.gross.toLocaleString()} ₫</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Giữ lại Platform (30%)</p>
+          <p className="text-sm font-mono font-black text-indigo-600 mt-1">{summary.platformShare.toLocaleString()} ₫</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Khóa học bán ra</p>
+          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.count.toLocaleString()} copies</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Lợi nhuận ròng (Net Profit)</p>
+          <p className={`text-sm font-mono font-black mt-1 ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {summary.netProfit.toLocaleString()} ₫
+          </p>
+        </div>
+      </div>
+
+      {/* Monthly Breakdown Sheet */}
+      <div>
+        <h4 className="font-display font-black text-slate-900 text-xs mb-3">
+          Bảng báo cáo chi tiết tài chính từng tháng
+        </h4>
+        <div className="overflow-x-auto border border-slate-100 rounded-xl">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                <th className="p-3">Tháng</th>
+                <th className="p-3 text-right">Doanh thu gộp</th>
+                <th className="p-3 text-right">Platform (30%)</th>
+                <th className="p-3 text-right">Giải thưởng (AWARD)</th>
+                <th className="p-3 text-right">Chi phí vận hành</th>
+                <th className="p-3 text-right">Lợi nhuận ròng</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+              {filteredBreakdowns.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu.</td>
+                </tr>
+              ) : (
+                filteredBreakdowns.map((b, idx) => {
+                  const gross = b.gross || 0;
+                  const platformShare = Math.round(gross * 0.3);
+                  const gatewayFees = Math.round(gross * 0.02);
+                  const operCosts = (b.server || 0) + (b.marketing || 0) + gatewayFees;
+                  return (
+                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-3 text-slate-900 font-bold">{b.label}</td>
+                      <td className="p-3 text-right font-mono text-slate-900">{gross.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-indigo-600">+{platformShare.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-rose-500">-{b.rewards.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-slate-500" title={`Server: ${(b.server || 0).toLocaleString()} ₫, Marketing: ${(b.marketing || 0).toLocaleString()} ₫, Gateway Fee (2%): ${gatewayFees.toLocaleString()} ₫`}>
+                        -{operCosts.toLocaleString()} ₫
+                      </td>
+                      <td className={`p-3 text-right font-mono font-bold ${b.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {b.netProfit.toLocaleString()} ₫
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const AdminDashboard: React.FC = () => {
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
@@ -341,6 +491,8 @@ export const AdminDashboard: React.FC = () => {
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
   const [financialStats, setFinancialStats] = useState<AdminFinancialStats | null>(null);
+  const [financialDetails, setFinancialDetails] = useState<AdminFinancialDetails | null>(null);
+  const [activeFinancialModal, setActiveFinancialModal] = useState<'gross' | 'instructor' | 'platform' | 'awards' | 'profit' | 'sales' | 'courses-sold-all' | null>(null);
 
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
@@ -571,7 +723,8 @@ export const AdminDashboard: React.FC = () => {
         contestsRes,
         recentDepositsRes,
         tagsRes,
-        financialRes
+        financialRes,
+        financialDetailsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
@@ -582,7 +735,8 @@ export const AdminDashboard: React.FC = () => {
         adminService.getContests(),
         adminService.getRecentDeposits(),
         adminService.getTags(),
-        adminService.getFinancialStats()
+        adminService.getFinancialStats(),
+        adminService.getFinancialDetails()
       ]);
 
       setStats(statsRes);
@@ -595,6 +749,7 @@ export const AdminDashboard: React.FC = () => {
       setRecentDeposits(recentDepositsRes);
       setAllTags(tagsRes || []);
       setFinancialStats(financialRes);
+      setFinancialDetails(financialDetailsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -4005,9 +4160,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.gross.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total sales volume generated
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total sales volume generated</span>
+                      <button onClick={() => setActiveFinancialModal('gross')} className="text-[10px] text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 2: Instructor Share (70%) */}
@@ -4022,9 +4180,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.instructorPayouts.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      70% split allocated to lecturers
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">70% split allocated to lecturers</span>
+                      <button onClick={() => setActiveFinancialModal('instructor')} className="text-[10px] text-violet-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 3: Platform Cut (30%) */}
@@ -4039,9 +4200,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.platformNet.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      System shares from courses
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">System shares from courses</span>
+                      <button onClick={() => setActiveFinancialModal('platform')} className="text-[10px] text-indigo-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 4: Contest Prizes */}
@@ -4056,9 +4220,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.contestRewards.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total cash rewarded to top users
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total cash rewarded to top users</span>
+                      <button onClick={() => setActiveFinancialModal('awards')} className="text-[10px] text-rose-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 5: Net Operating Profit */}
@@ -4075,9 +4242,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.netProfit.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Platform Share after expenses
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Platform Share after expenses</span>
+                      <button onClick={() => setActiveFinancialModal('profit')} className="text-[10px] text-emerald-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 6: Courses Sold */}
@@ -4092,9 +4262,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.coursesSold.toLocaleString()} copies
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total purchased copies count
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total purchased copies count</span>
+                      <button onClick={() => setActiveFinancialModal('sales')} className="text-[10px] text-amber-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -4200,7 +4373,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                           <div className="flex justify-between items-center gap-4">
                             <span className="text-slate-400">Platform Cut:</span>
-                            <span className="font-mono text-[#12284C]">
+                            <span className="font-mono text-[#38bdf8]">
                               {financialMonthlyRecords[hoveredMonthIndex].platformShare.toLocaleString()} ₫
                             </span>
                           </div>
@@ -4307,12 +4480,17 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Table: Top-Selling Courses Table - occupies 100% full width */}
                 <div className="w-full bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
-                      Top Revenue Generating Courses
-                    </h3>
-                    <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
+                        Top Revenue Generating Courses
+                      </h3>
+                      <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                    </div>
+                    <button onClick={() => setActiveFinancialModal('courses-sold-all')} className="text-xs text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors border border-blue-100 hover:bg-blue-50/50 px-3 py-1.5 rounded-xl">
+                      Xem tất cả <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
                   </div>
 
                   <div className="overflow-x-auto mt-4">
@@ -4333,7 +4511,7 @@ export const AdminDashboard: React.FC = () => {
                           { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
                           { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
                           { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
-                        ]).map((c, i) => (
+                        ]).slice(0, 10).map((c, i) => (
                           <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                             <td className="py-3 px-4 font-bold text-slate-900">{c.name}</td>
                             <td className="py-3 px-4 text-slate-500 font-extrabold">{c.tutor}</td>
@@ -5039,6 +5217,233 @@ export const AdminDashboard: React.FC = () => {
                 className="px-4 py-2 text-[10px] font-black text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-md transition-all cursor-pointer"
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= FINANCIAL DETAILS MODALS ================= */}
+      {activeFinancialModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col p-6 animate-fade-in text-left text-slate-800">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2.5 py-1 rounded-md">
+                  Báo cáo chi tiết tài chính
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  {activeFinancialModal === 'gross' && 'Chi tiết doanh thu gộp (Gross Revenue)'}
+                  {activeFinancialModal === 'instructor' && 'Chi tiết chia sẻ doanh thu Giảng viên (Instructor Share - 70%)'}
+                  {activeFinancialModal === 'platform' && 'Chi tiết chia sẻ doanh thu Nền tảng (Platform Cut - 30%)'}
+                  {activeFinancialModal === 'awards' && 'Chi tiết tiền thưởng giải đấu (Contest Prizes)'}
+                  {activeFinancialModal === 'profit' && 'Báo cáo lợi nhuận toàn diện (Comprehensive Profit Report)'}
+                  {activeFinancialModal === 'sales' && 'Danh sách chi tiết các lượt bán khóa học (Course Sales)'}
+                  {activeFinancialModal === 'courses-sold-all' && 'Báo cáo xếp hạng doanh thu tất cả khóa học'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveFinancialModal(null)}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors border border-slate-100 p-1.5 rounded-lg"
+              >
+                close
+              </button>
+            </div>
+
+            <div className="overflow-y-auto my-4 flex-1 pr-1 text-xs">
+              {/* Case 1: Gross / Instructor / Platform (Orders detail list) */}
+              {(activeFinancialModal === 'gross' || activeFinancialModal === 'instructor' || activeFinancialModal === 'platform') && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng quan toàn bộ thời gian:</span>
+                    <span className="font-mono font-black text-sm text-slate-900">
+                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã đơn</th>
+                          <th className="p-3">Học viên</th>
+                          <th className="p-3">Khóa học</th>
+                          <th className="p-3 text-right">Doanh thu gộp</th>
+                          <th className="p-3 text-right">Giảng viên (70%)</th>
+                          <th className="p-3 text-right">Platform (30%)</th>
+                          <th className="p-3">Ngày giao dịch</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.orders || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-4 text-center text-slate-400 italic">Chưa có giao dịch nào được ghi nhận.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.orders || []).map((o, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{o.id}</td>
+                              <td className="p-3">
+                                <div>{o.customerName}</div>
+                                <div className="text-[10px] text-slate-400 font-medium">{o.customerEmail}</div>
+                              </td>
+                              <td className="p-3 max-w-[200px] truncate" title={o.courses}>{o.courses}</td>
+                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{o.grossAmount.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-violet-600">+{o.instructorShare.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-indigo-600">+{o.platformCut.toLocaleString()} ₫</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(o.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 2: Awards details list */}
+              {activeFinancialModal === 'awards' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng phần thưởng giải đấu toàn thời gian:</span>
+                    <span className="font-mono font-black text-sm text-rose-600">
+                      -{((financialDetails?.awards || []).reduce((acc, a) => acc + a.amount, 0)).toLocaleString()} ₫
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã GD</th>
+                          <th className="p-3">Tài khoản nhận giải</th>
+                          <th className="p-3 text-right">Tiền thưởng</th>
+                          <th className="p-3">Nội dung giải thưởng</th>
+                          <th className="p-3">Thời gian</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.awards || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-slate-400 italic">Chưa có phần thưởng giải đấu nào được trao.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.awards || []).map((a, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{a.id}</td>
+                              <td className="p-3">
+                                <div>{a.userName}</div>
+                                <div className="text-[10px] text-slate-400 font-medium">{a.userEmail}</div>
+                              </td>
+                              <td className="p-3 text-right font-mono text-rose-600 font-bold">-{a.amount.toLocaleString()} ₫</td>
+                              <td className="p-3 font-medium text-slate-600">{a.referenceId || 'Giải thưởng cuộc thi lập trình'}</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(a.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 3: Courses Sold sales list (order items detail) */}
+              {activeFinancialModal === 'sales' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng số lượng bản copy đã bán toàn thời gian:</span>
+                    <span className="font-black text-sm text-slate-900">
+                      {(financialDetails?.sales || []).length} copies
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã đơn</th>
+                          <th className="p-3">Học viên</th>
+                          <th className="p-3">Khóa học</th>
+                          <th className="p-3">Giảng viên</th>
+                          <th className="p-3 text-right">Giá bán</th>
+                          <th className="p-3">Ngày bán</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.sales || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có lượt bán khóa học nào.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.sales || []).map((s, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{s.orderId}</td>
+                              <td className="p-3">{s.customerName}</td>
+                              <td className="p-3 max-w-[200px] truncate" title={s.courseTitle}>{s.courseTitle}</td>
+                              <td className="p-3 text-slate-500 font-extrabold">{s.instructorName}</td>
+                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{s.price.toLocaleString()} ₫</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(s.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 4: courses-sold-all - Top Revenue Generating Courses full list */}
+              {activeFinancialModal === 'courses-sold-all' && (
+                <div className="flex flex-col gap-4">
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Tên khóa học</th>
+                          <th className="p-3">Giảng viên</th>
+                          <th className="p-3 text-center">Bản đã bán</th>
+                          <th className="p-3 text-right">Doanh thu gộp</th>
+                          <th className="p-3 text-right">Giảng viên (70%)</th>
+                          <th className="p-3 text-right">Platform (30%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialStats?.topRevenueCourses || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu doanh thu khóa học.</td>
+                          </tr>
+                        ) : (
+                          (financialStats?.topRevenueCourses || []).map((c, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">{c.name}</td>
+                              <td className="p-3 text-slate-500 font-extrabold">{c.tutor}</td>
+                              <td className="p-3 text-center font-mono font-bold">{c.sold}</td>
+                              <td className="p-3 text-right font-mono font-bold text-slate-900">{c.gross.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-violet-600">+{c.payout.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-indigo-600">+{c.plat.toLocaleString()} ₫</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 5: profit - Comprehensive Financial Report (All time, by year) */}
+              {activeFinancialModal === 'profit' && (
+                <FinancialAllTimeReport details={financialDetails} />
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setActiveFinancialModal(null)}
+                className="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Đóng báo cáo
               </button>
             </div>
           </div>

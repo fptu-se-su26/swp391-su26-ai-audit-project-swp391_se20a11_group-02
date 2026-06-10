@@ -63,4 +63,16 @@ public class AdminDashboardController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
+
+    @GetMapping("/financial/details")
+    public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse>> getFinancialDetails() {
+        com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse result = adminDashboardService.getFinancialDetails();
+        return ResponseEntity.ok(ApiResponse.<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Fetched admin dashboard financial audit details successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }
