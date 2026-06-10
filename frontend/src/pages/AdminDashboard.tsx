@@ -3620,6 +3620,10 @@ export const AdminDashboard: React.FC = () => {
                               <div>
                                 <h4 className="font-display font-bold text-base text-brand-blue">{app.fullName}</h4>
                                 <p className="text-xs text-text-muted">{app.email}</p>
+                                <p className="text-[10px] text-text-muted mt-1.5 flex items-center gap-1 font-semibold">
+                                  <span className="material-symbols-outlined text-[13px]">calendar_month</span>
+                                  <span>{new Date(app.createdAt).toLocaleDateString('vi-VN')} {new Date(app.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                </p>
                               </div>
                               <div className="flex flex-col items-end gap-1.5">
                                 <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
@@ -4280,9 +4284,17 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-4 text-xs">
-              <div className="bg-slate-50 p-3.5 rounded-xl">
-                <p className="font-semibold text-slate-500">Applicant Email:</p>
-                <p className="font-bold text-brand-blue text-sm mt-0.5">{selectedAppForReview.email}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-3.5 rounded-xl">
+                  <p className="font-semibold text-slate-500">Applicant Email:</p>
+                  <p className="font-bold text-brand-blue text-sm mt-0.5 truncate" title={selectedAppForReview.email}>{selectedAppForReview.email}</p>
+                </div>
+                <div className="bg-slate-50 p-3.5 rounded-xl">
+                  <p className="font-semibold text-slate-500">Submitted Time:</p>
+                  <p className="font-bold text-brand-blue text-sm mt-0.5">
+                    {new Date(selectedAppForReview.createdAt).toLocaleDateString('vi-VN')} {new Date(selectedAppForReview.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
               </div>
 
               <div>

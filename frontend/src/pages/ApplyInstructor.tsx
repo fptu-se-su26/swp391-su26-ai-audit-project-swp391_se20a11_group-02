@@ -32,6 +32,7 @@ export const ApplyInstructor: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [successMsg, setSuccessMsg] = useState<string>('');
   const [currentApp, setCurrentApp] = useState<ApplicationStatusResponse | null>(null);
+  const [showRejectedPopup, setShowRejectedPopup] = useState<boolean>(false);
 
   const BASE_URL = 'http://localhost:8080/nonstopcoding';
 
@@ -67,6 +68,25 @@ export const ApplyInstructor: React.FC = () => {
       setLoading(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (currentApp && currentApp.status === 'AI_REJECTED') {
+      setShowRejectedPopup(true);
+    }
+  }, [currentApp?.status, currentApp?.id]);
+
+  useEffect(() => {
+    let intervalId: any;
+    if (user && currentApp && currentApp.status === 'PENDING' && (!currentApp.aiScore || currentApp.aiScore === 0)) {
+      // Poll every 2.5 seconds to check if AI has finished evaluation
+      intervalId = setInterval(() => {
+        fetchApplicationStatus();
+      }, 2500);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [user, currentApp?.status, currentApp?.aiScore, currentApp?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -393,6 +413,48 @@ export const ApplyInstructor: React.FC = () => {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* MODAL: AI REJECTION POPUP */}
+      {showRejectedPopup && currentApp && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-red-100 shadow-2xl max-w-md w-full p-6 animate-fade-in text-center relative">
+            <button 
+              onClick={() => setShowRejectedPopup(false)} 
+              className="absolute top-4 right-4 material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              close
+            </button>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-4 border border-red-100">
+                <span className="material-symbols-outlined text-3xl font-black">cancel</span>
+              </div>
+              <h3 className="font-display font-black text-base text-red-600 mb-2 leading-snug">
+                Your previous application was Auto-Rejected by AI (Score &lt; 50)
+              </h3>
+              
+              {currentApp.adminNote && (
+                <div className="bg-red-50/50 border border-red-100 rounded-xl p-4 w-full text-left my-3">
+                  <span className="text-xs font-bold text-red-700 block mb-1">Rejection Reason:</span>
+                  <p className="text-xs text-red-800 leading-relaxed italic">
+                    "{currentApp.adminNote}"
+                  </p>
+                </div>
+              )}
+              
+              <p className="text-xs text-text-muted mb-6">
+                You can adjust the information below and resubmit a new application.
+              </p>
+              
+              <button 
+                onClick={() => setShowRejectedPopup(false)}
+                className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
+              >
+                Adjust & Re-apply
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
