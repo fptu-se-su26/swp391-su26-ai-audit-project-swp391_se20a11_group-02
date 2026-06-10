@@ -53,5 +53,5 @@ public class LessonEntity {
 
     @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
-    java.util.List<com.swp391.coding_platform.entity.quiz.QuizEntity> quizzes;
+    java.util.List<com.swp391.coding_platform.entity.course.QuizEntity> quizzes;
 }

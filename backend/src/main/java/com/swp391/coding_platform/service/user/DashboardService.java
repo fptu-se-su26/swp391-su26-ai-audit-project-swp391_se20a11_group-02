@@ -136,7 +136,7 @@ public class DashboardService {
 
         // 3. Query completed lesson counts in one go
         List<CompletedLessonsCountEntity> lessonCounts = completedLessonCountRepository
-                .findByUserIdAndCourseIdIn(userId.longValue(), courseIds);
+                .findByUserIdAndCourseIdIn(userId, courseIds);
 
         // 4. Map courseId to completed count for fast lookup
         Map<Long, Integer> completedCountsMap = lessonCounts.stream()

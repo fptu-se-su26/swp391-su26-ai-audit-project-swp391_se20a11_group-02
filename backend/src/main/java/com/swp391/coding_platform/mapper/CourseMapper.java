@@ -51,13 +51,13 @@ public interface CourseMapper {
 
     LearningLessonResponse toLearningLessonResponse(LessonEntity lessonEntity);
 
-    @Mapping(target = "isCompleted", expression = "java(completedLessonIds != null && completedLessonIds.contains(lessonEntity.getId().longValue()))")
+    @Mapping(target = "isCompleted", expression = "java(completedLessonIds != null && completedLessonIds.contains(lessonEntity.getId()))")
     @Mapping(target = "type", expression = "java(lessonEntity.getVideoUrl() != null && !lessonEntity.getVideoUrl().isEmpty() ? \"video\" : (lessonEntity.getTheoryContent() != null && !lessonEntity.getTheoryContent().isEmpty() ? \"reading\" : \"coding\"))")
-    LearningCurriculumLessonResponse toLearningCurriculumLessonResponse(LessonEntity lessonEntity, @Context Set<Long> completedLessonIds);
+    LearningCurriculumLessonResponse toLearningCurriculumLessonResponse(LessonEntity lessonEntity, @Context Set<Integer> completedLessonIds);
 
-    LearningCurriculumChapterResponse toLearningCurriculumChapterResponse(ChapterEntity chapterEntity, @Context Set<Long> completedLessonIds);
+    LearningCurriculumChapterResponse toLearningCurriculumChapterResponse(ChapterEntity chapterEntity, @Context Set<Integer> completedLessonIds);
 
-    List<LearningCurriculumChapterResponse> toLearningCurriculumChapterResponses(List<ChapterEntity> chapterEntities, @Context Set<Long> completedLessonIds);
+    List<LearningCurriculumChapterResponse> toLearningCurriculumChapterResponses(List<ChapterEntity> chapterEntities, @Context Set<Integer> completedLessonIds);
 
     @Mapping(target = "exercises", source = "lessonProblems")
     com.swp391.coding_platform.dto.response.InstructorLessonResponse toInstructorLessonResponse(LessonEntity lessonEntity);
@@ -67,9 +67,9 @@ public interface CourseMapper {
     @Mapping(target = "difficulty", source = "problem.difficulty")
     com.swp391.coding_platform.dto.response.InstructorExerciseResponse toInstructorExerciseResponse(com.swp391.coding_platform.entity.course.LessonProblemEntity lessonProblemEntity);
 
-    com.swp391.coding_platform.dto.response.InstructorQuizOptionResponse toInstructorQuizOptionResponse(com.swp391.coding_platform.entity.quiz.QuizOptionEntity optionEntity);
-    com.swp391.coding_platform.dto.response.InstructorQuizQuestionResponse toInstructorQuizQuestionResponse(com.swp391.coding_platform.entity.quiz.QuizQuestionEntity questionEntity);
-    com.swp391.coding_platform.dto.response.InstructorQuizResponse toInstructorQuizResponse(com.swp391.coding_platform.entity.quiz.QuizEntity quizEntity);
+    com.swp391.coding_platform.dto.response.InstructorQuizOptionResponse toInstructorQuizOptionResponse(com.swp391.coding_platform.entity.course.QuizOptionEntity optionEntity);
+    com.swp391.coding_platform.dto.response.InstructorQuizQuestionResponse toInstructorQuizQuestionResponse(com.swp391.coding_platform.entity.course.QuizQuestionEntity questionEntity);
+    com.swp391.coding_platform.dto.response.InstructorQuizResponse toInstructorQuizResponse(com.swp391.coding_platform.entity.course.QuizEntity quizEntity);
 
     com.swp391.coding_platform.dto.response.InstructorChapterResponse toInstructorChapterResponse(ChapterEntity chapterEntity);
 

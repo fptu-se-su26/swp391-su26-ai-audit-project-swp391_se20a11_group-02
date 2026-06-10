@@ -67,7 +67,7 @@ public class SecurityConfig {
 
 
                         // 5. WebSocket & System
-                        .requestMatchers("/test-ws.html", "/test-ws-gen.html", "/ws/**").permitAll()
+                        .requestMatchers("/test-ws.html", "/test-ws-gen.html", "/ws/**", "/test-progress").permitAll()
                         .requestMatchers("/error").permitAll()
 
                         // 6. Tất cả các request còn lại đều yêu cầu xác thực
