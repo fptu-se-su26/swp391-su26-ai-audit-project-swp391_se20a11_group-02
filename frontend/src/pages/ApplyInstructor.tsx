@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 interface ApplicationStatusResponse {
@@ -23,7 +23,8 @@ interface ApplicationStatusResponse {
 }
 
 export const ApplyInstructor: React.FC = () => {
-  const { user } = useApp();
+  const { user, refreshAuth } = useApp();
+  const navigate = useNavigate();
 
   const [fullName, setFullName] = useState<string>('');
   const [major, setMajor] = useState<string>('Backend Developer');
@@ -103,6 +104,11 @@ export const ApplyInstructor: React.FC = () => {
 
       if (response.ok && data.code === 1000) {
         setSuccessMsg('Successfully registered as an instructor!');
+        try {
+          await refreshAuth();
+        } catch (refreshErr) {
+          console.error('Failed to refresh token after instructor registration:', refreshErr);
+        }
         // Refresh status immediately
         await fetchApplicationStatus();
       } else {
@@ -227,8 +233,7 @@ export const ApplyInstructor: React.FC = () => {
           <div className="flex gap-4 w-full justify-center pt-4 border-t border-gray-100 mt-4">
             <button 
               onClick={() => {
-                // Force page refresh or reload app state to apply new role
-                window.location.href = `${import.meta.env.BASE_URL}instructor`;
+                navigate('/instructor');
               }} 
               className="bg-primary hover:bg-primary-hover text-white font-extrabold text-sm px-8 py-3 rounded-xl transition-all shadow-md flex items-center gap-2"
             >

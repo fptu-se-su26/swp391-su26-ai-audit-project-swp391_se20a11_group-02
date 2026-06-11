@@ -1027,6 +1027,12 @@ export const AdminDashboard: React.FC = () => {
       showGlobalToast("Failed to process course approval", "error");
     }
   };
+  const handleApproveInstructor = (appId: number, status: 'APPROVED' | 'REJECTED') => {
+    setPendingInstructorAction({ appId, status });
+    if (status === 'REJECTED') {
+      setRejectionReasonText('Hồ sơ chưa đạt yêu cầu.');
+    }
+  };
 
 
   const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {

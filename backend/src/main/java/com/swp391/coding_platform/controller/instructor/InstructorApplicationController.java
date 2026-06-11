@@ -132,6 +132,7 @@ public class InstructorApplicationController {
                 .build());
     }
 
+
     private Integer getUserIdFromJwt(Jwt jwt) {
         if (jwt != null) {
             Number idClaim = jwt.getClaim("userId");
