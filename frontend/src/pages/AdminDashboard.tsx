@@ -506,7 +506,7 @@ export const AdminDashboard: React.FC = () => {
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
-  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
+  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'AI_REJECTED'>('ALL');
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
   const [userOnlineFilter, setUserOnlineFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
@@ -519,6 +519,15 @@ export const AdminDashboard: React.FC = () => {
   // Modal / review panel states
 
   const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
+  const [pendingInstructorAction, setPendingInstructorAction] = useState<{ appId: number; status: 'APPROVED' | 'REJECTED' } | null>(null);
+  const [rejectionReasonText, setRejectionReasonText] = useState<string>('Hồ sơ chưa đạt yêu cầu.');
+  const [adminToast, setAdminToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showAdminToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setAdminToast({ message, type });
+    setTimeout(() => setAdminToast(null), 4000);
+  };
+
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
@@ -1003,21 +1012,10 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleApproveInstructor = async (appId: number, status: 'APPROVED' | 'REJECTED') => {
-    try {
-      const updated = await adminService.approveInstructorApplication(appId, status, "Approved by Admin dashboard panel");
-      setApplications(prev => prev.map(a => a.id === appId ? updated : a));
-      setSelectedAppForReview(null);
-      // reload instructors and stats
-      const [newStats, newInsts] = await Promise.all([
-        adminService.getDashboardStats(),
-        adminService.getInstructors()
-      ]);
-      setStats(newStats);
-      setInstructors(newInsts);
-      showGlobalToast(`Successfully ${status.toLowerCase()} instructor application.`, "success");
-    } catch (error) {
-      showGlobalToast("Failed to process instructor application approval", "error");
+  const handleApproveInstructor = (appId: number, status: 'APPROVED' | 'REJECTED') => {
+    setPendingInstructorAction({ appId, status });
+    if (status === 'REJECTED') {
+      setRejectionReasonText('Hồ sơ chưa đạt yêu cầu.');
     }
   };
 
@@ -3859,7 +3857,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <h2 className="text-2xl font-display font-black text-brand-blue">Active Instructors & Applicants</h2>
                   <div className="flex gap-2">
-                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (
+                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED', 'AI_REJECTED'].map((filterVal) => (
                       <button
                         key={filterVal}
                         onClick={() => setInstructorAppFilter(filterVal as any)}
@@ -3868,7 +3866,7 @@ export const AdminDashboard: React.FC = () => {
                           : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
                           }`}
                       >
-                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : 'Rejected Applications'}
+                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : filterVal === 'REJECTED' ? 'Rejected Applications' : 'AI Auto-Rejected'}
                       </button>
                     ))}
                   </div>
@@ -3886,10 +3884,34 @@ export const AdminDashboard: React.FC = () => {
                               <div>
                                 <h4 className="font-display font-bold text-base text-brand-blue">{app.fullName}</h4>
                                 <p className="text-xs text-text-muted">{app.email}</p>
+                                <p className="text-[10px] text-text-muted mt-1.5 flex items-center gap-1 font-semibold">
+                                  <span className="material-symbols-outlined text-[13px]">calendar_month</span>
+                                  <span>{new Date(app.createdAt).toLocaleDateString('vi-VN')} {new Date(app.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                </p>
                               </div>
-                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
-                                }`}>{app.status}</span>
+                              <div className="flex flex-col items-end gap-1.5">
+                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
+                                  app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' :
+                                  app.status === 'AI_REJECTED' ? 'bg-rose-50 text-rose-500 border border-rose-100' :
+                                  'bg-red-50 text-red-500'
+                                  }`}>{app.status}</span>
+                                <div className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                                  app.aiScore !== undefined && app.aiScore !== null
+                                    ? app.aiScore >= 80
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                      : app.aiScore >= 50
+                                      ? 'bg-amber-50 text-amber-700 border-amber-100'
+                                      : 'bg-rose-50 text-rose-700 border-rose-100'
+                                    : 'bg-slate-50 text-slate-500 border-slate-100'
+                                }`}>
+                                  <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
+                                  <span>
+                                    {app.aiScore !== undefined && app.aiScore !== null 
+                                      ? `AI Score: ${app.aiScore}/100` 
+                                      : 'AI: Scanning'}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                             <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl line-clamp-3 italic">"{app.introduction}"</p>
                             <a
@@ -3902,22 +3924,31 @@ export const AdminDashboard: React.FC = () => {
                             </a>
                           </div>
 
-                          {app.status === 'PENDING' && (
-                            <div className="flex gap-3 border-t border-slate-100 pt-4 mt-4">
-                              <button
-                                onClick={() => handleApproveInstructor(app.id, 'APPROVED')}
-                                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleApproveInstructor(app.id, 'REJECTED')}
-                                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
+                          <div className="flex gap-2.5 border-t border-slate-100 pt-4 mt-4">
+                            <button
+                              onClick={() => setSelectedAppForReview(app)}
+                              className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs py-2 rounded-xl transition-all border border-slate-200/60 flex items-center justify-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-sm">visibility</span>
+                              Review & AI Summary
+                            </button>
+                            {app.status === 'PENDING' && (
+                              <>
+                                <button
+                                  onClick={() => handleApproveInstructor(app.id, 'APPROVED')}
+                                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleApproveInstructor(app.id, 'REJECTED')}
+                                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -4540,9 +4571,17 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-4 text-xs">
-              <div className="bg-slate-50 p-3.5 rounded-xl">
-                <p className="font-semibold text-slate-500">Applicant Email:</p>
-                <p className="font-bold text-brand-blue text-sm mt-0.5">{selectedAppForReview.email}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-3.5 rounded-xl">
+                  <p className="font-semibold text-slate-500">Applicant Email:</p>
+                  <p className="font-bold text-brand-blue text-sm mt-0.5 truncate" title={selectedAppForReview.email}>{selectedAppForReview.email}</p>
+                </div>
+                <div className="bg-slate-50 p-3.5 rounded-xl">
+                  <p className="font-semibold text-slate-500">Submitted Time:</p>
+                  <p className="font-bold text-brand-blue text-sm mt-0.5">
+                    {new Date(selectedAppForReview.createdAt).toLocaleDateString('vi-VN')} {new Date(selectedAppForReview.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -4553,24 +4592,243 @@ export const AdminDashboard: React.FC = () => {
               <div>
                 <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Curriculum Vitae File</h4>
                 <a href={selectedAppForReview.cvUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-bold text-sm bg-orange-50 p-3 rounded-xl w-full border border-orange-100">
-                  <span className="material-symbols-outlined text-base">picture_as_pdf</span> Open CV document (Elena Rostova CV)
+                  <span className="material-symbols-outlined text-base">picture_as_pdf</span> Open CV document ({selectedAppForReview.fullName} CV)
                 </a>
               </div>
 
-              <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
-                <button
-                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'APPROVED')}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Approve Application
-                </button>
-                <button
-                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'REJECTED')}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Reject Application
-                </button>
+              {/* AI Audit Report Card */}
+              <div className={`p-5 rounded-2xl border flex flex-col gap-4 text-xs ${
+                selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null
+                  ? selectedAppForReview.aiScore >= 80
+                    ? 'bg-emerald-50/40 border-emerald-200/60'
+                    : selectedAppForReview.aiScore >= 50
+                    ? 'bg-amber-50/40 border-amber-200/60'
+                    : 'bg-rose-50/40 border-rose-200/60'
+                  : 'bg-slate-50 border-slate-200'
+              }`}>
+                {/* Header */}
+                <div className="flex justify-between items-center border-b border-slate-200/50 pb-3">
+                  <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-slate-700">
+                    <span className="material-symbols-outlined text-[16px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
+                    AI Pre-Screening Audit Report
+                  </div>
+                  {selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null ? (
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border ${
+                        selectedAppForReview.aiRecommendation === 'RECOMMENDED'
+                          ? 'bg-emerald-500 text-white border-emerald-600'
+                          : selectedAppForReview.aiRecommendation === 'REVIEW_REQUIRED'
+                          ? 'bg-amber-500 text-white border-amber-600'
+                          : 'bg-rose-500 text-white border-rose-600'
+                      }`}>
+                        {selectedAppForReview.aiRecommendation || 'REVIEW_REQUIRED'}
+                      </span>
+                      <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${
+                        selectedAppForReview.aiScore >= 80
+                          ? 'bg-emerald-55 text-emerald-700 border-emerald-200'
+                          : selectedAppForReview.aiScore >= 50
+                          ? 'bg-amber-55 text-amber-700 border-amber-200'
+                          : 'bg-rose-55 text-rose-700 border-rose-200'
+                      }`}>
+                        SCORE: {selectedAppForReview.aiScore}/100
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-black uppercase bg-slate-200 text-slate-600 px-2 py-0.5 rounded animate-pulse">
+                      Analyzing CV...
+                    </span>
+                  )}
+                </div>
+
+                {/* AI Screening Details */}
+                {selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null ? (
+                  <div className="flex flex-col gap-3.5">
+                    {/* Specialization & Exp Years */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/85 p-3 rounded-xl border border-slate-100 shadow-sm">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Detected Specialization</span>
+                        <span className="font-extrabold text-brand-blue text-sm">
+                          {selectedAppForReview.aiSpecialization || 'Other'}
+                        </span>
+                      </div>
+                      <div className="bg-white/85 p-3 rounded-xl border border-slate-100 shadow-sm">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Estimated Experience</span>
+                        <span className="font-extrabold text-brand-blue text-sm">
+                          {selectedAppForReview.aiExperienceYears !== undefined && selectedAppForReview.aiExperienceYears !== null
+                            ? `${selectedAppForReview.aiExperienceYears} Year${selectedAppForReview.aiExperienceYears !== 1 ? 's' : ''}`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Technologies */}
+                    <div className="bg-white/85 p-3.5 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Extracted Technologies</span>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {selectedAppForReview.aiTechnologies
+                          ? selectedAppForReview.aiTechnologies.split(',').map((tech, i) => (
+                              <span key={i} className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px] border border-slate-200/60">
+                                {tech.trim()}
+                              </span>
+                            ))
+                          : <span className="text-slate-400 italic">None detected</span>
+                        }
+                      </div>
+                    </div>
+
+                    {/* Strengths & Weaknesses */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-emerald-50/40 p-3.5 rounded-xl border border-emerald-100/50">
+                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">check_circle</span> Strengths
+                        </span>
+                        <ul className="list-disc list-inside space-y-1.5 text-slate-700 leading-relaxed pl-1 text-[11px]">
+                          {selectedAppForReview.aiStrengths
+                            ? selectedAppForReview.aiStrengths.split(';').map((str, i) => (
+                                <li key={i}>{str.trim()}</li>
+                              ))
+                            : <li>No notable strengths identified</li>
+                          }
+                        </ul>
+                      </div>
+                      <div className="bg-rose-50/40 p-3.5 rounded-xl border border-rose-100/50">
+                        <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">cancel</span> Weaknesses
+                        </span>
+                        <ul className="list-disc list-inside space-y-1.5 text-slate-700 leading-relaxed pl-1 text-[11px]">
+                          {selectedAppForReview.aiWeaknesses
+                            ? selectedAppForReview.aiWeaknesses.split(';').map((weak, i) => (
+                                <li key={i}>{weak.trim()}</li>
+                              ))
+                            : <li>No notable weaknesses identified</li>
+                          }
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* AI Summary */}
+                    {selectedAppForReview.aiSummary && (
+                      <div className="bg-white/85 p-3.5 rounded-xl border border-slate-100 shadow-sm">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pre-Screening Summary</span>
+                        <p className="text-slate-600 leading-relaxed italic mt-1 font-medium">
+                          "{selectedAppForReview.aiSummary}"
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-slate-400 italic text-[11px] p-2 bg-white/50 rounded-lg">
+                    CV analysis score and summary are being generated. Please wait and refresh if you just submitted.
+                  </p>
+                )}
               </div>
+
+              {selectedAppForReview.status === 'PENDING' ? (
+                <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
+                  <button
+                    onClick={() => handleApproveInstructor(selectedAppForReview.id, 'APPROVED')}
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
+                  >
+                    Approve Application
+                  </button>
+                  <button
+                    onClick={() => handleApproveInstructor(selectedAppForReview.id, 'REJECTED')}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
+                  >
+                    Reject Application
+                  </button>
+                </div>
+              ) : (
+                <div className="border-t border-slate-150 pt-4 mt-3 flex justify-between items-center">
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    Reviewed Status: <strong className={selectedAppForReview.status === 'APPROVED' ? 'text-emerald-600' : 'text-red-500'}>{selectedAppForReview.status}</strong>
+                  </span>
+                  <button
+                    onClick={() => setSelectedAppForReview(null)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl border border-slate-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: INSTRUCTOR APPLICATION ACTION CONFIRMATION ================= */}
+      {pendingInstructorAction && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2 py-0.5 rounded-md">
+                  {pendingInstructorAction.status === 'APPROVED' ? 'Approve Instructor' : 'Reject Instructor'}
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  {pendingInstructorAction.status === 'APPROVED' ? 'Confirm Approval' : 'Confirm Rejection'}
+                </h3>
+              </div>
+              <button onClick={() => setPendingInstructorAction(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
+            </div>
+
+            <div className="flex flex-col gap-4 text-sm mb-6">
+              {pendingInstructorAction.status === 'APPROVED' ? (
+                <p className="text-slate-650 leading-relaxed text-sm">
+                  Are you sure you want to approve this instructor application? This will grant the user the Instructor role on the platform.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <p className="text-slate-650 leading-relaxed text-sm">
+                    Please provide a rejection reason for this instructor application. The applicant will see this reason on their status page.
+                  </p>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-2">Rejection Reason</label>
+                  <textarea
+                    value={rejectionReasonText}
+                    onChange={(e) => setRejectionReasonText(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all min-h-[90px]"
+                    placeholder="Enter rejection reason here..."
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 border-t border-slate-100 pt-4">
+              <button
+                onClick={() => setPendingInstructorAction(null)}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-slate-200/60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const appId = pendingInstructorAction.appId;
+                  const status = pendingInstructorAction.status;
+                  const note = status === 'REJECTED' ? rejectionReasonText.trim() || 'Hồ sơ chưa đạt yêu cầu.' : 'Đã phê duyệt đơn ứng tuyển';
+                  
+                  setPendingInstructorAction(null);
+                  try {
+                    const updated = await adminService.approveInstructorApplication(appId, status, note);
+                    setApplications(prev => prev.map(a => a.id === appId ? updated : a));
+                    setSelectedAppForReview(null);
+                    // reload instructors and stats
+                    const [newStats, newInsts] = await Promise.all([
+                      adminService.getDashboardStats(),
+                      adminService.getInstructors()
+                    ]);
+                    setStats(newStats);
+                    setInstructors(newInsts);
+                    showAdminToast(`Successfully ${status.toLowerCase()} instructor application.`, 'success');
+                  } catch (error) {
+                    showAdminToast("Failed to process instructor application approval.", 'error');
+                  }
+                }}
+                className={`flex-1 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm ${
+                  pendingInstructorAction.status === 'APPROVED' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-red-500 hover:bg-red-600'
+                }`}
+              >
+                {pendingInstructorAction.status === 'APPROVED' ? 'Approve' : 'Reject'}
+              </button>
             </div>
           </div>
         </div>
@@ -5177,6 +5435,20 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* ================= GENERAL ADMIN TOAST ================= */}
+      {adminToast && (
+        <div className={`fixed bottom-6 right-6 z-[200] text-white text-sm font-semibold px-4 py-3.5 rounded-xl shadow-xl flex items-center gap-2.5 border animate-fade-in ${
+          adminToast.type === 'success' ? 'bg-emerald-600 border-emerald-500' :
+          adminToast.type === 'error' ? 'bg-red-600 border-red-500' : 'bg-brand-blue border-brand-blue-light'
+        }`}>
+          <span className="material-symbols-outlined text-[20px]">
+            {adminToast.type === 'success' ? 'check_circle' :
+             adminToast.type === 'error' ? 'error' : 'info'}
+          </span>
+          <span>{adminToast.message}</span>
         </div>
       )}
 
