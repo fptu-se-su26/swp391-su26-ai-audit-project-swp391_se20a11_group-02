@@ -55,6 +55,7 @@ function App() {
               {/* Admin Panel (only for admin) */}
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route path="admin" element={<AdminDashboard />} />
+                <Route path="admin/:tab" element={<AdminDashboard />} />
               </Route>
               
               {/* Courses Catalog & Details */}

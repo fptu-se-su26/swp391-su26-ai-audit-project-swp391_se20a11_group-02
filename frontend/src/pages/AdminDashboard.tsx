@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { adminService } from '../services/adminService';
 import type {
   AdminDashboardStats,
@@ -476,6 +476,8 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
 };
 
 export const AdminDashboard: React.FC = () => {
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
   const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'>('dashboard');
@@ -596,55 +598,48 @@ export const AdminDashboard: React.FC = () => {
   const [newContestPassword, setNewContestPassword] = useState('');
   const [newContestConfirmPassword, setNewContestConfirmPassword] = useState('');
 
-  // Hash-based routing synchronization
+  // Nested routing synchronization based on React Router path parameter
   useEffect(() => {
-    const handleRouting = () => {
-      let currentHash = window.location.hash || '#dashboard';
+    // Close active review player and modals when navigating tabs
+    setReviewingCourse(null);
+    setReviewingContest(null);
+    setReviewContestTab('overview');
+    setReviewContestProblemId(null);
+    setSelectedAppForReview(null);
+    setSelectedUserDetail(null);
+    setIsCreateProblemOpen(false);
+    setIsEditProblemOpen(false);
+    setEditingProblemId(null);
+    setIsCreateContestOpen(false);
+    setIsTestcaseModalOpen(false);
+    setTestcaseProblem(null);
+    setTestcasesList([]);
+    setZipFile(null);
 
-      // Close active review player and modals when navigating tabs
-      setReviewingCourse(null);
-      setReviewingContest(null);
-      setReviewContestTab('overview');
-      setReviewContestProblemId(null);
-      setSelectedAppForReview(null);
-      setSelectedUserDetail(null);
-      setIsCreateProblemOpen(false);
-      setIsEditProblemOpen(false);
-      setEditingProblemId(null);
-      setIsCreateContestOpen(false);
-      setIsTestcaseModalOpen(false);
-      setTestcaseProblem(null);
-      setTestcasesList([]);
-      setZipFile(null);
+    if (tab === 'courses') {
+      setActiveTab('courses');
+    } else if (tab === 'problems') {
+      setActiveTab('problems');
+    } else if (tab === 'contests') {
+      setActiveTab('contest');
+    } else if (tab === 'instructors') {
+      setActiveTab('instructor');
+    } else if (tab === 'users') {
+      setActiveTab('users');
+    } else if (tab === 'financial') {
+      setActiveTab('financial');
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [tab]);
 
-      if (currentHash === '#courses') {
-        setActiveTab('courses');
-      } else if (currentHash === '#problems') {
-        setActiveTab('problems');
-      } else if (currentHash === '#contest') {
-        setActiveTab('contest');
-      } else if (currentHash === '#instructor') {
-        setActiveTab('instructor');
-      } else if (currentHash === '#users') {
-        setActiveTab('users');
-      } else if (currentHash === '#financial') {
-        setActiveTab('financial');
-      } else {
-        setActiveTab('dashboard');
-      }
-    };
-
-    window.addEventListener('hashchange', handleRouting);
-    handleRouting();
-
+  useEffect(() => {
     const savedCollapsed = localStorage.getItem('admin-sidebar-collapsed');
     if (savedCollapsed !== null) {
       setIsSidebarCollapsed(savedCollapsed === 'true');
     } else {
       setIsSidebarCollapsed(window.innerWidth < 768);
     }
-
-    return () => window.removeEventListener('hashchange', handleRouting);
   }, []);
 
   // useEffect for contest ticking countdown timer
@@ -1553,8 +1548,8 @@ export const AdminDashboard: React.FC = () => {
         {/* Sidebar Nav */}
         <nav className="flex-1 flex flex-col gap-1.5 py-6 px-2.5 overflow-y-auto">
           <a
-            href="#dashboard"
-            onClick={() => setActiveTab('dashboard')}
+            href="/admin"
+            onClick={(e) => { e.preventDefault(); navigate('/admin'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1563,8 +1558,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#courses"
-            onClick={() => setActiveTab('courses')}
+            href="/admin/courses"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/courses'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'courses' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1573,8 +1568,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#problems"
-            onClick={() => setActiveTab('problems')}
+            href="/admin/problems"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/problems'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'problems' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1583,8 +1578,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#contest"
-            onClick={() => setActiveTab('contest')}
+            href="/admin/contests"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/contests'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'contest' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1593,8 +1588,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#instructor"
-            onClick={() => setActiveTab('instructor')}
+            href="/admin/instructors"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/instructors'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'instructor' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1603,8 +1598,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#users"
-            onClick={() => setActiveTab('users')}
+            href="/admin/users"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/users'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'users' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1613,8 +1608,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#financial"
-            onClick={() => setActiveTab('financial')}
+            href="/admin/financial"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/financial'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'financial' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
