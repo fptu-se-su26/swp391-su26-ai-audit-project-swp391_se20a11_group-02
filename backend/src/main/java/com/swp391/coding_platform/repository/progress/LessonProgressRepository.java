@@ -18,7 +18,7 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgressEn
       Set<Long> findCompletedLessonIds(@Param("userId") Long userId,
                   @Param("courseId") Long courseId);
 
-      Boolean existsByLessonIdAndUserId(Long lessonId, Long userId);
+      Boolean existsByLessonIdAndUserId(Integer lessonId, Long userId);
 
 }
 

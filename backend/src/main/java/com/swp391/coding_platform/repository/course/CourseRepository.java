@@ -1,6 +1,7 @@
 package com.swp391.coding_platform.repository.course;
 
 import com.swp391.coding_platform.entity.course.CourseEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,6 +11,13 @@ import java.util.Optional;
 
 @Repository
 public interface CourseRepository extends JpaRepository<CourseEntity, Long>, JpaSpecificationExecutor<CourseEntity> {
+    @Query("SELECT c FROM CourseEntity c ORDER BY c.totalEnrolled DESC")
+    List<CourseEntity> findTopCourses(Pageable pageable);
+
+    @Query("SELECT c.instructor.fullName, SUM(c.totalEnrolled) FROM CourseEntity c " +
+           "GROUP BY c.instructor.fullName " +
+           "ORDER BY SUM(c.totalEnrolled) DESC")
+    List<Object[]> findTopInstructors(Pageable pageable);
     @EntityGraph(attributePaths = {"categories", "teacherAssignments", "teacherAssignments.teacher"})
     @Query( "SELECT c " +
             "FROM CourseEntity c " +

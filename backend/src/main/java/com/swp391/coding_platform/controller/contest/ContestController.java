@@ -1,5 +1,6 @@
 package com.swp391.coding_platform.controller.contest;
 
+import com.swp391.coding_platform.dto.request.ContestSearchRequest;
 import com.swp391.coding_platform.dto.request.ContestRegisterRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.ContestProblemResponse;
@@ -29,14 +30,10 @@ public class ContestController {
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ContestResponse>>> getContests(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "status", required = false, defaultValue = "All") String status,
-            @RequestParam(value = "access", required = false, defaultValue = "All") String access,
-            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-            @RequestParam(value = "size", required = false, defaultValue = "5") int size) {
+            @jakarta.validation.Valid ContestSearchRequest request) {
 
         String username = getUsername(jwt);
-        PageResponse<ContestResponse> result = contestService.getContests(search, status, access, page, size, username);
+        PageResponse<ContestResponse> result = contestService.getContests(request, username);
 
         return ResponseEntity.ok(ApiResponse.<PageResponse<ContestResponse>>builder()
                 .status(200)

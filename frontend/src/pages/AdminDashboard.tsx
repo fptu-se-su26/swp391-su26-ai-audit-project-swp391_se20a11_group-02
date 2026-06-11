@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { adminService } from '../services/adminService';
 import type {
   AdminDashboardStats,
@@ -9,7 +9,9 @@ import type {
   AdminUser,
   AdminProblem,
   AdminContest,
-  AdminDepositHistory
+  AdminDepositHistory,
+  AdminProblemTestcase,
+  AdminFinancialStats
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -110,12 +112,6 @@ const tabHeaderDetails: Record<string, { badge: string; icon: string; title: str
     icon: 'insights',
     title: 'Financial Statistics 📊',
     desc: 'Track platform revenue growth, subscription sales, and analyze instructor payouts.'
-  },
-  appeals: {
-    badge: 'Account Appeals',
-    icon: 'gavel',
-    title: 'Account Lock Appeals ⚖️',
-    desc: 'Review and resolve appeal requests submitted directly by locked users.'
   }
 };
 
@@ -329,10 +325,162 @@ const rankingFormatMinutes = (m: number): string => {
   return `${hrs}h ${mins}m`;
 };
 
+const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }> = ({ details }) => {
+  const [selectedYear, setSelectedYear] = useState<string>('ALL');
+
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set<string>();
+    (details?.monthlyBreakdowns || []).forEach(b => {
+      if (b.datePrefix && b.datePrefix.length >= 4) {
+        const year = b.datePrefix.substring(0, 4);
+        yearsSet.add(year);
+      }
+    });
+    return Array.from(yearsSet).sort().reverse();
+  }, [details]);
+
+  const filteredBreakdowns = useMemo(() => {
+    const list = details?.monthlyBreakdowns || [];
+    if (selectedYear === 'ALL') return list;
+    return list.filter(b => b.datePrefix && b.datePrefix.startsWith(selectedYear));
+  }, [details, selectedYear]);
+
+  const summary = useMemo(() => {
+    let gross = 0;
+    let count = 0;
+    let rewards = 0;
+    let server = 0;
+    let marketing = 0;
+    let netProfit = 0;
+
+    filteredBreakdowns.forEach(item => {
+      gross += item.gross || 0;
+      count += item.count || 0;
+      rewards += item.rewards || 0;
+      server += item.server || 0;
+      marketing += item.marketing || 0;
+      netProfit += item.netProfit || 0;
+    });
+
+    const platformShare = Math.round(gross * 0.3);
+    const instructorShare = Math.round(gross * 0.7);
+    const gatewayFees = Math.round(gross * 0.02);
+
+    return {
+      gross,
+      count,
+      rewards,
+      server,
+      marketing,
+      netProfit,
+      platformShare,
+      instructorShare,
+      gatewayFees
+    };
+  }, [filteredBreakdowns]);
+
+  return (
+    <div className="flex flex-col gap-5 text-slate-800">
+      {/* Year Selector */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-600">Lọc theo năm báo cáo:</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-brand-blue outline-none cursor-pointer"
+          >
+            <option value="ALL">Toàn bộ thời gian hoạt động</option>
+            {availableYears.map(yr => (
+              <option key={yr} value={yr}>Năm {yr}</option>
+            ))}
+          </select>
+        </div>
+        <span className="text-[10px] font-black uppercase text-slate-400">
+          Thời gian: {selectedYear === 'ALL' ? 'Từ đầu hoạt động' : `Năm ${selectedYear}`}
+        </span>
+      </div>
+
+      {/* KPI summaries for selected range */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Doanh thu gộp (Gross)</p>
+          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.gross.toLocaleString()} ₫</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Giữ lại Platform (30%)</p>
+          <p className="text-sm font-mono font-black text-indigo-600 mt-1">{summary.platformShare.toLocaleString()} ₫</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Khóa học bán ra</p>
+          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.count.toLocaleString()} copies</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Lợi nhuận ròng (Net Profit)</p>
+          <p className={`text-sm font-mono font-black mt-1 ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {summary.netProfit.toLocaleString()} ₫
+          </p>
+        </div>
+      </div>
+
+      {/* Monthly Breakdown Sheet */}
+      <div>
+        <h4 className="font-display font-black text-slate-900 text-xs mb-3">
+          Bảng báo cáo chi tiết tài chính từng tháng
+        </h4>
+        <div className="overflow-x-auto border border-slate-100 rounded-xl">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                <th className="p-3">Tháng</th>
+                <th className="p-3 text-right">Doanh thu gộp</th>
+                <th className="p-3 text-right">Platform (30%)</th>
+                <th className="p-3 text-right">Giải thưởng (AWARD)</th>
+                <th className="p-3 text-right">Chi phí vận hành</th>
+                <th className="p-3 text-right">Lợi nhuận ròng</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+              {filteredBreakdowns.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu.</td>
+                </tr>
+              ) : (
+                filteredBreakdowns.map((b, idx) => {
+                  const gross = b.gross || 0;
+                  const platformShare = Math.round(gross * 0.3);
+                  const gatewayFees = Math.round(gross * 0.02);
+                  const operCosts = (b.server || 0) + (b.marketing || 0) + gatewayFees;
+                  return (
+                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-3 text-slate-900 font-bold">{b.label}</td>
+                      <td className="p-3 text-right font-mono text-slate-900">{gross.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-indigo-600">+{platformShare.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-rose-500">-{b.rewards.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-slate-500" title={`Server: ${(b.server || 0).toLocaleString()} ₫, Marketing: ${(b.marketing || 0).toLocaleString()} ₫, Gateway Fee (2%): ${gatewayFees.toLocaleString()} ₫`}>
+                        -{operCosts.toLocaleString()} ₫
+                      </td>
+                      <td className={`p-3 text-right font-mono font-bold ${b.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {b.netProfit.toLocaleString()} ₫
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const AdminDashboard: React.FC = () => {
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial' | 'appeals'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'>('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // States for API data
@@ -344,9 +492,17 @@ export const AdminDashboard: React.FC = () => {
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
+  const [financialStats, setFinancialStats] = useState<AdminFinancialStats | null>(null);
+  const [financialDetails, setFinancialDetails] = useState<AdminFinancialDetails | null>(null);
+  const [activeFinancialModal, setActiveFinancialModal] = useState<'gross' | 'instructor' | 'platform' | 'awards' | 'profit' | 'sales' | 'courses-sold-all' | null>(null);
 
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
+  const [globalToast, setGlobalToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showGlobalToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setGlobalToast({ message, type });
+    setTimeout(() => setGlobalToast(null), 3000);
+  };
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
@@ -357,26 +513,39 @@ export const AdminDashboard: React.FC = () => {
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
-  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest'>('repository');
+  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
 
   // Modal / review panel states
 
   const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
-  const [pendingInstructorAction, setPendingInstructorAction] = useState<{ appId: number; status: 'APPROVED' | 'REJECTED' } | null>(null);
-  const [rejectionReasonText, setRejectionReasonText] = useState<string>('Hồ sơ chưa đạt yêu cầu.');
-  const [adminToast, setAdminToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
-
-  const showAdminToast = (message: string, type: 'success' | 'error' | 'info') => {
-    setAdminToast({ message, type });
-    setTimeout(() => setAdminToast(null), 4000);
-  };
-
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
   const [editingProblemId, setEditingProblemId] = useState<number | null>(null);
+
+  // Testcase state variables
+  const [isTestcaseModalOpen, setIsTestcaseModalOpen] = useState(false);
+  const [testcaseProblem, setTestcaseProblem] = useState<AdminProblem | null>(null);
+  const [testcasesList, setTestcasesList] = useState<Omit<AdminProblemTestcase, 'id'>[]>([]);
+  const [testcaseTab, setTestcaseTab] = useState<'manual' | 'upload'>('manual');
+  const [zipFile, setZipFile] = useState<File | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [isSavingTestcases, setIsSavingTestcases] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
+
+  // Confirmation Modal state
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmModalTitle, setConfirmModalTitle] = useState('');
+  const [confirmModalMessage, setConfirmModalMessage] = useState('');
+  const [confirmModalAction, setConfirmModalAction] = useState<(() => void) | null>(null);
+
+  const triggerConfirm = (title: string, message: string, action: () => void) => {
+    setConfirmModalTitle(title);
+    setConfirmModalMessage(message);
+    setConfirmModalAction(() => action);
+    setIsConfirmModalOpen(true);
+  };
 
   // Course Player Review Mode states
   const [reviewingCourse, setReviewingCourse] = useState<AdminCourse | null>(null);
@@ -386,61 +555,6 @@ export const AdminDashboard: React.FC = () => {
   const [reviewCurrentProblem, setReviewCurrentProblem] = useState<string | null>(null);
   const [reviewSolveLang, setReviewSolveLang] = useState('Java');
   const [reviewSolveCode, setReviewSolveCode] = useState('');
-
-  // Account Lock / Appeal States
-  const [userLockAction, setUserLockAction] = useState<{
-    userId: number;
-    userName: string;
-    newStatus: 'ACTIVE' | 'LOCKED';
-  } | null>(null);
-  const [customLockReason, setCustomLockReason] = useState<string>('');
-  const [decliningAppealUser, setDecliningAppealUser] = useState<AdminUser | null>(null);
-  const [declineReasonText, setDeclineReasonText] = useState<string>('');
-  const [approvingAppealUser, setApprovingAppealUser] = useState<AdminUser | null>(null);
-
-  const handleUserStatusChange = (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
-    const targetUser = users.find(u => u.id === userId);
-    if (!targetUser) return;
-    if (newStatus === 'LOCKED') {
-      setUserLockAction({
-        userId,
-        userName: targetUser.name,
-        newStatus,
-      });
-      setCustomLockReason('');
-    } else {
-      setUserLockAction({
-        userId,
-        userName: targetUser.name,
-        newStatus,
-      });
-    }
-  };
-
-  const handleUserStatusChangeConfirm = async () => {
-    if (!userLockAction) return;
-    const { userId, newStatus } = userLockAction;
-    try {
-      const updatedUser = await adminService.setUserLockStatus(
-        userId,
-        newStatus,
-        newStatus === 'LOCKED' ? customLockReason.trim() || undefined : undefined
-      );
-      setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u));
-      showAdminToast(
-        `Successfully ${newStatus === 'LOCKED' ? 'locked' : 'unlocked'} account for ${updatedUser.name}.`,
-        'success'
-      );
-    } catch (err: any) {
-      showAdminToast(err.message || 'Failed to update user lock status.', 'error');
-    } finally {
-      setUserLockAction(null);
-    }
-  };
-
-  const pendingAppealsCount = useMemo(() => {
-    return users.filter(u => u.status === 'LOCKED' && u.lockAppeal).length;
-  }, [users]);
 
   // Contest Detail Review Mode states
   const [reviewingContest, setReviewingContest] = useState<AdminContest | null>(null);
@@ -484,51 +598,48 @@ export const AdminDashboard: React.FC = () => {
   const [newContestPassword, setNewContestPassword] = useState('');
   const [newContestConfirmPassword, setNewContestConfirmPassword] = useState('');
 
-  // Hash-based routing synchronization
+  // Nested routing synchronization based on React Router path parameter
   useEffect(() => {
-    const handleRouting = () => {
-      let currentHash = window.location.hash || '#dashboard';
+    // Close active review player and modals when navigating tabs
+    setReviewingCourse(null);
+    setReviewingContest(null);
+    setReviewContestTab('overview');
+    setReviewContestProblemId(null);
+    setSelectedAppForReview(null);
+    setSelectedUserDetail(null);
+    setIsCreateProblemOpen(false);
+    setIsEditProblemOpen(false);
+    setEditingProblemId(null);
+    setIsCreateContestOpen(false);
+    setIsTestcaseModalOpen(false);
+    setTestcaseProblem(null);
+    setTestcasesList([]);
+    setZipFile(null);
 
-      // Close active review player and modals when navigating tabs
-      setReviewingCourse(null);
-      setReviewingContest(null);
-      setReviewContestTab('overview');
-      setReviewContestProblemId(null);
-      setSelectedAppForReview(null);
-      setSelectedUserDetail(null);
-      setIsCreateProblemOpen(false);
-      setIsEditProblemOpen(false);
-      setEditingProblemId(null);
-      setIsCreateContestOpen(false);
+    if (tab === 'courses') {
+      setActiveTab('courses');
+    } else if (tab === 'problems') {
+      setActiveTab('problems');
+    } else if (tab === 'contests') {
+      setActiveTab('contest');
+    } else if (tab === 'instructors') {
+      setActiveTab('instructor');
+    } else if (tab === 'users') {
+      setActiveTab('users');
+    } else if (tab === 'financial') {
+      setActiveTab('financial');
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [tab]);
 
-      if (currentHash === '#courses') {
-        setActiveTab('courses');
-      } else if (currentHash === '#problems') {
-        setActiveTab('problems');
-      } else if (currentHash === '#contest') {
-        setActiveTab('contest');
-      } else if (currentHash === '#instructor') {
-        setActiveTab('instructor');
-      } else if (currentHash === '#users') {
-        setActiveTab('users');
-      } else if (currentHash === '#financial') {
-        setActiveTab('financial');
-      } else {
-        setActiveTab('dashboard');
-      }
-    };
-
-    window.addEventListener('hashchange', handleRouting);
-    handleRouting();
-
+  useEffect(() => {
     const savedCollapsed = localStorage.getItem('admin-sidebar-collapsed');
     if (savedCollapsed !== null) {
       setIsSidebarCollapsed(savedCollapsed === 'true');
     } else {
       setIsSidebarCollapsed(window.innerWidth < 768);
     }
-
-    return () => window.removeEventListener('hashchange', handleRouting);
   }, []);
 
   // useEffect for contest ticking countdown timer
@@ -605,7 +716,10 @@ export const AdminDashboard: React.FC = () => {
         usersRes,
         probsRes,
         contestsRes,
-        recentDepositsRes
+        recentDepositsRes,
+        tagsRes,
+        financialRes,
+        financialDetailsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
@@ -614,7 +728,10 @@ export const AdminDashboard: React.FC = () => {
         adminService.getUsers(),
         adminService.getProblems(),
         adminService.getContests(),
-        adminService.getRecentDeposits()
+        adminService.getRecentDeposits(),
+        adminService.getTags(),
+        adminService.getFinancialStats(),
+        adminService.getFinancialDetails()
       ]);
 
       setStats(statsRes);
@@ -625,6 +742,9 @@ export const AdminDashboard: React.FC = () => {
       setProblems(probsRes);
       setContests(contestsRes);
       setRecentDeposits(recentDepositsRes);
+      setAllTags(tagsRes || []);
+      setFinancialStats(financialRes);
+      setFinancialDetails(financialDetailsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -654,6 +774,14 @@ export const AdminDashboard: React.FC = () => {
   const [newProbMemoryLimit, setNewProbMemoryLimit] = useState(128000);
   const [newProbIsPublic, setNewProbIsPublic] = useState(true);
   const [newProbSolutions, setNewProbSolutions] = useState('');
+  const [newProbTags, setNewProbTags] = useState<string[]>([]);
+  const [newProbStarterC, setNewProbStarterC] = useState('');
+  const [newProbStarterCpp, setNewProbStarterCpp] = useState('');
+  const [newProbStarterJava, setNewProbStarterJava] = useState('');
+  const [newProbStarterPython, setNewProbStarterPython] = useState('');
+  const [newProbStarterCsharp, setNewProbStarterCsharp] = useState('');
+  const [allTags, setAllTags] = useState<{ id: number; name: string; slug: string }[]>([]);
+  const [starterActiveTab, setStarterActiveTab] = useState<'C' | 'C++' | 'Java' | 'Python 3' | 'C#'>('C');
 
   // Add Contest form state
   const [newContestTitle, setNewContestTitle] = useState('');
@@ -662,10 +790,23 @@ export const AdminDashboard: React.FC = () => {
   const [newContestStartTime, setNewContestStartTime] = useState('');
   const [newContestEndTime, setNewContestEndTime] = useState('');
 
-  const dashboardTimeFilter = '12';
-
   // SVG Chart Computations
-  const financialChartData = useMemo(() => adminService.getFinancialChartData(), []);
+  const financialChartData = useMemo(() => {
+    return stats?.financialChartData || [
+      { label: 'Jul 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Aug 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Sep 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Oct 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Nov 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Dec 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Jan 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Feb 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Mar 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Apr 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'May 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Jun 26', amount: 0, count: 0, usersCount: 0 }
+    ];
+  }, [stats]);
 
   // Financial Page state variables
   const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '3months' | '9months' | '12months' | 'custom'>('12months');
@@ -675,7 +816,7 @@ export const AdminDashboard: React.FC = () => {
   const [hoveredCourseSalesIndex, setHoveredCourseSalesIndex] = useState<number | null>(null);
   // 12-month raw financial records (Jul 25 to Jun 26)
   const financialMonthlyRecords = useMemo(() => {
-    const rawChartData = [
+    const rawChartData = financialStats?.financialMonthlyRecords || [
       { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
       { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
       { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
@@ -716,7 +857,7 @@ export const AdminDashboard: React.FC = () => {
         netProfit
       };
     });
-  }, []);
+  }, [financialStats]);
 
   // Filtered dataset according to UI state
   const filteredFinancialData = useMemo(() => {
@@ -810,59 +951,29 @@ export const AdminDashboard: React.FC = () => {
 
   // Top course categories data and computations for SVG Donut Chart
   const categoryChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    // Simulate slight filter variations
-    const multiplier = months / 12;
-    return [
-      { name: 'Web Developer', count: Math.round(180 * multiplier), color: '#F36F21' },
-      { name: 'Data Science & AI', count: Math.round(140 * multiplier), color: '#12284C' },
-      { name: 'Mobile App', count: Math.round(95 * multiplier), color: '#10B981' },
-      { name: 'Cloud Computing', count: Math.round(65 * multiplier), color: '#3B82F6' },
-      { name: 'Others', count: Math.round(40 * multiplier), color: '#6B7280' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topCategories || [];
+  }, [stats]);
 
   const categoryTotal = useMemo(() => categoryChartData.reduce((sum, c) => sum + c.count, 0), [categoryChartData]);
 
   // Top courses data and computations for SVG Donut Chart
   const topCoursesChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'React Full-Stack', instructor: 'Dr. Jenkins', count: Math.round(120 * multiplier), color: '#F36F21' },
-      { name: 'Java Algorithms', instructor: 'Alice Miller', count: Math.round(95 * multiplier), color: '#10B981' },
-      { name: 'Go Microservices', instructor: 'John Doe', count: Math.round(80 * multiplier), color: '#3B82F6' },
-      { name: 'Python ML', instructor: 'Dr. Jenkins', count: Math.round(50 * multiplier), color: '#6366F1' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topCourses || [];
+  }, [stats]);
 
   const topCoursesTotal = useMemo(() => topCoursesChartData.reduce((sum, c) => sum + c.count, 0), [topCoursesChartData]);
 
   // Top instructors data and computations for SVG Donut Chart
   const topInstructorsChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'Dr. Jenkins', count: Math.round(170 * multiplier), color: '#F36F21' },
-      { name: 'Alice Miller', count: Math.round(115 * multiplier), color: '#12284C' },
-      { name: 'John Doe', count: Math.round(80 * multiplier), color: '#10B981' },
-      { name: 'Sarah Connor', count: Math.round(55 * multiplier), color: '#3B82F6' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topInstructors || [];
+  }, [stats]);
 
   const topInstructorsTotal = useMemo(() => topInstructorsChartData.reduce((sum, c) => sum + c.count, 0), [topInstructorsChartData]);
 
   // Top problems data and computations for SVG Donut Chart
   const topProblemsChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'Two Sum', difficulty: 'EASY', count: Math.round(350 * multiplier), color: '#F36F21' },
-      { name: 'Binary Search', difficulty: 'EASY', count: Math.round(240 * multiplier), color: '#12284C' },
-      { name: 'Longest Path', difficulty: 'HARD', count: Math.round(180 * multiplier), color: '#10B981' },
-      { name: 'Valid Parentheses', difficulty: 'MEDIUM', count: Math.round(150 * multiplier), color: '#3B82F6' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topProblems || [];
+  }, [stats]);
 
   const topProblemsTotal = useMemo(() => topProblemsChartData.reduce((sum, c) => sum + c.count, 0), [topProblemsChartData]);
 
@@ -886,29 +997,65 @@ export const AdminDashboard: React.FC = () => {
       // reload stats
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
-      alert(`Successfully ${status.toLowerCase()} course application.`);
+      showGlobalToast(`Successfully ${status.toLowerCase()} course application.`, "success");
     } catch (error) {
-      alert("Failed to process course approval");
+      showGlobalToast("Failed to process course approval", "error");
     }
   };
 
-  const handleApproveInstructor = (appId: number, status: 'APPROVED' | 'REJECTED') => {
-    setPendingInstructorAction({ appId, status });
-    if (status === 'REJECTED') {
-      setRejectionReasonText('Hồ sơ chưa đạt yêu cầu.');
+  const handleApproveInstructor = async (appId: number, status: 'APPROVED' | 'REJECTED') => {
+    try {
+      const updated = await adminService.approveInstructorApplication(appId, status, "Approved by Admin dashboard panel");
+      setApplications(prev => prev.map(a => a.id === appId ? updated : a));
+      setSelectedAppForReview(null);
+      // reload instructors and stats
+      const [newStats, newInsts] = await Promise.all([
+        adminService.getDashboardStats(),
+        adminService.getInstructors()
+      ]);
+      setStats(newStats);
+      setInstructors(newInsts);
+      showGlobalToast(`Successfully ${status.toLowerCase()} instructor application.`, "success");
+    } catch (error) {
+      showGlobalToast("Failed to process instructor application approval", "error");
     }
   };
 
-  // handleUserStatusChange is declared above with modal support
+  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
+    triggerConfirm(
+      "Change User Status",
+      confirmMsg,
+      async () => {
+        try {
+          const updated = await adminService.setUserLockStatus(userId, newStatus);
+          setUsers(prev => prev.map(u => u.id === userId ? updated : u));
+          if (selectedUserDetail?.id === userId) {
+            setSelectedUserDetail(updated);
+          }
+          showGlobalToast(`User status successfully updated to ${newStatus}`, "success");
+        } catch (error) {
+          showGlobalToast("Failed to update user status", "error");
+        }
+      }
+    );
+  };
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      alert("Please fill in the title and description.");
+      showGlobalToast("Please fill in the title and description.", "error");
       return;
     }
 
     try {
+      const starterTemplates: Record<string, string> = {};
+      if (newProbStarterC) starterTemplates['C'] = newProbStarterC;
+      if (newProbStarterCpp) starterTemplates['C++'] = newProbStarterCpp;
+      if (newProbStarterJava) starterTemplates['Java'] = newProbStarterJava;
+      if (newProbStarterPython) starterTemplates['Python 3'] = newProbStarterPython;
+      if (newProbStarterCsharp) starterTemplates['C#'] = newProbStarterCsharp;
+
       const newProb = await adminService.createProblem({
         title: newProbTitle.trim(),
         description: newProbDesc.trim(),
@@ -925,7 +1072,9 @@ export const AdminDashboard: React.FC = () => {
         memoryLimitKb: newProbMemoryLimit,
         isPublic: newProbIsPublic,
         score: newProbScore,
-        solutions: newProbSolutions.trim()
+        solutions: newProbSolutions.trim(),
+        tags: newProbTags,
+        starterTemplates
       });
 
       setProblems(prev => [...prev, newProb]);
@@ -947,10 +1096,17 @@ export const AdminDashboard: React.FC = () => {
       setNewProbMemoryLimit(128000);
       setNewProbIsPublic(true);
       setNewProbSolutions('');
+      setNewProbTags([]);
+      setNewProbStarterC('');
+      setNewProbStarterCpp('');
+      setNewProbStarterJava('');
+      setNewProbStarterPython('');
+      setNewProbStarterCsharp('');
+      setStarterActiveTab('C');
 
-      alert(`Problem "${newProb.title}" created successfully!`);
+      showGlobalToast(`Problem "${newProb.title}" created successfully!`, "success");
     } catch (error) {
-      alert("Failed to create problem");
+      showGlobalToast("Failed to create problem", "error");
     }
   };
 
@@ -971,6 +1127,13 @@ export const AdminDashboard: React.FC = () => {
     setNewProbMemoryLimit(p.memoryLimitKb);
     setNewProbIsPublic(p.isPublic);
     setNewProbSolutions(p.solutions || '');
+    setNewProbTags(p.tags || []);
+    setNewProbStarterC(p.starterTemplates?.['C'] || '');
+    setNewProbStarterCpp(p.starterTemplates?.['C++'] || '');
+    setNewProbStarterJava(p.starterTemplates?.['Java'] || '');
+    setNewProbStarterPython(p.starterTemplates?.['Python 3'] || '');
+    setNewProbStarterCsharp(p.starterTemplates?.['C#'] || '');
+    setStarterActiveTab('C');
     setIsEditProblemOpen(true);
   };
 
@@ -978,12 +1141,19 @@ export const AdminDashboard: React.FC = () => {
     e.preventDefault();
     if (editingProblemId === null) return;
     if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      alert("Please fill in the title and description.");
+      showGlobalToast("Please fill in the title and description.", "error");
       return;
     }
 
     try {
       const existingProb = problems.find(p => p.id === editingProblemId);
+      const starterTemplates: Record<string, string> = {};
+      if (newProbStarterC) starterTemplates['C'] = newProbStarterC;
+      if (newProbStarterCpp) starterTemplates['C++'] = newProbStarterCpp;
+      if (newProbStarterJava) starterTemplates['Java'] = newProbStarterJava;
+      if (newProbStarterPython) starterTemplates['Python 3'] = newProbStarterPython;
+      if (newProbStarterCsharp) starterTemplates['C#'] = newProbStarterCsharp;
+
       const updatedProb = await adminService.updateProblem(editingProblemId, {
         title: newProbTitle.trim(),
         description: newProbDesc.trim(),
@@ -1000,7 +1170,9 @@ export const AdminDashboard: React.FC = () => {
         memoryLimitKb: newProbMemoryLimit,
         isPublic: newProbIsPublic,
         score: newProbScore,
-        solutions: newProbSolutions.trim()
+        solutions: newProbSolutions.trim(),
+        tags: newProbTags,
+        starterTemplates
       });
 
       setProblems(prev => prev.map(p => p.id === editingProblemId ? updatedProb : p));
@@ -1023,10 +1195,17 @@ export const AdminDashboard: React.FC = () => {
       setNewProbMemoryLimit(128000);
       setNewProbIsPublic(true);
       setNewProbSolutions('');
+      setNewProbTags([]);
+      setNewProbStarterC('');
+      setNewProbStarterCpp('');
+      setNewProbStarterJava('');
+      setNewProbStarterPython('');
+      setNewProbStarterCsharp('');
+      setStarterActiveTab('C');
 
-      alert(`Problem "${updatedProb.title}" updated successfully!`);
+      showGlobalToast(`Problem "${updatedProb.title}" updated successfully!`, "success");
     } catch (error) {
-      alert("Failed to update problem");
+      showGlobalToast("Failed to update problem", "error");
     }
   };
 
@@ -1035,7 +1214,7 @@ export const AdminDashboard: React.FC = () => {
       const updated = await adminService.updateProblemScope(problemId, scope);
       setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
     } catch (error) {
-      alert("Failed to update problem scope.");
+      showGlobalToast("Failed to update problem scope.", "error");
     }
   };
 
@@ -1043,45 +1222,175 @@ export const AdminDashboard: React.FC = () => {
     try {
       const updated = await adminService.updateProblemPublicStatus(problemId, isPublic);
       setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
-      alert(`Problem successfully ${isPublic ? "published" : "made private"}.`);
+      showGlobalToast(`Problem successfully ${isPublic ? "published" : "made private"}.`, "success");
     } catch (error) {
-      alert("Failed to update publication status.");
+      showGlobalToast("Failed to update publication status.", "error");
     }
   };
 
-  const handleActivateProblem = async (problemId: number) => {
-    const countStr = prompt("Add Test Cases to Activate this problem.\nEnter number of test cases to add (e.g. 5, 10):", "5");
-    if (countStr === null) return;
-    const count = parseInt(countStr);
-    if (isNaN(count) || count <= 0) {
-      alert("Please enter a valid positive number.");
-      return;
-    }
+  const handleDeleteProblemClick = async (problemId: number) => {
+    triggerConfirm(
+      "Delete Problem",
+      "Are you sure you want to delete this programming problem? This action cannot be undone.",
+      async () => {
+        try {
+          await adminService.deleteProblem(problemId);
+          setProblems(prev => prev.filter(p => p.id !== problemId));
+          showGlobalToast("Problem deleted successfully.", "success");
+        } catch (error) {
+          showGlobalToast("Failed to delete problem.", "error");
+        }
+      }
+    );
+  };
+
+  const handleOpenTestcaseModal = async (p: AdminProblem) => {
+    setTestcaseProblem(p);
+    setTestcaseTab('manual');
+    setZipFile(null);
+    setIsTestcaseModalOpen(true);
     try {
-      const updated = await adminService.activateProblem(problemId, count);
-      setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
-      alert("Problem successfully activated and moved to Private/Draft Problems!");
+      const existing = await adminService.getProblemTestcases(p.id);
+      if (existing && existing.length > 0) {
+        setTestcasesList(existing.map(tc => ({
+          problemId: tc.problemId,
+          inputData: tc.inputData,
+          expectedOutput: tc.expectedOutput,
+          orderIndex: tc.orderIndex
+        })));
+      } else {
+        setTestcasesList([{ problemId: p.id, inputData: '', expectedOutput: '', orderIndex: 0 }]);
+      }
     } catch (error) {
-      alert("Failed to activate problem.");
+      console.error("Failed to load test cases:", error);
+      setTestcasesList([{ problemId: p.id, inputData: '', expectedOutput: '', orderIndex: 0 }]);
     }
+  };
+
+  const handleSaveTestcases = async () => {
+    if (!testcaseProblem) return;
+    setIsSavingTestcases(true);
+    try {
+      let savedTcs: AdminProblemTestcase[] = [];
+      if (testcaseTab === 'manual') {
+        const invalid = testcasesList.some(tc => !tc.inputData.trim() || !tc.expectedOutput.trim());
+        if (invalid) {
+          showGlobalToast("Please fill in both Input Data and Expected Output for all test cases.", "error");
+          setIsSavingTestcases(false);
+          return;
+        }
+        savedTcs = await adminService.saveProblemTestcases(testcaseProblem.id, testcasesList);
+      } else {
+        if (!zipFile) {
+          showGlobalToast("Please select a .zip archive containing test cases.", "error");
+          setIsSavingTestcases(false);
+          return;
+        }
+        savedTcs = await adminService.uploadTestcaseZip(testcaseProblem.id, zipFile);
+      }
+
+      setProblems(prev => prev.map(p => p.id === testcaseProblem.id ? {
+        ...p,
+        totalTestcases: savedTcs.length,
+        isActive: savedTcs.length > 0,
+        isPublic: savedTcs.length > 0 ? true : p.isPublic
+      } : p));
+
+      showGlobalToast(`Successfully saved ${savedTcs.length} test cases for "${testcaseProblem.title}"!`, "success");
+
+      // Auto-jump/switch to the corresponding scope tab
+      const scope = testcaseProblem.problemScope;
+      if (scope === 'PRACTICE') {
+        setProblemSubTab('practice');
+      } else if (scope === 'CONTEST') {
+        setProblemSubTab('contest');
+      } else if (scope === 'SHARED') {
+        setProblemSubTab('shared');
+      }
+
+      setIsTestcaseModalOpen(false);
+      setTestcaseProblem(null);
+      setTestcasesList([]);
+      setZipFile(null);
+    } catch (error) {
+      showGlobalToast("Failed to save test cases.", "error");
+    } finally {
+      setIsSavingTestcases(false);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.name.endsWith('.zip')) {
+        setZipFile(file);
+      } else {
+        showGlobalToast("Only .zip files are supported.", "error");
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.name.endsWith('.zip')) {
+        setZipFile(file);
+      } else {
+        showGlobalToast("Only .zip files are supported.", "error");
+      }
+    }
+  };
+
+  const handleAddManualRow = () => {
+    if (!testcaseProblem) return;
+    setTestcasesList(prev => [...prev, {
+      problemId: testcaseProblem.id,
+      inputData: '',
+      expectedOutput: '',
+      orderIndex: prev.length
+    }]);
+  };
+
+  const handleRemoveManualRow = (index: number) => {
+    setTestcasesList(prev => {
+      const filtered = prev.filter((_, idx) => idx !== index);
+      return filtered.map((tc, idx) => ({ ...tc, orderIndex: idx }));
+    });
+  };
+
+  const handleManualRowChange = (index: number, field: 'inputData' | 'expectedOutput', value: string) => {
+    setTestcasesList(prev => prev.map((tc, idx) => idx === index ? { ...tc, [field]: value } : tc));
   };
 
   const handleCreateContestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newContestTitle.trim() || !newContestStartTime || !newContestEndTime) {
-      alert("Please fill in the title and duration dates.");
+      showGlobalToast("Please fill in the title and duration dates.", "error");
       return;
     }
 
     if (newContestPassword !== newContestConfirmPassword) {
-      alert("Passwords do not match!");
+      showGlobalToast("Passwords do not match!", "error");
       return;
     }
 
     const start = new Date(newContestStartTime).getTime();
     const end = new Date(newContestEndTime).getTime();
     if (end <= start) {
-      alert("End Time must be after Start Time!");
+      showGlobalToast("End Time must be after Start Time!", "error");
       return;
     }
 
@@ -1114,9 +1423,9 @@ export const AdminDashboard: React.FC = () => {
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
 
-      alert(`Contest "${newContest.title}" created successfully!`);
+      showGlobalToast(`Contest "${newContest.title}" created successfully!`, "success");
     } catch (error) {
-      alert("Failed to create contest");
+      showGlobalToast("Failed to create contest", "error");
     }
   };
 
@@ -1154,6 +1463,8 @@ export const AdminDashboard: React.FC = () => {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'PRACTICE';
       } else if (problemSubTab === 'contest') {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'CONTEST';
+      } else if (problemSubTab === 'shared') {
+        matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'SHARED';
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -1237,8 +1548,8 @@ export const AdminDashboard: React.FC = () => {
         {/* Sidebar Nav */}
         <nav className="flex-1 flex flex-col gap-1.5 py-6 px-2.5 overflow-y-auto">
           <a
-            href="#dashboard"
-            onClick={() => setActiveTab('dashboard')}
+            href="/admin"
+            onClick={(e) => { e.preventDefault(); navigate('/admin'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1247,8 +1558,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#courses"
-            onClick={() => setActiveTab('courses')}
+            href="/admin/courses"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/courses'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'courses' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1257,8 +1568,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#problems"
-            onClick={() => setActiveTab('problems')}
+            href="/admin/problems"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/problems'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'problems' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1267,8 +1578,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#contest"
-            onClick={() => setActiveTab('contest')}
+            href="/admin/contests"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/contests'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'contest' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1277,8 +1588,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#instructor"
-            onClick={() => setActiveTab('instructor')}
+            href="/admin/instructors"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/instructors'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'instructor' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1286,66 +1597,19 @@ export const AdminDashboard: React.FC = () => {
             <span className="sidebar-text text-sm">Instructor</span>
           </a>
 
-          {/* Nav: Users with collapsible sub-items */}
-          <div className="flex flex-col">
-            <button
-              onClick={() => {
-                setActiveTab(activeTab === 'appeals' ? 'appeals' : 'users');
-              }}
-              className={`group flex items-center justify-between gap-3 px-3 py-3 rounded-xl transition-all duration-200 border-none text-left bg-transparent cursor-pointer ${
-                activeTab === 'users' || activeTab === 'appeals'
-                  ? 'bg-white/10 text-white font-bold border-l-4 border-primary'
-                  : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
+          <a
+            href="/admin/users"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/users'); }}
+            className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'users' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'users' || activeTab === 'appeals' ? 'text-primary icon-fill' : ''}`}>group</span>
-                <span className="sidebar-text text-sm">Users</span>
-              </div>
-              <span className="material-symbols-outlined text-sm text-slate-400">
-                {(activeTab === 'users' || activeTab === 'appeals') ? 'expand_less' : 'expand_more'}
-              </span>
-            </button>
-
-            {/* Sub-menu if active or expanded */}
-            {(activeTab === 'users' || activeTab === 'appeals') && (
-              <div className="pl-8 pr-2 py-1.5 flex flex-col gap-1 bg-white/5 ml-3 mt-1 rounded-r-lg border-l border-white/10">
-                <a
-                  href="#users"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveTab('users');
-                  }}
-                  className={`text-[11px] py-1 px-2.5 rounded-md text-left transition-all ${
-                    activeTab === 'users' ? 'bg-white/10 text-white font-bold' : 'text-slate-400 hover:text-white font-semibold'
-                  }`}
-                >
-                  Users List
-                </a>
-                <a
-                  href="#appeals"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveTab('appeals');
-                  }}
-                  className={`text-[11px] py-1 px-2.5 rounded-md text-left transition-all flex items-center justify-between gap-1.5 ${
-                    activeTab === 'appeals' ? 'bg-white/10 text-white font-bold' : 'text-slate-400 hover:text-white font-semibold'
-                  }`}
-                >
-                  <span>Account Lock Appeals</span>
-                  {pendingAppealsCount > 0 && (
-                    <span className="bg-amber-500 text-white font-black text-[9px] px-1.5 py-0.5 rounded-full shrink-0 animate-pulse">
-                      {pendingAppealsCount}
-                    </span>
-                  )}
-                </a>
-              </div>
-            )}
-          </div>
+          >
+            <span className={`material-symbols-outlined text-[22px] transition-colors group-hover:text-primary ${activeTab === 'users' ? 'text-primary icon-fill' : ''}`}>group</span>
+            <span className="sidebar-text text-sm">Users</span>
+          </a>
 
           <a
-            href="#financial"
-            onClick={() => setActiveTab('financial')}
+            href="/admin/financial"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/financial'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'financial' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -3376,6 +3640,16 @@ export const AdminDashboard: React.FC = () => {
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
                     Contest Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'CONTEST').length})
                   </button>
+                  <button
+                    onClick={() => setProblemSubTab('shared')}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'shared'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-primary'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">share</span>
+                    Shared Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'SHARED').length})
+                  </button>
                 </div>
 
                 {/* Problems List Table */}
@@ -3413,7 +3687,15 @@ export const AdminDashboard: React.FC = () => {
                                 {totalSubs.toLocaleString()}
                               </td>
                               <td className="py-4 px-6 text-right font-mono font-bold text-slate-800">
-                                {acceptedRate}%
+                                <div className="flex flex-col items-end gap-1.5">
+                                  <span>{acceptedRate}%</span>
+                                  <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                    <div 
+                                      className="h-full bg-emerald-500 rounded-full transition-all" 
+                                      style={{ width: `${acceptedRate}%` }}
+                                    />
+                                  </div>
+                                </div>
                               </td>
                               <td className="py-4 px-6 text-center">
                                 <select
@@ -3458,7 +3740,7 @@ export const AdminDashboard: React.FC = () => {
                                 <div className="flex items-center justify-center gap-2">
                                   {!p.isActive ? (
                                     <button
-                                      onClick={() => handleActivateProblem(p.id)}
+                                      onClick={() => handleOpenTestcaseModal(p)}
                                       className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
                                     >
                                       <span className="material-symbols-outlined text-[14px]">tune</span> Add Test Cases
@@ -3471,6 +3753,12 @@ export const AdminDashboard: React.FC = () => {
                                       <span className="material-symbols-outlined text-[14px]">edit</span> Edit
                                     </button>
                                   )}
+                                  <button
+                                    onClick={() => handleDeleteProblemClick(p.id)}
+                                    className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">delete</span> Delete
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -3599,27 +3887,9 @@ export const AdminDashboard: React.FC = () => {
                                 <h4 className="font-display font-bold text-base text-brand-blue">{app.fullName}</h4>
                                 <p className="text-xs text-text-muted">{app.email}</p>
                               </div>
-                              <div className="flex flex-col items-end gap-1.5">
-                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                  app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
-                                  }`}>{app.status}</span>
-                                <div className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                                  app.aiScore !== undefined && app.aiScore !== null
-                                    ? app.aiScore >= 80
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                      : app.aiScore >= 50
-                                      ? 'bg-amber-50 text-amber-700 border-amber-100'
-                                      : 'bg-rose-50 text-rose-700 border-rose-100'
-                                    : 'bg-slate-50 text-slate-500 border-slate-100'
-                                }`}>
-                                  <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-                                  <span>
-                                    {app.aiScore !== undefined && app.aiScore !== null 
-                                      ? `AI Score: ${app.aiScore}/100` 
-                                      : 'AI: Scanning'}
-                                  </span>
-                                </div>
-                              </div>
+                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
+                                app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
+                                }`}>{app.status}</span>
                             </div>
                             <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl line-clamp-3 italic">"{app.introduction}"</p>
                             <a
@@ -3632,31 +3902,22 @@ export const AdminDashboard: React.FC = () => {
                             </a>
                           </div>
 
-                          <div className="flex gap-2.5 border-t border-slate-100 pt-4 mt-4">
-                            <button
-                              onClick={() => setSelectedAppForReview(app)}
-                              className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs py-2 rounded-xl transition-all border border-slate-200/60 flex items-center justify-center gap-1"
-                            >
-                              <span className="material-symbols-outlined text-sm">visibility</span>
-                              Review & AI Summary
-                            </button>
-                            {app.status === 'PENDING' && (
-                              <>
-                                <button
-                                  onClick={() => handleApproveInstructor(app.id, 'APPROVED')}
-                                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => handleApproveInstructor(app.id, 'REJECTED')}
-                                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                          </div>
+                          {app.status === 'PENDING' && (
+                            <div className="flex gap-3 border-t border-slate-100 pt-4 mt-4">
+                              <button
+                                onClick={() => handleApproveInstructor(app.id, 'APPROVED')}
+                                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleApproveInstructor(app.id, 'REJECTED')}
+                                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -3750,15 +4011,7 @@ export const AdminDashboard: React.FC = () => {
                                 title={u.isOnline ? 'Online' : 'Offline'}
                               ></span>
                             </td>
-                            <td className="py-4 px-6 font-bold text-slate-900">
-                              <div>{u.name}</div>
-                              {u.lockAppeal && (
-                                <div className="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-750 rounded-lg px-2.5 py-1 mt-1.5 inline-flex items-center gap-1 max-w-xs shadow-sm" title={u.lockAppeal}>
-                                  <span className="material-symbols-outlined text-[12px] text-amber-500 font-black animate-pulse">warning</span>
-                                  <span className="truncate">Appeal: {u.lockAppeal}</span>
-                                </div>
-                              )}
-                            </td>
+                            <td className="py-4 px-6 font-bold text-slate-900">{u.name}</td>
                             <td className="py-4 px-6">{u.email}</td>
                             <td className="py-4 px-6">{new Date(u.registerDate).toLocaleDateString()}</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{u.balance.toLocaleString()} ₫</td>
@@ -3770,14 +4023,14 @@ export const AdminDashboard: React.FC = () => {
                                 className={`border rounded-lg pl-2.5 pr-8 py-1.5 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${
                                   u.status === 'ACTIVE'
                                     ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                    : 'bg-red-50 text-red-650 border-red-200'
+                                    : 'bg-red-50 text-red-600 border-red-200'
                                 }`}
                               >
                                 <option value="ACTIVE" className="bg-white text-emerald-600 font-bold">ACTIVE</option>
                                 <option value="LOCKED" className="bg-white text-red-600 font-bold">LOCKED</option>
                               </select>
                             </td>
-                            <td className="py-4 px-6 text-right flex items-center justify-end gap-2">
+                            <td className="py-4 px-6 text-right">
                               {u.status === 'LOCKED' && (
                                 <button
                                   onClick={() => handleUserStatusChange(u.id, 'ACTIVE')}
@@ -3786,13 +4039,6 @@ export const AdminDashboard: React.FC = () => {
                                   Unlock
                                 </button>
                               )}
-                              <button
-                                onClick={() => setSelectedUserDetail(u)}
-                                className="material-symbols-outlined text-slate-400 hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"
-                                title="View purchases"
-                              >
-                                receipt_long
-                              </button>
                             </td>
                           </tr>
                         ))}
@@ -3800,83 +4046,6 @@ export const AdminDashboard: React.FC = () => {
                     </table>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* TAB: USER APPEALS */}
-            {activeTab === 'appeals' && (
-              <div className="bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between text-left">
-                <div className="border-b border-slate-100 pb-5 mb-5">
-                  <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-lg text-primary">gavel</span>
-                    Account Lock Appeals Management
-                  </h3>
-                  <p className="text-xs text-text-muted mt-0.5">Review appeals submitted by locked users, and approve or decline them.</p>
-                </div>
-
-                {/* Appeals Content */}
-                {users.filter(u => u.status === 'LOCKED' && u.lockAppeal).length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
-                    <span className="material-symbols-outlined text-5xl text-slate-300">check_circle</span>
-                    <p className="text-sm font-bold text-slate-800">No appeal requests pending</p>
-                    <p className="text-xs text-text-muted max-w-sm">All appeals have been resolved. There are no pending requests to resolve! ✨</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
-                    {users
-                      .filter(u => u.status === 'LOCKED' && u.lockAppeal)
-                      .map((u) => (
-                        <div key={u.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col gap-4 text-left shadow-sm">
-                          <div className="flex justify-between items-start border-b border-slate-200/60 pb-3">
-                            <div>
-                              <h4 className="font-bold text-slate-900 text-sm">{u.name}</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">{u.email}</p>
-                            </div>
-                            <span className="text-[10px] font-black uppercase bg-red-50 text-red-650 border border-red-200/55 px-2.5 py-0.5 rounded-md">Locked Account</span>
-                          </div>
-
-                          <div className="flex flex-col gap-1.5 bg-white/70 border border-slate-200/50 rounded-xl p-3.5 shadow-inner">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Original Lock Reason:</span>
-                            <p className="text-xs text-slate-650 leading-relaxed font-semibold">{u.lockReason || 'Violation of terms.'}</p>
-                          </div>
-
-                          {/* Appeal Note Section */}
-                          <div className="flex flex-col gap-2 bg-amber-50/45 border border-amber-200/50 rounded-xl p-4">
-                            <div className="flex items-center gap-1.5 text-amber-800 text-[10px] font-black uppercase tracking-wider">
-                              <span className="material-symbols-outlined text-[13px] font-black animate-pulse">warning</span>
-                              User Appeal Message:
-                            </div>
-                            <p className="text-xs font-semibold text-slate-700 italic leading-relaxed">
-                              "{u.lockAppeal}"
-                            </p>
-                          </div>
-
-                          <div className="flex gap-3 mt-1.5 border-t border-slate-200/65 pt-3.5">
-                            {/* Approve Appeal (Unlock Account) */}
-                            <button
-                              onClick={() => setApprovingAppealUser(u)}
-                              className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-sm shadow-emerald-100 flex items-center justify-center gap-1 cursor-pointer border-none"
-                            >
-                              <span className="material-symbols-outlined text-base">lock_open</span>
-                              <span>Approve &amp; Unlock</span>
-                            </button>
-
-                            {/* Decline Appeal (Decline Appeal) */}
-                            <button
-                              onClick={() => {
-                                setDecliningAppealUser(u);
-                                setDeclineReasonText('Appeal declined. Reason: [Enter details]');
-                              }}
-                              className="flex-1 bg-red-500 hover:bg-red-650 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-sm shadow-red-100 flex items-center justify-center gap-1 cursor-pointer border-none"
-                            >
-                              <span className="material-symbols-outlined text-base">block</span>
-                              <span>Decline</span>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
               </div>
             )}
 
@@ -3986,9 +4155,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.gross.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total sales volume generated
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total sales volume generated</span>
+                      <button onClick={() => setActiveFinancialModal('gross')} className="text-[10px] text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 2: Instructor Share (70%) */}
@@ -4003,9 +4175,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.instructorPayouts.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      70% split allocated to lecturers
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">70% split allocated to lecturers</span>
+                      <button onClick={() => setActiveFinancialModal('instructor')} className="text-[10px] text-violet-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 3: Platform Cut (30%) */}
@@ -4020,9 +4195,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.platformNet.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      System shares from courses
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">System shares from courses</span>
+                      <button onClick={() => setActiveFinancialModal('platform')} className="text-[10px] text-indigo-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 4: Contest Prizes */}
@@ -4037,9 +4215,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.contestRewards.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total cash rewarded to top users
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total cash rewarded to top users</span>
+                      <button onClick={() => setActiveFinancialModal('awards')} className="text-[10px] text-rose-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 5: Net Operating Profit */}
@@ -4056,9 +4237,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.netProfit.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Platform Share after expenses
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Platform Share after expenses</span>
+                      <button onClick={() => setActiveFinancialModal('profit')} className="text-[10px] text-emerald-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 6: Courses Sold */}
@@ -4073,9 +4257,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.coursesSold.toLocaleString()} copies
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total purchased copies count
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total purchased copies count</span>
+                      <button onClick={() => setActiveFinancialModal('sales')} className="text-[10px] text-amber-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -4181,7 +4368,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                           <div className="flex justify-between items-center gap-4">
                             <span className="text-slate-400">Platform Cut:</span>
-                            <span className="font-mono text-[#12284C]">
+                            <span className="font-mono text-[#38bdf8]">
                               {financialMonthlyRecords[hoveredMonthIndex].platformShare.toLocaleString()} ₫
                             </span>
                           </div>
@@ -4226,7 +4413,7 @@ export const AdminDashboard: React.FC = () => {
                         <path
                           d={`M 50 230 L ${financialMonthlyRecords
                             .map((item, idx) => `${50 + idx * 49} ${230 - (item.coursesSold / 60) * 200}`)
-                            .join(' L ')} L ${50 + 11 * 49} 230 Z`}
+                            .join(' L ')} L ${50 + (financialMonthlyRecords.length - 1) * 49} 230 Z`}
                           fill="url(#courses-sales-grad)"
                         />
 
@@ -4288,12 +4475,17 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Table: Top-Selling Courses Table - occupies 100% full width */}
                 <div className="w-full bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
-                      Top Revenue Generating Courses
-                    </h3>
-                    <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
+                        Top Revenue Generating Courses
+                      </h3>
+                      <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                    </div>
+                    <button onClick={() => setActiveFinancialModal('courses-sold-all')} className="text-xs text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors border border-blue-100 hover:bg-blue-50/50 px-3 py-1.5 rounded-xl">
+                      Xem tất cả <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
                   </div>
 
                   <div className="overflow-x-auto mt-4">
@@ -4309,12 +4501,12 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
-                        {[
+                        {(financialStats?.topRevenueCourses || [
                           { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
                           { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
                           { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
                           { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
-                        ].map((c, i) => (
+                        ]).slice(0, 10).map((c, i) => (
                           <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                             <td className="py-3 px-4 font-bold text-slate-900">{c.name}</td>
                             <td className="py-3 px-4 text-slate-500 font-extrabold">{c.tutor}</td>
@@ -4361,159 +4553,24 @@ export const AdminDashboard: React.FC = () => {
               <div>
                 <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Curriculum Vitae File</h4>
                 <a href={selectedAppForReview.cvUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-bold text-sm bg-orange-50 p-3 rounded-xl w-full border border-orange-100">
-                  <span className="material-symbols-outlined text-base">picture_as_pdf</span> Open CV document ({selectedAppForReview.fullName} CV)
+                  <span className="material-symbols-outlined text-base">picture_as_pdf</span> Open CV document (Elena Rostova CV)
                 </a>
               </div>
 
-              {/* AI Audit Report Card */}
-              <div className={`p-4 rounded-xl border ${
-                selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null
-                  ? selectedAppForReview.aiScore >= 80
-                    ? 'bg-emerald-50/50 border-emerald-100'
-                    : selectedAppForReview.aiScore >= 50
-                    ? 'bg-amber-50/50 border-amber-100'
-                    : 'bg-rose-50/50 border-rose-100'
-                  : 'bg-slate-50 border-slate-200'
-              }`}>
-                <div className="flex justify-between items-center mb-2.5">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-700">
-                    <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-                    AI Pre-Screening Audit
-                  </div>
-                  {selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null ? (
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
-                      selectedAppForReview.aiScore >= 80
-                        ? 'bg-emerald-500 text-white'
-                        : selectedAppForReview.aiScore >= 50
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-rose-500 text-white'
-                    }`}>
-                      AI SCORE: {selectedAppForReview.aiScore}/100
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-black uppercase bg-slate-200 text-slate-600 px-2 py-0.5 rounded animate-pulse">
-                      Analyzing CV...
-                    </span>
-                  )}
-                </div>
-
-                {selectedAppForReview.aiSummary ? (
-                  <p className="text-slate-600 leading-relaxed text-xs italic bg-white/70 p-3 rounded-lg border border-slate-100">
-                    "{selectedAppForReview.aiSummary}"
-                  </p>
-                ) : (
-                  <p className="text-slate-400 italic text-[11px] p-2 bg-white/50 rounded-lg">
-                    CV analysis score and summary are being generated. Please wait and refresh if you just submitted.
-                  </p>
-                )}
+              <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
+                <button
+                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'APPROVED')}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
+                >
+                  Approve Application
+                </button>
+                <button
+                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'REJECTED')}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
+                >
+                  Reject Application
+                </button>
               </div>
-
-              {selectedAppForReview.status === 'PENDING' ? (
-                <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
-                  <button
-                    onClick={() => handleApproveInstructor(selectedAppForReview.id, 'APPROVED')}
-                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                  >
-                    Approve Application
-                  </button>
-                  <button
-                    onClick={() => handleApproveInstructor(selectedAppForReview.id, 'REJECTED')}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                  >
-                    Reject Application
-                  </button>
-                </div>
-              ) : (
-                <div className="border-t border-slate-150 pt-4 mt-3 flex justify-between items-center">
-                  <span className="text-[10px] font-semibold text-slate-400">
-                    Reviewed Status: <strong className={selectedAppForReview.status === 'APPROVED' ? 'text-emerald-600' : 'text-red-500'}>{selectedAppForReview.status}</strong>
-                  </span>
-                  <button
-                    onClick={() => setSelectedAppForReview(null)}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl border border-slate-200"
-                  >
-                    Close
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: INSTRUCTOR APPLICATION ACTION CONFIRMATION ================= */}
-      {pendingInstructorAction && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2 py-0.5 rounded-md">
-                  {pendingInstructorAction.status === 'APPROVED' ? 'Approve Instructor' : 'Reject Instructor'}
-                </span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
-                  {pendingInstructorAction.status === 'APPROVED' ? 'Confirm Approval' : 'Confirm Rejection'}
-                </h3>
-              </div>
-              <button onClick={() => setPendingInstructorAction(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
-            </div>
-
-            <div className="flex flex-col gap-4 text-sm mb-6">
-              {pendingInstructorAction.status === 'APPROVED' ? (
-                <p className="text-slate-650 leading-relaxed text-sm">
-                  Are you sure you want to approve this instructor application? This will grant the user the Instructor role on the platform.
-                </p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <p className="text-slate-650 leading-relaxed text-sm">
-                    Please provide a rejection reason for this instructor application. The applicant will see this reason on their status page.
-                  </p>
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-2">Rejection Reason</label>
-                  <textarea
-                    value={rejectionReasonText}
-                    onChange={(e) => setRejectionReasonText(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all min-h-[90px]"
-                    placeholder="Enter rejection reason here..."
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3 border-t border-slate-100 pt-4">
-              <button
-                onClick={() => setPendingInstructorAction(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-slate-200/60"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  const appId = pendingInstructorAction.appId;
-                  const status = pendingInstructorAction.status;
-                  const note = status === 'REJECTED' ? rejectionReasonText.trim() || 'Hồ sơ chưa đạt yêu cầu.' : 'Đã phê duyệt đơn ứng tuyển';
-                  
-                  setPendingInstructorAction(null);
-                  try {
-                    const updated = await adminService.approveInstructorApplication(appId, status, note);
-                    setApplications(prev => prev.map(a => a.id === appId ? updated : a));
-                    setSelectedAppForReview(null);
-                    // reload instructors and stats
-                    const [newStats, newInsts] = await Promise.all([
-                      adminService.getDashboardStats(),
-                      adminService.getInstructors()
-                    ]);
-                    setStats(newStats);
-                    setInstructors(newInsts);
-                    showAdminToast(`Successfully ${status.toLowerCase()} instructor application.`, 'success');
-                  } catch (error) {
-                    showAdminToast("Failed to process instructor application approval.", 'error');
-                  }
-                }}
-                className={`flex-1 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm ${
-                  pendingInstructorAction.status === 'APPROVED' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-red-500 hover:bg-red-600'
-                }`}
-              >
-                {pendingInstructorAction.status === 'APPROVED' ? 'Approve' : 'Reject'}
-              </button>
             </div>
           </div>
         </div>
@@ -4546,220 +4603,6 @@ export const AdminDashboard: React.FC = () => {
                 {selectedUserDetail.purchasedCourses.length === 0 && (
                   <p className="text-xs text-text-muted italic bg-slate-50 p-4 rounded-xl text-center">This user has not purchased any courses yet.</p>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: CONFIRM LOCK / UNLOCK USER ================= */}
-      {userLockAction && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left bg-white">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                  userLockAction.newStatus === 'LOCKED' ? 'bg-red-50 text-red-650' : 'bg-emerald-50 text-emerald-650'
-                }`}>
-                  {userLockAction.newStatus === 'LOCKED' ? 'Lock Account' : 'Unlock Account'}
-                </span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
-                  {userLockAction.newStatus === 'LOCKED' ? 'Confirm Account Lock' : 'Confirm Account Unlock'}
-                </h3>
-              </div>
-              <button onClick={() => setUserLockAction(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer">close</button>
-            </div>
-
-            <div className="flex items-start gap-3.5 bg-slate-50 p-4 rounded-xl border border-slate-150 mb-6">
-              <span className={`material-symbols-outlined text-3xl shrink-0 mt-0.5 ${
-                userLockAction.newStatus === 'LOCKED' ? 'text-red-500' : 'text-emerald-500'
-              }`}>
-                {userLockAction.newStatus === 'LOCKED' ? 'lock' : 'lock_open'}
-              </span>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-slate-700">Target User: {userLockAction.userName}</p>
-                <p className="text-xs text-text-muted leading-relaxed">
-                  {userLockAction.newStatus === 'LOCKED'
-                    ? 'Are you sure you want to lock this user? They will be immediately blocked from signing in or using any platform services.'
-                    : 'Are you sure you want to unlock this user? They will be restored and able to log in and access their wallet and courses.'}
-                </p>
-              </div>
-            </div>
-
-            {userLockAction.newStatus === 'LOCKED' && (
-              <div className="mb-6">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">Lock Reason:</label>
-                <textarea
-                  value={customLockReason}
-                  onChange={(e) => setCustomLockReason(e.target.value)}
-                  placeholder="Enter the reason why you are locking this user (e.g. Terms of Service violation...)"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-red-500 transition-colors font-medium text-slate-700 resize-none"
-                  rows={3}
-                />
-              </div>
-            )}
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setUserLockAction(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-slate-200/60 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUserStatusChangeConfirm}
-                className={`flex-1 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm cursor-pointer border-none ${
-                  userLockAction.newStatus === 'LOCKED' ? 'bg-red-500 hover:bg-red-650 shadow-red-200' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-250'
-                }`}
-              >
-                {userLockAction.newStatus === 'LOCKED' ? 'Lock Account' : 'Unlock Account'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: DECLINE APPEAL ================= */}
-      {decliningAppealUser && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left bg-white">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-red-50 text-red-650">
-                  Decline Appeal
-                </span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
-                  Decline Appeal
-                </h3>
-              </div>
-              <button onClick={() => setDecliningAppealUser(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer">close</button>
-            </div>
-
-            <div className="space-y-4 mb-6">
-              <p className="text-xs text-text-muted leading-relaxed">
-                You are declining the appeal from <strong>{decliningAppealUser.name}</strong>. Please enter the reason for rejection. This reason will be displayed to the user on their locked screen.
-              </p>
-
-              <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500">Rejection Reason:</label>
-                <textarea
-                  value={declineReasonText}
-                  onChange={(e) => setDeclineReasonText(e.target.value)}
-                  placeholder="Enter rejection reason..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-red-500 transition-colors font-medium text-slate-700 resize-none outline-none"
-                  rows={3}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDecliningAppealUser(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-slate-200/60 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const updated = await adminService.setUserLockStatus(decliningAppealUser.id, 'LOCKED', declineReasonText);
-                    setUsers(prev => prev.map(item => item.id === decliningAppealUser.id ? updated : item));
-                    setDecliningAppealUser(null);
-                    showAdminToast(`Successfully declined appeal from account ${updated.name}`, 'info');
-                  } catch (error) {
-                    showAdminToast("Error declining appeal", 'error');
-                  }
-                }}
-                disabled={!declineReasonText.trim()}
-                className="flex-1 bg-red-500 hover:bg-red-650 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm cursor-pointer border-none disabled:opacity-50"
-              >
-                Confirm Decline
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: APPROVE APPEAL & UNLOCK ================= */}
-      {approvingAppealUser && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full overflow-hidden" style={{ animation: 'fadeInScale 0.2s ease-out' }}>
-            {/* Green header stripe */}
-            <div className="h-1 w-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-green-500"></div>
-
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex justify-between items-start mb-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-emerald-600 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock_open</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                      Approve Appeal
-                    </span>
-                    <h3 className="font-display font-black text-xl text-brand-blue mt-1">Approve &amp; Unlock Account</h3>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setApprovingAppealUser(null)}
-                  className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer text-xl"
-                >
-                  close
-                </button>
-              </div>
-
-              {/* User Info */}
-              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-4 mb-5 flex items-center gap-3">
-                <div className="w-9 h-9 bg-white border border-slate-200 rounded-full flex items-center justify-center shrink-0 shadow-sm">
-                  <span className="material-symbols-outlined text-slate-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">{approvingAppealUser.name}</p>
-                  <p className="text-xs text-text-muted">{approvingAppealUser.email}</p>
-                </div>
-                <span className="ml-auto text-[10px] font-black uppercase bg-red-50 text-red-600 border border-red-200/55 px-2 py-0.5 rounded-md">Locked</span>
-              </div>
-
-              {/* Appeal preview */}
-              {approvingAppealUser.lockAppeal && (
-                <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 mb-5">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-amber-700 mb-1.5">User's Appeal Message</p>
-                  <p className="text-xs font-medium text-slate-700 italic leading-relaxed">"{approvingAppealUser.lockAppeal}"</p>
-                </div>
-              )}
-
-              {/* Confirmation text */}
-              <p className="text-xs text-text-muted leading-relaxed mb-6">
-                This will <strong className="text-emerald-600">unlock the account</strong> of{' '}
-                <strong className="text-slate-800">{approvingAppealUser.name}</strong> and allow them full access to the platform again. This action can be reversed later if needed.
-              </p>
-
-              {/* Actions */}
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setApprovingAppealUser(null)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-xl transition-all border border-slate-200/60 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      const updated = await adminService.setUserLockStatus(approvingAppealUser.id, 'ACTIVE');
-                      setUsers(prev => prev.map(item => item.id === approvingAppealUser.id ? updated : item));
-                      setApprovingAppealUser(null);
-                      showAdminToast(`Successfully approved appeal and unlocked ${updated.name}`, 'success');
-                    } catch (error) {
-                      showAdminToast('Failed to approve appeal', 'error');
-                    }
-                  }}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-sm shadow-emerald-100 cursor-pointer border-none flex items-center justify-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-base">lock_open</span>
-                  <span>Approve &amp; Unlock</span>
-                </button>
               </div>
             </div>
           </div>
@@ -4799,6 +4642,13 @@ export const AdminDashboard: React.FC = () => {
                   setNewProbMemoryLimit(128000);
                   setNewProbIsPublic(true);
                   setNewProbSolutions('');
+                  setNewProbTags([]);
+                  setNewProbStarterC('');
+                  setNewProbStarterCpp('');
+                  setNewProbStarterJava('');
+                  setNewProbStarterPython('');
+                  setNewProbStarterCsharp('');
+                  setStarterActiveTab('C');
                 }}
                 className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -4831,6 +4681,38 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Tags Section */}
+              {allTags.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-muted">Problem Tags</label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {allTags.map(tag => {
+                      const isSelected = newProbTags.includes(tag.name);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setNewProbTags(newProbTags.filter(t => t !== tag.name));
+                            } else {
+                              setNewProbTags([...newProbTags, tag.name]);
+                            }
+                          }}
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all border ${
+                            isSelected 
+                              ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-extrabold' 
+                              : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          }`}
+                        >
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Problem Description *</label>
@@ -4884,6 +4766,74 @@ export const AdminDashboard: React.FC = () => {
                 <input type="text" value={newProbHint} onChange={e => setNewProbHint(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Tip or pointer..." />
               </div>
 
+              {/* Starter Templates Tabbed Editor */}
+              <div className="flex flex-col gap-1 border border-slate-200/60 rounded-2xl p-4 bg-slate-50/50">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-text-muted font-black uppercase tracking-wider text-[10px]">Starter Code Templates (Optional)</label>
+                  <div className="flex gap-1.5">
+                    {(['C', 'C++', 'Java', 'Python 3', 'C#'] as const).map(lang => (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setStarterActiveTab(lang)}
+                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
+                          starterActiveTab === lang 
+                            ? 'bg-indigo-600 text-white shadow-sm' 
+                            : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-100'
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {starterActiveTab === 'C' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterC}
+                    onChange={e => setNewProbStarterC(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="void solve() {&#10;}"
+                  />
+                )}
+                {starterActiveTab === 'C++' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterCpp}
+                    onChange={e => setNewProbStarterCpp(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution {&#10;public:&#10;    void solve() {&#10;    }&#10;};"
+                  />
+                )}
+                {starterActiveTab === 'Java' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterJava}
+                    onChange={e => setNewProbStarterJava(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution {&#10;    public void solve() {&#10;    }&#10;}"
+                  />
+                )}
+                {starterActiveTab === 'Python 3' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterPython}
+                    onChange={e => setNewProbStarterPython(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution:&#10;    def solve(self):&#10;        pass"
+                  />
+                )}
+                {starterActiveTab === 'C#' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterCsharp}
+                    onChange={e => setNewProbStarterCsharp(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="public class Solution {&#10;    public void Solve() {&#10;    }&#10;}"
+                  />
+                )}
+              </div>
+
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Solution Code</label>
                 <textarea rows={2} value={newProbSolutions} onChange={e => setNewProbSolutions(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono" placeholder="Sample solution code..." />
@@ -4894,13 +4844,263 @@ export const AdminDashboard: React.FC = () => {
                 <label className="text-slate-700">Make this problem public immediately</label>
               </div>
 
-              <button
-                type="submit"
-                className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4"
-              >
-                {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
-              </button>
+              <div className="flex gap-4 mt-4 w-full">
+                {isEditProblemOpen && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentProb = problems.find(p => p.id === editingProblemId);
+                      if (currentProb) {
+                        handleOpenTestcaseModal(currentProb);
+                      }
+                    }}
+                    className="flex-1 bg-white hover:bg-slate-50 text-indigo-600 border border-indigo-200 hover:border-indigo-300 font-bold text-sm py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base font-black">tune</span>
+                    Edit Test Cases
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className={`${isEditProblemOpen ? 'flex-1' : 'w-full'} bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md cursor-pointer`}
+                >
+                  {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
+                </button>
+              </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: TESTCASE BUILDER ================= */}
+      {isTestcaseModalOpen && testcaseProblem && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200/50 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col animate-fade-in text-left overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex justify-between items-start p-6 border-b border-slate-150/70">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-orange-50 px-2 py-0.5 rounded-md">
+                  Problem testcases
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  Manage Test Cases
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Define inputs and outputs for <span className="font-bold text-slate-800">"{testcaseProblem.title}"</span>.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsTestcaseModalOpen(false);
+                  setTestcaseProblem(null);
+                  setTestcasesList([]);
+                  setZipFile(null);
+                }}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors cursor-pointer border-none bg-transparent"
+              >
+                close
+              </button>
+            </div>
+
+            {/* Tab Selector */}
+            <div className="flex border-b border-slate-150/50 px-6 bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setTestcaseTab('manual')}
+                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
+                  testcaseTab === 'manual'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm font-black">edit_note</span>
+                Manual test cases ({testcasesList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTestcaseTab('upload')}
+                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
+                  testcaseTab === 'upload'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm font-black">folder_zip</span>
+                Upload ZIP Archive
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 text-xs font-semibold">
+              
+              {/* TAB 1: MANUAL BUILDER */}
+              {testcaseTab === 'manual' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50/80 p-3 rounded-xl border border-slate-100 mb-2">
+                    <div>
+                      <p className="font-bold text-slate-700">Manual Entry</p>
+                      <p className="text-[10px] text-text-muted mt-0.5">Provide plain text inputs and correct outputs. Evaluation uses exact match or whitespace normalization.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddManualRow}
+                      className="bg-white hover:bg-slate-50 text-primary border border-primary/20 hover:border-primary/40 font-black px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-base font-black">add</span> Add Row
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-3 max-h-[40vh] overflow-y-auto pr-1">
+                    {testcasesList.map((tc, idx) => (
+                      <div key={idx} className="flex gap-3 bg-slate-50/40 p-4 rounded-xl border border-slate-200/50 hover:border-slate-350 transition-all items-start relative group">
+                        
+                        {/* TC Index Badge */}
+                        <div className="flex flex-col items-center justify-center bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-[10px] w-9 h-9 rounded-lg mt-1 shrink-0">
+                          <span>TC</span>
+                          <span>#{idx + 1}</span>
+                        </div>
+
+                        {/* Textareas Side-by-Side */}
+                        <div className="grid grid-cols-2 gap-3 flex-1">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Input Data</label>
+                            <textarea
+                              rows={3}
+                              value={tc.inputData}
+                              onChange={(e) => handleManualRowChange(idx, 'inputData', e.target.value)}
+                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
+                              placeholder="e.g. 5\n1 2 3"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Expected Output</label>
+                            <textarea
+                              rows={3}
+                              value={tc.expectedOutput}
+                              onChange={(e) => handleManualRowChange(idx, 'expectedOutput', e.target.value)}
+                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
+                              placeholder="e.g. 15"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Remove Action */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveManualRow(idx)}
+                          disabled={testcasesList.length === 1}
+                          className={`material-symbols-outlined text-red-500 hover:text-red-750 transition-colors cursor-pointer border-none bg-transparent self-center p-1.5 rounded-lg hover:bg-red-50 ${
+                            testcasesList.length === 1 ? 'opacity-30 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          delete
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: ZIP ARCHIVE UPLOAD */}
+              {testcaseTab === 'upload' && (
+                <div className="flex flex-col gap-4">
+                  <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 leading-relaxed text-slate-600">
+                    <p className="font-bold text-slate-800">ZIP File Requirements:</p>
+                    <ul className="list-disc pl-4 mt-1 text-[11px] text-text-muted flex flex-col gap-0.5">
+                      <li>The archive must contain test case files matching patterns: <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.in</code> and <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.out</code> or <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.ans</code>.</li>
+                      <li>File base names must match to pair input/output (e.g. <code className="font-semibold text-slate-800">input_01.in</code> pairs with <code className="font-semibold text-slate-800">input_01.out</code>).</li>
+                      <li>Maximum upload size is <strong>20 MB</strong>.</li>
+                    </ul>
+                  </div>
+
+                  {/* Drag and Drop Zone */}
+                  <div
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-3 transition-all ${
+                      dragActive
+                        ? 'border-primary bg-orange-50/30'
+                        : zipFile
+                        ? 'border-emerald-400 bg-emerald-50/10'
+                        : 'border-slate-250 hover:border-slate-400'
+                    }`}
+                  >
+                    <span className={`material-symbols-outlined text-4xl ${zipFile ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      {zipFile ? 'task' : 'cloud_upload'}
+                    </span>
+                    <div className="text-center">
+                      {zipFile ? (
+                        <p className="text-sm font-bold text-slate-800">"{zipFile.name}"</p>
+                      ) : (
+                        <p className="text-sm text-slate-600 font-bold">
+                          Drag and drop your testcase ZIP here, or <label className="text-primary hover:underline cursor-pointer">browse files<input type="file" onChange={handleFileChange} className="hidden" accept=".zip" /></label>
+                        </p>
+                      )}
+                      <p className="text-[10px] text-text-muted mt-1">Supports standard compressed .zip archives.</p>
+                    </div>
+                  </div>
+
+                  {/* Selected File Card Details */}
+                  {zipFile && (
+                    <div className="flex justify-between items-center bg-emerald-50/40 border border-emerald-150 p-3.5 rounded-xl animate-fade-in">
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-emerald-600 bg-white p-2 rounded-lg border border-emerald-100">folder_zip</span>
+                        <div>
+                          <p className="font-bold text-slate-800">{zipFile.name}</p>
+                          <p className="text-[10px] text-slate-500">{(zipFile.size / 1024).toFixed(1)} KB • Ready for upload</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setZipFile(null)}
+                        className="text-[10px] text-red-500 hover:text-red-750 bg-white border border-red-100 hover:border-red-200 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer"
+                      >
+                        Remove File
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-slate-150/70 p-4 bg-slate-50/50 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTestcaseModalOpen(false);
+                  setTestcaseProblem(null);
+                  setTestcasesList([]);
+                  setZipFile(null);
+                }}
+                className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 hover:border-slate-300 font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveTestcases}
+                disabled={isSavingTestcases}
+                className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingTestcases ? (
+                  <>
+                    <span className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm font-black">save</span>
+                    Save Test Cases
+                  </>
+                )}
+              </button>
+            </div>
+
           </div>
         </div>
       )}
@@ -4980,17 +5180,282 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* ================= GENERAL ADMIN TOAST ================= */}
-      {adminToast && (
-        <div className={`fixed bottom-6 right-6 z-[200] text-white text-sm font-semibold px-4 py-3.5 rounded-xl shadow-xl flex items-center gap-2.5 border animate-fade-in ${
-          adminToast.type === 'success' ? 'bg-emerald-600 border-emerald-500' :
-          adminToast.type === 'error' ? 'bg-red-600 border-red-500' : 'bg-brand-blue border-brand-blue-light'
+      {/* Confirmation Modal */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-surface w-full max-w-sm rounded-2xl p-6 border border-slate-200/50 shadow-2xl scale-100 transform transition-all duration-300 flex flex-col gap-4 text-left">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-red-500 text-[24px] bg-red-50 p-2 rounded-xl">warning</span>
+              <h3 className="text-sm font-black text-slate-900">{confirmModalTitle || "Confirm Action"}</h3>
+            </div>
+            <p className="text-xs font-bold text-slate-500 leading-relaxed">
+              {confirmModalMessage}
+            </p>
+            <div className="flex justify-end gap-2.5 mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                  setConfirmModalAction(null);
+                }}
+                className="px-4 py-2 text-[10px] font-black text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmModalAction) confirmModalAction();
+                  setIsConfirmModalOpen(false);
+                  setConfirmModalAction(null);
+                }}
+                className="px-4 py-2 text-[10px] font-black text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= FINANCIAL DETAILS MODALS ================= */}
+      {activeFinancialModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col p-6 animate-fade-in text-left text-slate-800">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2.5 py-1 rounded-md">
+                  Báo cáo chi tiết tài chính
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  {activeFinancialModal === 'gross' && 'Chi tiết doanh thu gộp (Gross Revenue)'}
+                  {activeFinancialModal === 'instructor' && 'Chi tiết chia sẻ doanh thu Giảng viên (Instructor Share - 70%)'}
+                  {activeFinancialModal === 'platform' && 'Chi tiết chia sẻ doanh thu Nền tảng (Platform Cut - 30%)'}
+                  {activeFinancialModal === 'awards' && 'Chi tiết tiền thưởng giải đấu (Contest Prizes)'}
+                  {activeFinancialModal === 'profit' && 'Báo cáo lợi nhuận toàn diện (Comprehensive Profit Report)'}
+                  {activeFinancialModal === 'sales' && 'Danh sách chi tiết các lượt bán khóa học (Course Sales)'}
+                  {activeFinancialModal === 'courses-sold-all' && 'Báo cáo xếp hạng doanh thu tất cả khóa học'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveFinancialModal(null)}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors border border-slate-100 p-1.5 rounded-lg"
+              >
+                close
+              </button>
+            </div>
+
+            <div className="overflow-y-auto my-4 flex-1 pr-1 text-xs">
+              {/* Case 1: Gross / Instructor / Platform (Orders detail list) */}
+              {(activeFinancialModal === 'gross' || activeFinancialModal === 'instructor' || activeFinancialModal === 'platform') && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng quan toàn bộ thời gian:</span>
+                    <span className="font-mono font-black text-sm text-slate-900">
+                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã đơn</th>
+                          <th className="p-3">Học viên</th>
+                          <th className="p-3">Khóa học</th>
+                          <th className="p-3 text-right">Doanh thu gộp</th>
+                          <th className="p-3 text-right">Giảng viên (70%)</th>
+                          <th className="p-3 text-right">Platform (30%)</th>
+                          <th className="p-3">Ngày giao dịch</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.orders || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-4 text-center text-slate-400 italic">Chưa có giao dịch nào được ghi nhận.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.orders || []).map((o, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{o.id}</td>
+                              <td className="p-3">
+                                <div>{o.customerName}</div>
+                                <div className="text-[10px] text-slate-400 font-medium">{o.customerEmail}</div>
+                              </td>
+                              <td className="p-3 max-w-[200px] truncate" title={o.courses}>{o.courses}</td>
+                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{o.grossAmount.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-violet-600">+{o.instructorShare.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-indigo-600">+{o.platformCut.toLocaleString()} ₫</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(o.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 2: Awards details list */}
+              {activeFinancialModal === 'awards' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng phần thưởng giải đấu toàn thời gian:</span>
+                    <span className="font-mono font-black text-sm text-rose-600">
+                      -{((financialDetails?.awards || []).reduce((acc, a) => acc + a.amount, 0)).toLocaleString()} ₫
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã GD</th>
+                          <th className="p-3">Tài khoản nhận giải</th>
+                          <th className="p-3 text-right">Tiền thưởng</th>
+                          <th className="p-3">Nội dung giải thưởng</th>
+                          <th className="p-3">Thời gian</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.awards || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-slate-400 italic">Chưa có phần thưởng giải đấu nào được trao.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.awards || []).map((a, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{a.id}</td>
+                              <td className="p-3">
+                                <div>{a.userName}</div>
+                                <div className="text-[10px] text-slate-400 font-medium">{a.userEmail}</div>
+                              </td>
+                              <td className="p-3 text-right font-mono text-rose-600 font-bold">-{a.amount.toLocaleString()} ₫</td>
+                              <td className="p-3 font-medium text-slate-600">{a.referenceId || 'Giải thưởng cuộc thi lập trình'}</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(a.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 3: Courses Sold sales list (order items detail) */}
+              {activeFinancialModal === 'sales' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng số lượng bản copy đã bán toàn thời gian:</span>
+                    <span className="font-black text-sm text-slate-900">
+                      {(financialDetails?.sales || []).length} copies
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã đơn</th>
+                          <th className="p-3">Học viên</th>
+                          <th className="p-3">Khóa học</th>
+                          <th className="p-3">Giảng viên</th>
+                          <th className="p-3 text-right">Giá bán</th>
+                          <th className="p-3">Ngày bán</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.sales || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có lượt bán khóa học nào.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.sales || []).map((s, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{s.orderId}</td>
+                              <td className="p-3">{s.customerName}</td>
+                              <td className="p-3 max-w-[200px] truncate" title={s.courseTitle}>{s.courseTitle}</td>
+                              <td className="p-3 text-slate-500 font-extrabold">{s.instructorName}</td>
+                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{s.price.toLocaleString()} ₫</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(s.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 4: courses-sold-all - Top Revenue Generating Courses full list */}
+              {activeFinancialModal === 'courses-sold-all' && (
+                <div className="flex flex-col gap-4">
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Tên khóa học</th>
+                          <th className="p-3">Giảng viên</th>
+                          <th className="p-3 text-center">Bản đã bán</th>
+                          <th className="p-3 text-right">Doanh thu gộp</th>
+                          <th className="p-3 text-right">Giảng viên (70%)</th>
+                          <th className="p-3 text-right">Platform (30%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialStats?.topRevenueCourses || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu doanh thu khóa học.</td>
+                          </tr>
+                        ) : (
+                          (financialStats?.topRevenueCourses || []).map((c, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">{c.name}</td>
+                              <td className="p-3 text-slate-500 font-extrabold">{c.tutor}</td>
+                              <td className="p-3 text-center font-mono font-bold">{c.sold}</td>
+                              <td className="p-3 text-right font-mono font-bold text-slate-900">{c.gross.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-violet-600">+{c.payout.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-indigo-600">+{c.plat.toLocaleString()} ₫</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 5: profit - Comprehensive Financial Report (All time, by year) */}
+              {activeFinancialModal === 'profit' && (
+                <FinancialAllTimeReport details={financialDetails} />
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setActiveFinancialModal(null)}
+                className="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Đóng báo cáo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Global Toast Alert */}
+      {globalToast && (
+        <div className={`fixed bottom-6 right-6 z-[999] text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in ${
+          globalToast.type === 'success' ? 'bg-green-600 border border-green-500' :
+          globalToast.type === 'error' ? 'bg-red-600 border border-red-500' : 'bg-brand-blue border border-brand-blue-light'
         }`}>
-          <span className="material-symbols-outlined text-[20px]">
-            {adminToast.type === 'success' ? 'check_circle' :
-             adminToast.type === 'error' ? 'error' : 'info'}
+          <span className="material-symbols-outlined text-[18px]">
+            {globalToast.type === 'success' ? 'check_circle' :
+             globalToast.type === 'error' ? 'error' : 'info'}
           </span>
-          <span>{adminToast.message}</span>
+          <span>{globalToast.message}</span>
         </div>
       )}
     </div>

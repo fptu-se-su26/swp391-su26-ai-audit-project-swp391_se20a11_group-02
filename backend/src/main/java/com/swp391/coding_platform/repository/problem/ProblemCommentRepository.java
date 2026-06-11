@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ProblemCommentRepository extends JpaRepository<ProblemCommentEntity, Integer> {
     List<ProblemCommentEntity> findByProblemIdAndParentIsNullOrderByCreatedAtDesc(Integer problemId);
+    void deleteByProblemId(Integer problemId);
 }

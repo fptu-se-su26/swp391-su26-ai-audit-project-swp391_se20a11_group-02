@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { ContestSidebar } from './ContestSidebar';
-import { authService } from '../services/authService';
 
 export interface ContestOverviewData {
   id: number;
@@ -21,50 +20,9 @@ export interface ContestOverviewData {
 }
 
 export const Layout: React.FC = () => {
-  const { user, cart, logout, updateUser } = useApp();
+  const { user, cart, logout } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [appealText, setAppealText] = useState('');
-  const [appealSubmitting, setAppealSubmitting] = useState(false);
-  const [appealError, setAppealError] = useState<string | null>(null);
-
-  // Poll or retrieve the user's latest info on mount to ensure status (LOCKED/ACTIVE) is accurate
-  useEffect(() => {
-    if (user?.id) {
-      const fetchLatestUserInfo = async () => {
-        try {
-          const latestInfo = await authService.getMyInfo();
-          if (latestInfo) {
-            updateUser({
-              status: latestInfo.status,
-              lockReason: latestInfo.lockReason,
-              lockAppeal: latestInfo.lockAppeal,
-            });
-          }
-        } catch (err) {
-          console.warn("Failed to fetch latest user info on layout mount:", err);
-        }
-      };
-      fetchLatestUserInfo();
-    }
-  }, [user?.id]);
-
-  const handleAppealSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!appealText.trim()) return;
-    setAppealSubmitting(true);
-    setAppealError(null);
-    try {
-      await authService.submitAppeal(appealText);
-      updateUser({ lockAppeal: appealText });
-      setAppealText('');
-    } catch (err: any) {
-      setAppealError(err.message || 'Failed to submit appeal. Please try again.');
-    } finally {
-      setAppealSubmitting(false);
-    }
-  };
 
   const isInstructorRoute = location.pathname.startsWith('/instructor');
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -219,7 +177,7 @@ export const Layout: React.FC = () => {
   };
 
   // Redirection / Protection logic
-  const privateRoutes = ['/dashboard', '/instructor', '/shopping-cart'];
+  const privateRoutes = ['/dashboard', '/instructor', '/wallet-transaction', '/payment-transaction', '/shopping-cart'];
   const isPrivateRoute = privateRoutes.some(route => location.pathname.startsWith(route));
 
   React.useEffect(() => {
@@ -229,166 +187,6 @@ export const Layout: React.FC = () => {
     }
   }, [user, isPrivateRoute, navigate]);
 
-  if (user && user.status === 'LOCKED') {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#f0f4f9]"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      >
-        {/* Glowing Backdrop Circles — matches Login/Register */}
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[120px]"></div>
-          <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-brand-blue/10 rounded-full blur-[120px]"></div>
-          <div className="absolute -bottom-40 left-1/4 w-[600px] h-[600px] bg-brand-green/5 rounded-full blur-[150px]"></div>
-        </div>
-
-        {/* Main Card */}
-        <div className="relative z-10 w-full max-w-xl" style={{ animation: 'fadeInUp 0.5s ease-out' }}>
-
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding" className="h-16 w-auto drop-shadow-sm" />
-          </div>
-
-          {/* Card */}
-          <div className="bg-surface rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
-            {/* Top danger stripe */}
-            <div className="h-1 w-full bg-gradient-to-r from-red-400 via-red-500 to-red-600"></div>
-
-            <div className="p-8 md:p-10 space-y-6">
-
-              {/* Icon + Heading */}
-              <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mx-auto relative bg-red-50 border border-red-100 shadow-sm">
-                  <span className="material-symbols-outlined text-red-500 text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
-                  <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1", fontSize: '14px' }}>priority_high</span>
-                  </div>
-                </div>
-
-                <div>
-                  <h1 className="font-display font-black text-2xl text-brand-blue tracking-tight mb-2">Account Suspended</h1>
-                  <p className="text-sm text-text-muted leading-relaxed max-w-sm mx-auto">
-                    Your account access has been temporarily restricted due to a policy violation.
-                  </p>
-                </div>
-              </div>
-
-              {/* Lock Reason Card */}
-              <div className="bg-red-50 border border-red-200/60 rounded-2xl p-5 text-left space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-red-500">Reason for Suspension</span>
-                </div>
-                <p className="text-sm font-medium text-slate-700 leading-relaxed pl-3.5 border-l-2 border-red-400/40">
-                  {user.lockReason || 'Violation of platform terms of service or community guidelines.'}
-                </p>
-              </div>
-
-              {/* Appeal Section */}
-              {user.lockAppeal ? (
-                <div className="bg-emerald-50 border border-emerald-200/60 rounded-2xl p-5 text-left space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-emerald-600 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                    <span className="text-xs font-black uppercase tracking-wider text-emerald-700">Appeal Submitted</span>
-                  </div>
-                  <div className="pl-3.5 border-l-2 border-emerald-400/40">
-                    <p className="text-xs text-slate-600 italic leading-relaxed">"{user.lockAppeal}"</p>
-                  </div>
-                  <p className="text-[11px] text-emerald-700 font-semibold bg-emerald-100/70 px-3 py-2 rounded-xl border border-emerald-200/40">
-                    ✦ Your appeal is under review. The admin will respond shortly.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleAppealSubmit} className="text-left space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2.5">
-                      Submit an Appeal
-                    </label>
-                    <textarea
-                      value={appealText}
-                      onChange={(e) => setAppealText(e.target.value)}
-                      placeholder="Explain why you believe this suspension was made in error, or provide context that might help the admin review your case..."
-                      rows={4}
-                      required
-                      className="w-full resize-none rounded-2xl px-4 py-3.5 text-sm font-medium text-text-main placeholder-gray-400 transition-all outline-none border border-gray-200 bg-white shadow-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
-                    />
-                  </div>
-                  {appealError && (
-                    <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-200">{appealError}</p>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={appealSubmitting || !appealText.trim()}
-                    className="w-full text-white font-bold text-sm py-3 rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-red-500 hover:bg-red-600 shadow-sm hover:shadow-md active:scale-[0.98]"
-                  >
-                    {appealSubmitting ? (
-                      <>
-                        <span className="material-symbols-outlined text-lg animate-spin">autorenew</span>
-                        <span>Submitting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined text-lg">send</span>
-                        <span>Submit Appeal</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
-
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-gray-200"></div>
-                <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">or</span>
-                <div className="flex-1 h-px bg-gray-200"></div>
-              </div>
-
-              {/* Contact + Logout */}
-              <div className="space-y-3">
-                <div className="rounded-2xl p-4 flex items-start gap-3 bg-blue-50 border border-blue-200/50">
-                  <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-brand-blue text-base" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-brand-blue mb-0.5">Contact Support</p>
-                    <p className="text-xs text-text-muted mb-1">For direct assistance from an administrator:</p>
-                    <a
-                      href="mailto:support@nonstopcoding.edu.vn"
-                      className="text-sm font-bold text-primary hover:text-primary-hover transition-colors underline underline-offset-2"
-                    >
-                      support@nonstopcoding.edu.vn
-                    </a>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-2xl transition-all text-slate-600 hover:text-slate-800 bg-white hover:bg-gray-50 border border-gray-200 shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-lg">logout</span>
-                  <span>Sign Out</span>
-                </button>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Footer note */}
-          <p className="text-center text-[11px] text-text-muted mt-6">
-            Nonstop Coding Platform — Account access restricted
-          </p>
-        </div>
-
-        <style>{`
-          @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex flex-col antialiased selection:bg-primary-light selection:text-brand-blue relative">
@@ -404,101 +202,94 @@ export const Layout: React.FC = () => {
       {!isInstructorRoute && !isAdminRoute && (
         <header className="bg-surface/90 backdrop-blur-md shadow-sm fixed top-0 z-50 w-full border-b border-gray-100/50">
           <div className="flex justify-between items-center w-full px-8 h-16 max-w-[1440px] mx-auto relative">
-          {/* Brand */}
-          <Link to="/" className="shrink-0 flex items-center cursor-pointer">
-            <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding Logo" className="h-16 w-auto" />
-          </Link>
-          <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2 h-full">
-            {user && (
-              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Learning</NavLink>
-            )}
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/courses">Courses</NavLink>
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/problems">Problems</NavLink>
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/contests">Contests</NavLink>
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/rankings">Rankings</NavLink>
-          </nav>
-          <div className="flex items-center gap-4">
-            {/* Instructor Capsule Link */}
-            {user && user.role === 'instructor' && (
-              <Link to="/instructor" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
-                <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">school</span>
-                <span>Instructor</span>
-              </Link>
-            )}
-            {user && user.role === 'admin' && (
-              <Link to="/admin" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-red-200 shrink-0">
-                <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">admin_panel_settings</span>
-                <span>Admin</span>
-              </Link>
-            )}
-            <button className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
-            <Link to="/shopping-cart" className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all relative">
-              <span className="material-symbols-outlined">shopping_cart</span>
-              {cart.length > 0 && (
-                <span className="absolute top-1 right-0 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">{cart.length}</span>
-              )}
+            {/* Brand */}
+            <Link to="/" className="shrink-0 flex items-center cursor-pointer">
+              <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding Logo" className="h-16 w-auto" />
             </Link>
-            {user ? (
-              <div className="relative flex items-center gap-1 cursor-pointer group ml-2">
-                <img
-                  alt="User Avatar"
-                  className="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-primary transition-all object-cover"
-                  src={user?.avatar || "https://ui-avatars.com/api/?name=You&background=12284C&color=fff"}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=You&background=12284C&color=fff';
-                  }}
-                />
-                <span className="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">arrow_drop_down</span>
-
-                {/* Dropdown Menu */}
-                <div className="absolute top-full right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2 cursor-default text-left">
-                  <Link to="/dashboard#dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">dashboard</span> Dashboard
-                  </Link>
-                  <Link to="/dashboard#my-profile" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">person</span> My Profile
-                  </Link>
-                  <Link to="/dashboard#deposit" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">payments</span> Deposit
-                  </Link>
-                  {(user?.role === 'admin' || user?.role === 'instructor') && (
-                    <div className="h-px bg-gray-100 my-1 w-full"></div>
-                  )}
-                  {user && user.role === 'admin' && (
-                    <Link to="/admin" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Panel
-                    </Link>
-                  )}
-                  {user && user.role === 'instructor' && (
-                    <Link to="/instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
-                    </Link>
-                  )}
-                  {user && user.role !== 'admin' && user.role !== 'instructor' && (
-                    <Link to="/apply-instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">school</span> Become Instructor
-                    </Link>
-                  )}
-                  <div className="h-px bg-gray-100 my-1 w-full"></div>
-                  <button onClick={handleLogout} className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2 w-full text-left">
-                    <span className="material-symbols-outlined text-[18px]">logout</span> Logout
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#ff8c42] hover:from-[#d95f19] hover:to-primary text-white font-extrabold text-xs md:text-sm shadow-sm transition-all transform active:scale-95 group select-none shrink-0"
-              >
-                <span className="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">login</span>
-                <span>Login</span>
+            <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2 h-full">
+              {user && (
+                <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Learning</NavLink>
+              )}
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/courses">Courses</NavLink>
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/problems">Problems</NavLink>
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/contests">Contests</NavLink>
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/rankings">Rankings</NavLink>
+            </nav>
+            <div className="flex items-center gap-4">
+              {/* Instructor Capsule Link */}
+              {user && user.role === 'instructor' && (
+                <Link to="/instructor" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
+                  <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">school</span>
+                  <span>Instructor</span>
+                </Link>
+              )}
+              {/* Admin Capsule Link */}
+              {user && user.role === 'admin' && (
+                <Link to="/admin" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
+                  <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">admin_panel_settings</span>
+                  <span>Admin</span>
+                </Link>
+              )}
+              <button className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all">
+                <span className="material-symbols-outlined">notifications</span>
+              </button>
+              <Link to="/shopping-cart" className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all relative">
+                <span className="material-symbols-outlined">shopping_cart</span>
+                {cart.length > 0 && (
+                  <span className="absolute top-1 right-0 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">{cart.length}</span>
+                )}
               </Link>
-            )}
+              {user ? (
+                <div className="relative flex items-center gap-1 cursor-pointer group ml-2">
+                  <img
+                    alt="User Avatar"
+                    className="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-primary transition-all object-cover"
+                    src={user?.avatar || "https://ui-avatars.com/api/?name=You&background=12284C&color=fff"}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=You&background=12284C&color=fff';
+                    }}
+                  />
+                  <span className="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">arrow_drop_down</span>
+
+                  {/* Dropdown Menu */}
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2 cursor-default text-left">
+                    <Link to="/dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">dashboard</span> My Learning
+                    </Link>
+                    {user && user.role === 'admin' && (
+                      <Link to="/admin" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Panel
+                      </Link>
+                    )}
+                    {user && user.role === 'instructor' && (
+                      <Link to="/instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
+                      </Link>
+                    )}
+                    <a href="#" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">person</span> Edit Profile
+                    </a>
+                    <Link to="/wallet-transaction" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span> Wallet
+                    </Link>
+                    <div className="h-px bg-gray-100 my-1 w-full"></div>
+                    <button onClick={handleLogout} className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2 w-full text-left">
+                      <span className="material-symbols-outlined text-[18px]">logout</span> Logout
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#ff8c42] hover:from-[#d95f19] hover:to-primary text-white font-extrabold text-xs md:text-sm shadow-sm transition-all transform active:scale-95 group select-none shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">login</span>
+                  <span>Login</span>
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
       )}
 
       {/* Main content body with Outlet */}
@@ -564,11 +355,10 @@ export const Layout: React.FC = () => {
                       </button>
                       {registrationMessage && (
                         <div
-                          className={`text-xs font-bold p-2.5 rounded-lg text-center ${
-                            registrationMessage.type === 'success'
+                          className={`text-xs font-bold p-2.5 rounded-lg text-center ${registrationMessage.type === 'success'
                               ? 'bg-green-50 text-green-700 border border-green-200'
                               : 'bg-red-50 text-red-700 border border-red-200'
-                          }`}
+                            }`}
                         >
                           {registrationMessage.text}
                         </div>
@@ -617,7 +407,7 @@ export const Layout: React.FC = () => {
               <div className="flex flex-col gap-4">
                 <h4 className="text-body-lg font-bold font-display">Support</h4>
                 <nav className="flex flex-col gap-2">
-                   <a className="text-white/70 hover:text-primary transition-colors" href="#">Help Center</a>
+                  <a className="text-white/70 hover:text-primary transition-colors" href="#">Help Center</a>
                   <a className="text-white/70 hover:text-primary transition-colors" href="#">FAQ</a>
                   <Link className="text-white/70 hover:text-primary transition-colors" to="/contact">Contact Us</Link>
                   <Link className="text-white/70 hover:text-primary transition-colors" to="/terms">Terms of Service</Link>
