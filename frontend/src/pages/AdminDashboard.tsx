@@ -1018,8 +1018,6 @@ export const AdminDashboard: React.FC = () => {
       setRejectionReasonText('Hồ sơ chưa đạt yêu cầu.');
     }
   };
-    }
-  };
 
   const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
     const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
