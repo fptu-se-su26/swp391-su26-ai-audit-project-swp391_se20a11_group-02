@@ -4,7 +4,6 @@ import { adminService } from '../services/adminService';
 import type {
   AdminDashboardStats,
   AdminCourse,
-  AdminInstructorApplication,
   AdminInstructor,
   AdminUser,
   AdminProblem,
@@ -97,8 +96,8 @@ const tabHeaderDetails: Record<string, { badge: string; icon: string; title: str
   instructor: {
     badge: 'Instructor Management',
     icon: 'school',
-    title: 'Instructor Applications 🎓',
-    desc: 'Review instructor registration requests, CVs, and manage current platform instructors.'
+    title: 'Platform Instructors 🎓',
+    desc: 'View and manage all platform instructors. Monitor their courses, ratings, student counts, and control account status.'
   },
   users: {
     badge: 'User Management',
@@ -333,7 +332,7 @@ export const AdminDashboard: React.FC = () => {
   // States for API data
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [courses, setCourses] = useState<AdminCourse[]>([]);
-  const [applications, setApplications] = useState<AdminInstructorApplication[]>([]);
+
   const [instructors, setInstructors] = useState<AdminInstructor[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [problems, setProblems] = useState<AdminProblem[]>([]);
@@ -345,27 +344,31 @@ export const AdminDashboard: React.FC = () => {
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
-  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'AI_REJECTED'>('ALL');
+
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
   const [userOnlineFilter, setUserOnlineFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
+  const [instSearch, setInstSearch] = useState('');
+  const [instStatusFilter, setInstStatusFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
 
+  // Status change confirm modal state
+  const [statusConfirmTarget, setStatusConfirmTarget] = useState<{
+    id: number;
+    name: string;
+    type: 'INSTRUCTOR' | 'USER';
+    newStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  } | null>(null);
+  const [isProcessingStatusChange, setIsProcessingStatusChange] = useState<boolean>(false);
+
   // Modal / review panel states
 
-  const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
-  const [pendingInstructorAction, setPendingInstructorAction] = useState<{ appId: number; status: 'APPROVED' | 'REJECTED' } | null>(null);
-  const [rejectionReasonText, setRejectionReasonText] = useState<string>('Hồ sơ chưa đạt yêu cầu.');
-  const [adminToast, setAdminToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  const showAdminToast = (message: string, type: 'success' | 'error' | 'info') => {
-    setAdminToast({ message, type });
-    setTimeout(() => setAdminToast(null), 4000);
-  };
+
 
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
@@ -443,7 +446,6 @@ export const AdminDashboard: React.FC = () => {
       setReviewingContest(null);
       setReviewContestTab('overview');
       setReviewContestProblemId(null);
-      setSelectedAppForReview(null);
       setSelectedUserDetail(null);
       setIsCreateProblemOpen(false);
       setIsEditProblemOpen(false);
@@ -553,7 +555,6 @@ export const AdminDashboard: React.FC = () => {
       const [
         statsRes,
         coursesRes,
-        appsRes,
         instsRes,
         usersRes,
         probsRes,
@@ -562,7 +563,6 @@ export const AdminDashboard: React.FC = () => {
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
-        adminService.getInstructorApplications(),
         adminService.getInstructors(),
         adminService.getUsers(),
         adminService.getProblems(),
@@ -572,7 +572,6 @@ export const AdminDashboard: React.FC = () => {
 
       setStats(statsRes);
       setCourses(coursesRes);
-      setApplications(appsRes);
       setInstructors(instsRes);
       setUsers(usersRes);
       setProblems(probsRes);
@@ -845,26 +844,49 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleApproveInstructor = (appId: number, status: 'APPROVED' | 'REJECTED') => {
-    setPendingInstructorAction({ appId, status });
-    if (status === 'REJECTED') {
-      setRejectionReasonText('Hồ sơ chưa đạt yêu cầu.');
-    }
+
+  const handleUserStatusChange = (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const user = users.find(u => u.id === userId);
+    const name = user ? user.name : `User #${userId}`;
+    setStatusConfirmTarget({
+      id: userId,
+      name,
+      type: 'USER',
+      newStatus
+    });
   };
 
-  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
-    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
-    if (!window.confirm(confirmMsg)) return;
+  const handleInstructorStatusChange = (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
+    const inst = instructors.find(ins => ins.id === instructorId);
+    const name = inst ? inst.fullName : `Instructor #${instructorId}`;
+    setStatusConfirmTarget({
+      id: instructorId,
+      name,
+      type: 'INSTRUCTOR',
+      newStatus
+    });
+  };
 
+  const executeStatusChange = async () => {
+    if (!statusConfirmTarget) return;
+    setIsProcessingStatusChange(true);
+    const { id, type, newStatus } = statusConfirmTarget;
     try {
-      const updated = await adminService.setUserLockStatus(userId, newStatus);
-      setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-      if (selectedUserDetail?.id === userId) {
-        setSelectedUserDetail(updated);
+      if (type === 'USER') {
+        const updated = await adminService.setUserLockStatus(id, newStatus as 'ACTIVE' | 'LOCKED');
+        setUsers(prev => prev.map(u => u.id === id ? updated : u));
+        if (selectedUserDetail?.id === id) {
+          setSelectedUserDetail(updated);
+        }
+      } else {
+        const updated = await adminService.setInstructorStatus(id, newStatus as 'ACTIVE' | 'SUSPENDED');
+        setInstructors(prev => prev.map(ins => ins.id === id ? updated : ins));
       }
-      alert(`User status successfully updated to ${newStatus}`);
+      setStatusConfirmTarget(null);
     } catch (error) {
-      alert("Failed to update user status");
+      alert(`Failed to update ${type.toLowerCase()} status.`);
+    } finally {
+      setIsProcessingStatusChange(false);
     }
   };
 
@@ -1195,10 +1217,6 @@ export const AdminDashboard: React.FC = () => {
     return courses.filter(c => c.status === courseFilter);
   }, [courses, courseFilter]);
 
-  const filteredApplications = useMemo(() => {
-    if (instructorAppFilter === 'ALL') return applications;
-    return applications.filter(a => a.status === instructorAppFilter);
-  }, [applications, instructorAppFilter]);
 
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
@@ -1209,6 +1227,16 @@ export const AdminDashboard: React.FC = () => {
       return matchesSearch && matchesStatus && matchesOnline;
     });
   }, [users, userSearch, userStatusFilter, userOnlineFilter]);
+
+  const filteredInstructors = useMemo(() => {
+    return instructors.filter(ins => {
+      const matchesSearch = ins.fullName.toLowerCase().includes(instSearch.toLowerCase()) ||
+        ins.major.toLowerCase().includes(instSearch.toLowerCase()) ||
+        (ins.bio && ins.bio.toLowerCase().includes(instSearch.toLowerCase()));
+      const matchesStatus = instStatusFilter === 'ALL' || ins.status === instStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [instructors, instSearch, instStatusFilter]);
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
@@ -3212,27 +3240,7 @@ export const AdminDashboard: React.FC = () => {
                           <p className="text-xs text-text-muted italic">No pending course registrations.</p>
                         )}
 
-                        <hr className="my-2 border-slate-100" />
 
-                        {/* Instructor Application approvals quick preview */}
-                        <h4 className="text-xs font-black text-text-muted uppercase tracking-wider">Pending Instructors ({applications.filter(a => a.status === 'PENDING').length})</h4>
-                        {applications.filter(a => a.status === 'PENDING').slice(0, 2).map((app) => (
-                          <div key={app.id} className="flex items-center justify-between bg-slate-50/50 border border-slate-100 p-3 rounded-xl">
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-text-main truncate">{app.fullName}</p>
-                              <p className="text-[10px] text-text-muted">{app.email}</p>
-                            </div>
-                            <button
-                              onClick={() => setSelectedAppForReview(app)}
-                              className="text-[10px] bg-primary hover:bg-primary-hover text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
-                            >
-                              Review
-                            </button>
-                          </div>
-                        ))}
-                        {applications.filter(a => a.status === 'PENDING').length === 0 && (
-                          <p className="text-xs text-text-muted italic">No pending instructor requests.</p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -3591,129 +3599,92 @@ export const AdminDashboard: React.FC = () => {
             {activeTab === 'instructor' && (
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Active Instructors & Applicants</h2>
-                  <div className="flex gap-2">
-                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED', 'AI_REJECTED'].map((filterVal) => (
-                      <button
-                        key={filterVal}
-                        onClick={() => setInstructorAppFilter(filterVal as any)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${instructorAppFilter === filterVal
-                          ? 'bg-primary text-white border-primary shadow-sm'
-                          : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
-                          }`}
-                      >
-                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : filterVal === 'REJECTED' ? 'Rejected Applications' : 'AI Auto-Rejected'}
-                      </button>
-                    ))}
+                  <h2 className="text-2xl font-display font-black text-brand-blue">Platform Instructors</h2>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <input
+                      type="text"
+                      placeholder="Search by name, major..."
+                      value={instSearch}
+                      onChange={(e) => setInstSearch(e.target.value)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-primary focus:border-primary w-full sm:w-60"
+                    />
+                    <select
+                      value={instStatusFilter}
+                      onChange={(e) => setInstStatusFilter(e.target.value as any)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="ALL">All Status</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="SUSPENDED">Suspended</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* Applications section */}
-                {filteredApplications.length > 0 && (
-                  <div className="flex flex-col gap-4">
-                    <h3 className="text-sm font-black text-text-muted uppercase tracking-wider mb-1">Instructor Registrations / Profile Reviews</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {filteredApplications.map((app) => (
-                        <div key={app.id} className="bg-surface rounded-2xl border border-slate-200/50 p-6 ambient-shadow flex flex-col justify-between">
-                          <div>
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-display font-bold text-base text-brand-blue">{app.fullName}</h4>
-                                <p className="text-xs text-text-muted">{app.email}</p>
-                                <p className="text-[10px] text-text-muted mt-1.5 flex items-center gap-1 font-semibold">
-                                  <span className="material-symbols-outlined text-[13px]">calendar_month</span>
-                                  <span>{new Date(app.createdAt).toLocaleDateString('vi-VN')} {new Date(app.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
-                                </p>
+                {/* Instructors table */}
+                <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
+                          <th className="py-4 px-6">Name</th>
+                          <th className="py-4 px-6">Major</th>
+                          <th className="py-4 px-6">Bio</th>
+                          <th className="py-4 px-6 text-center">Courses</th>
+                          <th className="py-4 px-6 text-center">Rating</th>
+                          <th className="py-4 px-6 text-center">Students</th>
+                          <th className="py-4 px-6">Status</th>
+                          <th className="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
+                        {filteredInstructors.map((ins) => (
+                          <tr key={ins.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3">
+                                <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-8 h-8 rounded-full object-cover border border-slate-100" alt="" />
+                                <span className="font-bold text-slate-900">{ins.fullName}</span>
                               </div>
-                              <div className="flex flex-col items-end gap-1.5">
-                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                  app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' :
-                                  app.status === 'AI_REJECTED' ? 'bg-rose-50 text-rose-500 border border-rose-100' :
-                                  'bg-red-50 text-red-500'
-                                  }`}>{app.status}</span>
-                                <div className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                                  app.aiScore !== undefined && app.aiScore !== null
-                                    ? app.aiScore >= 80
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                      : app.aiScore >= 50
-                                      ? 'bg-amber-50 text-amber-700 border-amber-100'
-                                      : 'bg-rose-50 text-rose-700 border-rose-100'
-                                    : 'bg-slate-50 text-slate-500 border-slate-100'
-                                }`}>
-                                  <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-                                  <span>
-                                    {app.aiScore !== undefined && app.aiScore !== null 
-                                      ? `AI Score: ${app.aiScore}/100` 
-                                      : 'AI: Scanning'}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl line-clamp-3 italic">"{app.introduction}"</p>
-                            <a
-                              href={app.cvUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary-hover font-bold mt-4"
-                            >
-                              <span className="material-symbols-outlined text-sm">picture_as_pdf</span> View Curriculum Vitae (CV)
-                            </a>
-                          </div>
-
-                          <div className="flex gap-2.5 border-t border-slate-100 pt-4 mt-4">
-                            <button
-                              onClick={() => setSelectedAppForReview(app)}
-                              className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs py-2 rounded-xl transition-all border border-slate-200/60 flex items-center justify-center gap-1"
-                            >
-                              <span className="material-symbols-outlined text-sm">visibility</span>
-                              Review & AI Summary
-                            </button>
-                            {app.status === 'PENDING' && (
-                              <>
+                            </td>
+                            <td className="py-4 px-6 text-slate-500 font-extrabold">{ins.major}</td>
+                            <td className="py-4 px-6 text-slate-400 font-medium max-w-xs truncate" title={ins.bio}>{ins.bio}</td>
+                            <td className="py-4 px-6 text-center font-bold text-slate-800">{ins.coursesCount}</td>
+                            <td className="py-4 px-6 text-center font-bold text-orange-500">★ {ins.rating}</td>
+                            <td className="py-4 px-6 text-center font-bold text-slate-800">{ins.studentsCount}</td>
+                            <td className="py-4 px-6">
+                              <span className={`inline-block font-bold rounded-lg px-2.5 py-1 text-[11px] border ${
+                                ins.status === 'ACTIVE'
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200/30'
+                                  : 'bg-red-50 text-red-500 border-red-200/30'
+                              }`}>
+                                {ins.status === 'ACTIVE' ? 'Active' : 'Suspended'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              {ins.status === 'SUSPENDED' ? (
                                 <button
-                                  onClick={() => handleApproveInstructor(app.id, 'APPROVED')}
-                                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
+                                  onClick={() => handleInstructorStatusChange(ins.id, 'ACTIVE')}
+                                  className="text-emerald-600 hover:text-emerald-800 hover:underline bg-transparent border-none cursor-pointer font-bold"
                                 >
-                                  Approve
+                                  Activate
                                 </button>
+                              ) : (
                                 <button
-                                  onClick={() => handleApproveInstructor(app.id, 'REJECTED')}
-                                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
+                                  onClick={() => handleInstructorStatusChange(ins.id, 'SUSPENDED')}
+                                  className="text-red-500 hover:text-red-700 hover:underline bg-transparent border-none cursor-pointer font-bold"
                                 >
-                                  Reject
+                                  Suspend
                                 </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Active Instructors list */}
-                <div className="flex flex-col gap-4 mt-4">
-                  <h3 className="text-sm font-black text-text-muted uppercase tracking-wider">Active Platform Instructors ({instructors.length})</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {instructors.map((ins) => (
-                      <div key={ins.id} className="bg-surface rounded-2xl border border-slate-200/50 p-5 ambient-shadow flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-10 h-10 rounded-full object-cover border border-slate-100" alt="" />
-                            <div>
-                              <h4 className="font-display font-bold text-sm text-brand-blue">{ins.fullName}</h4>
-                              <p className="text-[10px] text-text-muted truncate max-w-[180px] font-semibold">{ins.major}</p>
-                            </div>
-                          </div>
-                          <p className="text-xs text-slate-500 line-clamp-3">{ins.bio}</p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 mt-4 text-[10px] font-bold text-slate-600 bg-slate-50 p-2 rounded-xl text-center">
-                          <div>Courses: <span className="block text-brand-blue text-xs font-black">{ins.coursesCount}</span></div>
-                          <div>Rating: <span className="block text-orange-500 text-xs font-black">★ {ins.rating}</span></div>
-                          <div>Students: <span className="block text-slate-800 text-xs font-black">{ins.studentsCount}</span></div>
-                        </div>
-                      </div>
-                    ))}
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredInstructors.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="py-12 text-center text-text-muted italic">No instructors found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -4270,283 +4241,6 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
 
-
-      {/* ================= MODAL: INSTRUCTOR APPLICATION REVIEW ================= */}
-      {selectedAppForReview && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-lg w-full p-6 animate-fade-in text-left">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2 py-0.5 rounded-md">Instructor Application Review</span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">{selectedAppForReview.fullName}</h3>
-              </div>
-              <button onClick={() => setSelectedAppForReview(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
-            </div>
-
-            <div className="flex flex-col gap-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 p-3.5 rounded-xl">
-                  <p className="font-semibold text-slate-500">Applicant Email:</p>
-                  <p className="font-bold text-brand-blue text-sm mt-0.5 truncate" title={selectedAppForReview.email}>{selectedAppForReview.email}</p>
-                </div>
-                <div className="bg-slate-50 p-3.5 rounded-xl">
-                  <p className="font-semibold text-slate-500">Submitted Time:</p>
-                  <p className="font-bold text-brand-blue text-sm mt-0.5">
-                    {new Date(selectedAppForReview.createdAt).toLocaleDateString('vi-VN')} {new Date(selectedAppForReview.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Introduction Profile</h4>
-                <p className="text-slate-600 leading-relaxed bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 whitespace-pre-line italic">"{selectedAppForReview.introduction}"</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Curriculum Vitae File</h4>
-                <a href={selectedAppForReview.cvUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-bold text-sm bg-orange-50 p-3 rounded-xl w-full border border-orange-100">
-                  <span className="material-symbols-outlined text-base">picture_as_pdf</span> Open CV document ({selectedAppForReview.fullName} CV)
-                </a>
-              </div>
-
-              {/* AI Audit Report Card */}
-              <div className={`p-5 rounded-2xl border flex flex-col gap-4 text-xs ${
-                selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null
-                  ? selectedAppForReview.aiScore >= 80
-                    ? 'bg-emerald-50/40 border-emerald-200/60'
-                    : selectedAppForReview.aiScore >= 50
-                    ? 'bg-amber-50/40 border-amber-200/60'
-                    : 'bg-rose-50/40 border-rose-200/60'
-                  : 'bg-slate-50 border-slate-200'
-              }`}>
-                {/* Header */}
-                <div className="flex justify-between items-center border-b border-slate-200/50 pb-3">
-                  <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-slate-700">
-                    <span className="material-symbols-outlined text-[16px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-                    AI Pre-Screening Audit Report
-                  </div>
-                  {selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null ? (
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border ${
-                        selectedAppForReview.aiRecommendation === 'RECOMMENDED'
-                          ? 'bg-emerald-500 text-white border-emerald-600'
-                          : selectedAppForReview.aiRecommendation === 'REVIEW_REQUIRED'
-                          ? 'bg-amber-500 text-white border-amber-600'
-                          : 'bg-rose-500 text-white border-rose-600'
-                      }`}>
-                        {selectedAppForReview.aiRecommendation || 'REVIEW_REQUIRED'}
-                      </span>
-                      <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${
-                        selectedAppForReview.aiScore >= 80
-                          ? 'bg-emerald-55 text-emerald-700 border-emerald-200'
-                          : selectedAppForReview.aiScore >= 50
-                          ? 'bg-amber-55 text-amber-700 border-amber-200'
-                          : 'bg-rose-55 text-rose-700 border-rose-200'
-                      }`}>
-                        SCORE: {selectedAppForReview.aiScore}/100
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-[10px] font-black uppercase bg-slate-200 text-slate-600 px-2 py-0.5 rounded animate-pulse">
-                      Analyzing CV...
-                    </span>
-                  )}
-                </div>
-
-                {/* AI Screening Details */}
-                {selectedAppForReview.aiScore !== undefined && selectedAppForReview.aiScore !== null ? (
-                  <div className="flex flex-col gap-3.5">
-                    {/* Specialization & Exp Years */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white/85 p-3 rounded-xl border border-slate-100 shadow-sm">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Detected Specialization</span>
-                        <span className="font-extrabold text-brand-blue text-sm">
-                          {selectedAppForReview.aiSpecialization || 'Other'}
-                        </span>
-                      </div>
-                      <div className="bg-white/85 p-3 rounded-xl border border-slate-100 shadow-sm">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Estimated Experience</span>
-                        <span className="font-extrabold text-brand-blue text-sm">
-                          {selectedAppForReview.aiExperienceYears !== undefined && selectedAppForReview.aiExperienceYears !== null
-                            ? `${selectedAppForReview.aiExperienceYears} Year${selectedAppForReview.aiExperienceYears !== 1 ? 's' : ''}`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Technologies */}
-                    <div className="bg-white/85 p-3.5 rounded-xl border border-slate-100 shadow-sm">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Extracted Technologies</span>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {selectedAppForReview.aiTechnologies
-                          ? selectedAppForReview.aiTechnologies.split(',').map((tech, i) => (
-                              <span key={i} className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px] border border-slate-200/60">
-                                {tech.trim()}
-                              </span>
-                            ))
-                          : <span className="text-slate-400 italic">None detected</span>
-                        }
-                      </div>
-                    </div>
-
-                    {/* Strengths & Weaknesses */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-emerald-50/40 p-3.5 rounded-xl border border-emerald-100/50">
-                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-                          <span className="material-symbols-outlined text-xs">check_circle</span> Strengths
-                        </span>
-                        <ul className="list-disc list-inside space-y-1.5 text-slate-700 leading-relaxed pl-1 text-[11px]">
-                          {selectedAppForReview.aiStrengths
-                            ? selectedAppForReview.aiStrengths.split(';').map((str, i) => (
-                                <li key={i}>{str.trim()}</li>
-                              ))
-                            : <li>No notable strengths identified</li>
-                          }
-                        </ul>
-                      </div>
-                      <div className="bg-rose-50/40 p-3.5 rounded-xl border border-rose-100/50">
-                        <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-                          <span className="material-symbols-outlined text-xs">cancel</span> Weaknesses
-                        </span>
-                        <ul className="list-disc list-inside space-y-1.5 text-slate-700 leading-relaxed pl-1 text-[11px]">
-                          {selectedAppForReview.aiWeaknesses
-                            ? selectedAppForReview.aiWeaknesses.split(';').map((weak, i) => (
-                                <li key={i}>{weak.trim()}</li>
-                              ))
-                            : <li>No notable weaknesses identified</li>
-                          }
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* AI Summary */}
-                    {selectedAppForReview.aiSummary && (
-                      <div className="bg-white/85 p-3.5 rounded-xl border border-slate-100 shadow-sm">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pre-Screening Summary</span>
-                        <p className="text-slate-600 leading-relaxed italic mt-1 font-medium">
-                          "{selectedAppForReview.aiSummary}"
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-slate-400 italic text-[11px] p-2 bg-white/50 rounded-lg">
-                    CV analysis score and summary are being generated. Please wait and refresh if you just submitted.
-                  </p>
-                )}
-              </div>
-
-              {selectedAppForReview.status === 'PENDING' ? (
-                <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
-                  <button
-                    onClick={() => handleApproveInstructor(selectedAppForReview.id, 'APPROVED')}
-                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                  >
-                    Approve Application
-                  </button>
-                  <button
-                    onClick={() => handleApproveInstructor(selectedAppForReview.id, 'REJECTED')}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                  >
-                    Reject Application
-                  </button>
-                </div>
-              ) : (
-                <div className="border-t border-slate-150 pt-4 mt-3 flex justify-between items-center">
-                  <span className="text-[10px] font-semibold text-slate-400">
-                    Reviewed Status: <strong className={selectedAppForReview.status === 'APPROVED' ? 'text-emerald-600' : 'text-red-500'}>{selectedAppForReview.status}</strong>
-                  </span>
-                  <button
-                    onClick={() => setSelectedAppForReview(null)}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl border border-slate-200"
-                  >
-                    Close
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: INSTRUCTOR APPLICATION ACTION CONFIRMATION ================= */}
-      {pendingInstructorAction && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2 py-0.5 rounded-md">
-                  {pendingInstructorAction.status === 'APPROVED' ? 'Approve Instructor' : 'Reject Instructor'}
-                </span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
-                  {pendingInstructorAction.status === 'APPROVED' ? 'Confirm Approval' : 'Confirm Rejection'}
-                </h3>
-              </div>
-              <button onClick={() => setPendingInstructorAction(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
-            </div>
-
-            <div className="flex flex-col gap-4 text-sm mb-6">
-              {pendingInstructorAction.status === 'APPROVED' ? (
-                <p className="text-slate-650 leading-relaxed text-sm">
-                  Are you sure you want to approve this instructor application? This will grant the user the Instructor role on the platform.
-                </p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <p className="text-slate-650 leading-relaxed text-sm">
-                    Please provide a rejection reason for this instructor application. The applicant will see this reason on their status page.
-                  </p>
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-2">Rejection Reason</label>
-                  <textarea
-                    value={rejectionReasonText}
-                    onChange={(e) => setRejectionReasonText(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all min-h-[90px]"
-                    placeholder="Enter rejection reason here..."
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3 border-t border-slate-100 pt-4">
-              <button
-                onClick={() => setPendingInstructorAction(null)}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-slate-200/60"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  const appId = pendingInstructorAction.appId;
-                  const status = pendingInstructorAction.status;
-                  const note = status === 'REJECTED' ? rejectionReasonText.trim() || 'Hồ sơ chưa đạt yêu cầu.' : 'Đã phê duyệt đơn ứng tuyển';
-                  
-                  setPendingInstructorAction(null);
-                  try {
-                    const updated = await adminService.approveInstructorApplication(appId, status, note);
-                    setApplications(prev => prev.map(a => a.id === appId ? updated : a));
-                    setSelectedAppForReview(null);
-                    // reload instructors and stats
-                    const [newStats, newInsts] = await Promise.all([
-                      adminService.getDashboardStats(),
-                      adminService.getInstructors()
-                    ]);
-                    setStats(newStats);
-                    setInstructors(newInsts);
-                    showAdminToast(`Successfully ${status.toLowerCase()} instructor application.`, 'success');
-                  } catch (error) {
-                    showAdminToast("Failed to process instructor application approval.", 'error');
-                  }
-                }}
-                className={`flex-1 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm ${
-                  pendingInstructorAction.status === 'APPROVED' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-red-500 hover:bg-red-600'
-                }`}
-              >
-                {pendingInstructorAction.status === 'APPROVED' ? 'Approve' : 'Reject'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ================= MODAL: USER PURCHASES VIEW ================= */}
       {selectedUserDetail && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -5044,19 +4738,81 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* ================= GENERAL ADMIN TOAST ================= */}
-      {adminToast && (
-        <div className={`fixed bottom-6 right-6 z-[200] text-white text-sm font-semibold px-4 py-3.5 rounded-xl shadow-xl flex items-center gap-2.5 border animate-fade-in ${
-          adminToast.type === 'success' ? 'bg-emerald-600 border-emerald-500' :
-          adminToast.type === 'error' ? 'bg-red-600 border-red-500' : 'bg-brand-blue border-brand-blue-light'
-        }`}>
-          <span className="material-symbols-outlined text-[20px]">
-            {adminToast.type === 'success' ? 'check_circle' :
-             adminToast.type === 'error' ? 'error' : 'info'}
-          </span>
-          <span>{adminToast.message}</span>
+      {/* ================= MODAL: STATUS CHANGE CONFIRMATION ================= */}
+      {statusConfirmTarget && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left">
+            <div className="flex flex-col items-center text-center gap-4">
+              
+              {/* Dynamic Icon/Theme based on newStatus */}
+              {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? (
+                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-200 text-red-500 animate-pulse">
+                  <span className="material-symbols-outlined text-4xl">warning</span>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200 text-emerald-500">
+                  <span className="material-symbols-outlined text-4xl">check_circle</span>
+                </div>
+              )}
+
+              <div>
+                <h3 className="font-display font-black text-lg text-slate-800">
+                  {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                    ? `Confirm Account Restriction` 
+                    : `Confirm Account Activation`}
+                </h3>
+                <p className="text-xs text-text-muted mt-2 px-2 leading-relaxed">
+                  Are you sure you want to change the status of <strong>{statusConfirmTarget.name}</strong> ({statusConfirmTarget.type.toLowerCase()}) to <span className={`font-bold ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? 'text-red-500' : 'text-emerald-500'
+                  }`}>{statusConfirmTarget.newStatus}</span>?
+                </p>
+                
+                {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') && (
+                  <p className="text-[11px] text-red-500 bg-red-50/50 border border-red-100 p-2.5 rounded-xl mt-3 text-left">
+                    ⚠️ <strong>Important note:</strong> Restricting this account will prevent them from logging in, managing courses, or submitting answers on the platform until they are reactivated.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 w-full mt-4">
+                <button
+                  type="button"
+                  onClick={() => setStatusConfirmTarget(null)}
+                  disabled={isProcessingStatusChange}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs disabled:opacity-50 cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeStatusChange}
+                  disabled={isProcessingStatusChange}
+                  className={`flex-1 py-2.5 rounded-xl text-white font-bold transition-all text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED')
+                      ? 'bg-red-500 hover:bg-red-650'
+                      : 'bg-emerald-500 hover:bg-emerald-600'
+                  }`}
+                >
+                  {isProcessingStatusChange ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                        ? 'Confirm Suspend' 
+                        : 'Confirm Activate'}
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </div>
+          </div>
         </div>
       )}
+
     </div>
   );
 };
