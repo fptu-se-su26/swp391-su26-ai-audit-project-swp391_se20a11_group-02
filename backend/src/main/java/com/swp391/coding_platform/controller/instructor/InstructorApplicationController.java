@@ -2,9 +2,12 @@ package com.swp391.coding_platform.controller.instructor;
 
 import com.swp391.coding_platform.dto.request.ApproveApplicationRequest;
 import com.swp391.coding_platform.dto.request.InstructorApplyRequest;
+import com.swp391.coding_platform.dto.request.UpdateInstructorStatusRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.InstructorApplicationResponse;
+import com.swp391.coding_platform.dto.response.AdminInstructorResponse;
 import com.swp391.coding_platform.service.instructor.InstructorApplicationService;
+import com.swp391.coding_platform.service.instructor.InstructorService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,21 @@ import java.util.List;
 public class InstructorApplicationController {
 
     InstructorApplicationService applicationService;
+    InstructorService instructorService;
+
+    @GetMapping("/admin/instructors")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<List<AdminInstructorResponse>>> getInstructors() {
+        List<AdminInstructorResponse> result = instructorService.getAllInstructorsForAdmin();
+
+        return ResponseEntity.ok(ApiResponse.<List<AdminInstructorResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Fetched all active instructors successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 
     @PostMapping("/instructor-applications/apply")
     public ResponseEntity<ApiResponse<InstructorApplicationResponse>> apply(
@@ -92,6 +110,23 @@ public class InstructorApplicationController {
                 .status(200)
                 .code(1000)
                 .message("Application has been processed successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/admin/instructors/{id}/status")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<AdminInstructorResponse>> updateInstructorStatus(
+            @PathVariable("id") Integer id,
+            @Valid @RequestBody UpdateInstructorStatusRequest request) {
+
+        AdminInstructorResponse result = instructorService.updateInstructorStatus(id, request.getStatus());
+
+        return ResponseEntity.ok(ApiResponse.<AdminInstructorResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Instructor status updated successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());
