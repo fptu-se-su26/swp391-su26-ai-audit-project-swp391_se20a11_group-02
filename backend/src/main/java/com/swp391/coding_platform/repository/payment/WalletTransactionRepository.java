@@ -1,5 +1,6 @@
 package com.swp391.coding_platform.repository.payment;
 
+import com.swp391.coding_platform.entity.enums.StatusTransaction;
 import com.swp391.coding_platform.entity.payment.WalletTransactionEntity;
 import com.swp391.coding_platform.entity.enums.TransactionType;
 import org.springframework.data.domain.Page;
@@ -16,4 +17,14 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     List<WalletTransactionEntity> findByWalletIdOrderByCreatedAtDesc(Integer walletId);
     Page<WalletTransactionEntity> findByWalletUserId(Integer userId, Pageable pageable);
     Page<WalletTransactionEntity> findByWalletUserIdAndType(Integer userId, TransactionType type, Pageable pageable);
+
+    @Query("SELECT wt FROM WalletTransactionEntity wt " +
+           "JOIN FETCH wt.wallet w " +
+           "JOIN FETCH w.user u " +
+           "WHERE wt.type = :type AND wt.status = :status " +
+           "ORDER BY wt.createdAt DESC")
+    List<WalletTransactionEntity> findRecentTransactions(
+            @Param("type") TransactionType type,
+            @Param("status") StatusTransaction status,
+            Pageable pageable);
 }

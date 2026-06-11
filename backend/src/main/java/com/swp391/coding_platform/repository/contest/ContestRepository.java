@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ContestRepository extends JpaRepository<ContestEntity, Integer> {
+    long countByStatus(ContestStatus status);
 
     @Query("SELECT c, " +
            "(SELECT COUNT(p) FROM ContestParticipantEntity p WHERE p.contest.id = c.id), " +
