@@ -11,9 +11,12 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InstructorApplyRequest {
 
-    @NotBlank(message = "CV URL cannot be blank")
-    String cvUrl;
+    @NotBlank(message = "Full name cannot be blank")
+    String fullName;
 
-    @NotBlank(message = "Introduction cannot be blank")
-    String introduction;
+    @NotBlank(message = "Major cannot be blank")
+    String major;
+
+    @NotBlank(message = "Bio cannot be blank")
+    String bio;
 }
