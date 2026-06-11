@@ -16,6 +16,8 @@ public interface CompletedLessonCountRepository extends JpaRepository<CompletedL
 
     List<CompletedLessonsCountEntity> findByUserIdAndCourseIdIn(Integer userId, Set<Long> courseIds);
 
+    List<CompletedLessonsCountEntity> findByCourseId(Long courseId);
+
     @Query(value = "UPDATE completed_lessons_count " +
                    "SET completed_lessons_count = completed_lessons_count + 1, updated_at = CURRENT_TIMESTAMP " +
                    "WHERE user_id = :userId AND course_id = :courseId " +

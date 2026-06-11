@@ -142,5 +142,33 @@ public class InstructorCourseController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
+    @GetMapping("/courses/{id}/statistics")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.CourseStatisticResponse>> getCourseStatistics(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id) {
+
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        var result = instructorCourseService.getCourseStatistics(userId, id);
+
+        return ResponseEntity.ok(ApiResponse.<com.swp391.coding_platform.dto.response.CourseStatisticResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Fetched course statistics successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }
 

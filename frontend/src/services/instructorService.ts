@@ -350,5 +350,22 @@ export const instructorService = {
 
     const data = await response.json();
     return data.result;
+  },
+
+  async getCourseStatistics(courseId: string): Promise<any> {
+    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}/statistics`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch course statistics');
+    }
+
+    const data = await response.json();
+    return data.result;
   }
 };

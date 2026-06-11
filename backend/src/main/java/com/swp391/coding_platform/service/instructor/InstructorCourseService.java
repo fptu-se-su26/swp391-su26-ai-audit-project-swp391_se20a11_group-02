@@ -32,6 +32,8 @@ public class InstructorCourseService {
     private final com.swp391.coding_platform.repository.course.LessonRepository lessonRepository;
     private final com.swp391.coding_platform.repository.problem.ProblemRepository problemRepository;
     private final com.swp391.coding_platform.repository.course.LessonProblemRepository lessonProblemRepository;
+    private final com.swp391.coding_platform.repository.course.EnrollmentRepository enrollmentRepository;
+    private final com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository completedLessonCountRepository;
 
     public InstructorCourseDetailResponse getCourseDetail(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
@@ -467,5 +469,60 @@ public class InstructorCourseService {
         if (price == null) return "0 ₫";
         java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY);
         return nf.format(price.longValue()) + " ₫";
+    }
+
+    public com.swp391.coding_platform.dto.response.CourseStatisticResponse getCourseStatistics(Integer userId, Long courseId) {
+        InstructorEntity instructor = getInstructorByUserId(userId);
+        CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
+                .orElseThrow(() -> new com.swp391.coding_platform.exception.AppException(com.swp391.coding_platform.exception.ErrorCode.COURSE_NOT_FOUND));
+
+        java.math.BigDecimal revenue = course.getPrice() != null ? course.getPrice().multiply(java.math.BigDecimal.valueOf(course.getTotalEnrolled())) : java.math.BigDecimal.ZERO;
+
+        java.util.List<com.swp391.coding_platform.entity.course.EnrollmentEntity> enrollments = enrollmentRepository.findByCourseId(courseId);
+        java.util.List<com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity> progressList = completedLessonCountRepository.findByCourseId(courseId);
+
+        java.util.Map<Integer, Integer> userProgressMap = progressList.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        p -> p.getUser().getId(),
+                        com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity::getCompletedLessonsCount,
+                        (existing, replacement) -> existing
+                ));
+
+        java.util.List<com.swp391.coding_platform.dto.response.CourseStatisticResponse.StudentProgressDto> studentStats = new java.util.ArrayList<>();
+        double totalCompletionPercentage = 0.0;
+        int validStudents = 0;
+        
+        int totalLessons = course.getTotalLessons() != null && course.getTotalLessons() > 0 ? course.getTotalLessons() : 1;
+
+        for (com.swp391.coding_platform.entity.course.EnrollmentEntity e : enrollments) {
+            Integer studentId = e.getUser().getId();
+            int completedLessons = userProgressMap.getOrDefault(studentId, 0);
+            double percentage = ((double) completedLessons / totalLessons) * 100;
+            if (percentage > 100) percentage = 100.0;
+
+            studentStats.add(com.swp391.coding_platform.dto.response.CourseStatisticResponse.StudentProgressDto.builder()
+                    .userId(studentId)
+                    .fullName(e.getUser().getDisplayname())
+                    .email(e.getUser().getEmail())
+                    .avatarUrl(e.getUser().getAvatarurl())
+                    .completedLessons(completedLessons)
+                    .totalLessons(totalLessons)
+                    .completionPercentage(percentage)
+                    .build());
+            
+            totalCompletionPercentage += percentage;
+            validStudents++;
+        }
+
+        double averageCompletionRate = validStudents > 0 ? totalCompletionPercentage / validStudents : 0.0;
+
+        return com.swp391.coding_platform.dto.response.CourseStatisticResponse.builder()
+                .totalEnrollments(course.getTotalEnrolled())
+                .averageRating(course.getAverageRating())
+                .totalReviews(course.getTotalReviews())
+                .totalRevenue(revenue)
+                .averageCompletionRate(averageCompletionRate)
+                .students(studentStats)
+                .build();
     }
 }

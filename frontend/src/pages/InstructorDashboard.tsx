@@ -861,6 +861,18 @@ export const InstructorDashboard: React.FC = () => {
   const [totalNetRevenue, setTotalNetRevenue] = useState<number>(0);
   const [totalActualTakeHome, setTotalActualTakeHome] = useState<number>(0);
   const [selectedCourseForStats, setSelectedCourseForStats] = useState<InstructorCourse | null>(null);
+  const [courseStatsData, setCourseStatsData] = useState<any>(null);
+
+  const handleOpenStatistics = async (course: InstructorCourse) => {
+    setSelectedCourseForStats(course);
+    setCourseStatsData(null);
+    try {
+      const stats = await instructorService.getCourseStatistics(course.id);
+      setCourseStatsData(stats);
+    } catch (error) {
+      console.error('Failed to fetch course stats:', error);
+    }
+  };
   const [isAllActivitiesModalOpen, setIsAllActivitiesModalOpen] = useState<boolean>(false);
   const [activitySearchQuery, setActivitySearchQuery] = useState<string>('');
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all');
@@ -2855,9 +2867,15 @@ export const InstructorDashboard: React.FC = () => {
                             <>
                               <button
                                 onClick={() => openSyllabusEditor(course)}
-                                className="col-span-2 flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold transition-all border border-slate-200/30"
+                                className="flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold transition-all border border-slate-200/30"
                               >
-                                <span className="material-symbols-outlined text-[16px]">edit</span> Edit Course Details
+                                <span className="material-symbols-outlined text-[16px]">edit</span> Edit Details
+                              </button>
+                              <button
+                                onClick={() => handleOpenStatistics(course)}
+                                className="flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-bold transition-all border border-primary/20"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">analytics</span> Statistics
                               </button>
                             </>
                           )}
@@ -5362,153 +5380,98 @@ export const InstructorDashboard: React.FC = () => {
 
               {/* Body */}
               <div className="p-6 overflow-y-auto max-h-[70vh] flex flex-col gap-6">
-                
-                {/* Metrics Cards Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {/* Students */}
-                  <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Enrolled</span>
-                    <span className="text-xl font-display font-black text-brand-blue">
-                      {selectedCourseForStats.studentsCount.toLocaleString()}
-                    </span>
-                    <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-0.5 mt-0.5">
-                      <span className="material-symbols-outlined text-xs">trending_up</span> Active students
-                    </span>
+                {!courseStatsData ? (
+                  <div className="py-12 flex justify-center items-center">
+                    <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
                   </div>
-
-                  {/* Price */}
-                  <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Course Price</span>
-                    <span className="text-xl font-display font-black text-brand-blue truncate">
-                      {selectedCourseForStats.price}
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold mt-0.5">
-                      Standard Price
-                    </span>
-                  </div>
-
-                  {/* Rating */}
-                  <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Avg Rating</span>
-                    <span className="text-xl font-display font-black text-brand-blue flex items-center gap-1">
-                      {selectedCourseForStats.rating.toFixed(1)}
-                      <span className="material-symbols-outlined text-amber-500 text-sm font-semibold icon-fill">star</span>
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold mt-0.5">
-                      From {selectedCourseForStats.reviewsCount} reviews
-                    </span>
-                  </div>
-
-                  {/* Estimated Revenue */}
-                  <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gross Earnings</span>
-                    <span className="text-xl font-display font-black text-emerald-600 truncate">
-                      {estimatedRevenue.toLocaleString('vi-VN')} ₫
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold mt-0.5">
-                      Est. Total Sales
-                    </span>
-                  </div>
-                </div>
-
-                {/* Engagement Metrics */}
-                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5">
-                  <h4 className="text-xs font-bold text-brand-blue uppercase tracking-wider mb-4 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-base text-primary">analytics</span> Course Engagement & Insights
-                  </h4>
-                  
-                  <div className="grid grid-cols-3 gap-4">
-                    {/* Completion rate progress */}
-                    <div className="flex flex-col items-center justify-center p-3 bg-white border border-slate-100 rounded-xl shadow-sm text-center">
-                      <div className="mb-2">
-                        <CircularProgress value={completionRate} color="#10b981" size={56} strokeWidth={5} />
+                ) : (
+                  <>
+                    {/* Metrics Cards Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {/* Students */}
+                      <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Enrollments</span>
+                        <span className="text-xl font-display font-black text-brand-blue">
+                          {courseStatsData.totalEnrollments?.toLocaleString() || 0}
+                        </span>
                       </div>
-                      <span className="text-xs font-bold text-brand-blue">Completion Rate</span>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Target: 70%+</span>
-                    </div>
 
-                    {/* Quiz pass rate progress */}
-                    <div className="flex flex-col items-center justify-center p-3 bg-white border border-slate-100 rounded-xl shadow-sm text-center">
-                      <div className="mb-2">
-                        <CircularProgress value={quizPassRate} color="#3b82f6" size={56} strokeWidth={5} />
+                      {/* Rating */}
+                      <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Avg Rating</span>
+                        <span className="text-xl font-display font-black text-brand-blue flex items-center gap-1">
+                          {courseStatsData.averageRating?.toFixed(1) || '0.0'}
+                          <span className="material-symbols-outlined text-amber-500 text-sm font-semibold icon-fill">star</span>
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-bold mt-0.5">
+                          {courseStatsData.totalReviews || 0} reviews
+                        </span>
                       </div>
-                      <span className="text-xs font-bold text-brand-blue">Quiz Pass Rate</span>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Avg Score: 8.2</span>
-                    </div>
 
-                    {/* Active learners progress */}
-                    <div className="flex flex-col items-center justify-center p-3 bg-white border border-slate-100 rounded-xl shadow-sm text-center">
-                      <div className="mb-2">
-                        <CircularProgress value={activeLearners} color="#f97316" size={56} strokeWidth={5} />
+                      {/* Estimated Revenue */}
+                      <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Revenue</span>
+                        <span className="text-xl font-display font-black text-emerald-600 truncate">
+                          {courseStatsData.totalRevenue?.toLocaleString('vi-VN') || 0} ₫
+                        </span>
                       </div>
-                      <span className="text-xs font-bold text-brand-blue">Active Learners</span>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Weekly Engagement</span>
+
+                      {/* Average Completion */}
+                      <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Avg Completion</span>
+                        <span className="text-xl font-display font-black text-primary truncate">
+                          {courseStatsData.averageCompletionRate?.toFixed(1) || 0}%
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Course Details Description & Meta */}
-                <div className="border border-slate-100 rounded-2xl p-4.5 flex flex-col gap-3">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Course Status</span>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className={`w-2 h-2 rounded-full ${
-                        selectedCourseForStats.status === 'published' ? 'bg-emerald-500' :
-                        selectedCourseForStats.status === 'review' ? 'bg-amber-500' : 'bg-slate-400'
-                      }`} />
-                      <span className="text-xs font-extrabold text-brand-blue uppercase">
-                        {selectedCourseForStats.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Description</span>
-                    <p className="text-xs font-medium text-slate-600 leading-relaxed mt-1">
-                      {selectedCourseForStats.description || "No description provided for this course yet."}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Registrations for this specific course */}
-                <div>
-                  <h4 className="text-xs font-bold text-brand-blue uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-base text-primary">recent_actors</span> Recent Enrollments
-                  </h4>
-                  <div className="max-h-[160px] overflow-y-auto border border-slate-200/60 rounded-2xl divide-y divide-slate-100 bg-white">
-                    {(() => {
-                      const courseRegs = (registrations || []).filter(
-                        r => (r.course || '').toLowerCase() === (selectedCourseForStats.title || '').toLowerCase()
-                      );
-
-                      if (courseRegs.length === 0) {
-                        return (
+                    {/* Students List */}
+                    <div>
+                      <h4 className="text-xs font-bold text-brand-blue uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-base text-primary">group</span> Student Progress
+                      </h4>
+                      <div className="max-h-[300px] overflow-y-auto border border-slate-200/60 rounded-2xl divide-y divide-slate-100 bg-white">
+                        {courseStatsData.students?.length === 0 ? (
                           <div className="p-6 text-center text-xs font-semibold text-slate-400">
                             No student enrollments found for this course.
                           </div>
-                        );
-                      }
-
-                      return courseRegs.map((reg, idx) => (
-                        <div key={idx} className="p-3 flex items-center justify-between text-xs hover:bg-slate-50 transition-colors">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                              {reg.studentName ? reg.studentName[0] : 'S'}
+                        ) : (
+                          courseStatsData.students?.map((student: any) => (
+                            <div key={student.userId} className="p-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                              <div className="flex items-center gap-3">
+                                {student.avatarUrl ? (
+                                  <img src={student.avatarUrl} alt={student.fullName} className="w-8 h-8 rounded-lg object-cover" />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                    {student.fullName ? student.fullName[0].toUpperCase() : 'S'}
+                                  </div>
+                                )}
+                                <div>
+                                  <span className="font-extrabold text-sm text-brand-blue block leading-tight">{student.fullName || 'Student'}</span>
+                                  <span className="text-[10px] text-slate-400 block mt-0.5">{student.email}</span>
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end gap-1 w-24">
+                                <span className="text-[10px] font-bold text-slate-600">
+                                  {student.completionPercentage.toFixed(1)}%
+                                </span>
+                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-emerald-500 rounded-full" 
+                                    style={{ width: `${student.completionPercentage}%` }}
+                                  />
+                                </div>
+                                <span className="text-[9px] text-slate-400 font-semibold">
+                                  {student.completedLessons} / {student.totalLessons} lessons
+                                </span>
+                              </div>
                             </div>
-                            <div>
-                              <span className="font-extrabold text-brand-blue">{reg.studentName || 'Student'}</span>
-                              <span className="text-[10px] text-slate-400 block mt-0.5">{reg.time || 'Recently'}</span>
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-bold uppercase bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full">
-                            Enrolled
-                          </span>
-                        </div>
-                      ));
-                    })()}
-                  </div>
-                </div>
-
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Footer */}
