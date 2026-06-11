@@ -119,3 +119,9 @@ database/fake_instructor_revenue_data.sql
 database/fake_testcases.sql
 database/generate_jane_data.py
 database/generate_testcases.py
+
+# ------------------------------------------
+# User Uploads
+# ------------------------------------------
+uploads/
+backend/uploads/
