@@ -10,7 +10,12 @@ import type {
   AdminContest,
   AdminDepositHistory,
   AdminProblemTestcase,
-  AdminFinancialStats
+  AdminFinancialStats,
+  AdminFinancialDetails,
+  MonthlyFinancialBreakdown,
+  OrderDetails,
+  AwardDetails,
+  SaleDetails
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -329,7 +334,7 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
 
   const availableYears = useMemo(() => {
     const yearsSet = new Set<string>();
-    (details?.monthlyBreakdowns || []).forEach(b => {
+    (details?.monthlyBreakdowns || []).forEach((b: MonthlyFinancialBreakdown) => {
       if (b.datePrefix && b.datePrefix.length >= 4) {
         const year = b.datePrefix.substring(0, 4);
         yearsSet.add(year);
@@ -341,7 +346,7 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
   const filteredBreakdowns = useMemo(() => {
     const list = details?.monthlyBreakdowns || [];
     if (selectedYear === 'ALL') return list;
-    return list.filter(b => b.datePrefix && b.datePrefix.startsWith(selectedYear));
+    return list.filter((b: MonthlyFinancialBreakdown) => b.datePrefix && b.datePrefix.startsWith(selectedYear));
   }, [details, selectedYear]);
 
   const summary = useMemo(() => {
@@ -352,7 +357,7 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
     let marketing = 0;
     let netProfit = 0;
 
-    filteredBreakdowns.forEach(item => {
+    filteredBreakdowns.forEach((item: MonthlyFinancialBreakdown) => {
       gross += item.gross || 0;
       count += item.count || 0;
       rewards += item.rewards || 0;
@@ -445,7 +450,7 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
                   <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu.</td>
                 </tr>
               ) : (
-                filteredBreakdowns.map((b, idx) => {
+                filteredBreakdowns.map((b: MonthlyFinancialBreakdown, idx: number) => {
                   const gross = b.gross || 0;
                   const platformShare = Math.round(gross * 0.3);
                   const gatewayFees = Math.round(gross * 0.02);
@@ -617,23 +622,6 @@ export const AdminDashboard: React.FC = () => {
     setReviewingContest(null);
     setReviewContestTab('overview');
     setReviewContestProblemId(null);
-    setSelectedAppForReview(null);
-    setSelectedUserDetail(null);
-    setIsCreateProblemOpen(false);
-    setIsEditProblemOpen(false);
-    setEditingProblemId(null);
-    setIsCreateContestOpen(false);
-    setIsTestcaseModalOpen(false);
-    setTestcaseProblem(null);
-    setTestcasesList([]);
-    setZipFile(null);
-
-    // Close active review player and modals when navigating tabs
-    setReviewingCourse(null);
-    setReviewingContest(null);
-    setReviewContestTab('overview');
-    setReviewContestProblemId(null);
-    setSelectedAppForReview(null);
     setSelectedUserDetail(null);
     setIsCreateProblemOpen(false);
     setIsEditProblemOpen(false);
@@ -1027,49 +1015,50 @@ export const AdminDashboard: React.FC = () => {
       showGlobalToast("Failed to process course approval", "error");
     }
   };
-  const handleApproveInstructor = (appId: number, status: 'APPROVED' | 'REJECTED') => {
-    setPendingInstructorAction({ appId, status });
-    if (status === 'REJECTED') {
-      setRejectionReasonText('Hồ sơ chưa đạt yêu cầu.');
+  const handleUserStatusChange = (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const user = users.find(u => u.id === userId);
+    const name = user ? user.name : `User #${userId}`;
+    setStatusConfirmTarget({
+      id: userId,
+      name,
+      type: 'USER',
+      newStatus
+    });
+  };
+
+  const handleInstructorStatusChange = (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
+    const inst = instructors.find(ins => ins.id === instructorId);
+    const name = inst ? inst.fullName : `Instructor #${instructorId}`;
+    setStatusConfirmTarget({
+      id: instructorId,
+      name,
+      type: 'INSTRUCTOR',
+      newStatus
+    });
+  };
+
+  const executeStatusChange = async () => {
+    if (!statusConfirmTarget) return;
+    setIsProcessingStatusChange(true);
+    const { id, type, newStatus } = statusConfirmTarget;
+    try {
+      if (type === 'USER') {
+        const updated = await adminService.setUserLockStatus(id, newStatus as 'ACTIVE' | 'LOCKED');
+        setUsers(prev => prev.map(u => u.id === id ? updated : u));
+        if (selectedUserDetail?.id === id) {
+          setSelectedUserDetail(updated);
+        }
+      } else {
+        const updated = await adminService.setInstructorStatus(id, newStatus as 'ACTIVE' | 'SUSPENDED');
+        setInstructors(prev => prev.map(ins => ins.id === id ? updated : ins));
+      }
+      setStatusConfirmTarget(null);
+      showGlobalToast(`${type === 'USER' ? 'User' : 'Instructor'} status successfully updated to ${newStatus}`, "success");
+    } catch (error) {
+      showGlobalToast(`Failed to update ${type.toLowerCase()} status.`, "error");
+    } finally {
+      setIsProcessingStatusChange(false);
     }
-  };
-
-
-  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
-    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
-    triggerConfirm(
-      "Change User Status",
-      confirmMsg,
-      async () => {
-        try {
-          const updated = await adminService.setUserLockStatus(userId, newStatus);
-          setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-          if (selectedUserDetail?.id === userId) {
-            setSelectedUserDetail(updated);
-          }
-          showGlobalToast(`User status successfully updated to ${newStatus}`, "success");
-        } catch (error) {
-          showGlobalToast("Failed to update user status", "error");
-        }
-      }
-    );
-  };
-
-  const handleInstructorStatusChange = async (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
-    const confirmMsg = `Are you sure you want to change this instructor status to ${newStatus}?`;
-    triggerConfirm(
-      "Change Instructor Status",
-      confirmMsg,
-      async () => {
-        try {
-          const updated = await adminService.setInstructorStatus(instructorId, newStatus);
-          setInstructors(prev => prev.map(ins => ins.id === instructorId ? updated : ins));
-          showGlobalToast(`Instructor status successfully updated to ${newStatus}`, "success");
-        } catch (error) {
-          showGlobalToast("Failed to update instructor status", "error");
-        }
-      }
-    );
   };
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
@@ -5215,9 +5204,9 @@ export const AdminDashboard: React.FC = () => {
                   <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <span className="font-semibold text-slate-500">Tổng quan toàn bộ thời gian:</span>
                     <span className="font-mono font-black text-sm text-slate-900">
-                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
-                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
-                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
                     </span>
                   </div>
 
@@ -5240,7 +5229,7 @@ export const AdminDashboard: React.FC = () => {
                             <td colSpan={7} className="p-4 text-center text-slate-400 italic">Chưa có giao dịch nào được ghi nhận.</td>
                           </tr>
                         ) : (
-                          (financialDetails?.orders || []).map((o, idx) => (
+                          (financialDetails?.orders || []).map((o: OrderDetails, idx: number) => (
                             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                               <td className="p-3 text-slate-900 font-bold">#{o.id}</td>
                               <td className="p-3">
@@ -5267,7 +5256,7 @@ export const AdminDashboard: React.FC = () => {
                   <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <span className="font-semibold text-slate-500">Tổng phần thưởng giải đấu toàn thời gian:</span>
                     <span className="font-mono font-black text-sm text-rose-600">
-                      -{((financialDetails?.awards || []).reduce((acc, a) => acc + a.amount, 0)).toLocaleString()} ₫
+                      -{((financialDetails?.awards || []).reduce((acc: number, a: AwardDetails) => acc + a.amount, 0)).toLocaleString()} ₫
                     </span>
                   </div>
 
@@ -5288,7 +5277,7 @@ export const AdminDashboard: React.FC = () => {
                             <td colSpan={5} className="p-4 text-center text-slate-400 italic">Chưa có phần thưởng giải đấu nào được trao.</td>
                           </tr>
                         ) : (
-                          (financialDetails?.awards || []).map((a, idx) => (
+                          (financialDetails?.awards || []).map((a: AwardDetails, idx: number) => (
                             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                               <td className="p-3 text-slate-900 font-bold">#{a.id}</td>
                               <td className="p-3">
@@ -5335,7 +5324,7 @@ export const AdminDashboard: React.FC = () => {
                             <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có lượt bán khóa học nào.</td>
                           </tr>
                         ) : (
-                          (financialDetails?.sales || []).map((s, idx) => (
+                          (financialDetails?.sales || []).map((s: SaleDetails, idx: number) => (
                             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                               <td className="p-3 text-slate-900 font-bold">#{s.orderId}</td>
                               <td className="p-3">{s.customerName}</td>
@@ -5403,6 +5392,81 @@ export const AdminDashboard: React.FC = () => {
               >
                 Đóng báo cáo
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: STATUS CHANGE CONFIRMATION ================= */}
+      {statusConfirmTarget && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left">
+            <div className="flex flex-col items-center text-center gap-4">
+              
+              {/* Dynamic Icon/Theme based on newStatus */}
+              {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? (
+                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-200 text-red-500 animate-pulse">
+                  <span className="material-symbols-outlined text-4xl">warning</span>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200 text-emerald-500">
+                  <span className="material-symbols-outlined text-4xl">check_circle</span>
+                </div>
+              )}
+
+              <div>
+                <h3 className="font-display font-black text-lg text-slate-800">
+                  {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                    ? `Confirm Account Restriction` 
+                    : `Confirm Account Activation`}
+                </h3>
+                <p className="text-xs text-text-muted mt-2 px-2 leading-relaxed">
+                  Are you sure you want to change the status of <strong>{statusConfirmTarget.name}</strong> ({statusConfirmTarget.type.toLowerCase()}) to <span className={`font-bold ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? 'text-red-500' : 'text-emerald-500'
+                  }`}>{statusConfirmTarget.newStatus}</span>?
+                </p>
+                
+                {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') && (
+                  <p className="text-[11px] text-red-500 bg-red-50/50 border border-red-100 p-2.5 rounded-xl mt-3 text-left">
+                    ⚠️ <strong>Important note:</strong> Restricting this account will prevent them from logging in, managing courses, or submitting answers on the platform until they are reactivated.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 w-full mt-4">
+                <button
+                  type="button"
+                  onClick={() => setStatusConfirmTarget(null)}
+                  disabled={isProcessingStatusChange}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs disabled:opacity-50 cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeStatusChange}
+                  disabled={isProcessingStatusChange}
+                  className={`flex-1 py-2.5 rounded-xl text-white font-bold transition-all text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED')
+                      ? 'bg-red-500 hover:bg-red-650'
+                      : 'bg-emerald-500 hover:bg-emerald-600'
+                  }`}
+                >
+                  {isProcessingStatusChange ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                        ? 'Confirm Suspend' 
+                        : 'Confirm Activate'}
+                    </>
+                  )}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
