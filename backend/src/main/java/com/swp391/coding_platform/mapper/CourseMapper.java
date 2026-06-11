@@ -49,7 +49,16 @@ public interface CourseMapper {
     @Mapping(target = "activeLessonTheoryContent", source = "activeLesson.theoryContent")
     LearningDetailResponse toLearningDetailResponse(CourseEntity course, int progressPercentage, LessonEntity activeLesson);
 
+    @Mapping(target = "exercises", source = "lessonProblems")
     LearningLessonResponse toLearningLessonResponse(LessonEntity lessonEntity);
+
+    @Mapping(target = "id", source = "problem.id")
+    @Mapping(target = "name", source = "problem.title")
+    @Mapping(target = "difficulty", source = "problem.difficulty")
+    @Mapping(target = "difficultyClass", expression = "java(lessonProblemEntity.getProblem().getDifficulty() != null ? (lessonProblemEntity.getProblem().getDifficulty().name().equals(\"EASY\") ? \"bg-green-100 text-green-700 border-green-200\" : lessonProblemEntity.getProblem().getDifficulty().name().equals(\"MEDIUM\") ? \"bg-yellow-100 text-yellow-700 border-yellow-200\" : \"bg-red-100 text-red-700 border-red-200\") : \"bg-gray-100 text-gray-700\")")
+    @Mapping(target = "submissions", source = "problem.totalSubmission")
+    @Mapping(target = "completed", constant = "false")
+    LearningExerciseResponse toLearningExerciseResponse(com.swp391.coding_platform.entity.course.LessonProblemEntity lessonProblemEntity);
 
     @Mapping(target = "isCompleted", expression = "java(completedLessonIds != null && completedLessonIds.contains(lessonEntity.getId()))")
     @Mapping(target = "type", expression = "java(lessonEntity.getVideoUrl() != null && !lessonEntity.getVideoUrl().isEmpty() ? \"video\" : (lessonEntity.getTheoryContent() != null && !lessonEntity.getTheoryContent().isEmpty() ? \"reading\" : \"coding\"))")
@@ -65,7 +74,24 @@ public interface CourseMapper {
     @Mapping(target = "id", source = "problem.id")
     @Mapping(target = "title", source = "problem.title")
     @Mapping(target = "difficulty", source = "problem.difficulty")
+    @Mapping(target = "description", source = "problem.description")
+    @Mapping(target = "inputDesc", source = "problem.inputDescription")
+    @Mapping(target = "outputDesc", source = "problem.outputDescription")
+    @Mapping(target = "constraints", source = "problem.constraints")
+    @Mapping(target = "exampleInput", source = "problem.exampleInput")
+    @Mapping(target = "exampleOutput", source = "problem.exampleOutput")
+    @Mapping(target = "hint", source = "problem.hint")
+    @Mapping(target = "score", expression = "java(lessonProblemEntity.getProblem().getScore() != null ? lessonProblemEntity.getProblem().getScore().intValue() : 100)")
+    @Mapping(target = "timeLimit", source = "problem.timeLimitMs")
+    @Mapping(target = "memoryLimit", source = "problem.memoryLimitKb")
+    @Mapping(target = "initialCode", source = "problem.starterTemplates")
+    @Mapping(target = "solutionCode", source = "problem.solutions")
+    @Mapping(target = "testCases", source = "problem.testcases")
     com.swp391.coding_platform.dto.response.InstructorExerciseResponse toInstructorExerciseResponse(com.swp391.coding_platform.entity.course.LessonProblemEntity lessonProblemEntity);
+
+    @Mapping(target = "input", source = "inputData")
+    @Mapping(target = "output", source = "expectedOutput")
+    com.swp391.coding_platform.dto.response.InstructorTestcaseResponse toInstructorTestcaseResponse(com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity testcaseEntity);
 
     com.swp391.coding_platform.dto.response.InstructorQuizOptionResponse toInstructorQuizOptionResponse(com.swp391.coding_platform.entity.course.QuizOptionEntity optionEntity);
     com.swp391.coding_platform.dto.response.InstructorQuizQuestionResponse toInstructorQuizQuestionResponse(com.swp391.coding_platform.entity.course.QuizQuestionEntity questionEntity);

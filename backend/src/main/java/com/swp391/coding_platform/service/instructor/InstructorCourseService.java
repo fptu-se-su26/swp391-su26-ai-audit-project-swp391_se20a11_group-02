@@ -30,6 +30,8 @@ public class InstructorCourseService {
     private final CourseMapper courseMapper;
     private final com.swp391.coding_platform.repository.course.ChapterRepository chapterRepository;
     private final com.swp391.coding_platform.repository.course.LessonRepository lessonRepository;
+    private final com.swp391.coding_platform.repository.problem.ProblemRepository problemRepository;
+    private final com.swp391.coding_platform.repository.course.LessonProblemRepository lessonProblemRepository;
 
     public InstructorCourseDetailResponse getCourseDetail(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
@@ -227,6 +229,170 @@ public class InstructorCourseService {
                         lesEntity.setOrderIndex(j + 1);
                         lesEntity.setUpdatedAt(Instant.now());
 
+                        // Process Exercises
+                        if (lesDto.getExercises() != null) {
+                            java.util.List<com.swp391.coding_platform.entity.course.LessonProblemEntity> existingExercises = lesEntity.getLessonProblems();
+                            if (existingExercises == null) {
+                                existingExercises = new java.util.ArrayList<>();
+                                lesEntity.setLessonProblems(existingExercises);
+                            }
+                            java.util.List<com.swp391.coding_platform.entity.course.LessonProblemEntity> updatedExercises = new java.util.ArrayList<>();
+
+                            for (int k = 0; k < lesDto.getExercises().size(); k++) {
+                                var exDto = lesDto.getExercises().get(k);
+                                com.swp391.coding_platform.entity.course.LessonProblemEntity lpEntity = null;
+                                com.swp391.coding_platform.entity.problem.ProblemEntity problemEntity = null;
+
+                                if (exDto.getId() != null && String.valueOf(exDto.getId()).length() < 10) {
+                                    lpEntity = existingExercises.stream().filter(e -> exDto.getId().equals(e.getProblem().getId())).findFirst().orElse(null);
+                                }
+                                
+                                if (lpEntity != null) {
+                                    problemEntity = lpEntity.getProblem();
+                                } else {
+                                    lpEntity = new com.swp391.coding_platform.entity.course.LessonProblemEntity();
+                                    lpEntity.setLesson(lesEntity);
+                                    problemEntity = new com.swp391.coding_platform.entity.problem.ProblemEntity();
+                                    problemEntity.setCreatedBy(instructor.getUser());
+                                    problemEntity.setProblemScope(com.swp391.coding_platform.entity.enums.ProblemScope.LESSON);
+                                }
+
+                                problemEntity.setTitle(exDto.getTitle());
+                                problemEntity.setDescription(exDto.getDescription() != null ? exDto.getDescription() : "");
+                                try {
+                                    problemEntity.setDifficulty(exDto.getDifficulty() != null ? com.swp391.coding_platform.entity.enums.ProblemDifficulty.valueOf(exDto.getDifficulty().toUpperCase()) : com.swp391.coding_platform.entity.enums.ProblemDifficulty.MEDIUM);
+                                } catch (Exception e) {
+                                    problemEntity.setDifficulty(com.swp391.coding_platform.entity.enums.ProblemDifficulty.MEDIUM);
+                                }
+                                problemEntity.setInputDescription(exDto.getInputDesc());
+                                problemEntity.setOutputDescription(exDto.getOutputDesc());
+                                problemEntity.setConstraints(exDto.getConstraints());
+                                problemEntity.setExampleInput(exDto.getExampleInput());
+                                problemEntity.setExampleOutput(exDto.getExampleOutput());
+                                problemEntity.setHint(exDto.getHint());
+                                problemEntity.setScore(exDto.getScore() != null ? BigDecimal.valueOf(exDto.getScore()) : new BigDecimal("100.00"));
+                                problemEntity.setTimeLimitMs(exDto.getTimeLimit() != null ? exDto.getTimeLimit() : 2000);
+                                problemEntity.setMemoryLimitKb(exDto.getMemoryLimit() != null ? exDto.getMemoryLimit() : 128000);
+                                problemEntity.setStarterTemplates(exDto.getInitialCode());
+                                problemEntity.setSolutions(exDto.getSolutionCode());
+                                problemEntity.setUpdatedAt(Instant.now());
+
+                                // Process testcases
+                                if (problemEntity.getTestcases() == null) {
+                                    problemEntity.setTestcases(new java.util.ArrayList<>());
+                                }
+                                problemEntity.getTestcases().clear();
+                                if (exDto.getTestCases() != null) {
+                                    for (int tIdx = 0; tIdx < exDto.getTestCases().size(); tIdx++) {
+                                        var tDto = exDto.getTestCases().get(tIdx);
+                                        com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity tEntity = new com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity();
+                                        tEntity.setProblem(problemEntity);
+                                        tEntity.setInputData(tDto.getInput() != null ? tDto.getInput() : "");
+                                        tEntity.setExpectedOutput(tDto.getOutput() != null ? tDto.getOutput() : "");
+                                        tEntity.setOrderIndex(tIdx + 1);
+                                        problemEntity.getTestcases().add(tEntity);
+                                    }
+                                }
+                                problemEntity.setTotalTestcase(problemEntity.getTestcases().size());
+
+                                problemEntity = problemRepository.save(problemEntity);
+
+                                lpEntity.setProblem(problemEntity);
+                                lpEntity.setOrderIndex(k + 1);
+
+                                updatedExercises.add(lpEntity);
+                            }
+
+                            // Identify lesson problems to delete
+                            java.util.List<com.swp391.coding_platform.entity.course.LessonProblemEntity> lpToRemove = new java.util.ArrayList<>(existingExercises);
+                            lpToRemove.removeAll(updatedExercises);
+                            lessonProblemRepository.deleteAll(lpToRemove);
+
+                            lesEntity.getLessonProblems().clear();
+                            lesEntity.getLessonProblems().addAll(updatedExercises);
+                        }
+
+                        // Process Quizzes
+                        if (lesDto.getQuizzes() != null) {
+                            java.util.List<com.swp391.coding_platform.entity.course.QuizEntity> existingQuizzes = lesEntity.getQuizzes();
+                            if (existingQuizzes == null) {
+                                existingQuizzes = new java.util.ArrayList<>();
+                                lesEntity.setQuizzes(existingQuizzes);
+                            }
+                            java.util.List<com.swp391.coding_platform.entity.course.QuizEntity> updatedQuizzes = new java.util.ArrayList<>();
+
+                            for (int qIdx = 0; qIdx < lesDto.getQuizzes().size(); qIdx++) {
+                                var qDto = lesDto.getQuizzes().get(qIdx);
+                                com.swp391.coding_platform.entity.course.QuizEntity qEntity = null;
+
+                                if (qDto.getId() != null && String.valueOf(qDto.getId()).length() < 10) {
+                                    qEntity = existingQuizzes.stream().filter(q -> qDto.getId().equals(q.getId())).findFirst().orElse(null);
+                                }
+
+                                if (qEntity == null) {
+                                    qEntity = new com.swp391.coding_platform.entity.course.QuizEntity();
+                                    qEntity.setLesson(lesEntity);
+                                }
+
+                                qEntity.setTitle(qDto.getTitle() != null ? qDto.getTitle() : "");
+                                qEntity.setUpdatedAt(Instant.now());
+
+                                // Process Questions
+                                if (qEntity.getQuestions() == null) {
+                                    qEntity.setQuestions(new java.util.ArrayList<>());
+                                }
+                                java.util.List<com.swp391.coding_platform.entity.course.QuizQuestionEntity> updatedQuestions = new java.util.ArrayList<>();
+                                
+                                if (qDto.getQuestions() != null) {
+                                    for (int qtIdx = 0; qtIdx < qDto.getQuestions().size(); qtIdx++) {
+                                        var qtDto = qDto.getQuestions().get(qtIdx);
+                                        com.swp391.coding_platform.entity.course.QuizQuestionEntity qtEntity = null;
+
+                                        if (qtDto.getId() != null && String.valueOf(qtDto.getId()).length() < 10) {
+                                            qtEntity = qEntity.getQuestions().stream().filter(qt -> qtDto.getId().equals(qt.getId())).findFirst().orElse(null);
+                                        }
+
+                                        if (qtEntity == null) {
+                                            qtEntity = new com.swp391.coding_platform.entity.course.QuizQuestionEntity();
+                                            qtEntity.setQuiz(qEntity);
+                                        }
+
+                                        qtEntity.setContent(qtDto.getContent() != null ? qtDto.getContent() : "");
+                                        qtEntity.setOrderIndex(qtIdx + 1);
+                                        qtEntity.setUpdatedAt(Instant.now());
+
+                                        // Process Options
+                                        if (qtEntity.getOptions() == null) {
+                                            qtEntity.setOptions(new java.util.ArrayList<>());
+                                        }
+                                        qtEntity.getOptions().clear();
+
+                                        if (qtDto.getOptions() != null) {
+                                            for (int optIdx = 0; optIdx < qtDto.getOptions().size(); optIdx++) {
+                                                var optDto = qtDto.getOptions().get(optIdx);
+                                                com.swp391.coding_platform.entity.course.QuizOptionEntity optEntity = new com.swp391.coding_platform.entity.course.QuizOptionEntity();
+                                                optEntity.setQuestion(qtEntity);
+                                                optEntity.setContent(optDto.getContent() != null ? optDto.getContent() : "");
+                                                optEntity.setIsCorrect(optDto.getIsCorrect() != null ? optDto.getIsCorrect() : false);
+                                                optEntity.setOrderIndex(optIdx + 1);
+                                                qtEntity.getOptions().add(optEntity);
+                                            }
+                                        }
+
+                                        updatedQuestions.add(qtEntity);
+                                    }
+                                }
+                                
+                                qEntity.getQuestions().clear();
+                                qEntity.getQuestions().addAll(updatedQuestions);
+
+                                updatedQuizzes.add(qEntity);
+                            }
+
+                            lesEntity.getQuizzes().clear();
+                            lesEntity.getQuizzes().addAll(updatedQuizzes);
+                        }
+
                         updatedLessons.add(lesEntity);
                     }
                     
@@ -253,6 +419,10 @@ public class InstructorCourseService {
             // Update total lessons
             int totalLessons = updatedChapters.stream().mapToInt(c -> c.getLessons() != null ? c.getLessons().size() : 0).sum();
             course.setTotalLessons(totalLessons);
+
+            int totalQuizzes = updatedChapters.stream()
+                .mapToInt(c -> c.getLessons() != null ? c.getLessons().stream().mapToInt(l -> l.getQuizzes() != null ? l.getQuizzes().size() : 0).sum() : 0).sum();
+            course.setTotalQuizzes(totalQuizzes);
         }
 
         // After edit, course goes back to PENDING for admin approval

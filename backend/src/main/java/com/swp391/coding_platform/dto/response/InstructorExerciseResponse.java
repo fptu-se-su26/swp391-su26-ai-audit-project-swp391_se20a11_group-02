@@ -13,5 +13,18 @@ public class InstructorExerciseResponse {
     Integer id;
     String title;
     ProblemDifficulty difficulty;
+    String description;
+    String inputDesc;
+    String outputDesc;
+    String constraints;
+    String exampleInput;
+    String exampleOutput;
+    String hint;
+    Integer score;
+    Integer timeLimit;
+    Integer memoryLimit;
+    String initialCode;
+    String solutionCode;
+    java.util.List<InstructorTestcaseResponse> testCases;
     Integer orderIndex;
 }

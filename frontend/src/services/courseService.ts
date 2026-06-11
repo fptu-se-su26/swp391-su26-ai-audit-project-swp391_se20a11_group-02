@@ -846,6 +846,7 @@ export interface LearningLessonResponse {
   title: string;
   videoUrl: string;
   theoryContent: string;
+  exercises?: any[];
 }
 
 export const fetchCourseLearningDetail = async (id: number | string): Promise<LearningDetailResponse> => {

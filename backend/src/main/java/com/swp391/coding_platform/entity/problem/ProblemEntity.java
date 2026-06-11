@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
@@ -106,4 +107,7 @@ public class ProblemEntity {
 
     @Column(name = "starter_templates", columnDefinition = "TEXT")
     String starterTemplates;
+
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
+    java.util.List<ProblemTestcaseEntity> testcases = new java.util.ArrayList<>();
 }

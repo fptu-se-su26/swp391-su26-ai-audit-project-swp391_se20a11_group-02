@@ -49,6 +49,43 @@ public class InstructorCourseUpdateRequest {
         String theory;
         Boolean isTrial;
         List<QuizDto> quizzes;
+        List<ExerciseDto> exercises;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class ExerciseDto {
+        Integer id;
+        String title;
+        String difficulty;
+        String description;
+        String inputDesc;
+        String outputDesc;
+        String constraints;
+        String exampleInput;
+        String exampleOutput;
+        String hint;
+        Integer score;
+        Integer timeLimit;
+        Integer memoryLimit;
+        String initialCode;
+        String solutionCode;
+        List<TestcaseDto> testCases;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class TestcaseDto {
+        Integer id;
+        String input;
+        String output;
+        Integer orderIndex;
     }
 
     @Data

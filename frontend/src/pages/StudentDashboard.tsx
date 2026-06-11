@@ -867,10 +867,12 @@ export const StudentDashboard: React.FC = () => {
         setPlayerLectureTitle(lesson.title);
         setPlayerVideoUrl(lesson.videoUrl || '');
         setPlayerTheoryContent(lesson.theoryContent || '');
+        setPlayerExercises(lesson.exercises || []);
       } else {
         setPlayerLectureTitle('No lessons available');
         setPlayerVideoUrl('');
         setPlayerTheoryContent('');
+        setPlayerExercises([]);
       }
     } catch (err) {
       console.error('Failed to load learning data:', err);
@@ -895,6 +897,7 @@ export const StudentDashboard: React.FC = () => {
       setPlayerLectureTitle(lesson.title);
       setPlayerVideoUrl(lesson.videoUrl || '');
       setPlayerTheoryContent(lesson.theoryContent || '');
+      setPlayerExercises(lesson.exercises || []);
 
       // Optional: Refresh progress and curriculum status on selecting/learning
       const detail = await fetchCourseLearningDetail(playerCourseId);

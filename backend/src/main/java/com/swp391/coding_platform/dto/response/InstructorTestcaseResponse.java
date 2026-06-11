@@ -3,16 +3,14 @@ package com.swp391.coding_platform.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@Setter
-@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LearningLessonResponse {
+public class InstructorTestcaseResponse {
     Integer id;
-    String title;
-    String videoUrl;
-    String theoryContent;
-    java.util.List<LearningExerciseResponse> exercises;
+    String input;
+    String output;
+    Integer orderIndex;
 }

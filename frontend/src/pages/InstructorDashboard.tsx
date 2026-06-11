@@ -814,7 +814,8 @@ export const InstructorDashboard: React.FC = () => {
               video: les.video || '',
               theory: isActive && lessonTheory !== undefined ? lessonTheory : (les.theory || ''),
               isTrial: isActive ? lessonIsTrial : !!les.isTrial,
-              quizzes: les.quizzes || []
+              quizzes: les.quizzes || [],
+              exercises: les.exercises || []
             };
           })
         }))
@@ -5759,25 +5760,6 @@ export const InstructorDashboard: React.FC = () => {
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Hint</label>
                 <input type="text" value={exerciseHint} onChange={e => setExerciseHint(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Tip or pointer..." />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-brand-blue uppercase tracking-wider">Solution Code (Reference)</label>
-                <div className="w-full h-64 border border-slate-200 rounded-xl overflow-hidden shadow-inner">
-                  <Editor
-                    height="100%"
-                    defaultLanguage="java"
-                    theme="light"
-                    value={exerciseSolutionCode}
-                    onChange={(value) => setExerciseSolutionCode(value || '')}
-                    options={{
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      scrollBeyondLastLine: false,
-                      wordWrap: 'on',
-                    }}
-                  />
-                </div>
               </div>
 
               <div className="flex flex-col gap-4">
