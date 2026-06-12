@@ -534,7 +534,6 @@ export const AdminDashboard: React.FC = () => {
 
   // Modal / review panel states
   const [applications, setApplications] = useState<AdminInstructorApplication[]>([]);
-  const [instructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
   const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
 
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
@@ -1502,9 +1501,8 @@ export const AdminDashboard: React.FC = () => {
   }, [instructors, instSearch, instStatusFilter]);
 
   const filteredApplications = useMemo<AdminInstructorApplication[]>(() => {
-    if (instructorAppFilter === 'ALL') return applications;
-    return applications.filter((a: AdminInstructorApplication) => a.status === instructorAppFilter);
-  }, [applications, instructorAppFilter]);
+    return applications.filter((a: AdminInstructorApplication) => a.status === 'PENDING');
+  }, [applications]);
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
