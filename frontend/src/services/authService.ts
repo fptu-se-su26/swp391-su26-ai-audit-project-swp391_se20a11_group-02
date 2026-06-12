@@ -12,6 +12,9 @@ export interface LoginResponse {
     email: string;
     balance?: number;
     roles?: string[];
+    status?: string;
+    lockReason?: string;
+    lockAppeal?: string;
   };
 }
 
@@ -119,6 +122,22 @@ export const authService = {
 
     const data = await response.json();
     return data.result;
+  },
+
+  async submitAppeal(appealReason: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/me/appeal`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ appealReason }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to submit appeal');
+    }
   },
 
   async refresh(): Promise<LoginResponse['result']> {

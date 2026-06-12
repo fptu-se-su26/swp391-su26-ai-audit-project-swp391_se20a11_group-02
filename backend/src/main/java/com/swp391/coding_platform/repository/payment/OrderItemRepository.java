@@ -1,5 +1,6 @@
 package com.swp391.coding_platform.repository.payment;
 
+import com.swp391.coding_platform.entity.enums.OrderStatus;
 import com.swp391.coding_platform.entity.payment.OrderItemEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +25,12 @@ public interface OrderItemRepository extends JpaRepository<OrderItemEntity, Inte
            "LEFT JOIN FETCH o.user u " +
            "WHERE o.status = 'COMPLETED'")
     List<OrderItemEntity> findAllCompletedOrderItemsWithDetails();
+
+    @Query("SELECT oi FROM OrderItemEntity oi " +
+           "JOIN FETCH oi.order o " +
+           "JOIN FETCH oi.course c " +
+           "WHERE o.user.id = :userId AND o.status = :status")
+    List<OrderItemEntity> findByOrderUserIdAndOrderStatus(
+            @Param("userId") Integer userId,
+            @Param("status") OrderStatus status);
 }

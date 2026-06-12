@@ -21,4 +21,7 @@ public class AuthenticationResponse {
     BigDecimal balance;
     Set<String> roles;
     String username;
+    String status;
+    String lockReason;
+    String lockAppeal;
 }

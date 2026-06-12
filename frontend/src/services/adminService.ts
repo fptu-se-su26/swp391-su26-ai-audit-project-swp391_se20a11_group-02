@@ -212,6 +212,8 @@ export interface AdminUser {
   totalPurchased: number;
   purchasedCourses: { id: string; title: string; price: number; date: string }[];
   isOnline?: boolean;
+  lockReason?: string;
+  lockAppeal?: string;
 }
 
 export interface AdminProblem {
@@ -880,12 +882,12 @@ export const adminService = {
     return mockUsers;
   },
 
-  async setUserLockStatus(userId: number, status: 'ACTIVE' | 'LOCKED'): Promise<AdminUser> {
+  async setUserLockStatus(userId: number, status: 'ACTIVE' | 'LOCKED', reason?: string): Promise<AdminUser> {
     try {
       const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/users/${userId}/lock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, reason }),
         credentials: 'include'
       });
       if (response.ok) {
@@ -896,7 +898,7 @@ export const adminService = {
       console.warn("Mocking user lock/unlock status:", err);
     }
     await delay(300);
-    mockUsers = mockUsers.map(u => u.id === userId ? { ...u, status } : u);
+    mockUsers = mockUsers.map(u => u.id === userId ? { ...u, status, lockReason: reason, lockAppeal: undefined } : u);
     const updated = mockUsers.find(u => u.id === userId)!;
     // Add log
     mockActivityLogs.unshift({

@@ -532,10 +532,6 @@ export const AdminDashboard: React.FC = () => {
   const [isProcessingStatusChange, setIsProcessingStatusChange] = useState<boolean>(false);
 
   // Modal / review panel states
-
-
-
-
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
@@ -1026,6 +1022,10 @@ export const AdminDashboard: React.FC = () => {
     });
   };
 
+
+
+
+
   const handleInstructorStatusChange = (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
     const inst = instructors.find(ins => ins.id === instructorId);
     const name = inst ? inst.fullName : `Instructor #${instructorId}`;
@@ -1035,6 +1035,7 @@ export const AdminDashboard: React.FC = () => {
       type: 'INSTRUCTOR',
       newStatus
     });
+
   };
 
   const executeStatusChange = async () => {
@@ -1475,6 +1476,8 @@ export const AdminDashboard: React.FC = () => {
       return matchesSearch && matchesStatus;
     });
   }, [instructors, instSearch, instStatusFilter]);
+
+
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
@@ -3884,6 +3887,11 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
+
+
+
+                
+
                 {/* Instructors table */}
                 <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
                   <div className="overflow-x-auto">
@@ -3949,6 +3957,7 @@ export const AdminDashboard: React.FC = () => {
                         )}
                       </tbody>
                     </table>
+
                   </div>
                 </div>
               </div>
@@ -4526,6 +4535,10 @@ export const AdminDashboard: React.FC = () => {
           </main>
         )}
       </div>
+
+
+
+
 
 
       {/* ================= MODAL: USER PURCHASES VIEW ================= */}

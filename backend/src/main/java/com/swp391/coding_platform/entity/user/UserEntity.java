@@ -66,6 +66,12 @@ public class UserEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     WalletEntity wallet;
 
+    @Column(name = "lock_reason")
+    String lockReason;
+
+    @Column(name = "lock_appeal", length = 1000)
+    String lockAppeal;
+
     public void validateStatus() {
         if (this.status == UserStatus.LOCKED) {
             throw new AppException(ErrorCode.ACCOUNT_LOCKED);

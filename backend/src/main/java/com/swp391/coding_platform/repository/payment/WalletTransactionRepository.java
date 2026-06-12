@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -27,4 +28,11 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
             @Param("type") TransactionType type,
             @Param("status") StatusTransaction status,
             Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(wt.amount), 0) FROM WalletTransactionEntity wt " +
+           "WHERE wt.wallet.id = :walletId AND wt.type = :type AND wt.status = :status")
+    BigDecimal sumAmountByWalletIdAndTypeAndStatus(
+            @Param("walletId") Integer walletId,
+            @Param("type") TransactionType type,
+            @Param("status") StatusTransaction status);
 }
