@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 interface ApplicationStatusResponse {
@@ -9,18 +9,26 @@ interface ApplicationStatusResponse {
   email: string;
   cvUrl: string;
   introduction: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'AI_REJECTED';
   adminNote?: string;
   aiScore?: number;
   aiSummary?: string;
+  aiSpecialization?: string;
+  aiTechnologies?: string;
+  aiExperienceYears?: number;
+  aiStrengths?: string;
+  aiWeaknesses?: string;
+  aiRecommendation?: string;
   createdAt: string;
 }
 
 export const ApplyInstructor: React.FC = () => {
-  const { user } = useApp();
+  const { user, refreshAuth } = useApp();
+  const navigate = useNavigate();
 
-  const [cvFile, setCvFile] = useState<File | null>(null);
-  const [introduction, setIntroduction] = useState<string>('');
+  const [fullName, setFullName] = useState<string>('');
+  const [major, setMajor] = useState<string>('Backend Developer');
+  const [bio, setBio] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
@@ -64,18 +72,13 @@ export const ApplyInstructor: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cvFile || !introduction.trim()) {
-      setErrorMsg('Please select a PDF CV file and fill out the introduction.');
+    if (!fullName.trim() || !major.trim() || !bio.trim()) {
+      setErrorMsg('Please fill out all the fields.');
       return;
     }
 
-    if (cvFile.size > 5 * 1024 * 1024) {
-      setErrorMsg('CV file size must not exceed 5MB.');
-      return;
-    }
-
-    if (introduction.trim().length < 50) {
-      setErrorMsg('Introduction must be at least 50 characters long.');
+    if (bio.trim().length < 50) {
+      setErrorMsg('Bio introduction must be at least 50 characters long.');
       return;
     }
 
@@ -84,24 +87,32 @@ export const ApplyInstructor: React.FC = () => {
     setSuccessMsg('');
 
     try {
-      const formData = new FormData();
-      formData.append('cv', cvFile);
-      formData.append('introduction', introduction);
-
       const response = await fetch(`${BASE_URL}/instructor-applications/apply`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName,
+          major,
+          bio
+        }),
         credentials: 'include',
       });
 
       const data = await response.json();
 
       if (response.ok && data.code === 1000) {
-        setSuccessMsg('Instructor application submitted successfully! AI is analyzing your CV.');
+        setSuccessMsg('Successfully registered as an instructor!');
+        try {
+          await refreshAuth();
+        } catch (refreshErr) {
+          console.error('Failed to refresh token after instructor registration:', refreshErr);
+        }
         // Refresh status immediately
         await fetchApplicationStatus();
       } else {
-        setErrorMsg(data.message || 'Failed to submit application.');
+        setErrorMsg(data.message || 'Failed to register.');
       }
     } catch (err) {
       console.error('Error submitting application:', err);
@@ -162,53 +173,25 @@ export const ApplyInstructor: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {currentApp.cvUrl && currentApp.cvUrl !== 'self_registered' && (
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <span className="text-xs font-bold text-text-muted uppercase tracking-wider">CV Profile (PDF)</span>
                   <a href={currentApp.cvUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-primary hover:underline font-semibold mt-2 text-sm">
                     <span className="material-symbols-outlined text-sm text-primary">picture_as_pdf</span> View Submitted CV
                   </a>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Approval Status</span>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-200 text-xs font-bold uppercase">Pending Admin Review</span>
-                  </div>
+              )}
+              
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Approval Status</span>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-200 text-xs font-bold uppercase">Pending Admin Review</span>
                 </div>
               </div>
 
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                 <span className="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Self Introduction</span>
                 <p className="text-sm text-text-main leading-relaxed whitespace-pre-wrap">{currentApp.introduction}</p>
-              </div>
-
-              {/* AI Auto Auditing Result */}
-              <div className="border border-orange-100 bg-orange-50/20 rounded-xl p-5 flex flex-col gap-3">
-                <div className="flex items-center justify-between border-b border-orange-100/50 pb-2">
-                  <div className="flex items-center gap-2 text-primary">
-                    <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>precision_manufacturing</span>
-                    <span className="font-bold text-sm">Automated Pre-Evaluation Result (AI Audit)</span>
-                  </div>
-                  {currentApp.aiScore && currentApp.aiScore > 0 ? (
-                    <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold border ${
-                      currentApp.aiScore >= 80 ? 'bg-green-50 text-green-600 border-green-200' :
-                      currentApp.aiScore >= 50 ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-red-50 text-red-600 border-red-200'
-                    }`}>
-                      AI SCORE: {currentApp.aiScore}/100
-                    </span>
-                  ) : null}
-                </div>
-                
-                {currentApp.aiScore && currentApp.aiScore > 0 ? (
-                  <p className="text-sm text-text-main font-medium leading-relaxed italic">
-                    "{currentApp.aiSummary}"
-                  </p>
-                ) : (
-                  <div className="flex items-center gap-2.5 py-2">
-                    <span className="material-symbols-outlined animate-spin text-primary text-md">sync</span>
-                    <span className="text-xs text-text-muted font-bold">The AI system is scoring your CV. Please click "Refresh" in a few seconds...</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -217,12 +200,12 @@ export const ApplyInstructor: React.FC = () => {
           <div className="lg:col-span-4 flex flex-col gap-6">
             <div className="bg-brand-blue text-white rounded-xl p-6 relative overflow-hidden shadow-md">
               <h3 className="font-bold text-md border-b border-white/20 pb-3 mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary icon-fill">info</span> Review Process
+                <span className="material-symbols-outlined text-primary icon-fill">info</span> Process Details
               </h3>
               <ul className="text-sm text-white/80 space-y-3">
-                <li>1. Candidates submit their application including a PDF CV and a short description.</li>
-                <li>2. AI analyzes the CV instantly to provide a preliminary review for the Admin.</li>
-                <li>3. Admin manually reviews the application and makes the final decision within 24-48 hours.</li>
+                <li>1. Fill out your name, specialization, and professional bio.</li>
+                <li>2. Upon submission, your profile is approved instantly.</li>
+                <li>3. Access the Instructor Dashboard immediately to start creating courses.</li>
               </ul>
             </div>
           </div>
@@ -233,11 +216,15 @@ export const ApplyInstructor: React.FC = () => {
           <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center border border-green-200 shadow-sm">
             <span className="material-symbols-outlined text-4xl icon-fill">check_circle</span>
           </div>
-          <h3 className="text-2xl font-black text-brand-blue tracking-tight">Application Approved Successfully!</h3>
+          <h3 className="text-2xl font-black text-brand-blue tracking-tight">
+            {currentApp.cvUrl === 'self_registered' ? 'Registered Successfully!' : 'Application Approved Successfully!'}
+          </h3>
           <p className="text-sm text-text-muted max-w-md leading-relaxed">
-            Congratulations! The Admin has approved your application. You now have Instructor privileges on Nonstop Coding.
+            {currentApp.cvUrl === 'self_registered' 
+              ? 'Congratulations! You are now registered as an Instructor on Nonstop Coding.'
+              : 'Congratulations! The Admin has approved your application. You now have Instructor privileges on Nonstop Coding.'}
           </p>
-          {currentApp.adminNote && (
+          {currentApp.adminNote && currentApp.cvUrl !== 'self_registered' && (
             <div className="bg-green-50/50 border border-green-100 rounded-xl p-4 w-full text-left my-2">
               <span className="text-xs font-bold text-green-700 block mb-1">Notes from Admin:</span>
               <p className="text-sm text-green-800 italic">"{currentApp.adminNote}"</p>
@@ -246,8 +233,7 @@ export const ApplyInstructor: React.FC = () => {
           <div className="flex gap-4 w-full justify-center pt-4 border-t border-gray-100 mt-4">
             <button 
               onClick={() => {
-                // Force page refresh or reload app state to apply new role
-                window.location.href = `${import.meta.env.BASE_URL}instructor`;
+                navigate('/instructor');
               }} 
               className="bg-primary hover:bg-primary-hover text-white font-extrabold text-sm px-8 py-3 rounded-xl transition-all shadow-md flex items-center gap-2"
             >
@@ -257,24 +243,11 @@ export const ApplyInstructor: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Form: No Application or REJECTED */
+        /* Form: Become Instructor Registration */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Submission Form */}
           <div className="lg:col-span-8 bg-white rounded-xl shadow-[0_4px_20px_rgba(26,54,93,0.06)] p-6 md:p-8 border border-gray-100">
-            {currentApp && currentApp.status === 'REJECTED' && (
-              <div className="bg-red-50 border border-red-100 text-red-600 p-5 rounded-xl flex flex-col gap-2 mb-6">
-                <div className="flex items-center gap-2 font-bold text-sm">
-                  <span className="material-symbols-outlined text-[20px]">cancel</span>
-                  <span>Your previous application has been Rejected</span>
-                </div>
-                {currentApp.adminNote && (
-                  <p className="text-xs text-red-500 italic ml-7">Rejection Reason: "{currentApp.adminNote}"</p>
-                )}
-                <p className="text-xs text-text-muted ml-7 mt-1">You can adjust the information below and resubmit a new application.</p>
-              </div>
-            )}
-
             {successMsg && (
               <div className="bg-green-50 border border-green-200 text-green-600 p-4 rounded-xl font-bold flex items-center gap-2 mb-6 text-sm">
                 <span className="material-symbols-outlined text-[20px]">check_circle</span>
@@ -292,37 +265,53 @@ export const ApplyInstructor: React.FC = () => {
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-brand-blue" htmlFor="cvFile">Upload CV (PDF)</label>
+                <label className="text-sm font-bold text-brand-blue" htmlFor="fullName">Full Name</label>
                 <input
-                  className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-                  id="cvFile"
-                  name="cvFile"
-                  accept=".pdf"
+                  className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  id="fullName"
+                  name="fullName"
+                  placeholder="Enter your full name..."
                   required
-                  type="file"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      setCvFile(e.target.files[0]);
-                    }
-                  }}
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                 />
-                <p className="text-xs text-text-muted mt-1">
-                  Please upload your CV in PDF format. The AI system will read data directly from this file for evaluation.
-                </p>
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-brand-blue" htmlFor="introduction">Introduce Yourself & Expertise</label>
+                <label className="text-sm font-bold text-brand-blue" htmlFor="major">Professional Specialization</label>
+                <select
+                  className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  id="major"
+                  name="major"
+                  required
+                  value={major}
+                  onChange={(e) => setMajor(e.target.value)}
+                >
+                  <option value="Backend Developer">Backend Developer</option>
+                  <option value="Frontend Developer">Frontend Developer</option>
+                  <option value="Full Stack Developer">Full Stack Developer</option>
+                  <option value="Mobile Developer">Mobile Developer</option>
+                  <option value="AI/ML Engineer">AI/ML Engineer</option>
+                  <option value="DevOps Engineer">DevOps Engineer</option>
+                  <option value="Data Engineer">Data Engineer</option>
+                  <option value="Cyber Security Specialist">Cyber Security Specialist</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-brand-blue" htmlFor="bio">Introduce Yourself & Experience (Bio)</label>
                 <textarea
                   className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all min-h-[160px]"
-                  id="introduction"
-                  name="introduction"
-                  placeholder="Introduce your coding experience, projects you have done, the expertise area you want to teach, and your tutoring/teaching experience (if any)..."
+                  id="bio"
+                  name="bio"
+                  placeholder="Introduce your programming experience, projects you have completed, and the skills you want to teach on Nonstop Coding..."
                   required
-                  value={introduction}
-                  onChange={(e) => setIntroduction(e.target.value)}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
                 />
-                <p className="text-xs text-text-muted mt-1">Minimum 50 characters. This information is crucial for AI and Admin to evaluate your application.</p>
+                <p className="text-xs text-text-muted mt-1">Minimum 50 characters. This profile bio will be displayed to students on your course pages.</p>
               </div>
 
               <div className="pt-4 border-t border-gray-150 mt-2">
@@ -334,11 +323,11 @@ export const ApplyInstructor: React.FC = () => {
                   {submitting ? (
                     <>
                       <span className="material-symbols-outlined animate-spin text-sm">sync</span>
-                      <span>Submitting application & Running AI CV scan...</span>
+                      <span>Registering your profile...</span>
                     </>
                   ) : (
                     <>
-                      <span>Submit Instructor Application</span>
+                      <span>Register as Instructor</span>
                       <span className="material-symbols-outlined text-sm">send</span>
                     </>
                   )}
@@ -373,11 +362,11 @@ export const ApplyInstructor: React.FC = () => {
             </div>
 
             <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-start gap-4 shadow-sm">
-              <span className="material-symbols-outlined text-primary mt-1">precision_manufacturing</span>
+              <span className="material-symbols-outlined text-primary mt-1">verified_user</span>
               <div>
-                <h4 className="font-bold text-brand-blue mb-1 text-sm">Automated AI Audit System</h4>
+                <h4 className="font-bold text-brand-blue mb-1 text-sm">Instant Professional Onboarding</h4>
                 <p className="text-[11px] text-text-muted leading-relaxed">
-                  As soon as you upload your CV, our AI system will extract information, evaluate technical skill alignment, and provide a quick profile summary directly to the Admin, significantly speeding up application processing.
+                  Nonstop Coding allows immediate instructor registration. Fill out your specialization and experience bio, submit, and you can start creating courses right away.
                 </p>
               </div>
             </div>

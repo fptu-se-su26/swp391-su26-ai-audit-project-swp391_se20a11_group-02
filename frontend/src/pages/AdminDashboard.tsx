@@ -4,14 +4,19 @@ import { adminService } from '../services/adminService';
 import type {
   AdminDashboardStats,
   AdminCourse,
-  AdminInstructorApplication,
   AdminInstructor,
   AdminUser,
   AdminProblem,
   AdminContest,
   AdminDepositHistory,
   AdminProblemTestcase,
-  AdminFinancialStats
+  AdminFinancialStats,
+  AdminFinancialDetails,
+  MonthlyFinancialBreakdown,
+  OrderDetails,
+  AwardDetails,
+  SaleDetails,
+  AdminInstructorApplication
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -98,8 +103,8 @@ const tabHeaderDetails: Record<string, { badge: string; icon: string; title: str
   instructor: {
     badge: 'Instructor Management',
     icon: 'school',
-    title: 'Instructor Applications 🎓',
-    desc: 'Review instructor registration requests, CVs, and manage current platform instructors.'
+    title: 'Platform Instructors 🎓',
+    desc: 'View and manage all platform instructors. Monitor their courses, ratings, student counts, and control account status.'
   },
   users: {
     badge: 'User Management',
@@ -330,7 +335,7 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
 
   const availableYears = useMemo(() => {
     const yearsSet = new Set<string>();
-    (details?.monthlyBreakdowns || []).forEach(b => {
+    (details?.monthlyBreakdowns || []).forEach((b: MonthlyFinancialBreakdown) => {
       if (b.datePrefix && b.datePrefix.length >= 4) {
         const year = b.datePrefix.substring(0, 4);
         yearsSet.add(year);
@@ -342,7 +347,7 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
   const filteredBreakdowns = useMemo(() => {
     const list = details?.monthlyBreakdowns || [];
     if (selectedYear === 'ALL') return list;
-    return list.filter(b => b.datePrefix && b.datePrefix.startsWith(selectedYear));
+    return list.filter((b: MonthlyFinancialBreakdown) => b.datePrefix && b.datePrefix.startsWith(selectedYear));
   }, [details, selectedYear]);
 
   const summary = useMemo(() => {
@@ -353,7 +358,7 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
     let marketing = 0;
     let netProfit = 0;
 
-    filteredBreakdowns.forEach(item => {
+    filteredBreakdowns.forEach((item: MonthlyFinancialBreakdown) => {
       gross += item.gross || 0;
       count += item.count || 0;
       rewards += item.rewards || 0;
@@ -446,7 +451,7 @@ const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }
                   <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu.</td>
                 </tr>
               ) : (
-                filteredBreakdowns.map((b, idx) => {
+                filteredBreakdowns.map((b: MonthlyFinancialBreakdown, idx: number) => {
                   const gross = b.gross || 0;
                   const platformShare = Math.round(gross * 0.3);
                   const gatewayFees = Math.round(gross * 0.02);
@@ -486,7 +491,7 @@ export const AdminDashboard: React.FC = () => {
   // States for API data
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [courses, setCourses] = useState<AdminCourse[]>([]);
-  const [applications, setApplications] = useState<AdminInstructorApplication[]>([]);
+
   const [instructors, setInstructors] = useState<AdminInstructor[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [problems, setProblems] = useState<AdminProblem[]>([]);
@@ -506,19 +511,32 @@ export const AdminDashboard: React.FC = () => {
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
-  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
+
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
   const [userOnlineFilter, setUserOnlineFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
+  const [instSearch, setInstSearch] = useState('');
+  const [instStatusFilter, setInstStatusFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
 
-  // Modal / review panel states
+  // Status change confirm modal state
+  const [statusConfirmTarget, setStatusConfirmTarget] = useState<{
+    id: number;
+    name: string;
+    type: 'INSTRUCTOR' | 'USER';
+    newStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  } | null>(null);
+  const [isProcessingStatusChange, setIsProcessingStatusChange] = useState<boolean>(false);
 
+  // Modal / review panel states
+  const [applications, setApplications] = useState<AdminInstructorApplication[]>([]);
+  const [instructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
   const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
+
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
@@ -605,7 +623,6 @@ export const AdminDashboard: React.FC = () => {
     setReviewingContest(null);
     setReviewContestTab('overview');
     setReviewContestProblemId(null);
-    setSelectedAppForReview(null);
     setSelectedUserDetail(null);
     setIsCreateProblemOpen(false);
     setIsEditProblemOpen(false);
@@ -711,7 +728,6 @@ export const AdminDashboard: React.FC = () => {
       const [
         statsRes,
         coursesRes,
-        appsRes,
         instsRes,
         usersRes,
         probsRes,
@@ -719,11 +735,11 @@ export const AdminDashboard: React.FC = () => {
         recentDepositsRes,
         tagsRes,
         financialRes,
-        financialDetailsRes
+        financialDetailsRes,
+        appsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
-        adminService.getInstructorApplications(),
         adminService.getInstructors(),
         adminService.getUsers(),
         adminService.getProblems(),
@@ -731,12 +747,12 @@ export const AdminDashboard: React.FC = () => {
         adminService.getRecentDeposits(),
         adminService.getTags(),
         adminService.getFinancialStats(),
-        adminService.getFinancialDetails()
+        adminService.getFinancialDetails(),
+        adminService.getInstructorApplications()
       ]);
 
       setStats(statsRes);
       setCourses(coursesRes);
-      setApplications(appsRes);
       setInstructors(instsRes);
       setUsers(usersRes);
       setProblems(probsRes);
@@ -745,6 +761,7 @@ export const AdminDashboard: React.FC = () => {
       setAllTags(tagsRes || []);
       setFinancialStats(financialRes);
       setFinancialDetails(financialDetailsRes);
+      setApplications(appsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -1002,6 +1019,17 @@ export const AdminDashboard: React.FC = () => {
       showGlobalToast("Failed to process course approval", "error");
     }
   };
+  const handleUserStatusChange = (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const user = users.find(u => u.id === userId);
+    const name = user ? user.name : `User #${userId}`;
+    setStatusConfirmTarget({
+      id: userId,
+      name,
+      type: 'USER',
+      newStatus
+    });
+  };
+
 
   const handleApproveInstructor = async (appId: number, status: 'APPROVED' | 'REJECTED') => {
     try {
@@ -1021,24 +1049,41 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
-    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
-    triggerConfirm(
-      "Change User Status",
-      confirmMsg,
-      async () => {
-        try {
-          const updated = await adminService.setUserLockStatus(userId, newStatus);
-          setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-          if (selectedUserDetail?.id === userId) {
-            setSelectedUserDetail(updated);
-          }
-          showGlobalToast(`User status successfully updated to ${newStatus}`, "success");
-        } catch (error) {
-          showGlobalToast("Failed to update user status", "error");
+
+  const handleInstructorStatusChange = (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
+    const inst = instructors.find(ins => ins.id === instructorId);
+    const name = inst ? inst.fullName : `Instructor #${instructorId}`;
+    setStatusConfirmTarget({
+      id: instructorId,
+      name,
+      type: 'INSTRUCTOR',
+      newStatus
+    });
+
+  };
+
+  const executeStatusChange = async () => {
+    if (!statusConfirmTarget) return;
+    setIsProcessingStatusChange(true);
+    const { id, type, newStatus } = statusConfirmTarget;
+    try {
+      if (type === 'USER') {
+        const updated = await adminService.setUserLockStatus(id, newStatus as 'ACTIVE' | 'LOCKED');
+        setUsers(prev => prev.map(u => u.id === id ? updated : u));
+        if (selectedUserDetail?.id === id) {
+          setSelectedUserDetail(updated);
         }
+      } else {
+        const updated = await adminService.setInstructorStatus(id, newStatus as 'ACTIVE' | 'SUSPENDED');
+        setInstructors(prev => prev.map(ins => ins.id === id ? updated : ins));
       }
-    );
+      setStatusConfirmTarget(null);
+      showGlobalToast(`${type === 'USER' ? 'User' : 'Instructor'} status successfully updated to ${newStatus}`, "success");
+    } catch (error) {
+      showGlobalToast(`Failed to update ${type.toLowerCase()} status.`, "error");
+    } finally {
+      setIsProcessingStatusChange(false);
+    }
   };
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
@@ -1435,10 +1480,6 @@ export const AdminDashboard: React.FC = () => {
     return courses.filter(c => c.status === courseFilter);
   }, [courses, courseFilter]);
 
-  const filteredApplications = useMemo(() => {
-    if (instructorAppFilter === 'ALL') return applications;
-    return applications.filter(a => a.status === instructorAppFilter);
-  }, [applications, instructorAppFilter]);
 
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
@@ -1449,6 +1490,21 @@ export const AdminDashboard: React.FC = () => {
       return matchesSearch && matchesStatus && matchesOnline;
     });
   }, [users, userSearch, userStatusFilter, userOnlineFilter]);
+
+  const filteredInstructors = useMemo(() => {
+    return instructors.filter(ins => {
+      const matchesSearch = ins.fullName.toLowerCase().includes(instSearch.toLowerCase()) ||
+        ins.major.toLowerCase().includes(instSearch.toLowerCase()) ||
+        (ins.bio && ins.bio.toLowerCase().includes(instSearch.toLowerCase()));
+      const matchesStatus = instStatusFilter === 'ALL' || ins.status === instStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [instructors, instSearch, instStatusFilter]);
+
+  const filteredApplications = useMemo<AdminInstructorApplication[]>(() => {
+    if (instructorAppFilter === 'ALL') return applications;
+    return applications.filter((a: AdminInstructorApplication) => a.status === instructorAppFilter);
+  }, [applications, instructorAppFilter]);
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
@@ -3454,27 +3510,7 @@ export const AdminDashboard: React.FC = () => {
                           <p className="text-xs text-text-muted italic">No pending course registrations.</p>
                         )}
 
-                        <hr className="my-2 border-slate-100" />
 
-                        {/* Instructor Application approvals quick preview */}
-                        <h4 className="text-xs font-black text-text-muted uppercase tracking-wider">Pending Instructors ({applications.filter(a => a.status === 'PENDING').length})</h4>
-                        {applications.filter(a => a.status === 'PENDING').slice(0, 2).map((app) => (
-                          <div key={app.id} className="flex items-center justify-between bg-slate-50/50 border border-slate-100 p-3 rounded-xl">
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-text-main truncate">{app.fullName}</p>
-                              <p className="text-[10px] text-text-muted">{app.email}</p>
-                            </div>
-                            <button
-                              onClick={() => setSelectedAppForReview(app)}
-                              className="text-[10px] bg-primary hover:bg-primary-hover text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
-                            >
-                              Review
-                            </button>
-                          </div>
-                        ))}
-                        {applications.filter(a => a.status === 'PENDING').length === 0 && (
-                          <p className="text-xs text-text-muted italic">No pending instructor requests.</p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -3857,22 +3893,27 @@ export const AdminDashboard: React.FC = () => {
             {activeTab === 'instructor' && (
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Active Instructors & Applicants</h2>
-                  <div className="flex gap-2">
-                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (
-                      <button
-                        key={filterVal}
-                        onClick={() => setInstructorAppFilter(filterVal as any)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${instructorAppFilter === filterVal
-                          ? 'bg-primary text-white border-primary shadow-sm'
-                          : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
-                          }`}
-                      >
-                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : 'Rejected Applications'}
-                      </button>
-                    ))}
+                  <h2 className="text-2xl font-display font-black text-brand-blue">Platform Instructors</h2>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <input
+                      type="text"
+                      placeholder="Search by name, major..."
+                      value={instSearch}
+                      onChange={(e) => setInstSearch(e.target.value)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-primary focus:border-primary w-full sm:w-60"
+                    />
+                    <select
+                      value={instStatusFilter}
+                      onChange={(e) => setInstStatusFilter(e.target.value as any)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="ALL">All Status</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="SUSPENDED">Suspended</option>
+                    </select>
                   </div>
                 </div>
+
 
                 {/* Applications section */}
                 {filteredApplications.length > 0 && (
@@ -3924,29 +3965,74 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 )}
 
-                {/* Active Instructors list */}
-                <div className="flex flex-col gap-4 mt-4">
-                  <h3 className="text-sm font-black text-text-muted uppercase tracking-wider">Active Platform Instructors ({instructors.length})</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {instructors.map((ins) => (
-                      <div key={ins.id} className="bg-surface rounded-2xl border border-slate-200/50 p-5 ambient-shadow flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-10 h-10 rounded-full object-cover border border-slate-100" alt="" />
-                            <div>
-                              <h4 className="font-display font-bold text-sm text-brand-blue">{ins.fullName}</h4>
-                              <p className="text-[10px] text-text-muted truncate max-w-[180px] font-semibold">{ins.major}</p>
-                            </div>
-                          </div>
-                          <p className="text-xs text-slate-500 line-clamp-3">{ins.bio}</p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 mt-4 text-[10px] font-bold text-slate-600 bg-slate-50 p-2 rounded-xl text-center">
-                          <div>Courses: <span className="block text-brand-blue text-xs font-black">{ins.coursesCount}</span></div>
-                          <div>Rating: <span className="block text-orange-500 text-xs font-black">★ {ins.rating}</span></div>
-                          <div>Students: <span className="block text-slate-800 text-xs font-black">{ins.studentsCount}</span></div>
-                        </div>
-                      </div>
-                    ))}
+                
+
+                {/* Instructors table */}
+                <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
+                          <th className="py-4 px-6">Name</th>
+                          <th className="py-4 px-6">Major</th>
+                          <th className="py-4 px-6">Bio</th>
+                          <th className="py-4 px-6 text-center">Courses</th>
+                          <th className="py-4 px-6 text-center">Rating</th>
+                          <th className="py-4 px-6 text-center">Students</th>
+                          <th className="py-4 px-6">Status</th>
+                          <th className="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
+                        {filteredInstructors.map((ins) => (
+                          <tr key={ins.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3">
+                                <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-8 h-8 rounded-full object-cover border border-slate-100" alt="" />
+                                <span className="font-bold text-slate-900">{ins.fullName}</span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 text-slate-500 font-extrabold">{ins.major}</td>
+                            <td className="py-4 px-6 text-slate-400 font-medium max-w-xs truncate" title={ins.bio}>{ins.bio}</td>
+                            <td className="py-4 px-6 text-center font-bold text-slate-800">{ins.coursesCount}</td>
+                            <td className="py-4 px-6 text-center font-bold text-orange-500">★ {ins.rating}</td>
+                            <td className="py-4 px-6 text-center font-bold text-slate-800">{ins.studentsCount}</td>
+                            <td className="py-4 px-6">
+                              <span className={`inline-block font-bold rounded-lg px-2.5 py-1 text-[11px] border ${
+                                ins.status === 'ACTIVE'
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200/30'
+                                  : 'bg-red-50 text-red-500 border-red-200/30'
+                              }`}>
+                                {ins.status === 'ACTIVE' ? 'Active' : 'Suspended'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              {ins.status === 'SUSPENDED' ? (
+                                <button
+                                  onClick={() => handleInstructorStatusChange(ins.id, 'ACTIVE')}
+                                  className="text-emerald-600 hover:text-emerald-800 hover:underline bg-transparent border-none cursor-pointer font-bold"
+                                >
+                                  Activate
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleInstructorStatusChange(ins.id, 'SUSPENDED')}
+                                  className="text-red-500 hover:text-red-700 hover:underline bg-transparent border-none cursor-pointer font-bold"
+                                >
+                                  Suspend
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredInstructors.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="py-12 text-center text-text-muted italic">No instructors found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+
                   </div>
                 </div>
               </div>
@@ -4527,7 +4613,8 @@ export const AdminDashboard: React.FC = () => {
 
 
 
-      {/* ================= MODAL: INSTRUCTOR APPLICATION REVIEW ================= */}
+
+      {/* ========== MODAL: INSTRUCTOR APPLICATION REVIEW ================= */}
       {selectedAppForReview && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-lg w-full p-6 animate-fade-in text-left">
@@ -4575,6 +4662,8 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+=======
 
       {/* ================= MODAL: USER PURCHASES VIEW ================= */}
       {selectedUserDetail && (
@@ -5252,9 +5341,9 @@ export const AdminDashboard: React.FC = () => {
                   <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <span className="font-semibold text-slate-500">Tổng quan toàn bộ thời gian:</span>
                     <span className="font-mono font-black text-sm text-slate-900">
-                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
-                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
-                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc, o) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
                     </span>
                   </div>
 
@@ -5277,7 +5366,7 @@ export const AdminDashboard: React.FC = () => {
                             <td colSpan={7} className="p-4 text-center text-slate-400 italic">Chưa có giao dịch nào được ghi nhận.</td>
                           </tr>
                         ) : (
-                          (financialDetails?.orders || []).map((o, idx) => (
+                          (financialDetails?.orders || []).map((o: OrderDetails, idx: number) => (
                             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                               <td className="p-3 text-slate-900 font-bold">#{o.id}</td>
                               <td className="p-3">
@@ -5304,7 +5393,7 @@ export const AdminDashboard: React.FC = () => {
                   <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <span className="font-semibold text-slate-500">Tổng phần thưởng giải đấu toàn thời gian:</span>
                     <span className="font-mono font-black text-sm text-rose-600">
-                      -{((financialDetails?.awards || []).reduce((acc, a) => acc + a.amount, 0)).toLocaleString()} ₫
+                      -{((financialDetails?.awards || []).reduce((acc: number, a: AwardDetails) => acc + a.amount, 0)).toLocaleString()} ₫
                     </span>
                   </div>
 
@@ -5325,7 +5414,7 @@ export const AdminDashboard: React.FC = () => {
                             <td colSpan={5} className="p-4 text-center text-slate-400 italic">Chưa có phần thưởng giải đấu nào được trao.</td>
                           </tr>
                         ) : (
-                          (financialDetails?.awards || []).map((a, idx) => (
+                          (financialDetails?.awards || []).map((a: AwardDetails, idx: number) => (
                             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                               <td className="p-3 text-slate-900 font-bold">#{a.id}</td>
                               <td className="p-3">
@@ -5372,7 +5461,7 @@ export const AdminDashboard: React.FC = () => {
                             <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có lượt bán khóa học nào.</td>
                           </tr>
                         ) : (
-                          (financialDetails?.sales || []).map((s, idx) => (
+                          (financialDetails?.sales || []).map((s: SaleDetails, idx: number) => (
                             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                               <td className="p-3 text-slate-900 font-bold">#{s.orderId}</td>
                               <td className="p-3">{s.customerName}</td>
@@ -5440,6 +5529,81 @@ export const AdminDashboard: React.FC = () => {
               >
                 Đóng báo cáo
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: STATUS CHANGE CONFIRMATION ================= */}
+      {statusConfirmTarget && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left">
+            <div className="flex flex-col items-center text-center gap-4">
+              
+              {/* Dynamic Icon/Theme based on newStatus */}
+              {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? (
+                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-200 text-red-500 animate-pulse">
+                  <span className="material-symbols-outlined text-4xl">warning</span>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200 text-emerald-500">
+                  <span className="material-symbols-outlined text-4xl">check_circle</span>
+                </div>
+              )}
+
+              <div>
+                <h3 className="font-display font-black text-lg text-slate-800">
+                  {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                    ? `Confirm Account Restriction` 
+                    : `Confirm Account Activation`}
+                </h3>
+                <p className="text-xs text-text-muted mt-2 px-2 leading-relaxed">
+                  Are you sure you want to change the status of <strong>{statusConfirmTarget.name}</strong> ({statusConfirmTarget.type.toLowerCase()}) to <span className={`font-bold ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? 'text-red-500' : 'text-emerald-500'
+                  }`}>{statusConfirmTarget.newStatus}</span>?
+                </p>
+                
+                {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') && (
+                  <p className="text-[11px] text-red-500 bg-red-50/50 border border-red-100 p-2.5 rounded-xl mt-3 text-left">
+                    ⚠️ <strong>Important note:</strong> Restricting this account will prevent them from logging in, managing courses, or submitting answers on the platform until they are reactivated.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 w-full mt-4">
+                <button
+                  type="button"
+                  onClick={() => setStatusConfirmTarget(null)}
+                  disabled={isProcessingStatusChange}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs disabled:opacity-50 cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeStatusChange}
+                  disabled={isProcessingStatusChange}
+                  className={`flex-1 py-2.5 rounded-xl text-white font-bold transition-all text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED')
+                      ? 'bg-red-500 hover:bg-red-650'
+                      : 'bg-emerald-500 hover:bg-emerald-600'
+                  }`}
+                >
+                  {isProcessingStatusChange ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                        ? 'Confirm Suspend' 
+                        : 'Confirm Activate'}
+                    </>
+                  )}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

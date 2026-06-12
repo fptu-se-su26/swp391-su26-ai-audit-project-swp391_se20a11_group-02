@@ -86,6 +86,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor courses');
     }
 
@@ -114,6 +115,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor revenue summary');
     }
 
@@ -142,6 +144,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor sales history');
     }
 
@@ -159,6 +162,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor recent registrations');
     }
 
@@ -176,6 +180,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor payout history');
     }
 
@@ -204,6 +209,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor course breakdown');
     }
 
@@ -221,6 +227,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor monthly chart data');
     }
 
@@ -247,6 +254,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor course registrations trend');
     }
 

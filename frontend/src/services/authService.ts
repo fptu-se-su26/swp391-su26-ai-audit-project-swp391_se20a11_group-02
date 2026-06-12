@@ -138,5 +138,24 @@ export const authService = {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || 'Failed to submit appeal');
     }
+  },
+
+  async refresh(): Promise<LoginResponse['result']> {
+    const response = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // CRITICAL: Required to send and receive HttpOnly cookies
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to refresh token');
+    }
+
+    const data: LoginResponse = await response.json();
+    return data.result;
   }
 };
+

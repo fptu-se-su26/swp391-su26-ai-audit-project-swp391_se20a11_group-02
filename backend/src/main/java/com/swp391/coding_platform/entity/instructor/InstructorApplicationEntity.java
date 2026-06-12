@@ -47,6 +47,24 @@ public class InstructorApplicationEntity {
     @Column(name = "ai_summary", columnDefinition = "TEXT")
     String aiSummary;
 
+    @Column(name = "ai_specialization")
+    String aiSpecialization;
+
+    @Column(name = "ai_technologies", columnDefinition = "TEXT")
+    String aiTechnologies;
+
+    @Column(name = "ai_experience_years")
+    Double aiExperienceYears;
+
+    @Column(name = "ai_strengths", columnDefinition = "TEXT")
+    String aiStrengths;
+
+    @Column(name = "ai_weaknesses", columnDefinition = "TEXT")
+    String aiWeaknesses;
+
+    @Column(name = "ai_recommendation")
+    String aiRecommendation;
+
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
     Instant createdAt = Instant.now();

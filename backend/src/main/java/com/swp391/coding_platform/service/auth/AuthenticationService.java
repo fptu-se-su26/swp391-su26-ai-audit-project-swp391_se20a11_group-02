@@ -19,6 +19,7 @@ import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.UserMapper;
 import com.swp391.coding_platform.repository.auth.InvalidatedTokenRepository;
 import com.swp391.coding_platform.repository.auth.RoleRepository;
+import com.swp391.coding_platform.repository.instructor.InstructorRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
 import com.swp391.coding_platform.entity.user.UserOauthAccountEntity;
 import com.swp391.coding_platform.repository.user.UserOauthAccountRepository;
@@ -57,6 +58,7 @@ public class AuthenticationService {
     ApplicationEventPublisher applicationEventPublisher;
     UserMapper userMapper;
     UserOauthAccountRepository userOauthAccountRepository;
+    InstructorRepository instructorRepository;
 
     @NonFinal
     @Value("${jwt.signer-key}")

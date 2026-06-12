@@ -23,19 +23,12 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.net.URI;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,10 +43,9 @@ public class InstructorApplicationService {
     RoleRepository roleRepository;
     InstructorRepository instructorRepository;
     WalletRepository walletRepository;
-    GeminiService geminiService;
 
     @Transactional
-    public InstructorApplicationResponse apply(Integer userId, org.springframework.web.multipart.MultipartFile cvFile, String introduction) {
+    public InstructorApplicationResponse apply(Integer userId, InstructorApplyRequest request) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -64,163 +56,53 @@ public class InstructorApplicationService {
             throw new AppException(ErrorCode.ALREADY_INSTRUCTOR);
         }
 
-        // Check if there is already a pending application
-        Optional<InstructorApplicationEntity> pendingOpt = applicationRepository
-                .findFirstByUserIdAndStatusOrderByCreatedAtDesc(userId, InstructorAppStatus.PENDING);
-        if (pendingOpt.isPresent()) {
-            throw new AppException(ErrorCode.APPLICATION_PENDING);
+        // We automatically approve and create the Instructor Profile!
+        // 1. Add INSTRUCTOR role to user
+        RoleEntity instructorRole = roleRepository.findByName(RoleName.INSTRUCTOR)
+                .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.INSTRUCTOR).build()));
+
+        Set<RoleEntity> roles = new HashSet<>(user.getRoles());
+        roles.add(instructorRole);
+        user.setRoles(roles);
+        userRepository.save(user);
+
+        // 2. Create Instructor Profile
+        InstructorEntity instructor = instructorRepository.findByUserId(user.getId())
+                .orElseGet(() -> instructorRepository.save(InstructorEntity.builder()
+                        .user(user)
+                        .fullName(request.getFullName())
+                        .major(request.getMajor())
+                        .bio(request.getBio())
+                        .status(InstructorStatus.ACTIVE)
+                        .hiredByAdmin(false)
+                        .build()));
+
+        // 3. Create Wallet if not exists
+        if (user.getWallet() == null) {
+            WalletEntity wallet = WalletEntity.builder()
+                    .user(user)
+                    .balance(BigDecimal.ZERO)
+                    .status(UserStatus.ACTIVE)
+                    .build();
+            walletRepository.save(wallet);
         }
 
-        if (cvFile == null || cvFile.isEmpty()) {
-            throw new AppException(ErrorCode.INVALID_CV_FORMAT);
-        }
-
-        if (cvFile.getSize() > 5 * 1024 * 1024) {
-            throw new AppException(ErrorCode.FILE_TOO_LARGE);
-        }
-
-        String originalFilename = cvFile.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
-            throw new AppException(ErrorCode.INVALID_CV_FORMAT);
-        }
-
-        // Try parsing the PDF synchronously to validate if it's a valid and readable CV PDF
-        try (InputStream is = cvFile.getInputStream();
-             PDDocument document = Loader.loadPDF(is.readAllBytes())) {
-            PDFTextStripper stripper = new PDFTextStripper();
-            String text = stripper.getText(document);
-            if (text == null || text.trim().isEmpty()) {
-                throw new AppException(ErrorCode.INVALID_CV_CONTENT);
-            }
-            
-            // Basic heuristic check to see if it resembles a CV / resume
-            String textLower = text.toLowerCase();
-            boolean looksLikeCv = textLower.contains("cv")
-                    || textLower.contains("resume")
-                    || textLower.contains("profile")
-                    || textLower.contains("experience")
-                    || textLower.contains("kinh nghiệm")
-                    || textLower.contains("học vấn")
-                    || textLower.contains("education")
-                    || textLower.contains("kỹ năng")
-                    || textLower.contains("skills")
-                    || textLower.contains("giới thiệu")
-                    || textLower.contains("tốt nghiệp")
-                    || textLower.contains("năm sinh")
-                    || textLower.contains("email")
-                    || textLower.contains("phone")
-                    || textLower.contains("sđt")
-                    || textLower.contains("dự án")
-                    || textLower.contains("project");
-            
-            if (!looksLikeCv) {
-                throw new AppException(ErrorCode.NOT_A_CV);
-            }
-        } catch (AppException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to parse PDF during CV upload validation: {}", e.getMessage());
-            throw new AppException(ErrorCode.INVALID_CV_FORMAT);
-        }
-
-        // Resolve target base directory to always be backend folder
-        java.io.File rootDir = new java.io.File(".").getAbsoluteFile();
-        java.io.File backendDir = new java.io.File(rootDir, "backend");
-        java.io.File baseDir = backendDir.exists() && backendDir.isDirectory() ? backendDir : rootDir;
-        java.io.File uploadDir = new java.io.File(baseDir, "uploads/cvs");
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
-
-        String savedFilename = UUID.randomUUID().toString() + "_" + originalFilename;
-        java.io.File destFile = new java.io.File(uploadDir, savedFilename);
-        try {
-            cvFile.transferTo(destFile);
-        } catch (java.io.IOException e) {
-            log.error("Failed to save CV file: {}", e.getMessage());
-            throw new AppException(ErrorCode.FILE_SAVE_ERROR);
-        }
-
-        String cvUrl = "http://localhost:8080/nonstopcoding/uploads/cvs/" + savedFilename;
-
-        // Create and save application
+        // 4. Also save an application record with status APPROVED as a registration history log
         InstructorApplicationEntity entity = InstructorApplicationEntity.builder()
                 .user(user)
-                .cvUrl(cvUrl)
-                .introduction(introduction)
-                .status(InstructorAppStatus.PENDING)
-                .aiScore(0)
-                .aiSummary("Hệ thống đang tiến hành quét CV và đánh giá tự động bằng AI ngầm...")
+                .cvUrl("self_registered")
+                .introduction(request.getBio())
+                .status(InstructorAppStatus.APPROVED)
+                .adminNote("Auto-approved upon self-registration.")
+                .aiScore(null)
+                .aiSpecialization(request.getMajor())
                 .build();
 
         entity = applicationRepository.save(entity);
 
-        // Async AI Evaluation call
-        evaluateCvAsync(entity.getId());
-
         return mapToResponse(entity);
     }
 
-    @Async
-    @Transactional
-    public void evaluateCvAsync(Integer applicationId) {
-        Optional<InstructorApplicationEntity> appOpt = applicationRepository.findById(applicationId);
-        if (appOpt.isEmpty()) {
-            return;
-        }
-
-        InstructorApplicationEntity application = appOpt.get();
-        String cvText = "";
-        try {
-            String cvUrl = application.getCvUrl();
-            byte[] bytes = null;
-
-            if (cvUrl != null && cvUrl.contains("/uploads/cvs/")) {
-                // Local file on disk
-                String filename = cvUrl.substring(cvUrl.lastIndexOf("/") + 1);
-                java.io.File rootDir = new java.io.File(".").getAbsoluteFile();
-                java.io.File backendDir = new java.io.File(rootDir, "backend");
-                java.io.File baseDir = backendDir.exists() && backendDir.isDirectory() ? backendDir : rootDir;
-                java.io.File localFile = new java.io.File(baseDir, "uploads/cvs/" + filename);
-
-                log.info("Reading local PDF file: {}", localFile.getAbsolutePath());
-                bytes = java.nio.file.Files.readAllBytes(localFile.toPath());
-            } else if (cvUrl != null && (cvUrl.startsWith("http://") || cvUrl.startsWith("https://"))) {
-                // Remote URL fallback
-                log.info("Downloading PDF from URL: {}", cvUrl);
-                URL url = URI.create(cvUrl).toURL();
-                try (InputStream in = url.openStream()) {
-                    bytes = in.readAllBytes();
-                }
-            }
-
-            if (bytes != null) {
-                try (PDDocument document = Loader.loadPDF(bytes)) {
-                    PDFTextStripper stripper = new PDFTextStripper();
-                    cvText = stripper.getText(document);
-                    log.info("Extracted text successfully from CV PDF.");
-                }
-            } else {
-                log.warn("Invalid CV URL. Skipping text extraction.");
-            }
-        } catch (Exception e) {
-            log.error("Failed to parse PDF from CV URL: {}. Error: {}", application.getCvUrl(), e.getMessage());
-            cvText = "Không thể tải hoặc trích xuất văn bản từ CV PDF. Lỗi: " + e.getMessage();
-        }
-
-        // Call Gemini (or fallback)
-        GeminiService.EvaluationResult evaluation = geminiService.evaluateCv(cvText, application.getIntroduction());
-
-        // Update database
-        application.setAiScore(evaluation.score);
-        application.setAiSummary(evaluation.summary);
-        if (evaluation.score <= 50) {
-            application.setStatus(InstructorAppStatus.REJECTED);
-            application.setAdminNote("Hệ thống tự động từ chối do điểm đánh giá hồ sơ bằng AI từ 50 trở xuống (" + evaluation.score + "/100).");
-        }
-        applicationRepository.save(application);
-        log.info("Background AI CV evaluation complete for application ID: {}. Score: {}", applicationId, evaluation.score);
-    }
 
     @Transactional(readOnly = true)
     public List<InstructorApplicationResponse> getApplications() {
@@ -310,6 +192,12 @@ public class InstructorApplicationService {
                 .adminNote(entity.getAdminNote())
                 .aiScore(entity.getAiScore())
                 .aiSummary(entity.getAiSummary())
+                .aiSpecialization(entity.getAiSpecialization())
+                .aiTechnologies(entity.getAiTechnologies())
+                .aiExperienceYears(entity.getAiExperienceYears())
+                .aiStrengths(entity.getAiStrengths())
+                .aiWeaknesses(entity.getAiWeaknesses())
+                .aiRecommendation(entity.getAiRecommendation())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

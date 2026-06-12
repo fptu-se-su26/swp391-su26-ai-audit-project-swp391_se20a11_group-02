@@ -9,14 +9,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class InstructorApplyRequest {
-
-    @NotBlank(message = "Full name cannot be blank")
-    String fullName;
-
-    @NotBlank(message = "Major cannot be blank")
-    String major;
-
-    @NotBlank(message = "Bio cannot be blank")
-    String bio;
+public class UpdateInstructorStatusRequest {
+    @NotBlank(message = "Status cannot be blank")
+    String status; // ACTIVE or SUSPENDED
 }

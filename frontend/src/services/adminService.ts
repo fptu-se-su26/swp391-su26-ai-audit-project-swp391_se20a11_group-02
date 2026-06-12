@@ -1,5 +1,69 @@
 const BASE_URL = 'http://localhost:8080/nonstopcoding';
 
+// Helper: tự động refresh token khi gặp 401, rồi retry lại request (có queue để tránh race condition khi gọi nhiều API song song)
+let isRefreshing = false;
+let refreshSubscribers: (() => void)[] = [];
+
+function subscribeTokenRefresh(cb: () => void) {
+  refreshSubscribers.push(cb);
+}
+
+function onRefreshed() {
+  refreshSubscribers.forEach(cb => cb());
+  refreshSubscribers = [];
+}
+
+function onRefreshFailed() {
+  refreshSubscribers.forEach(cb => cb());
+  refreshSubscribers = [];
+}
+
+async function fetchWithAutoRefresh(input: RequestInfo, init?: RequestInit): Promise<Response> {
+  let response = await fetch(input, init);
+
+  if (response.status === 401) {
+    // Không refresh nếu đây chính là request refresh token
+    const urlString = typeof input === 'string' ? input : (input as Request).url;
+    if (urlString.includes('/auth/refresh')) {
+      return response;
+    }
+
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (refreshRes.ok) {
+          isRefreshing = false;
+          onRefreshed();
+          return fetch(input, init);
+        } else {
+          isRefreshing = false;
+          onRefreshFailed();
+          console.warn('[Auth] Refresh token hết hạn, cần đăng nhập lại.');
+          localStorage.removeItem('user_info');
+          window.location.href = '/login';
+        }
+      } catch (err) {
+        isRefreshing = false;
+        onRefreshFailed();
+        console.warn('[Auth] Không thể refresh token:', err);
+      }
+    } else {
+      return new Promise<Response>((resolve) => {
+        subscribeTokenRefresh(() => {
+          resolve(fetch(input, init));
+        });
+      });
+    }
+  }
+
+  return response;
+}
+
+
 export interface AdminDashboardStats {
   totalRevenue: number;
   activeUsers: number;
@@ -112,10 +176,16 @@ export interface AdminInstructorApplication {
   email: string;
   cvUrl: string;
   introduction: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'AI_REJECTED';
   adminNote?: string;
   aiScore?: number;
   aiSummary?: string;
+  aiSpecialization?: string;
+  aiTechnologies?: string;
+  aiExperienceYears?: number;
+  aiStrengths?: string;
+  aiWeaknesses?: string;
+  aiRecommendation?: string;
   createdAt: string;
 }
 
@@ -346,41 +416,8 @@ let mockInstructorApplications: AdminInstructorApplication[] = [
   }
 ];
 
-let mockInstructors: AdminInstructor[] = [
-  {
-    id: 10,
-    userId: 1001,
-    fullName: "Dr. Jenkins",
-    major: "Computer Science & Engineering",
-    bio: "Ph.D. in Software Architectures. Creator of modern web frameworks and author of over 10 books.",
-    status: 'ACTIVE',
-    coursesCount: 3,
-    rating: 4.8,
-    studentsCount: 550
-  },
-  {
-    id: 11,
-    userId: 1002,
-    fullName: "Alice Miller",
-    major: "Data Analyst & Algorithmist",
-    bio: "Algorithm designer specializing in dynamic programming and Competitive Coding structures.",
-    status: 'ACTIVE',
-    coursesCount: 2,
-    rating: 4.6,
-    studentsCount: 340
-  },
-  {
-    id: 12,
-    userId: 1003,
-    fullName: "John Doe",
-    major: "Cloud Architecture specialist",
-    bio: "Ex-Google Engineer. Cloud Solutions Architect focusing on Go and Kubernetes deployments.",
-    status: 'ACTIVE',
-    coursesCount: 1,
-    rating: 4.5,
-    studentsCount: 120
-  }
-];
+let mockInstructors: AdminInstructor[] = [];
+
 
 let mockUsers: AdminUser[] = [
   {
@@ -633,7 +670,7 @@ export const adminService = {
   // Statistics
   async getDashboardStats(): Promise<AdminDashboardStats> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/dashboard/stats`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/dashboard/stats`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -647,7 +684,7 @@ export const adminService = {
 
   async getActivityLogs(): Promise<ActivityLog[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/dashboard/activity-logs`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/dashboard/activity-logs`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -661,7 +698,7 @@ export const adminService = {
 
   async getRecentDeposits(): Promise<AdminDepositHistory[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/dashboard/recent-deposits`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/dashboard/recent-deposits`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -676,7 +713,7 @@ export const adminService = {
   // Courses
   async getCourses(): Promise<AdminCourse[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/courses`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/courses`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -690,7 +727,7 @@ export const adminService = {
 
   async approveCourse(courseId: string, status: 'APPROVED' | 'REJECTED'): Promise<AdminCourse> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/courses/${courseId}/approve`, {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/courses/${courseId}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
@@ -720,7 +757,7 @@ export const adminService = {
   // Instructor applications
   async getInstructorApplications(): Promise<AdminInstructorApplication[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/instructors/applications`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/instructors/applications`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -734,7 +771,7 @@ export const adminService = {
 
   async approveInstructorApplication(appId: number, status: 'APPROVED' | 'REJECTED', adminNote?: string): Promise<AdminInstructorApplication> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/instructors/applications/${appId}/approve`, {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/instructors/applications/${appId}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, adminNote }),
@@ -778,25 +815,62 @@ export const adminService = {
     return app;
   },
 
-  // Instructors List
   async getInstructors(): Promise<AdminInstructor[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/instructors`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/instructors`, { credentials: 'include' });
+      console.log('[DEBUG] GET /admin/instructors - status:', response.status, response.statusText);
       if (response.ok) {
         const data = await response.json();
-        return data.result;
+        console.log('[DEBUG] /admin/instructors raw response:', data);
+        console.log('[DEBUG] /admin/instructors result:', data.result);
+        return data.result || [];
+      } else {
+        const errText = await response.text();
+        console.warn('[DEBUG] /admin/instructors failed:', response.status, errText);
       }
     } catch (err) {
-      console.warn("Using mock data for Active Instructors:", err);
+      console.warn('[DEBUG] /admin/instructors network error:', err);
     }
     await delay(300);
     return mockInstructors;
   },
 
+  async setInstructorStatus(instructorId: number, status: 'ACTIVE' | 'SUSPENDED'): Promise<AdminInstructor> {
+    try {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/instructors/${instructorId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Map backend AdminInstructorResponse to AdminInstructor
+        const r = data.result;
+        return {
+          id: r.id,
+          userId: r.userId,
+          fullName: r.fullName,
+          major: r.major || '',
+          bio: r.bio || '',
+          status: r.status as 'ACTIVE' | 'SUSPENDED',
+          coursesCount: r.coursesCount || 0,
+          rating: r.rating || 0,
+          studentsCount: r.studentsCount || 0
+        };
+      }
+    } catch (err) {
+      console.warn('Mocking update instructor status:', err);
+    }
+    await delay(300);
+    mockInstructors = mockInstructors.map(ins => ins.id === instructorId ? { ...ins, status } : ins);
+    return mockInstructors.find(ins => ins.id === instructorId)!;
+  },
+
   // Users List
   async getUsers(): Promise<AdminUser[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/users`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/users`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -810,7 +884,7 @@ export const adminService = {
 
   async setUserLockStatus(userId: number, status: 'ACTIVE' | 'LOCKED', reason?: string): Promise<AdminUser> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/users/${userId}/lock`, {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/users/${userId}/lock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, reason }),
@@ -839,7 +913,7 @@ export const adminService = {
 
   // Problems
   async getProblems(): Promise<AdminProblem[]> {
-    const response = await fetch(`${BASE_URL}/admin/problems`, { credentials: 'include' });
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch admin problems');
     }
@@ -848,7 +922,7 @@ export const adminService = {
   },
 
   async createProblem(problem: Omit<AdminProblem, 'id' | 'createdAt' | 'createdBy' | 'isActive' | 'totalSubmissions' | 'acceptedSubmissions'>): Promise<AdminProblem> {
-    const response = await fetch(`${BASE_URL}/admin/problems`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(problem),
@@ -862,7 +936,7 @@ export const adminService = {
   },
 
   async updateProblemScope(problemId: number, problemScope: 'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE'): Promise<AdminProblem> {
-    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/scope`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/scope`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ problemScope }),
@@ -876,7 +950,7 @@ export const adminService = {
   },
 
   async updateProblemPublicStatus(problemId: number, isPublic: boolean): Promise<AdminProblem> {
-    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/public`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/public`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isPublic }),
@@ -890,7 +964,7 @@ export const adminService = {
   },
 
   async activateProblem(problemId: number, totalTestcases: number): Promise<AdminProblem> {
-    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/activate`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/activate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ totalTestcases }),
@@ -904,7 +978,7 @@ export const adminService = {
   },
 
   async updateProblem(problemId: number, problem: Omit<AdminProblem, 'id' | 'createdAt' | 'createdBy' | 'isActive' | 'totalSubmissions' | 'acceptedSubmissions'>): Promise<AdminProblem> {
-    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(problem),
@@ -939,7 +1013,7 @@ export const adminService = {
   // Contests
   async getContests(): Promise<AdminContest[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/contests`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -953,7 +1027,7 @@ export const adminService = {
 
   async createContest(contest: Omit<AdminContest, 'id' | 'status' | 'participantCount' | 'submissionCount' | 'averageScore'>): Promise<AdminContest> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/contests`, {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contest),
@@ -1000,7 +1074,7 @@ export const adminService = {
 
   async getFinancialStats(): Promise<AdminFinancialStats> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/dashboard/financial`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/dashboard/financial`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -1052,7 +1126,7 @@ export const adminService = {
   },
 
   async saveProblemTestcases(problemId: number, testcases: Omit<AdminProblemTestcase, 'id'>[]): Promise<AdminProblemTestcase[]> {
-    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/testcases`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(testcases),
@@ -1069,7 +1143,7 @@ export const adminService = {
   async uploadTestcaseZip(problemId: number, file: File): Promise<AdminProblemTestcase[]> {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases/upload`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/testcases/upload`, {
       method: 'POST',
       body: formData,
       credentials: 'include'
