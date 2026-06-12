@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { ContestSidebar } from './ContestSidebar';
+import { authService } from '../services/authService';
 
 export interface ContestOverviewData {
   id: number;
@@ -20,7 +21,7 @@ export interface ContestOverviewData {
 }
 
 export const Layout: React.FC = () => {
-  const { user, cart, logout } = useApp();
+  const { user, cart, logout, updateUser } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -36,6 +37,30 @@ export const Layout: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const [appealReasonText, setAppealReasonText] = useState('');
+  const [isSubmittingAppeal, setIsSubmittingAppeal] = useState(false);
+  const [appealError, setAppealError] = useState<string | null>(null);
+
+  const handleAppealSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!appealReasonText.trim()) {
+      setAppealError('Vui lòng nhập nội dung khiếu nại.');
+      return;
+    }
+    setIsSubmittingAppeal(true);
+    setAppealError(null);
+    try {
+      await authService.submitAppeal(appealReasonText.trim());
+      if (updateUser) {
+        updateUser({ lockAppeal: appealReasonText.trim() });
+      }
+    } catch (err: any) {
+      setAppealError(err.message || 'Gửi khiếu nại thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsSubmittingAppeal(false);
+    }
   };
 
   // Contest State
@@ -190,6 +215,101 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex flex-col antialiased selection:bg-primary-light selection:text-brand-blue relative">
+
+      {/* LOCKED ACCOUNT MODAL OVERLAY */}
+      {user && user.status === 'LOCKED' && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-2xl max-w-lg w-full p-8 text-left animate-fade-in flex flex-col gap-6">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-500">
+                <span className="material-symbols-outlined text-4xl">lock</span>
+              </div>
+              <h2 className="font-display font-black text-2xl text-red-600">Tài Khoản Đã Bị Khóa</h2>
+              <p className="text-xs text-text-muted max-w-sm">
+                Tài khoản <strong>@{user.username}</strong> tạm thời bị khóa vì vi phạm điều khoản dịch vụ hoặc theo yêu cầu bảo mật của ban quản trị.
+              </p>
+            </div>
+
+            <div className="bg-red-50/50 rounded-2xl border border-red-100/50 p-4 space-y-2.5">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-red-500">Lý do khóa tài khoản</span>
+                <p className="text-xs text-slate-700 font-semibold mt-0.5 leading-relaxed bg-white/70 border border-slate-100 p-3 rounded-xl">
+                  {user.lockReason || 'Vi phạm điều khoản sử dụng hoặc quy tắc bảo mật hệ thống.'}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2 text-xs text-slate-600 pt-1.5">
+                <span className="material-symbols-outlined text-sm text-red-500">mail</span>
+                <span>Hỗ trợ & Liên hệ: <a href="mailto:support@nonstopcoding.com" className="font-bold text-primary hover:underline">support@nonstopcoding.com</a></span>
+              </div>
+            </div>
+
+            {/* Appeal Section */}
+            <div className="border-t border-slate-150 pt-5 space-y-3">
+              <h3 className="font-display font-bold text-sm text-brand-blue">Gửi Đơn Khiếu Nại (Appeal)</h3>
+              
+              {user.lockAppeal ? (
+                <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4 space-y-2">
+                  <p className="text-[11px] text-text-muted font-bold">Bạn đã gửi đơn khiếu nại với nội dung:</p>
+                  <p className="text-xs text-slate-700 italic border-l-4 border-primary pl-3 py-1 font-medium bg-white rounded-r-xl p-2.5 border border-slate-150">
+                    "{user.lockAppeal}"
+                  </p>
+                  <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1.5 pt-1">
+                    <span className="material-symbols-outlined text-sm">schedule</span>
+                    Yêu cầu của bạn đang được ban quản trị xem xét.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleAppealSubmit} className="space-y-3">
+                  <div>
+                    <textarea
+                      value={appealReasonText}
+                      onChange={(e) => setAppealReasonText(e.target.value)}
+                      placeholder="Giải thích lý do tại sao tài khoản của bạn nên được mở khóa, cung cấp thông tin hoặc bằng chứng cần thiết..."
+                      rows={3}
+                      disabled={isSubmittingAppeal}
+                      className="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none shadow-sm"
+                    />
+                  </div>
+                  {appealError && (
+                    <div className="text-[11px] font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-100">
+                      {appealError}
+                    </div>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isSubmittingAppeal || !appealReasonText.trim()}
+                    className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    {isSubmittingAppeal ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                        Đang gửi đơn...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-sm">send</span>
+                        Gửi Yêu Cầu Mở Khóa
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs cursor-pointer text-center flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">logout</span>
+                Đăng xuất tài khoản
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Glowing Backdrop Circles */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
