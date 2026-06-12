@@ -69,6 +69,25 @@ public class GlobalExceptionHandler {
                 .build());
     }
 
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handlingException(Exception exception) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.<Object>builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
+                .message("Lỗi hệ thống: " + exception.getMessage())
+                .result(null)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @ExceptionHandler(value = Throwable.class)
+    public ResponseEntity<ApiResponse<Object>> handlingThrowable(Throwable throwable) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.<Object>builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
+                .message("Lỗi nghiêm trọng hệ thống: " + throwable.getMessage())
+                .result(null)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
 }
-
-

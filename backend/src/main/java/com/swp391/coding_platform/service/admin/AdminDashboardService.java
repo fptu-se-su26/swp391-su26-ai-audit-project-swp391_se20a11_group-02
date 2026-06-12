@@ -7,6 +7,9 @@ import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopCo
 import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopInstructor;
 import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopProblem;
 import com.swp391.coding_platform.dto.response.AdminDepositHistoryResponse;
+import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse;
+import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse.MonthlyFinancialRecord;
+import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse.TopRevenueCourse;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.enums.ContestStatus;
@@ -15,6 +18,7 @@ import com.swp391.coding_platform.entity.enums.StatusTransaction;
 import com.swp391.coding_platform.entity.enums.TransactionType;
 import com.swp391.coding_platform.entity.enums.UserStatus;
 import com.swp391.coding_platform.entity.payment.OrderEntity;
+import com.swp391.coding_platform.entity.payment.OrderItemEntity;
 import com.swp391.coding_platform.entity.payment.WalletTransactionEntity;
 import com.swp391.coding_platform.entity.problem.ProblemEntity;
 import com.swp391.coding_platform.entity.user.UserEntity;
@@ -24,6 +28,7 @@ import com.swp391.coding_platform.repository.contest.ContestRepository;
 import com.swp391.coding_platform.repository.course.CourseRepository;
 import com.swp391.coding_platform.repository.instructor.InstructorRepository;
 import com.swp391.coding_platform.repository.payment.OrderRepository;
+import com.swp391.coding_platform.repository.payment.OrderItemRepository;
 import com.swp391.coding_platform.repository.payment.WalletTransactionRepository;
 import com.swp391.coding_platform.repository.problem.ProblemRepository;
 import com.swp391.coding_platform.repository.problem.ProblemSubmissionRepository;
@@ -56,6 +61,7 @@ public class AdminDashboardService {
     InstructorRepository instructorRepository;
     ProblemRepository problemRepository;
     OrderRepository orderRepository;
+    OrderItemRepository orderItemRepository;
     WalletTransactionRepository walletTransactionRepository;
     CategoryRepository categoryRepository;
     ProblemSubmissionRepository problemSubmissionRepository;
@@ -69,9 +75,7 @@ public class AdminDashboardService {
         long totalProblems = problemRepository.count();
 
         // Total Revenue: sum of completed orders
-        List<OrderEntity> allCompletedOrders = orderRepository.findAll().stream()
-                .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
-                .collect(Collectors.toList());
+        List<OrderEntity> allCompletedOrders = orderRepository.findAllByStatus(OrderStatus.COMPLETED);
         long totalRevenue = allCompletedOrders.stream()
                 .mapToLong(o -> o.getTotalAmount().longValue())
                 .sum();
@@ -291,5 +295,297 @@ public class AdminDashboardService {
         }
 
         return topProblems;
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public AdminFinancialStatsResponse getFinancialStats() {
+        // Query completed orders
+        List<OrderEntity> allCompletedOrders = orderRepository.findAllByStatusWithDetails(OrderStatus.COMPLETED);
+
+        // Query successful AWARD transactions (if any)
+        List<WalletTransactionEntity> awards = walletTransactionRepository.findAll().stream()
+                .filter(t -> t.getType() == TransactionType.AWARD && t.getStatus() == StatusTransaction.SUCCESS)
+                .collect(Collectors.toList());
+
+        // 1. Get Monthly Financial Records (Last 12 Months)
+        List<MonthlyFinancialRecord> financialMonthlyRecords = getMonthlyFinancialRecords(allCompletedOrders, awards);
+
+        // 2. Get Top Revenue Generating Courses
+        List<TopRevenueCourse> topRevenueCourses = getTopRevenueCoursesData();
+
+        return AdminFinancialStatsResponse.builder()
+                .financialMonthlyRecords(financialMonthlyRecords)
+                .topRevenueCourses(topRevenueCourses)
+                .build();
+    }
+
+    private List<MonthlyFinancialRecord> getMonthlyFinancialRecords(
+            List<OrderEntity> completedOrders, List<WalletTransactionEntity> awards) {
+
+        List<MonthlyFinancialRecord> records = new ArrayList<>();
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("MMM yy", Locale.ENGLISH);
+        DateTimeFormatter datePrefixFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        LocalDate today = LocalDate.now();
+
+        // Server & Marketing simulated expenses
+        Map<String, Long> marketingMap = new HashMap<>();
+        marketingMap.put("Jul 25", 1000000L);
+        marketingMap.put("Aug 25", 1200000L);
+        marketingMap.put("Sep 25", 1000000L);
+        marketingMap.put("Oct 25", 1500000L);
+        marketingMap.put("Nov 25", 1500000L);
+        marketingMap.put("Dec 25", 2000000L);
+        marketingMap.put("Jan 26", 800000L);
+        marketingMap.put("Feb 26", 1000000L);
+        marketingMap.put("Mar 26", 1500000L);
+        marketingMap.put("Apr 26", 1200000L);
+        marketingMap.put("May 26", 1800000L);
+        marketingMap.put("Jun 26", 2000000L);
+
+        Instant oneYearAgo = today.minusMonths(11).withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        for (int i = 11; i >= 0; i--) {
+            LocalDate monthDate = today.minusMonths(i);
+            String label = monthDate.format(labelFormatter);
+            String datePrefix = monthDate.format(datePrefixFormatter);
+
+            // Server cost simulation
+            long serverCost = (monthDate.isBefore(LocalDate.of(2025, 11, 1))) ? 1200000L : 1500000L;
+            long marketingCost = marketingMap.getOrDefault(label, 1500000L);
+
+            records.add(new MonthlyFinancialRecord(label, datePrefix, 0L, 0L, 0L, serverCost, marketingCost));
+        }
+
+        Map<String, MonthlyFinancialRecord> recordMap = records.stream()
+                .collect(Collectors.toMap(MonthlyFinancialRecord::getLabel, r -> r));
+
+        // Aggregate completed orders for gross revenue and sales counts
+        for (OrderEntity order : completedOrders) {
+            if (order.getCreatedAt() != null && order.getCreatedAt().isAfter(oneYearAgo)) {
+                LocalDate date = order.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+                String label = date.format(labelFormatter);
+                MonthlyFinancialRecord rec = recordMap.get(label);
+                if (rec != null) {
+                    rec.setGross(rec.getGross() + order.getTotalAmount().longValue());
+                    long itemsCount = order.getOrderItems() != null ? order.getOrderItems().size() : 0;
+                    rec.setCount(rec.getCount() + itemsCount);
+                }
+            }
+        }
+
+        // Aggregate awards
+        for (WalletTransactionEntity tx : awards) {
+            if (tx.getCreatedAt() != null && tx.getCreatedAt().isAfter(oneYearAgo)) {
+                LocalDate date = tx.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+                String label = date.format(labelFormatter);
+                MonthlyFinancialRecord rec = recordMap.get(label);
+                if (rec != null) {
+                    rec.setRewards(rec.getRewards() + tx.getAmount().longValue());
+                }
+            }
+        }
+
+        return records;
+    }
+
+    private List<TopRevenueCourse> getTopRevenueCoursesData() {
+        List<OrderItemEntity> completedOrderItems = orderItemRepository.findAllCompletedOrderItemsWithDetails();
+
+        Map<CourseEntity, List<OrderItemEntity>> itemsByCourse = completedOrderItems.stream()
+                .filter(item -> item.getCourse() != null)
+                .collect(Collectors.groupingBy(OrderItemEntity::getCourse));
+
+        List<TopRevenueCourse> topRevenueCourses = itemsByCourse.entrySet().stream()
+                .map(entry -> {
+                    CourseEntity course = entry.getKey();
+                    List<OrderItemEntity> items = entry.getValue();
+                    long sold = items.size();
+                    long gross = items.stream().mapToLong(item -> item.getPrice().longValue()).sum();
+                    long payout = Math.round(gross * 0.7);
+                    long plat = Math.round(gross * 0.3);
+                    String tutor = course.getInstructor() != null ? course.getInstructor().getFullName() : "Unknown Instructor";
+                    return new TopRevenueCourse(course.getTitle(), tutor, sold, gross, payout, plat);
+                })
+                .sorted((c1, c2) -> Long.compare(c2.getGross(), c1.getGross()))
+                .collect(Collectors.toList());
+
+        return topRevenueCourses;
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse getFinancialDetails() {
+        // Query completed orders with details to avoid N+1 queries
+        List<OrderEntity> completedOrders = orderRepository.findAllByStatusWithDetails(OrderStatus.COMPLETED).stream()
+                .sorted(Comparator.comparing(OrderEntity::getCreatedAt).reversed())
+                .collect(Collectors.toList());
+
+        // Query successful AWARD transactions
+        List<WalletTransactionEntity> awards = walletTransactionRepository.findAll().stream()
+                .filter(t -> t.getType() == TransactionType.AWARD && t.getStatus() == StatusTransaction.SUCCESS)
+                .sorted(Comparator.comparing(WalletTransactionEntity::getCreatedAt).reversed())
+                .collect(Collectors.toList());
+
+        // 1. Order details list
+        List<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.OrderDetails> orderDetailsList = completedOrders.stream().map(o -> {
+            String customerName = o.getUser() != null ? o.getUser().getDisplayname() : "Unknown";
+            String customerEmail = o.getUser() != null ? o.getUser().getEmail() : "Unknown";
+            String courses = o.getOrderItems() != null ? o.getOrderItems().stream()
+                    .map(item -> item.getCourse() != null ? item.getCourse().getTitle() : "Unknown Course")
+                    .collect(Collectors.joining(", ")) : "";
+            long gross = o.getTotalAmount().longValue();
+            long plat = Math.round(gross * 0.3);
+            long instructor = Math.round(gross * 0.7);
+
+            return com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.OrderDetails.builder()
+                    .id(String.valueOf(o.getId()))
+                    .customerName(customerName)
+                    .customerEmail(customerEmail)
+                    .courses(courses)
+                    .grossAmount(gross)
+                    .instructorShare(instructor)
+                    .platformCut(plat)
+                    .date(o.getCreatedAt().toString())
+                    .build();
+        }).collect(Collectors.toList());
+
+        // 2. Award details list
+        List<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.AwardDetails> awardDetailsList = awards.stream().map(t -> {
+            String userName = "Unknown";
+            String userEmail = "Unknown";
+            if (t.getWallet() != null && t.getWallet().getUser() != null) {
+                userName = t.getWallet().getUser().getDisplayname();
+                userEmail = t.getWallet().getUser().getEmail();
+            }
+            return com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.AwardDetails.builder()
+                    .id(String.valueOf(t.getId()))
+                    .userName(userName)
+                    .userEmail(userEmail)
+                    .amount(t.getAmount().longValue())
+                    .date(t.getCreatedAt().toString())
+                    .referenceId(t.getReferenceId())
+                    .build();
+        }).collect(Collectors.toList());
+
+        // 3. Sale details list
+        List<OrderItemEntity> completedOrderItems = orderItemRepository.findAllCompletedOrderItemsWithDetails().stream()
+                .sorted(Comparator.comparing((OrderItemEntity item) -> item.getOrder().getCreatedAt()).reversed())
+                .collect(Collectors.toList());
+
+        List<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.SaleDetails> saleDetailsList = completedOrderItems.stream().map(item -> {
+            String courseTitle = item.getCourse() != null ? item.getCourse().getTitle() : "Unknown Course";
+            String instructorName = (item.getCourse() != null && item.getCourse().getInstructor() != null) ? 
+                    item.getCourse().getInstructor().getFullName() : "Unknown Instructor";
+            String customerName = (item.getOrder() != null && item.getOrder().getUser() != null) ? 
+                    item.getOrder().getUser().getDisplayname() : "Unknown Customer";
+
+            return com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.SaleDetails.builder()
+                    .orderId(String.valueOf(item.getOrder().getId()))
+                    .courseTitle(courseTitle)
+                    .instructorName(instructorName)
+                    .customerName(customerName)
+                    .price(item.getPrice().longValue())
+                    .date(item.getOrder().getCreatedAt().toString())
+                    .build();
+        }).collect(Collectors.toList());
+
+        // 4. Monthly breakdowns for all time
+        List<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown> monthlyBreakdowns = 
+                getMonthlyFinancialBreakdownsAllTime(completedOrders, awards);
+
+        return com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.builder()
+                .orders(orderDetailsList)
+                .awards(awardDetailsList)
+                .sales(saleDetailsList)
+                .monthlyBreakdowns(monthlyBreakdowns)
+                .build();
+    }
+
+    private List<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown> getMonthlyFinancialBreakdownsAllTime(
+            List<OrderEntity> completedOrders, List<WalletTransactionEntity> awards) {
+
+        List<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown> records = new ArrayList<>();
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("MMM yy", Locale.ENGLISH);
+        DateTimeFormatter datePrefixFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        LocalDate today = LocalDate.now();
+
+        Map<String, Long> marketingMap = new HashMap<>();
+        marketingMap.put("Jul 25", 1000000L);
+        marketingMap.put("Aug 25", 1200000L);
+        marketingMap.put("Sep 25", 1000000L);
+        marketingMap.put("Oct 25", 1500000L);
+        marketingMap.put("Nov 25", 1500000L);
+        marketingMap.put("Dec 25", 2000000L);
+        marketingMap.put("Jan 26", 800000L);
+        marketingMap.put("Feb 26", 1000000L);
+        marketingMap.put("Mar 26", 1500000L);
+        marketingMap.put("Apr 26", 1200000L);
+        marketingMap.put("May 26", 1800000L);
+        marketingMap.put("Jun 26", 2000000L);
+
+        LocalDate startDate = today.minusMonths(11).withDayOfMonth(1);
+        if (!completedOrders.isEmpty()) {
+            LocalDate oldestOrderDate = completedOrders.stream()
+                    .filter(o -> o.getCreatedAt() != null)
+                    .map(o -> o.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate())
+                    .min(Comparator.naturalOrder())
+                    .orElse(today)
+                    .withDayOfMonth(1);
+            if (oldestOrderDate.isBefore(startDate)) {
+                startDate = oldestOrderDate;
+            }
+        }
+
+        LocalDate temp = startDate;
+        while (!temp.isAfter(today)) {
+            String label = temp.format(labelFormatter);
+            String datePrefix = temp.format(datePrefixFormatter);
+
+            long serverCost = (temp.isBefore(LocalDate.of(2025, 11, 1))) ? 1200000L : 1500000L;
+            long marketingCost = marketingMap.getOrDefault(label, 1500000L);
+
+            records.add(new com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown(
+                    label, datePrefix, 0L, 0L, 0L, serverCost, marketingCost, 0L));
+            temp = temp.plusMonths(1);
+        }
+
+        Map<String, com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown> recordMap = records.stream()
+                .collect(Collectors.toMap(com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown::getLabel, r -> r));
+
+        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        for (OrderEntity order : completedOrders) {
+            if (order.getCreatedAt() != null && !order.getCreatedAt().isBefore(startInstant)) {
+                LocalDate date = order.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+                String label = date.format(labelFormatter);
+                com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown rec = recordMap.get(label);
+                if (rec != null) {
+                    rec.setGross(rec.getGross() + order.getTotalAmount().longValue());
+                    long itemsCount = order.getOrderItems() != null ? order.getOrderItems().size() : 0;
+                    rec.setCount(rec.getCount() + itemsCount);
+                }
+            }
+        }
+
+        for (WalletTransactionEntity tx : awards) {
+            if (tx.getCreatedAt() != null && !tx.getCreatedAt().isBefore(startInstant)) {
+                LocalDate date = tx.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+                String label = date.format(labelFormatter);
+                com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown rec = recordMap.get(label);
+                if (rec != null) {
+                    rec.setRewards(rec.getRewards() + tx.getAmount().longValue());
+                }
+            }
+        }
+
+        for (com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse.MonthlyFinancialBreakdown rec : records) {
+            long gross = rec.getGross();
+            long platformShare = Math.round(gross * 0.3);
+            long gatewayFees = Math.round(gross * 0.02);
+            long otherExpenses = rec.getServer() + rec.getMarketing() + gatewayFees;
+            long netProfit = platformShare - rec.getRewards() - otherExpenses;
+            rec.setNetProfit(netProfit);
+        }
+
+        return records;
     }
 }

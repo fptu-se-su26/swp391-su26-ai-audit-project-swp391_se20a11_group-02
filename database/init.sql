@@ -1,4 +1,4 @@
---
+đ--
 -- PostgreSQL database dump
 --
 
@@ -106,7 +106,8 @@ ALTER TYPE public.enrollment_status OWNER TO postgres;
 CREATE TYPE public.instructor_app_status AS ENUM (
     'PENDING',
     'APPROVED',
-    'REJECTED'
+    'REJECTED',
+    'AI_REJECTED'
 );
 
 
@@ -959,6 +960,14 @@ CREATE TABLE public.instructor_applications (
     introduction text NOT NULL,
     status public.instructor_app_status DEFAULT 'PENDING'::public.instructor_app_status,
     admin_note text,
+    ai_score integer DEFAULT 0,
+    ai_summary text,
+    ai_specialization character varying(100),
+    ai_technologies text,
+    ai_experience_years double precision,
+    ai_strengths text,
+    ai_weaknesses text,
+    ai_recommendation character varying(50),
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );

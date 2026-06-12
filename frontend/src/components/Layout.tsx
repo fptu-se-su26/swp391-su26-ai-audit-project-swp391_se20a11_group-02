@@ -177,7 +177,7 @@ export const Layout: React.FC = () => {
   };
 
   // Redirection / Protection logic
-  const privateRoutes = ['/dashboard', '/instructor', '/shopping-cart'];
+  const privateRoutes = ['/dashboard', '/instructor', '/wallet-transaction', '/payment-transaction', '/shopping-cart'];
   const isPrivateRoute = privateRoutes.some(route => location.pathname.startsWith(route));
 
   React.useEffect(() => {
@@ -202,96 +202,99 @@ export const Layout: React.FC = () => {
       {!isInstructorRoute && !isAdminRoute && (
         <header className="bg-surface/90 backdrop-blur-md shadow-sm fixed top-0 z-50 w-full border-b border-gray-100/50">
           <div className="flex justify-between items-center w-full px-8 h-16 max-w-[1440px] mx-auto relative">
-          {/* Brand */}
-          <Link to="/" className="shrink-0 flex items-center cursor-pointer">
-            <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding Logo" className="h-16 w-auto" />
-          </Link>
-          <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2 h-full">
-            {user && (
-              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Dashboard</NavLink>
-            )}
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/courses">Courses</NavLink>
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/problems">Problems</NavLink>
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/contests">Contests</NavLink>
-            <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/rankings">Rankings</NavLink>
-          </nav>
-          <div className="flex items-center gap-4">
-            {/* Instructor Capsule Link */}
-            {user && user.role === 'instructor' && (
-              <Link to="/instructor" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
-                <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">school</span>
-                <span>Instructor</span>
-              </Link>
-            )}
-            {user && user.role === 'admin' && (
-              <Link to="/admin" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-red-200 shrink-0">
-                <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">admin_panel_settings</span>
-                <span>Admin</span>
-              </Link>
-            )}
-            <button className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
-            <Link to="/shopping-cart" className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all relative">
-              <span className="material-symbols-outlined">shopping_cart</span>
-              {cart.length > 0 && (
-                <span className="absolute top-1 right-0 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">{cart.length}</span>
-              )}
+            {/* Brand */}
+            <Link to="/" className="shrink-0 flex items-center cursor-pointer">
+              <img src={`${import.meta.env.BASE_URL}LOGO.png`} alt="Nonstop Coding Logo" className="h-16 w-auto" />
             </Link>
-            {user ? (
-              <div className="relative flex items-center gap-1 cursor-pointer group ml-2">
-                <img
-                  alt="User Avatar"
-                  className="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-primary transition-all object-cover"
-                  src={user?.avatar || "https://ui-avatars.com/api/?name=You&background=12284C&color=fff"}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=You&background=12284C&color=fff';
-                  }}
-                />
-                <span className="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">arrow_drop_down</span>
-
-                {/* Dropdown Menu */}
-                <div className="absolute top-full right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2 cursor-default text-left">
-                  <Link to="/dashboard#dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">dashboard</span> Dashboard
-                  </Link>
-                  <Link to="/dashboard#my-profile" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">person</span> My Profile
-                  </Link>
-                  <Link to="/dashboard#deposit" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">payments</span> Deposit
-                  </Link>
-                  {(user?.role === 'admin' || user?.role === 'instructor') && (
-                    <div className="h-px bg-gray-100 my-1 w-full"></div>
-                  )}
-                  {user && user.role === 'admin' && (
-                    <Link to="/admin" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Panel
-                    </Link>
-                  )}
-                  {user && user.role === 'instructor' && (
-                    <Link to="/instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
-                    </Link>
-                  )}
-                  <div className="h-px bg-gray-100 my-1 w-full"></div>
-                  <button onClick={handleLogout} className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2 w-full text-left">
-                    <span className="material-symbols-outlined text-[18px]">logout</span> Logout
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#ff8c42] hover:from-[#d95f19] hover:to-primary text-white font-extrabold text-xs md:text-sm shadow-sm transition-all transform active:scale-95 group select-none shrink-0"
-              >
-                <span className="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">login</span>
-                <span>Login</span>
+            <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2 h-full">
+              {user && (
+                <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Learning</NavLink>
+              )}
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/courses">Courses</NavLink>
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/problems">Problems</NavLink>
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/contests">Contests</NavLink>
+              <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/rankings">Rankings</NavLink>
+            </nav>
+            <div className="flex items-center gap-4">
+              {/* Instructor Capsule Link */}
+              {user && user.role === 'instructor' && (
+                <Link to="/instructor" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
+                  <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">school</span>
+                  <span>Instructor</span>
+                </Link>
+              )}
+              {/* Admin Capsule Link */}
+              {user && user.role === 'admin' && (
+                <Link to="/admin" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
+                  <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">admin_panel_settings</span>
+                  <span>Admin</span>
+                </Link>
+              )}
+              <button className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all">
+                <span className="material-symbols-outlined">notifications</span>
+              </button>
+              <Link to="/shopping-cart" className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all relative">
+                <span className="material-symbols-outlined">shopping_cart</span>
+                {cart.length > 0 && (
+                  <span className="absolute top-1 right-0 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">{cart.length}</span>
+                )}
               </Link>
-            )}
+              {user ? (
+                <div className="relative flex items-center gap-1 cursor-pointer group ml-2">
+                  <img
+                    alt="User Avatar"
+                    className="w-8 h-8 rounded-full border-2 border-transparent group-hover:border-primary transition-all object-cover"
+                    src={user?.avatar || "https://ui-avatars.com/api/?name=You&background=12284C&color=fff"}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=You&background=12284C&color=fff';
+                    }}
+                  />
+                  <span className="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">arrow_drop_down</span>
+
+                  {/* Dropdown Menu */}
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2 cursor-default text-left">
+                    <Link to="/dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">dashboard</span> My Learning
+                    </Link>
+                    {user && user.role === 'admin' && (
+                      <Link to="/admin" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Panel
+                      </Link>
+                    )}
+                    {user && user.role === 'instructor' && (
+                      <Link to="/instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
+                      </Link>
+                    )}
+                    {user && user.role !== 'admin' && user.role !== 'instructor' && (
+                      <Link to="/apply-instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">school</span> Become Instructor
+                      </Link>
+                    )}
+                    <a href="#" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">person</span> Edit Profile
+                    </a>
+                    <Link to="/wallet-transaction" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span> Wallet
+                    </Link>
+                    <div className="h-px bg-gray-100 my-1 w-full"></div>
+                    <button onClick={handleLogout} className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2 w-full text-left">
+                      <span className="material-symbols-outlined text-[18px]">logout</span> Logout
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#ff8c42] hover:from-[#d95f19] hover:to-primary text-white font-extrabold text-xs md:text-sm shadow-sm transition-all transform active:scale-95 group select-none shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">login</span>
+                  <span>Login</span>
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
       )}
 
       {/* Main content body with Outlet */}
@@ -357,11 +360,10 @@ export const Layout: React.FC = () => {
                       </button>
                       {registrationMessage && (
                         <div
-                          className={`text-xs font-bold p-2.5 rounded-lg text-center ${
-                            registrationMessage.type === 'success'
+                          className={`text-xs font-bold p-2.5 rounded-lg text-center ${registrationMessage.type === 'success'
                               ? 'bg-green-50 text-green-700 border border-green-200'
                               : 'bg-red-50 text-red-700 border border-red-200'
-                          }`}
+                            }`}
                         >
                           {registrationMessage.text}
                         </div>
@@ -410,7 +412,7 @@ export const Layout: React.FC = () => {
               <div className="flex flex-col gap-4">
                 <h4 className="text-body-lg font-bold font-display">Support</h4>
                 <nav className="flex flex-col gap-2">
-                   <a className="text-white/70 hover:text-primary transition-colors" href="#">Help Center</a>
+                  <a className="text-white/70 hover:text-primary transition-colors" href="#">Help Center</a>
                   <a className="text-white/70 hover:text-primary transition-colors" href="#">FAQ</a>
                   <Link className="text-white/70 hover:text-primary transition-colors" to="/contact">Contact Us</Link>
                   <Link className="text-white/70 hover:text-primary transition-colors" to="/terms">Terms of Service</Link>

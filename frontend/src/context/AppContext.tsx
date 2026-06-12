@@ -72,6 +72,7 @@ interface AppContextType {
   registerForContest: (contestId: string) => void;
   refreshBalance: () => Promise<void>;
   updateUser: (updatedFields: Partial<User>) => void;
+  refreshAuth: () => Promise<User>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -120,16 +121,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Hợp nhất giỏ hàng khách với DB
         const guestCartStr = localStorage.getItem('guest_cart');
         const guestCart: string[] = guestCartStr ? JSON.parse(guestCartStr) : [];
-        
+
         let mergedCart = [...new Set([...ids.map(id => id.toString()), ...guestCart])];
-        
+
         // Push guest items to backend
         for (const cId of guestCart) {
-           if (!ids.includes(Number(cId))) {
-              await addToCartApi(cId).catch(console.error);
-           }
+          if (!ids.includes(Number(cId))) {
+            await addToCartApi(cId).catch(console.error);
+          }
         }
-        
+
         localStorage.removeItem('guest_cart'); // Clear after merge
         setCart(mergedCart);
       }).catch(err => {
@@ -259,7 +260,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!cart.includes(courseId)) {
       const newCart = [...cart, courseId];
       setCart(newCart);
-      
+
       if (user) {
         try {
           const success = await addToCartApi(courseId);
@@ -414,6 +415,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const refreshAuth = async (): Promise<User> => {
+    const result = await authService.refresh();
+    let userRole: 'student' | 'instructor' | 'admin' = 'student';
+    if (result.roles?.includes('ADMIN')) {
+      userRole = 'admin';
+    } else if (result.roles?.includes('INSTRUCTOR')) {
+      userRole = 'instructor';
+    }
+
+    const loggedInUser: User = {
+      id: result.id.toString(),
+      name: result.displayName || result.username || '',
+      username: result.username || '',
+      email: result.email || '',
+      role: userRole,
+      avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(result.displayName || result.username || '')}&background=F36F21&color=fff`,
+      walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
+    };
+
+    setUser(loggedInUser);
+    localStorage.setItem('user_info', JSON.stringify(loggedInUser));
+    return loggedInUser;
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -438,6 +463,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         registerForContest,
         refreshBalance,
         updateUser,
+        refreshAuth,
       }}
     >
       {children}

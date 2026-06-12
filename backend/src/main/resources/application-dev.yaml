@@ -4,6 +4,10 @@ server:
     context-path: /nonstopcoding
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/NonstopCoding}
     username: ${DB_USERNAME:postgres}
@@ -42,7 +46,7 @@ jwt:
   valid-duration: ${JWT_VALID_DURATION:3600}
   refreshable-duration: ${JWT_REFRESHABLE_DURATION:604800}
 
-auth: 
+auth:
   cookie:
     access-token:
       name: ${ACCESS_TOKEN_COOKIE_NAME:access_token}
@@ -82,5 +86,8 @@ google:
   client-id: ${GOOGLE_CLIENT_ID}
 
 
-
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
 

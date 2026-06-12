@@ -1,5 +1,6 @@
 package com.swp391.coding_platform.service.contest;
 
+import com.swp391.coding_platform.dto.request.ContestSearchRequest;
 import com.swp391.coding_platform.dto.request.ContestRegisterRequest;
 import com.swp391.coding_platform.dto.response.ContestProblemResponse;
 import com.swp391.coding_platform.dto.response.ContestResponse;
@@ -48,13 +49,9 @@ public class ContestService {
     PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public PageResponse<ContestResponse> getContests(
-            String search,
-            String statusFilter,
-            String accessFilter,
-            int page,
-            int size,
-            String username) {
+    public PageResponse<ContestResponse> getContests(ContestSearchRequest request, String username) {
+        String statusFilter = request.getStatus();
+        String accessFilter = request.getAccess();
 
         // Translate status filter to database enum value
         ContestStatus dbStatus = null;
@@ -70,11 +67,24 @@ public class ContestService {
             }
         }
 
-        // Paging page is 0-indexed in Spring Data. Sort by id DESC for default newest order.
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        // Secure sort by whitelist
+        String sortByField = "id";
+        if (request.getSortBy() != null) {
+            String requestedSortBy = request.getSortBy().trim();
+            if (List.of("id", "title", "startTime", "endTime", "durations", "createdAt", "updatedAt").contains(requestedSortBy)) {
+                sortByField = requestedSortBy;
+            }
+        }
+
+        Sort.Direction direction = Sort.Direction.DESC;
+        if (request.getSortDirection() != null && request.getSortDirection().equalsIgnoreCase("asc")) {
+            direction = Sort.Direction.ASC;
+        }
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(direction, sortByField));
 
         Page<Object[]> contestPage = contestRepository.searchContestsWithStats(
-                search,
+                request.getSearch(),
                 dbStatus != null ? dbStatus : ContestStatus.UPCOMING,
                 dbStatus != null,
                 accessFilter != null ? accessFilter : "All",

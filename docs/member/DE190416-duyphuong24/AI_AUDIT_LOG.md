@@ -26,7 +26,7 @@
 - [ ] Claude
 - [x] GitHub Copilot
 - [x] Cursor
-- [ ] Antigravity
+- [x] Antigravity
 - [ ] Perplexity
 - [ ] Microsoft Copilot
 - [x] Công cụ khác: NotebookLM
@@ -60,7 +60,9 @@ Ví dụ:
 - Phân tích yêu cầu và hỗ trợ lập tài liệu kỹ thuật hệ thống (Software Requirements Specification - SRS).
 - Tìm hiểu lý thuyết UML để chuẩn hóa sơ đồ Use Case cho các tác nhân (Actor) trong hệ thống.
 - Thiết lập quy trình quản lý mã nguồn (Git Flow) cho nhóm 5 thành viên trên GitHub nhằm tối ưu hóa làm việc nhóm và giảm thiểu merge conflict.
-
+- Khắc phục lỗi ẩn nút Admin Panel trên giao diện điều hướng (Layout.tsx) cho tài khoản admin.
+- Thiết kế tệp SQL seed dữ liệu kiểm thử (contest_seed.sql) và đồng bộ sequence PostgreSQL.
+- Refactor hệ thống định tuyến (Nested Routes) cho Admin Dashboard sử dụng React Router động.
 ```
 
 ## 4. Nhật ký sử dụng AI chi tiết
@@ -143,51 +145,55 @@ Sinh viên/nhóm học được gì sau lần sử dụng AI này?
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| Ngày sử dụng | 09/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Khắc phục lỗi điều hướng thiếu nút Admin khi ở giao diện học viên và Seed dữ liệu mẫu cho Contest |
+| Phần việc liên quan | Database / Frontend / Backend / Debug |
+| Mức độ sử dụng | Hỗ trợ nhiều |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+Kiểm tra lại frontend liên quan đến chức năng của contest. Tìm hiểu nguyên nhân khi tôi bấm switch to Student View thì ko có nút Admin Dashboard để trở về giao diện admin. Đọc database của tôi rồi tạo cho tôi file sql để insert fake data vào dự án để test.
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
 ```text
-Viết tại đây...
+- AI chỉ ra nguyên nhân: File Layout.tsx chỉ kiểm tra điều kiện role === 'instructor' để hiển thị các lối tắt và nút điều hướng tới Admin Panel mà bỏ qua quyền 'admin'.
+- AI đề xuất sửa đổi Layout.tsx để kiểm tra thêm quyền 'admin' nhằm hiển thị nút "Admin" ở thanh menu chính và tùy chọn "Admin Panel" trong menu thả xuống của avatar.
+- AI sinh ra tệp database/contest_seed.sql chứa các câu lệnh SQL để chèn dữ liệu mẫu cho các bảng liên quan đến Contest (user, problems, testcases, attempts, rank...).
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-Viết tại đây...
+- Áp dụng các thay đổi trong Layout.tsx để khôi phục nút điều hướng Admin Panel khi ở góc nhìn Student View.
+- Sử dụng cấu trúc dữ liệu và các câu lệnh INSERT từ file database/contest_seed.sql để thiết lập môi trường test data cho Contest.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
 ```text
-Viết tại đây...
+- Viết thêm các câu lệnh SQL setval để cập nhật lại chỉ số sequence (ví dụ: pg_get_serial_sequence) cho các bảng trong PostgreSQL sau khi chèn cứng ID, tránh lỗi xung đột khóa chính (duplicate key) khi chạy ứng dụng backend.
+- Cập nhật ContestController.java và ContestService.java ở backend để tích hợp tìm kiếm Contest theo đúng cấu trúc DTO mới.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link video demo |  |
-| Ghi chú khác |  |
+| Link commit | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/6192af56fa3ab0fc40dc0533d6012833edd03975 |
+| File liên quan | frontend/src/components/Layout.tsx, database/contest_seed.sql, database/seed.sql |
+| Screenshot | |
+| Kết quả chạy/test | Đã chạy thử và hiển thị đầy đủ nút Admin. Dữ liệu contest được nạp thành công vào DB mà không bị lỗi duplicate key. |
+| Link video demo | |
+| Ghi chú khác | Core Prompt: Debugging, Database Seeding. |
 
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-Viết tại đây...
+(Contextualization): AI có khả năng đọc hiểu cấu trúc DB và cấu trúc thư mục frontend để sinh code và tệp seed dữ liệu tương thích cao. Tuy nhiên cần chú ý cơ chế tự tăng ID của JPA Hibernate ở backend để cập nhật sequence cho đúng trong PostgreSQL.
 ```
 
 ---
@@ -196,51 +202,53 @@ Viết tại đây...
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| Ngày sử dụng | 09/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Cấu trúc Nested Routes động bằng path parameter cho Admin Dashboard |
+| Phần việc liên quan | Frontend / Design |
+| Mức độ sử dụng | Hỗ trợ nhiều |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+Tốt, hãy thực thi theo Cách 2: Sử dụng Nested Routes đi
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
 ```text
-Viết tại đây...
+- AI đề xuất áp dụng giải pháp Hybrid Nested Routes bằng cách sử dụng path parameter :tab trong React Router (route /admin-dashboard/:tab).
+- AI hướng dẫn cách lấy giá trị :tab thông qua useParams() và đồng bộ nó với state activeTab hiện có trong file AdminDashboard.tsx, đồng thời dùng useNavigate() để chuyển hướng URL mỗi khi click vào sidebar thay vì cập nhật state cục bộ.
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-Viết tại đây...
+- Cấu hình route /admin-dashboard/:tab lồng vào trong App.tsx.
+- Áp dụng các thay đổi sử dụng hook useNavigate và useParams trong file AdminDashboard.tsx để xử lý chuyển tab đồng bộ với URL của trình duyệt.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
 ```text
-Viết tại đây...
+- Giữ nguyên cấu trúc nguyên bản của component AdminDashboard.tsx (hơn 4400 dòng) thay vì chia nhỏ thành nhiều file nhằm giảm thiểu rủi ro phá vỡ state nội bộ phức tạp, đồng thời bổ sung logic fallback về tab mặc định nếu tab trên URL không hợp lệ.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link video demo |  |
-| Ghi chú khác |  |
+| Link commit | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/6192af56fa3ab0fc40dc0533d6012833edd03975 |
+| File liên quan | frontend/src/App.tsx, frontend/src/pages/AdminDashboard.tsx |
+| Screenshot | |
+| Kết quả chạy/test | Đã chạy thử và chuyển tab mượt mà, URL thay đổi tương ứng, hỗ trợ reload trang (F5) mà không bị mất tab đang chọn. |
+| Link video demo | |
+| Ghi chú khác | Core Prompt: Architectural Refactoring, Routing. |
 
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-Viết tại đây...
+(Critical Thinking): Đối với các file code có kích thước quá lớn và có độ phức tạp cao, việc tách file theo đề xuất lý thuyết của AI đôi khi mang lại nhiều rủi ro. Giải pháp kết hợp (Hybrid) giữa đồng bộ hóa URL và state cục bộ giúp đạt hiệu quả mong muốn nhanh chóng và an toàn hơn.
 ```
 
 ---
@@ -253,15 +261,15 @@ Viết tại đây...
 |---|:---:|:------------:|:---------------:|:-------------:|---|
 | Phân tích yêu cầu |  |              |        x        |               |  |
 | Viết user story/use case |  |      x       |                 |               |  |
-| Thiết kế database |  |              |                 |               |  |
+| Thiết kế database |  |              |        x        |               | Cung cấp dữ liệu seed mẫu cho contest |
 | Thiết kế kiến trúc hệ thống |  |      x       |                 |               |  |
-| Thiết kế giao diện |  |              |                 |       x       |  |
-| Code frontend |  |              |                 |               |  |
-| Code backend |  |              |                 |               |  |
-| Debug lỗi |  |              |                 |               |  |
+| Thiết kế giao diện |  |              |        x        |               | Hỗ trợ sửa UI Layout & Admin Dashboard |
+| Code frontend |  |              |        x        |               | Cập nhật điều hướng Layout và Dynamic router |
+| Code backend |  |      x       |                 |               | Sửa API tìm kiếm contest |
+| Debug lỗi |  |              |        x        |               | Tìm ra nguyên nhân ẩn nút Admin |
 | Viết test case |  |              |                 |               |  |
 | Kiểm thử sản phẩm |  |              |                 |               |  |
-| Tối ưu code |  |              |                 |               |  |
+| Tối ưu code |  |              |        x        |               | Refactor Dynamic Tab Routing |
 | Viết báo cáo |  |              |        x        |               |  |
 | Làm slide thuyết trình |  |              |        x        |               |  |
 
@@ -274,8 +282,8 @@ Ghi lại các trường hợp AI trả lời sai, thiếu, chưa phù hợp ho�
 | STT | Lỗi/hạn chế từ AI | Cách phát hiện                        | Cách xử lý/cải tiến                       |
 |---:|---|---------------------------------------|-------------------------------------------|
 | 1 | Logic Error / Oversimplification: AI đánh đồng hành động "Compile Code" (Biên dịch) và "Compile Error" (Lỗi biên dịch), gộp chung vào Exception Flow của Judge0. | Review lại output của AI và phát hiện | Ép AI nhận diện lại use case Compile Code |
-| 2 |  |                                       |                                           |
-| 3 |  |                                       |                                           |
+| 2 | Đề xuất tách nhỏ tệp AdminDashboard.tsx (hơn 4400 dòng) thành các file tab riêng lẻ một cách máy móc, có thể gây lỗi compile do cấu trúc state phức tạp. | Review đề xuất thiết kế và nhận định rủi ro | Bác bỏ việc tách file, chuyển sang giải pháp hybrid sử dụng Dynamic Tab Route đồng bộ với state hiện tại. |
+| 3 | Sinh câu lệnh INSERT SQL có ID cụ thể cho PostgreSQL nhưng không reset sequence tự tăng. | Phát hiện lỗi duplicate key khi tạo contest mới từ giao diện backend/frontend. | Bổ sung thêm các lệnh SELECT setval(...) để cập nhật giá trị sequence khớp với ID cao nhất trong tệp seed. |
 
 ---
 
@@ -384,4 +392,4 @@ Sinh viên/nhóm cam kết rằng:
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Nguyễn Duy Phương | 09/06/2026 |

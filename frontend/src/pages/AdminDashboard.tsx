@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { adminService } from '../services/adminService';
 import type {
   AdminDashboardStats,
   AdminCourse,
-  AdminInstructorApplication,
   AdminInstructor,
   AdminUser,
   AdminProblem,
   AdminContest,
   AdminDepositHistory,
-  AdminProblemTestcase
+  AdminProblemTestcase,
+  AdminFinancialStats,
+  AdminFinancialDetails,
+  MonthlyFinancialBreakdown,
+  OrderDetails,
+  AwardDetails,
+  SaleDetails
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -97,8 +102,8 @@ const tabHeaderDetails: Record<string, { badge: string; icon: string; title: str
   instructor: {
     badge: 'Instructor Management',
     icon: 'school',
-    title: 'Instructor Applications 🎓',
-    desc: 'Review instructor registration requests, CVs, and manage current platform instructors.'
+    title: 'Platform Instructors 🎓',
+    desc: 'View and manage all platform instructors. Monitor their courses, ratings, student counts, and control account status.'
   },
   users: {
     badge: 'User Management',
@@ -324,7 +329,159 @@ const rankingFormatMinutes = (m: number): string => {
   return `${hrs}h ${mins}m`;
 };
 
+const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }> = ({ details }) => {
+  const [selectedYear, setSelectedYear] = useState<string>('ALL');
+
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set<string>();
+    (details?.monthlyBreakdowns || []).forEach((b: MonthlyFinancialBreakdown) => {
+      if (b.datePrefix && b.datePrefix.length >= 4) {
+        const year = b.datePrefix.substring(0, 4);
+        yearsSet.add(year);
+      }
+    });
+    return Array.from(yearsSet).sort().reverse();
+  }, [details]);
+
+  const filteredBreakdowns = useMemo(() => {
+    const list = details?.monthlyBreakdowns || [];
+    if (selectedYear === 'ALL') return list;
+    return list.filter((b: MonthlyFinancialBreakdown) => b.datePrefix && b.datePrefix.startsWith(selectedYear));
+  }, [details, selectedYear]);
+
+  const summary = useMemo(() => {
+    let gross = 0;
+    let count = 0;
+    let rewards = 0;
+    let server = 0;
+    let marketing = 0;
+    let netProfit = 0;
+
+    filteredBreakdowns.forEach((item: MonthlyFinancialBreakdown) => {
+      gross += item.gross || 0;
+      count += item.count || 0;
+      rewards += item.rewards || 0;
+      server += item.server || 0;
+      marketing += item.marketing || 0;
+      netProfit += item.netProfit || 0;
+    });
+
+    const platformShare = Math.round(gross * 0.3);
+    const instructorShare = Math.round(gross * 0.7);
+    const gatewayFees = Math.round(gross * 0.02);
+
+    return {
+      gross,
+      count,
+      rewards,
+      server,
+      marketing,
+      netProfit,
+      platformShare,
+      instructorShare,
+      gatewayFees
+    };
+  }, [filteredBreakdowns]);
+
+  return (
+    <div className="flex flex-col gap-5 text-slate-800">
+      {/* Year Selector */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-600">Lọc theo năm báo cáo:</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-brand-blue outline-none cursor-pointer"
+          >
+            <option value="ALL">Toàn bộ thời gian hoạt động</option>
+            {availableYears.map(yr => (
+              <option key={yr} value={yr}>Năm {yr}</option>
+            ))}
+          </select>
+        </div>
+        <span className="text-[10px] font-black uppercase text-slate-400">
+          Thời gian: {selectedYear === 'ALL' ? 'Từ đầu hoạt động' : `Năm ${selectedYear}`}
+        </span>
+      </div>
+
+      {/* KPI summaries for selected range */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Doanh thu gộp (Gross)</p>
+          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.gross.toLocaleString()} ₫</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Giữ lại Platform (30%)</p>
+          <p className="text-sm font-mono font-black text-indigo-600 mt-1">{summary.platformShare.toLocaleString()} ₫</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Khóa học bán ra</p>
+          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.count.toLocaleString()} copies</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Lợi nhuận ròng (Net Profit)</p>
+          <p className={`text-sm font-mono font-black mt-1 ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {summary.netProfit.toLocaleString()} ₫
+          </p>
+        </div>
+      </div>
+
+      {/* Monthly Breakdown Sheet */}
+      <div>
+        <h4 className="font-display font-black text-slate-900 text-xs mb-3">
+          Bảng báo cáo chi tiết tài chính từng tháng
+        </h4>
+        <div className="overflow-x-auto border border-slate-100 rounded-xl">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                <th className="p-3">Tháng</th>
+                <th className="p-3 text-right">Doanh thu gộp</th>
+                <th className="p-3 text-right">Platform (30%)</th>
+                <th className="p-3 text-right">Giải thưởng (AWARD)</th>
+                <th className="p-3 text-right">Chi phí vận hành</th>
+                <th className="p-3 text-right">Lợi nhuận ròng</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+              {filteredBreakdowns.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu.</td>
+                </tr>
+              ) : (
+                filteredBreakdowns.map((b: MonthlyFinancialBreakdown, idx: number) => {
+                  const gross = b.gross || 0;
+                  const platformShare = Math.round(gross * 0.3);
+                  const gatewayFees = Math.round(gross * 0.02);
+                  const operCosts = (b.server || 0) + (b.marketing || 0) + gatewayFees;
+                  return (
+                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-3 text-slate-900 font-bold">{b.label}</td>
+                      <td className="p-3 text-right font-mono text-slate-900">{gross.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-indigo-600">+{platformShare.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-rose-500">-{b.rewards.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-slate-500" title={`Server: ${(b.server || 0).toLocaleString()} ₫, Marketing: ${(b.marketing || 0).toLocaleString()} ₫, Gateway Fee (2%): ${gatewayFees.toLocaleString()} ₫`}>
+                        -{operCosts.toLocaleString()} ₫
+                      </td>
+                      <td className={`p-3 text-right font-mono font-bold ${b.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {b.netProfit.toLocaleString()} ₫
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const AdminDashboard: React.FC = () => {
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
   const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'>('dashboard');
@@ -333,12 +490,15 @@ export const AdminDashboard: React.FC = () => {
   // States for API data
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [courses, setCourses] = useState<AdminCourse[]>([]);
-  const [applications, setApplications] = useState<AdminInstructorApplication[]>([]);
+
   const [instructors, setInstructors] = useState<AdminInstructor[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
+  const [financialStats, setFinancialStats] = useState<AdminFinancialStats | null>(null);
+  const [financialDetails, setFinancialDetails] = useState<AdminFinancialDetails | null>(null);
+  const [activeFinancialModal, setActiveFinancialModal] = useState<'gross' | 'instructor' | 'platform' | 'awards' | 'profit' | 'sales' | 'courses-sold-all' | null>(null);
 
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
@@ -350,19 +510,32 @@ export const AdminDashboard: React.FC = () => {
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
-  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
+
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
   const [userOnlineFilter, setUserOnlineFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
+  const [instSearch, setInstSearch] = useState('');
+  const [instStatusFilter, setInstStatusFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
 
+  // Status change confirm modal state
+  const [statusConfirmTarget, setStatusConfirmTarget] = useState<{
+    id: number;
+    name: string;
+    type: 'INSTRUCTOR' | 'USER';
+    newStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  } | null>(null);
+  const [isProcessingStatusChange, setIsProcessingStatusChange] = useState<boolean>(false);
+
   // Modal / review panel states
 
-  const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
+
+
+
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
@@ -442,55 +615,47 @@ export const AdminDashboard: React.FC = () => {
   const [newContestPassword, setNewContestPassword] = useState('');
   const [newContestConfirmPassword, setNewContestConfirmPassword] = useState('');
 
-  // Hash-based routing synchronization
+  // Nested routing synchronization based on React Router path parameter
   useEffect(() => {
-    const handleRouting = () => {
-      let currentHash = window.location.hash || '#dashboard';
+    // Close active review player and modals when navigating tabs
+    setReviewingCourse(null);
+    setReviewingContest(null);
+    setReviewContestTab('overview');
+    setReviewContestProblemId(null);
+    setSelectedUserDetail(null);
+    setIsCreateProblemOpen(false);
+    setIsEditProblemOpen(false);
+    setEditingProblemId(null);
+    setIsCreateContestOpen(false);
+    setIsTestcaseModalOpen(false);
+    setTestcaseProblem(null);
+    setTestcasesList([]);
+    setZipFile(null);
 
-      // Close active review player and modals when navigating tabs
-      setReviewingCourse(null);
-      setReviewingContest(null);
-      setReviewContestTab('overview');
-      setReviewContestProblemId(null);
-      setSelectedAppForReview(null);
-      setSelectedUserDetail(null);
-      setIsCreateProblemOpen(false);
-      setIsEditProblemOpen(false);
-      setEditingProblemId(null);
-      setIsCreateContestOpen(false);
-      setIsTestcaseModalOpen(false);
-      setTestcaseProblem(null);
-      setTestcasesList([]);
-      setZipFile(null);
+    if (tab === 'courses') {
+      setActiveTab('courses');
+    } else if (tab === 'problems') {
+      setActiveTab('problems');
+    } else if (tab === 'contests') {
+      setActiveTab('contest');
+    } else if (tab === 'instructors') {
+      setActiveTab('instructor');
+    } else if (tab === 'users') {
+      setActiveTab('users');
+    } else if (tab === 'financial') {
+      setActiveTab('financial');
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [tab]);
 
-      if (currentHash === '#courses') {
-        setActiveTab('courses');
-      } else if (currentHash === '#problems') {
-        setActiveTab('problems');
-      } else if (currentHash === '#contest') {
-        setActiveTab('contest');
-      } else if (currentHash === '#instructor') {
-        setActiveTab('instructor');
-      } else if (currentHash === '#users') {
-        setActiveTab('users');
-      } else if (currentHash === '#financial') {
-        setActiveTab('financial');
-      } else {
-        setActiveTab('dashboard');
-      }
-    };
-
-    window.addEventListener('hashchange', handleRouting);
-    handleRouting();
-
+  useEffect(() => {
     const savedCollapsed = localStorage.getItem('admin-sidebar-collapsed');
     if (savedCollapsed !== null) {
       setIsSidebarCollapsed(savedCollapsed === 'true');
     } else {
       setIsSidebarCollapsed(window.innerWidth < 768);
     }
-
-    return () => window.removeEventListener('hashchange', handleRouting);
   }, []);
 
   // useEffect for contest ticking countdown timer
@@ -562,34 +727,37 @@ export const AdminDashboard: React.FC = () => {
       const [
         statsRes,
         coursesRes,
-        appsRes,
         instsRes,
         usersRes,
         probsRes,
         contestsRes,
         recentDepositsRes,
-        tagsRes
+        tagsRes,
+        financialRes,
+        financialDetailsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
-        adminService.getInstructorApplications(),
         adminService.getInstructors(),
         adminService.getUsers(),
         adminService.getProblems(),
         adminService.getContests(),
         adminService.getRecentDeposits(),
-        adminService.getTags()
+        adminService.getTags(),
+        adminService.getFinancialStats(),
+        adminService.getFinancialDetails()
       ]);
 
       setStats(statsRes);
       setCourses(coursesRes);
-      setApplications(appsRes);
       setInstructors(instsRes);
       setUsers(usersRes);
       setProblems(probsRes);
       setContests(contestsRes);
       setRecentDeposits(recentDepositsRes);
       setAllTags(tagsRes || []);
+      setFinancialStats(financialRes);
+      setFinancialDetails(financialDetailsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -661,7 +829,7 @@ export const AdminDashboard: React.FC = () => {
   const [hoveredCourseSalesIndex, setHoveredCourseSalesIndex] = useState<number | null>(null);
   // 12-month raw financial records (Jul 25 to Jun 26)
   const financialMonthlyRecords = useMemo(() => {
-    const rawChartData = [
+    const rawChartData = financialStats?.financialMonthlyRecords || [
       { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
       { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
       { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
@@ -702,7 +870,7 @@ export const AdminDashboard: React.FC = () => {
         netProfit
       };
     });
-  }, []);
+  }, [financialStats]);
 
   // Filtered dataset according to UI state
   const filteredFinancialData = useMemo(() => {
@@ -848,43 +1016,50 @@ export const AdminDashboard: React.FC = () => {
       showGlobalToast("Failed to process course approval", "error");
     }
   };
-
-  const handleApproveInstructor = async (appId: number, status: 'APPROVED' | 'REJECTED') => {
-    try {
-      const updated = await adminService.approveInstructorApplication(appId, status, "Approved by Admin dashboard panel");
-      setApplications(prev => prev.map(a => a.id === appId ? updated : a));
-      setSelectedAppForReview(null);
-      // reload instructors and stats
-      const [newStats, newInsts] = await Promise.all([
-        adminService.getDashboardStats(),
-        adminService.getInstructors()
-      ]);
-      setStats(newStats);
-      setInstructors(newInsts);
-      showGlobalToast(`Successfully ${status.toLowerCase()} instructor application.`, "success");
-    } catch (error) {
-      showGlobalToast("Failed to process instructor application approval", "error");
-    }
+  const handleUserStatusChange = (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const user = users.find(u => u.id === userId);
+    const name = user ? user.name : `User #${userId}`;
+    setStatusConfirmTarget({
+      id: userId,
+      name,
+      type: 'USER',
+      newStatus
+    });
   };
 
-  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
-    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
-    triggerConfirm(
-      "Change User Status",
-      confirmMsg,
-      async () => {
-        try {
-          const updated = await adminService.setUserLockStatus(userId, newStatus);
-          setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-          if (selectedUserDetail?.id === userId) {
-            setSelectedUserDetail(updated);
-          }
-          showGlobalToast(`User status successfully updated to ${newStatus}`, "success");
-        } catch (error) {
-          showGlobalToast("Failed to update user status", "error");
+  const handleInstructorStatusChange = (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
+    const inst = instructors.find(ins => ins.id === instructorId);
+    const name = inst ? inst.fullName : `Instructor #${instructorId}`;
+    setStatusConfirmTarget({
+      id: instructorId,
+      name,
+      type: 'INSTRUCTOR',
+      newStatus
+    });
+  };
+
+  const executeStatusChange = async () => {
+    if (!statusConfirmTarget) return;
+    setIsProcessingStatusChange(true);
+    const { id, type, newStatus } = statusConfirmTarget;
+    try {
+      if (type === 'USER') {
+        const updated = await adminService.setUserLockStatus(id, newStatus as 'ACTIVE' | 'LOCKED');
+        setUsers(prev => prev.map(u => u.id === id ? updated : u));
+        if (selectedUserDetail?.id === id) {
+          setSelectedUserDetail(updated);
         }
+      } else {
+        const updated = await adminService.setInstructorStatus(id, newStatus as 'ACTIVE' | 'SUSPENDED');
+        setInstructors(prev => prev.map(ins => ins.id === id ? updated : ins));
       }
-    );
+      setStatusConfirmTarget(null);
+      showGlobalToast(`${type === 'USER' ? 'User' : 'Instructor'} status successfully updated to ${newStatus}`, "success");
+    } catch (error) {
+      showGlobalToast(`Failed to update ${type.toLowerCase()} status.`, "error");
+    } finally {
+      setIsProcessingStatusChange(false);
+    }
   };
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
@@ -1281,10 +1456,6 @@ export const AdminDashboard: React.FC = () => {
     return courses.filter(c => c.status === courseFilter);
   }, [courses, courseFilter]);
 
-  const filteredApplications = useMemo(() => {
-    if (instructorAppFilter === 'ALL') return applications;
-    return applications.filter(a => a.status === instructorAppFilter);
-  }, [applications, instructorAppFilter]);
 
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
@@ -1295,6 +1466,16 @@ export const AdminDashboard: React.FC = () => {
       return matchesSearch && matchesStatus && matchesOnline;
     });
   }, [users, userSearch, userStatusFilter, userOnlineFilter]);
+
+  const filteredInstructors = useMemo(() => {
+    return instructors.filter(ins => {
+      const matchesSearch = ins.fullName.toLowerCase().includes(instSearch.toLowerCase()) ||
+        ins.major.toLowerCase().includes(instSearch.toLowerCase()) ||
+        (ins.bio && ins.bio.toLowerCase().includes(instSearch.toLowerCase()));
+      const matchesStatus = instStatusFilter === 'ALL' || ins.status === instStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [instructors, instSearch, instStatusFilter]);
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
@@ -1394,8 +1575,8 @@ export const AdminDashboard: React.FC = () => {
         {/* Sidebar Nav */}
         <nav className="flex-1 flex flex-col gap-1.5 py-6 px-2.5 overflow-y-auto">
           <a
-            href="#dashboard"
-            onClick={() => setActiveTab('dashboard')}
+            href="/admin"
+            onClick={(e) => { e.preventDefault(); navigate('/admin'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1404,8 +1585,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#courses"
-            onClick={() => setActiveTab('courses')}
+            href="/admin/courses"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/courses'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'courses' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1414,8 +1595,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#problems"
-            onClick={() => setActiveTab('problems')}
+            href="/admin/problems"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/problems'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'problems' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1424,8 +1605,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#contest"
-            onClick={() => setActiveTab('contest')}
+            href="/admin/contests"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/contests'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'contest' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1434,8 +1615,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#instructor"
-            onClick={() => setActiveTab('instructor')}
+            href="/admin/instructors"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/instructors'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'instructor' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1444,8 +1625,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#users"
-            onClick={() => setActiveTab('users')}
+            href="/admin/users"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/users'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'users' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1454,8 +1635,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#financial"
-            onClick={() => setActiveTab('financial')}
+            href="/admin/financial"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/financial'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'financial' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -3300,27 +3481,7 @@ export const AdminDashboard: React.FC = () => {
                           <p className="text-xs text-text-muted italic">No pending course registrations.</p>
                         )}
 
-                        <hr className="my-2 border-slate-100" />
 
-                        {/* Instructor Application approvals quick preview */}
-                        <h4 className="text-xs font-black text-text-muted uppercase tracking-wider">Pending Instructors ({applications.filter(a => a.status === 'PENDING').length})</h4>
-                        {applications.filter(a => a.status === 'PENDING').slice(0, 2).map((app) => (
-                          <div key={app.id} className="flex items-center justify-between bg-slate-50/50 border border-slate-100 p-3 rounded-xl">
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-text-main truncate">{app.fullName}</p>
-                              <p className="text-[10px] text-text-muted">{app.email}</p>
-                            </div>
-                            <button
-                              onClick={() => setSelectedAppForReview(app)}
-                              className="text-[10px] bg-primary hover:bg-primary-hover text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
-                            >
-                              Review
-                            </button>
-                          </div>
-                        ))}
-                        {applications.filter(a => a.status === 'PENDING').length === 0 && (
-                          <p className="text-xs text-text-muted italic">No pending instructor requests.</p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -3703,96 +3864,92 @@ export const AdminDashboard: React.FC = () => {
             {activeTab === 'instructor' && (
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Active Instructors & Applicants</h2>
-                  <div className="flex gap-2">
-                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (
-                      <button
-                        key={filterVal}
-                        onClick={() => setInstructorAppFilter(filterVal as any)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${instructorAppFilter === filterVal
-                          ? 'bg-primary text-white border-primary shadow-sm'
-                          : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
-                          }`}
-                      >
-                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : 'Rejected Applications'}
-                      </button>
-                    ))}
+                  <h2 className="text-2xl font-display font-black text-brand-blue">Platform Instructors</h2>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <input
+                      type="text"
+                      placeholder="Search by name, major..."
+                      value={instSearch}
+                      onChange={(e) => setInstSearch(e.target.value)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-primary focus:border-primary w-full sm:w-60"
+                    />
+                    <select
+                      value={instStatusFilter}
+                      onChange={(e) => setInstStatusFilter(e.target.value as any)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="ALL">All Status</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="SUSPENDED">Suspended</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* Applications section */}
-                {filteredApplications.length > 0 && (
-                  <div className="flex flex-col gap-4">
-                    <h3 className="text-sm font-black text-text-muted uppercase tracking-wider mb-1">Instructor Registrations / Profile Reviews</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {filteredApplications.map((app) => (
-                        <div key={app.id} className="bg-surface rounded-2xl border border-slate-200/50 p-6 ambient-shadow flex flex-col justify-between">
-                          <div>
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-display font-bold text-base text-brand-blue">{app.fullName}</h4>
-                                <p className="text-xs text-text-muted">{app.email}</p>
+                {/* Instructors table */}
+                <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
+                          <th className="py-4 px-6">Name</th>
+                          <th className="py-4 px-6">Major</th>
+                          <th className="py-4 px-6">Bio</th>
+                          <th className="py-4 px-6 text-center">Courses</th>
+                          <th className="py-4 px-6 text-center">Rating</th>
+                          <th className="py-4 px-6 text-center">Students</th>
+                          <th className="py-4 px-6">Status</th>
+                          <th className="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
+                        {filteredInstructors.map((ins) => (
+                          <tr key={ins.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3">
+                                <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-8 h-8 rounded-full object-cover border border-slate-100" alt="" />
+                                <span className="font-bold text-slate-900">{ins.fullName}</span>
                               </div>
-                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
-                                }`}>{app.status}</span>
-                            </div>
-                            <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl line-clamp-3 italic">"{app.introduction}"</p>
-                            <a
-                              href={app.cvUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary-hover font-bold mt-4"
-                            >
-                              <span className="material-symbols-outlined text-sm">picture_as_pdf</span> View Curriculum Vitae (CV)
-                            </a>
-                          </div>
-
-                          {app.status === 'PENDING' && (
-                            <div className="flex gap-3 border-t border-slate-100 pt-4 mt-4">
-                              <button
-                                onClick={() => handleApproveInstructor(app.id, 'APPROVED')}
-                                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleApproveInstructor(app.id, 'REJECTED')}
-                                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Active Instructors list */}
-                <div className="flex flex-col gap-4 mt-4">
-                  <h3 className="text-sm font-black text-text-muted uppercase tracking-wider">Active Platform Instructors ({instructors.length})</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {instructors.map((ins) => (
-                      <div key={ins.id} className="bg-surface rounded-2xl border border-slate-200/50 p-5 ambient-shadow flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-10 h-10 rounded-full object-cover border border-slate-100" alt="" />
-                            <div>
-                              <h4 className="font-display font-bold text-sm text-brand-blue">{ins.fullName}</h4>
-                              <p className="text-[10px] text-text-muted truncate max-w-[180px] font-semibold">{ins.major}</p>
-                            </div>
-                          </div>
-                          <p className="text-xs text-slate-500 line-clamp-3">{ins.bio}</p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 mt-4 text-[10px] font-bold text-slate-600 bg-slate-50 p-2 rounded-xl text-center">
-                          <div>Courses: <span className="block text-brand-blue text-xs font-black">{ins.coursesCount}</span></div>
-                          <div>Rating: <span className="block text-orange-500 text-xs font-black">★ {ins.rating}</span></div>
-                          <div>Students: <span className="block text-slate-800 text-xs font-black">{ins.studentsCount}</span></div>
-                        </div>
-                      </div>
-                    ))}
+                            </td>
+                            <td className="py-4 px-6 text-slate-500 font-extrabold">{ins.major}</td>
+                            <td className="py-4 px-6 text-slate-400 font-medium max-w-xs truncate" title={ins.bio}>{ins.bio}</td>
+                            <td className="py-4 px-6 text-center font-bold text-slate-800">{ins.coursesCount}</td>
+                            <td className="py-4 px-6 text-center font-bold text-orange-500">★ {ins.rating}</td>
+                            <td className="py-4 px-6 text-center font-bold text-slate-800">{ins.studentsCount}</td>
+                            <td className="py-4 px-6">
+                              <span className={`inline-block font-bold rounded-lg px-2.5 py-1 text-[11px] border ${
+                                ins.status === 'ACTIVE'
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200/30'
+                                  : 'bg-red-50 text-red-500 border-red-200/30'
+                              }`}>
+                                {ins.status === 'ACTIVE' ? 'Active' : 'Suspended'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              {ins.status === 'SUSPENDED' ? (
+                                <button
+                                  onClick={() => handleInstructorStatusChange(ins.id, 'ACTIVE')}
+                                  className="text-emerald-600 hover:text-emerald-800 hover:underline bg-transparent border-none cursor-pointer font-bold"
+                                >
+                                  Activate
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleInstructorStatusChange(ins.id, 'SUSPENDED')}
+                                  className="text-red-500 hover:text-red-700 hover:underline bg-transparent border-none cursor-pointer font-bold"
+                                >
+                                  Suspend
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredInstructors.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="py-12 text-center text-text-muted italic">No instructors found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -4001,9 +4158,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.gross.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total sales volume generated
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total sales volume generated</span>
+                      <button onClick={() => setActiveFinancialModal('gross')} className="text-[10px] text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 2: Instructor Share (70%) */}
@@ -4018,9 +4178,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.instructorPayouts.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      70% split allocated to lecturers
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">70% split allocated to lecturers</span>
+                      <button onClick={() => setActiveFinancialModal('instructor')} className="text-[10px] text-violet-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 3: Platform Cut (30%) */}
@@ -4035,9 +4198,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.platformNet.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      System shares from courses
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">System shares from courses</span>
+                      <button onClick={() => setActiveFinancialModal('platform')} className="text-[10px] text-indigo-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 4: Contest Prizes */}
@@ -4052,9 +4218,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.contestRewards.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total cash rewarded to top users
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total cash rewarded to top users</span>
+                      <button onClick={() => setActiveFinancialModal('awards')} className="text-[10px] text-rose-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 5: Net Operating Profit */}
@@ -4071,9 +4240,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.netProfit.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Platform Share after expenses
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Platform Share after expenses</span>
+                      <button onClick={() => setActiveFinancialModal('profit')} className="text-[10px] text-emerald-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 6: Courses Sold */}
@@ -4088,9 +4260,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.coursesSold.toLocaleString()} copies
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total purchased copies count
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total purchased copies count</span>
+                      <button onClick={() => setActiveFinancialModal('sales')} className="text-[10px] text-amber-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -4196,7 +4371,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                           <div className="flex justify-between items-center gap-4">
                             <span className="text-slate-400">Platform Cut:</span>
-                            <span className="font-mono text-[#12284C]">
+                            <span className="font-mono text-[#38bdf8]">
                               {financialMonthlyRecords[hoveredMonthIndex].platformShare.toLocaleString()} ₫
                             </span>
                           </div>
@@ -4241,7 +4416,7 @@ export const AdminDashboard: React.FC = () => {
                         <path
                           d={`M 50 230 L ${financialMonthlyRecords
                             .map((item, idx) => `${50 + idx * 49} ${230 - (item.coursesSold / 60) * 200}`)
-                            .join(' L ')} L ${50 + 11 * 49} 230 Z`}
+                            .join(' L ')} L ${50 + (financialMonthlyRecords.length - 1) * 49} 230 Z`}
                           fill="url(#courses-sales-grad)"
                         />
 
@@ -4303,12 +4478,17 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Table: Top-Selling Courses Table - occupies 100% full width */}
                 <div className="w-full bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
-                      Top Revenue Generating Courses
-                    </h3>
-                    <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
+                        Top Revenue Generating Courses
+                      </h3>
+                      <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                    </div>
+                    <button onClick={() => setActiveFinancialModal('courses-sold-all')} className="text-xs text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors border border-blue-100 hover:bg-blue-50/50 px-3 py-1.5 rounded-xl">
+                      Xem tất cả <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
                   </div>
 
                   <div className="overflow-x-auto mt-4">
@@ -4324,12 +4504,12 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
-                        {[
+                        {(financialStats?.topRevenueCourses || [
                           { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
                           { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
                           { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
                           { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
-                        ].map((c, i) => (
+                        ]).slice(0, 10).map((c, i) => (
                           <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                             <td className="py-3 px-4 font-bold text-slate-900">{c.name}</td>
                             <td className="py-3 px-4 text-slate-500 font-extrabold">{c.tutor}</td>
@@ -4348,56 +4528,6 @@ export const AdminDashboard: React.FC = () => {
         )}
       </div>
 
-
-
-      {/* ================= MODAL: INSTRUCTOR APPLICATION REVIEW ================= */}
-      {selectedAppForReview && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-lg w-full p-6 animate-fade-in text-left">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2 py-0.5 rounded-md">Instructor Application Review</span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">{selectedAppForReview.fullName}</h3>
-              </div>
-              <button onClick={() => setSelectedAppForReview(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
-            </div>
-
-            <div className="flex flex-col gap-4 text-xs">
-              <div className="bg-slate-50 p-3.5 rounded-xl">
-                <p className="font-semibold text-slate-500">Applicant Email:</p>
-                <p className="font-bold text-brand-blue text-sm mt-0.5">{selectedAppForReview.email}</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Introduction Profile</h4>
-                <p className="text-slate-600 leading-relaxed bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 whitespace-pre-line italic">"{selectedAppForReview.introduction}"</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Curriculum Vitae File</h4>
-                <a href={selectedAppForReview.cvUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-bold text-sm bg-orange-50 p-3 rounded-xl w-full border border-orange-100">
-                  <span className="material-symbols-outlined text-base">picture_as_pdf</span> Open CV document (Elena Rostova CV)
-                </a>
-              </div>
-
-              <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
-                <button
-                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'APPROVED')}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Approve Application
-                </button>
-                <button
-                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'REJECTED')}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Reject Application
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ================= MODAL: USER PURCHASES VIEW ================= */}
       {selectedUserDetail && (
@@ -5036,6 +5166,308 @@ export const AdminDashboard: React.FC = () => {
               >
                 Confirm
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= FINANCIAL DETAILS MODALS ================= */}
+      {activeFinancialModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col p-6 animate-fade-in text-left text-slate-800">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2.5 py-1 rounded-md">
+                  Báo cáo chi tiết tài chính
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  {activeFinancialModal === 'gross' && 'Chi tiết doanh thu gộp (Gross Revenue)'}
+                  {activeFinancialModal === 'instructor' && 'Chi tiết chia sẻ doanh thu Giảng viên (Instructor Share - 70%)'}
+                  {activeFinancialModal === 'platform' && 'Chi tiết chia sẻ doanh thu Nền tảng (Platform Cut - 30%)'}
+                  {activeFinancialModal === 'awards' && 'Chi tiết tiền thưởng giải đấu (Contest Prizes)'}
+                  {activeFinancialModal === 'profit' && 'Báo cáo lợi nhuận toàn diện (Comprehensive Profit Report)'}
+                  {activeFinancialModal === 'sales' && 'Danh sách chi tiết các lượt bán khóa học (Course Sales)'}
+                  {activeFinancialModal === 'courses-sold-all' && 'Báo cáo xếp hạng doanh thu tất cả khóa học'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveFinancialModal(null)}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors border border-slate-100 p-1.5 rounded-lg"
+              >
+                close
+              </button>
+            </div>
+
+            <div className="overflow-y-auto my-4 flex-1 pr-1 text-xs">
+              {/* Case 1: Gross / Instructor / Platform (Orders detail list) */}
+              {(activeFinancialModal === 'gross' || activeFinancialModal === 'instructor' || activeFinancialModal === 'platform') && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng quan toàn bộ thời gian:</span>
+                    <span className="font-mono font-black text-sm text-slate-900">
+                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã đơn</th>
+                          <th className="p-3">Học viên</th>
+                          <th className="p-3">Khóa học</th>
+                          <th className="p-3 text-right">Doanh thu gộp</th>
+                          <th className="p-3 text-right">Giảng viên (70%)</th>
+                          <th className="p-3 text-right">Platform (30%)</th>
+                          <th className="p-3">Ngày giao dịch</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.orders || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-4 text-center text-slate-400 italic">Chưa có giao dịch nào được ghi nhận.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.orders || []).map((o: OrderDetails, idx: number) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{o.id}</td>
+                              <td className="p-3">
+                                <div>{o.customerName}</div>
+                                <div className="text-[10px] text-slate-400 font-medium">{o.customerEmail}</div>
+                              </td>
+                              <td className="p-3 max-w-[200px] truncate" title={o.courses}>{o.courses}</td>
+                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{o.grossAmount.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-violet-600">+{o.instructorShare.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-indigo-600">+{o.platformCut.toLocaleString()} ₫</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(o.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 2: Awards details list */}
+              {activeFinancialModal === 'awards' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng phần thưởng giải đấu toàn thời gian:</span>
+                    <span className="font-mono font-black text-sm text-rose-600">
+                      -{((financialDetails?.awards || []).reduce((acc: number, a: AwardDetails) => acc + a.amount, 0)).toLocaleString()} ₫
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã GD</th>
+                          <th className="p-3">Tài khoản nhận giải</th>
+                          <th className="p-3 text-right">Tiền thưởng</th>
+                          <th className="p-3">Nội dung giải thưởng</th>
+                          <th className="p-3">Thời gian</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.awards || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-slate-400 italic">Chưa có phần thưởng giải đấu nào được trao.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.awards || []).map((a: AwardDetails, idx: number) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{a.id}</td>
+                              <td className="p-3">
+                                <div>{a.userName}</div>
+                                <div className="text-[10px] text-slate-400 font-medium">{a.userEmail}</div>
+                              </td>
+                              <td className="p-3 text-right font-mono text-rose-600 font-bold">-{a.amount.toLocaleString()} ₫</td>
+                              <td className="p-3 font-medium text-slate-600">{a.referenceId || 'Giải thưởng cuộc thi lập trình'}</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(a.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 3: Courses Sold sales list (order items detail) */}
+              {activeFinancialModal === 'sales' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng số lượng bản copy đã bán toàn thời gian:</span>
+                    <span className="font-black text-sm text-slate-900">
+                      {(financialDetails?.sales || []).length} copies
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã đơn</th>
+                          <th className="p-3">Học viên</th>
+                          <th className="p-3">Khóa học</th>
+                          <th className="p-3">Giảng viên</th>
+                          <th className="p-3 text-right">Giá bán</th>
+                          <th className="p-3">Ngày bán</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.sales || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có lượt bán khóa học nào.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.sales || []).map((s: SaleDetails, idx: number) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{s.orderId}</td>
+                              <td className="p-3">{s.customerName}</td>
+                              <td className="p-3 max-w-[200px] truncate" title={s.courseTitle}>{s.courseTitle}</td>
+                              <td className="p-3 text-slate-500 font-extrabold">{s.instructorName}</td>
+                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{s.price.toLocaleString()} ₫</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(s.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 4: courses-sold-all - Top Revenue Generating Courses full list */}
+              {activeFinancialModal === 'courses-sold-all' && (
+                <div className="flex flex-col gap-4">
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Tên khóa học</th>
+                          <th className="p-3">Giảng viên</th>
+                          <th className="p-3 text-center">Bản đã bán</th>
+                          <th className="p-3 text-right">Doanh thu gộp</th>
+                          <th className="p-3 text-right">Giảng viên (70%)</th>
+                          <th className="p-3 text-right">Platform (30%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialStats?.topRevenueCourses || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu doanh thu khóa học.</td>
+                          </tr>
+                        ) : (
+                          (financialStats?.topRevenueCourses || []).map((c, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">{c.name}</td>
+                              <td className="p-3 text-slate-500 font-extrabold">{c.tutor}</td>
+                              <td className="p-3 text-center font-mono font-bold">{c.sold}</td>
+                              <td className="p-3 text-right font-mono font-bold text-slate-900">{c.gross.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-violet-600">+{c.payout.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-indigo-600">+{c.plat.toLocaleString()} ₫</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 5: profit - Comprehensive Financial Report (All time, by year) */}
+              {activeFinancialModal === 'profit' && (
+                <FinancialAllTimeReport details={financialDetails} />
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setActiveFinancialModal(null)}
+                className="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Đóng báo cáo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: STATUS CHANGE CONFIRMATION ================= */}
+      {statusConfirmTarget && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left">
+            <div className="flex flex-col items-center text-center gap-4">
+              
+              {/* Dynamic Icon/Theme based on newStatus */}
+              {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? (
+                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-200 text-red-500 animate-pulse">
+                  <span className="material-symbols-outlined text-4xl">warning</span>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200 text-emerald-500">
+                  <span className="material-symbols-outlined text-4xl">check_circle</span>
+                </div>
+              )}
+
+              <div>
+                <h3 className="font-display font-black text-lg text-slate-800">
+                  {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                    ? `Confirm Account Restriction` 
+                    : `Confirm Account Activation`}
+                </h3>
+                <p className="text-xs text-text-muted mt-2 px-2 leading-relaxed">
+                  Are you sure you want to change the status of <strong>{statusConfirmTarget.name}</strong> ({statusConfirmTarget.type.toLowerCase()}) to <span className={`font-bold ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? 'text-red-500' : 'text-emerald-500'
+                  }`}>{statusConfirmTarget.newStatus}</span>?
+                </p>
+                
+                {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') && (
+                  <p className="text-[11px] text-red-500 bg-red-50/50 border border-red-100 p-2.5 rounded-xl mt-3 text-left">
+                    ⚠️ <strong>Important note:</strong> Restricting this account will prevent them from logging in, managing courses, or submitting answers on the platform until they are reactivated.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 w-full mt-4">
+                <button
+                  type="button"
+                  onClick={() => setStatusConfirmTarget(null)}
+                  disabled={isProcessingStatusChange}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs disabled:opacity-50 cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeStatusChange}
+                  disabled={isProcessingStatusChange}
+                  className={`flex-1 py-2.5 rounded-xl text-white font-bold transition-all text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED')
+                      ? 'bg-red-500 hover:bg-red-650'
+                      : 'bg-emerald-500 hover:bg-emerald-600'
+                  }`}
+                >
+                  {isProcessingStatusChange ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                        ? 'Confirm Suspend' 
+                        : 'Confirm Activate'}
+                    </>
+                  )}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
