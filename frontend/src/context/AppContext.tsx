@@ -444,6 +444,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       role: userRole,
       avatar: result.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(result.displayName || result.username || '')}&background=F36F21&color=fff`,
       walletBalance: result.balance !== undefined ? Number(result.balance) : 0,
+      status: result.status as 'ACTIVE' | 'LOCKED' || 'ACTIVE',
+      lockReason: result.lockReason || '',
+      lockAppeal: result.lockAppeal || '',
     };
 
     setUser(loggedInUser);
