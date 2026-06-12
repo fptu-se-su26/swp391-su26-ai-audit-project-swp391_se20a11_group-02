@@ -13,7 +13,7 @@
 | MSSV / Danh sách MSSV | DE190023 |
 | Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
 | Ngày bắt đầu | 18/05/2026 |
-| Ngày hoàn thành |  |
+| Ngày hoàn thành | 12/06/2026 |
 
 ---
 
@@ -217,51 +217,59 @@ Nhóm đã rà soát và điều chỉnh lại nội dung ở một số điểm
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| Ngày sử dụng | 2026-06-12 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Tinh chỉnh màn hình hiển thị tài khoản bị khóa cho user có trạng thái LOCKED, gỡ bỏ form khiếu nại, cấu hình email gmail liên hệ và thiết kế nút Quay lại để đăng xuất. |
+| Phần việc liên quan | Frontend / Backend / Security |
+| Mức độ sử dụng | Hỗ trợ nhiều |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+không thông báo ở đây, vẫn cho đăng nhập vào nhưng không cho truy cập chức năng nào hết, hiện ra thông báo tài khoản bạn đã bị lock, liên hệ gmail cho chúng tôi và có 1 nút back ra ngoài
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
 ```text
-Viết tại đây...
+- Thiết kế màn hình full-screen overlay modal đẹp mắt kiểm tra trạng thái user.status === 'LOCKED' ở file Layout.tsx để chặn toàn bộ tương tác của user.
+- Tích hợp email liên hệ nonstopcoding.support@gmail.com trên giao diện.
+- Bổ sung logic lưu trữ các trường status, lockReason, lockAppeal vào session ở hàm refreshAuth (AppContext.tsx) tránh lỗi mất trạng thái khi tải lại trang (reload).
+- Thêm nút "Go Back" kích hoạt hàm handleLogout để xóa session và chuyển hướng user về trang chủ.
+- Hỗ trợ dịch toàn bộ giao diện màn hình khóa từ tiếng Việt sang tiếng Anh (Account Locked, Lock Reason, Support Gmail, Go Back).
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-Viết tại đây...
+- Sử dụng giao diện full-screen overlay modal ở Layout.tsx.
+- Sử dụng cấu trúc lưu trữ và đồng bộ hóa thông tin user trong AppContext.tsx khi refresh token.
+- Sử dụng bản dịch tiếng Anh cho giao diện.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
 ```text
-Viết tại đây...
+- Tự động kiểm tra và restart server backend để nạp code mới, đảm bảo API login/refresh và introspect hoạt động ổn định và không chặn JWT filter đối với tài khoản LOCKED.
+- Đảm bảo tài khoản admin hoạt động bình thường mà không bị chuyển hướng hay hiển thị màn hình khóa.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
+| Link commit | 3fef6ee / 259058b |
+| File liên quan | frontend/src/components/Layout.tsx, frontend/src/context/AppContext.tsx |
+| Screenshot | docs/member/DE190023-Bazero06/screenshots/account_locked.png |
+| Kết quả chạy/test | TypeScript compilation OK, Maven clean test OK |
 | Link video demo |  |
 | Ghi chú khác |  |
 
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-Viết tại đây...
+- Hiểu rõ cách xử lý bảo mật chung cho ứng dụng ở tầng Layout (Layout.tsx), giúp gom luồng chặn tài khoản bị khóa vào một nơi gọn gàng và hiệu quả.
+- Nắm vững cách thức hoạt động của cơ chế lưu thông tin session ở Client và Server thông qua các request refresh token trong Spring Boot và React.
 ```
 
 ---
