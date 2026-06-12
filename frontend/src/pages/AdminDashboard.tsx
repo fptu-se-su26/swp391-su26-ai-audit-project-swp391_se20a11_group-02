@@ -15,8 +15,7 @@ import type {
   MonthlyFinancialBreakdown,
   OrderDetails,
   AwardDetails,
-  SaleDetails,
-  AdminInstructorApplication
+  SaleDetails
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -533,9 +532,6 @@ export const AdminDashboard: React.FC = () => {
   const [isProcessingStatusChange, setIsProcessingStatusChange] = useState<boolean>(false);
 
   // Modal / review panel states
-  const [applications, setApplications] = useState<AdminInstructorApplication[]>([]);
-  const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
-
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
@@ -734,8 +730,7 @@ export const AdminDashboard: React.FC = () => {
         recentDepositsRes,
         tagsRes,
         financialRes,
-        financialDetailsRes,
-        appsRes
+        financialDetailsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
@@ -746,8 +741,7 @@ export const AdminDashboard: React.FC = () => {
         adminService.getRecentDeposits(),
         adminService.getTags(),
         adminService.getFinancialStats(),
-        adminService.getFinancialDetails(),
-        adminService.getInstructorApplications()
+        adminService.getFinancialDetails()
       ]);
 
       setStats(statsRes);
@@ -760,7 +754,6 @@ export const AdminDashboard: React.FC = () => {
       setAllTags(tagsRes || []);
       setFinancialStats(financialRes);
       setFinancialDetails(financialDetailsRes);
-      setApplications(appsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -1030,23 +1023,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
 
-  const handleApproveInstructor = async (appId: number, status: 'APPROVED' | 'REJECTED') => {
-    try {
-      const updated = await adminService.approveInstructorApplication(appId, status, "Approved by Admin dashboard panel");
-      setApplications(prev => prev.map(a => a.id === appId ? updated : a));
-      setSelectedAppForReview(null);
-      // reload instructors and stats
-      const [newStats, newInsts] = await Promise.all([
-        adminService.getDashboardStats(),
-        adminService.getInstructors()
-      ]);
-      setStats(newStats);
-      setInstructors(newInsts);
-      showGlobalToast(`Successfully ${status.toLowerCase()} instructor application.`, "success");
-    } catch (error) {
-      showGlobalToast("Failed to process instructor application approval", "error");
-    }
-  };
+
 
 
   const handleInstructorStatusChange = (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
@@ -1500,9 +1477,7 @@ export const AdminDashboard: React.FC = () => {
     });
   }, [instructors, instSearch, instStatusFilter]);
 
-  const filteredApplications = useMemo<AdminInstructorApplication[]>(() => {
-    return applications.filter((a: AdminInstructorApplication) => a.status === 'PENDING');
-  }, [applications]);
+
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
@@ -3913,55 +3888,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
 
-                {/* Applications section */}
-                {filteredApplications.length > 0 && (
-                  <div className="flex flex-col gap-4">
-                    <h3 className="text-sm font-black text-text-muted uppercase tracking-wider mb-1">Instructor Registrations / Profile Reviews</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {filteredApplications.map((app) => (
-                        <div key={app.id} className="bg-surface rounded-2xl border border-slate-200/50 p-6 ambient-shadow flex flex-col justify-between">
-                          <div>
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-display font-bold text-base text-brand-blue">{app.fullName}</h4>
-                                <p className="text-xs text-text-muted">{app.email}</p>
-                              </div>
-                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
-                                }`}>{app.status}</span>
-                            </div>
-                            <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl line-clamp-3 italic">"{app.introduction}"</p>
-                            <a
-                              href={app.cvUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary-hover font-bold mt-4"
-                            >
-                              <span className="material-symbols-outlined text-sm">picture_as_pdf</span> View Curriculum Vitae (CV)
-                            </a>
-                          </div>
 
-                          {app.status === 'PENDING' && (
-                            <div className="flex gap-3 border-t border-slate-100 pt-4 mt-4">
-                              <button
-                                onClick={() => handleApproveInstructor(app.id, 'APPROVED')}
-                                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleApproveInstructor(app.id, 'REJECTED')}
-                                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 
 
@@ -4612,56 +4539,7 @@ export const AdminDashboard: React.FC = () => {
 
 
 
-      {/* ========== MODAL: INSTRUCTOR APPLICATION REVIEW ================= */}
-      {selectedAppForReview && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-lg w-full p-6 animate-fade-in text-left">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2 py-0.5 rounded-md">Instructor Application Review</span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">{selectedAppForReview.fullName}</h3>
-              </div>
-              <button onClick={() => setSelectedAppForReview(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
-            </div>
 
-            <div className="flex flex-col gap-4 text-xs">
-              <div className="bg-slate-50 p-3.5 rounded-xl">
-                <p className="font-semibold text-slate-500">Applicant Email:</p>
-                <p className="font-bold text-brand-blue text-sm mt-0.5">{selectedAppForReview.email}</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Introduction Profile</h4>
-                <p className="text-slate-600 leading-relaxed bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 whitespace-pre-line italic">"{selectedAppForReview.introduction}"</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Curriculum Vitae File</h4>
-                <a href={selectedAppForReview.cvUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-bold text-sm bg-orange-50 p-3 rounded-xl w-full border border-orange-100">
-                  <span className="material-symbols-outlined text-base">picture_as_pdf</span> Open CV document (Elena Rostova CV)
-                </a>
-              </div>
-
-              <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
-                <button
-                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'APPROVED')}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Approve Application
-                </button>
-                <button
-                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'REJECTED')}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Reject Application
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-=======
 
       {/* ================= MODAL: USER PURCHASES VIEW ================= */}
       {selectedUserDetail && (
