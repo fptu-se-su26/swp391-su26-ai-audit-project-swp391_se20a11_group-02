@@ -224,23 +224,23 @@ export const Layout: React.FC = () => {
               <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-500 animate-pulse">
                 <span className="material-symbols-outlined text-4xl">lock</span>
               </div>
-              <h2 className="font-display font-black text-2xl text-red-600">Tài Khoản Đã Bị Khóa</h2>
+              <h2 className="font-display font-black text-2xl text-red-600">Account Locked</h2>
               <p className="text-xs text-text-muted max-w-sm leading-relaxed">
-                Tài khoản <strong>@{user.username}</strong> đã bị khóa. Vui lòng liên hệ Gmail của chúng tôi để được hỗ trợ mở khóa.
+                The account <strong>@{user.username}</strong> has been locked. Please contact our support team via Gmail to request an unlock.
               </p>
             </div>
 
             <div className="bg-red-50/50 rounded-2xl border border-red-100/50 p-5 space-y-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-red-500">Lý do khóa</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-red-500">Lock Reason</span>
                 <p className="text-xs text-slate-700 font-semibold mt-1 leading-relaxed bg-white/80 border border-slate-100 p-3 rounded-xl">
-                  {user.lockReason || 'Vi phạm điều khoản sử dụng hoặc quy tắc bảo mật hệ thống.'}
+                  {user.lockReason || 'Violation of platform terms of service or security guidelines.'}
                 </p>
               </div>
               
               <div className="flex items-center gap-2 text-xs text-slate-600 pt-1 border-t border-red-100/30">
                 <span className="material-symbols-outlined text-base text-red-500">mail</span>
-                <span>Gmail liên hệ: <a href="mailto:nonstopcoding.support@gmail.com" className="font-bold text-primary hover:underline">nonstopcoding.support@gmail.com</a></span>
+                <span>Support Gmail: <a href="mailto:nonstopcoding.support@gmail.com" className="font-bold text-primary hover:underline">nonstopcoding.support@gmail.com</a></span>
               </div>
             </div>
 
@@ -250,7 +250,7 @@ export const Layout: React.FC = () => {
               className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0"
             >
               <span className="material-symbols-outlined text-sm">arrow_back</span>
-              Quay lại
+              Go Back
             </button>
           </div>
         </div>
