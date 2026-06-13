@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
+import com.swp391.coding_platform.dto.request.TestcaseGeneratorRequest;
+import com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest.TestcaseDto;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/instructor")
@@ -138,7 +141,31 @@ public class InstructorCourseController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
-    @PutMapping("/courses/{id}/submit-review")
+    @PostMapping("/testcases/generate")
+    public ResponseEntity<ApiResponse<java.util.List<TestcaseDto>>> generateTestcases(
+            @Valid @RequestBody TestcaseGeneratorRequest request) {
+        
+        try {
+            var result = instructorCourseService.generateTestcases(request);
+            return ResponseEntity.ok(ApiResponse.<java.util.List<TestcaseDto>>builder()
+                    .status(200)
+                    .code(1000)
+                    .message("Testcases generated successfully.")
+                    .result(result)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.<java.util.List<TestcaseDto>>builder()
+                    .status(400)
+                    .code(4000)
+                    .message(e.getMessage())
+                    .result(null)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        }
+    }
+
+    @PostMapping("/courses/{courseId}/submit-review")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<Void>> submitCourseForReview(@AuthenticationPrincipal Jwt jwt,
                                                                    @PathVariable("id") Long courseId) {

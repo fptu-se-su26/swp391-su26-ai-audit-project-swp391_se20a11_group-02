@@ -20,6 +20,10 @@ import java.util.stream.Collectors;
 import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
 import com.swp391.coding_platform.entity.enums.CourseStatus;
 import java.time.Instant;
+import com.swp391.coding_platform.service.judge0.Judge0ClientService;
+import com.swp391.coding_platform.dto.request.TestcaseGeneratorRequest;
+import com.swp391.coding_platform.dto.judge0.Judge0CallbackPayload;
+import com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest.TestcaseDto;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +39,7 @@ public class InstructorCourseService {
     private final com.swp391.coding_platform.repository.course.EnrollmentRepository enrollmentRepository;
     private final com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository completedLessonCountRepository;
     private final com.swp391.coding_platform.repository.CategoryRepository categoryRepository;
+    private final Judge0ClientService judge0ClientService;
 
     public InstructorCourseDetailResponse getCourseDetail(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
@@ -516,6 +521,60 @@ public class InstructorCourseService {
     private InstructorEntity getInstructorByUserId(Integer userId) {
         return instructorRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+    }
+
+    public List<TestcaseDto> generateTestcases(TestcaseGeneratorRequest request) {
+        int languageId;
+        switch (request.getLanguage().toLowerCase()) {
+            case "java": languageId = 62; break;
+            case "python": languageId = 71; break;
+            case "cpp": languageId = 54; break;
+            case "c": languageId = 50; break;
+            case "csharp": languageId = 51; break;
+            default: throw new RuntimeException("Unsupported language: " + request.getLanguage());
+        }
+
+        Judge0CallbackPayload response = judge0ClientService.submitSynchronous(languageId, request.getCode());
+        
+        if (response.getStatus() != null && response.getStatus().getId() != 3) {
+            String errorMsg = "Generation failed with status: " + response.getStatus().getDescription();
+            if (response.getCompileOutput() != null && !response.getCompileOutput().trim().isEmpty()) {
+                errorMsg += "\nCompile Output:\n" + response.getCompileOutput();
+            } else if (response.getStderr() != null && !response.getStderr().trim().isEmpty()) {
+                errorMsg += "\nRuntime Error:\n" + response.getStderr();
+            }
+            throw new RuntimeException(errorMsg); // using RuntimeException so frontend gets 400 or 500
+        }
+
+        String stdout = response.getStdout() != null ? response.getStdout() : "";
+        List<TestcaseDto> testcases = new ArrayList<>();
+        
+        String[] blocks = stdout.split("---TESTCASE---");
+        for (String block : blocks) {
+            block = block.trim();
+            if (block.isEmpty()) continue;
+            
+            // Expected block format:
+            // INPUT:
+            // <input string>
+            // OUTPUT:
+            // <output string>
+            int inputIdx = block.indexOf("INPUT:");
+            int outputIdx = block.indexOf("OUTPUT:");
+            
+            if (inputIdx >= 0 && outputIdx >= 0 && outputIdx > inputIdx) {
+                String inputStr = block.substring(inputIdx + 6, outputIdx).trim();
+                String outputStr = block.substring(outputIdx + 7).trim();
+                
+                TestcaseDto tc = new TestcaseDto();
+                tc.setId((int)(Math.random() * 1000000));
+                tc.setInput(inputStr);
+                tc.setOutput(outputStr);
+                testcases.add(tc);
+            }
+        }
+        
+        return testcases;
     }
 
     private String formatVndPrice(BigDecimal price) {

@@ -4,6 +4,15 @@ import { useApp } from '../context/AppContext';
 import { instructorService } from '../services/instructorService';
 import { fetchCourseReviews, type CourseReviewStatsResponse } from '../services/courseService';
 import Editor from '@monaco-editor/react';
+
+const GENERATOR_TEMPLATES: Record<string, string> = {
+  java: `import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        // Number of test cases\n        int numberOfTests = 3;\n        \n        for (int i = 0; i < numberOfTests; i++) {\n            // Write your logic here\n            \n            // DO NOT REMOVE\n            System.out.println("---TESTCASE---");\n            System.out.println("INPUT:");\n            \n            // Print your input here\n            \n            // DO NOT REMOVE\n            System.out.println("OUTPUT:");\n            \n            // Print your output here\n        }\n    }\n}`,
+  python: `# Number of test cases\nnumberOfTests = 3\n\nfor _ in range(numberOfTests):\n    # Write your logic here\n    \n    # DO NOT REMOVE\n    print("---TESTCASE---")\n    print("INPUT:")\n    \n    # Print your input here\n    \n    # DO NOT REMOVE\n    print("OUTPUT:")\n    \n    # Print your output here\n`,
+  cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Number of test cases\n    int numberOfTests = 3;\n    \n    for (int i = 0; i < numberOfTests; i++) {\n        // Write your logic here\n        \n        // DO NOT REMOVE\n        cout << "---TESTCASE---\\n";\n        cout << "INPUT:\\n";\n        \n        // Print your input here\n        \n        // DO NOT REMOVE\n        cout << "OUTPUT:\\n";\n        \n        // Print your output here\n    }\n    return 0;\n}`,
+  c: `#include <stdio.h>\n\nint main() {\n    // Number of test cases\n    int numberOfTests = 3;\n    \n    for (int i = 0; i < numberOfTests; i++) {\n        // Write your logic here\n        \n        // DO NOT REMOVE\n        printf("---TESTCASE---\\n");\n        printf("INPUT:\\n");\n        \n        // Print your input here\n        \n        // DO NOT REMOVE\n        printf("OUTPUT:\\n");\n        \n        // Print your output here\n    }\n    return 0;\n}`,
+  csharp: `using System;\n\npublic class Solution {\n    public static void Main() {\n        // Number of test cases\n        int numberOfTests = 3;\n        \n        for (int i = 0; i < numberOfTests; i++) {\n            // Write your logic here\n            \n            // DO NOT REMOVE\n            Console.WriteLine("---TESTCASE---");\n            Console.WriteLine("INPUT:");\n            \n            // Print your input here\n            \n            // DO NOT REMOVE\n            Console.WriteLine("OUTPUT:");\n            \n            // Print your output here\n        }\n    }\n}`
+};
+
 /* 
   Tailwind Safelist for dynamic classes from backend:
   from-blue-500 to-indigo-600
@@ -259,7 +268,9 @@ export const InstructorDashboard: React.FC = () => {
 
   const [testCaseGenerationMode, setTestCaseGenerationMode] = useState<'manual' | 'generate'>('manual');
   const [generatorLanguage, setGeneratorLanguage] = useState('java');
-  const [generatorCode, setGeneratorCode] = useState('');
+  const [generatorCode, setGeneratorCode] = useState(GENERATOR_TEMPLATES['java']);
+  const [generateLoading, setGenerateLoading] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
@@ -379,7 +390,8 @@ export const InstructorDashboard: React.FC = () => {
     }
     setTestCaseGenerationMode('manual');
     setGeneratorLanguage('java');
-    setGeneratorCode('');
+    setGeneratorCode(GENERATOR_TEMPLATES['java']);
+    setGenerateError(null);
     setIsExerciseModalOpen(true);
   };
 
@@ -397,6 +409,45 @@ export const InstructorDashboard: React.FC = () => {
 
   const handleDeleteTestCase = (idx: number) => {
     setExerciseTestCases(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleRunAndGenerate = async () => {
+    setGenerateError(null);
+    setGenerateLoading(true);
+    try {
+      const response = await fetch('http://localhost:8080/nonstopcoding/instructor/testcases/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          language: generatorLanguage,
+          code: generatorCode
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'An error occurred while generating testcases.');
+      }
+      
+      const generatedTestcases = data.result;
+      if (generatedTestcases && generatedTestcases.length > 0) {
+        setExerciseTestCases(prev => [
+          ...prev, 
+          ...generatedTestcases.map((tc: any) => ({ ...tc, isHidden: false }))
+        ]);
+        setTestCaseGenerationMode('manual'); // Switch back to view them
+      } else {
+        setGenerateError("Code executed successfully but no test cases were found. Please check your output format.");
+      }
+    } catch (err: any) {
+      setGenerateError(err.message || "An error occurred while generating testcases.");
+    } finally {
+      setGenerateLoading(false);
+    }
   };
 
   const handleSaveExercise = () => {
@@ -5846,20 +5897,20 @@ export const InstructorDashboard: React.FC = () => {
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                   <div className="flex items-center gap-4">
                     <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Test Cases</h4>
-                    <div className="flex bg-slate-100 rounded-lg p-1">
+                    <div className="flex bg-slate-100 rounded-lg p-1 shadow-inner">
                       <button 
                         type="button" 
                         onClick={() => setTestCaseGenerationMode('manual')}
-                        className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors ${testCaseGenerationMode === 'manual' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all duration-300 ${testCaseGenerationMode === 'manual' ? 'bg-white text-primary shadow-sm transform scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                       >
                         Manual Input
                       </button>
                       <button 
                         type="button" 
                         onClick={() => setTestCaseGenerationMode('generate')}
-                        className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors ${testCaseGenerationMode === 'generate' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all duration-300 flex items-center gap-1 ${testCaseGenerationMode === 'generate' ? 'bg-gradient-to-r from-orange-100 to-orange-50 text-primary border border-orange-200 shadow-sm transform scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                       >
-                        Auto Generate
+                        <span className="material-symbols-outlined text-[14px]">auto_awesome</span> Auto Generate
                       </button>
                     </div>
                   </div>
@@ -5871,15 +5922,24 @@ export const InstructorDashboard: React.FC = () => {
                 </div>
                 
                 {testCaseGenerationMode === 'generate' ? (
-                  <div className="flex flex-col gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-medium text-slate-500">Write code to generate test cases. This code will run on the server.</p>
+                  <div className="flex flex-col gap-4 bg-gradient-to-b from-slate-50 to-white border border-slate-200 rounded-xl p-5 shadow-sm animate-fade-in relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                    <div className="flex items-center justify-between relative z-10">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-bold text-brand-blue">Language:</label>
+                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                          <span className="material-symbols-outlined text-sm">code_blocks</span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-600">Write code to generate test cases. This code will run on the server.</p>
+                      </div>
+                      <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+                        <label className="text-xs font-black text-brand-blue uppercase tracking-wider">Language:</label>
                         <select 
                           value={generatorLanguage}
-                          onChange={(e) => setGeneratorLanguage(e.target.value)}
-                          className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-brand-blue focus:ring-primary focus:border-primary"
+                          onChange={(e) => {
+                            setGeneratorLanguage(e.target.value);
+                            setGeneratorCode(GENERATOR_TEMPLATES[e.target.value] || '');
+                          }}
+                          className="bg-transparent text-sm font-bold text-primary focus:outline-none cursor-pointer"
                         >
                           <option value="c">C</option>
                           <option value="cpp">C++</option>
@@ -5889,25 +5949,59 @@ export const InstructorDashboard: React.FC = () => {
                         </select>
                       </div>
                     </div>
-                    <div className="w-full h-64 border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-white">
+                    <div className="w-full h-[320px] border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-white relative group">
                       <Editor
                         height="100%"
                         defaultLanguage={generatorLanguage === 'c' || generatorLanguage === 'cpp' ? 'cpp' : generatorLanguage === 'csharp' ? 'csharp' : generatorLanguage}
                         language={generatorLanguage === 'c' || generatorLanguage === 'cpp' ? 'cpp' : generatorLanguage === 'csharp' ? 'csharp' : generatorLanguage}
-                        theme="light"
+                        theme="vs-light"
                         value={generatorCode}
                         onChange={(value) => setGeneratorCode(value || '')}
                         options={{
                           minimap: { enabled: false },
-                          fontSize: 14,
+                          fontSize: 13,
+                          lineHeight: 1.6,
+                          padding: { top: 16, bottom: 16 },
+                          fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
                           scrollBeyondLastLine: false,
+                          smoothScrolling: true,
+                          cursorBlinking: "smooth",
+                          stickyScroll: { enabled: false }
                         }}
                       />
                     </div>
-                    <div className="flex justify-end">
-                      <button type="button" onClick={() => alert('This will be connected to the backend compiler to run the generator and append the outputs to the Test Cases list.')} className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2">
-                        <span className="material-symbols-outlined text-sm">play_arrow</span> Run & Generate
-                      </button>
+                    <div className="flex flex-col gap-3 relative z-10">
+                      <div className="flex justify-end items-center">
+                        <button 
+                          type="button" 
+                          onClick={handleRunAndGenerate} 
+                          disabled={generateLoading}
+                          className={`px-5 py-2.5 ${generateLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-primary hover:from-orange-600 hover:to-primary-dark hover:scale-[1.02] hover:-translate-y-0.5 shadow-md hover:shadow-lg animate-pulse-glow-orange'} text-white text-sm font-black rounded-xl transition-all duration-300 flex items-center gap-2 shine-effect`}
+                        >
+                          {generateLoading ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-base">play_arrow</span>
+                              Run & Generate Testcases
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      {generateError && (
+                        <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-600 rounded-xl p-4 animate-fade-in shadow-sm relative overflow-hidden">
+                          <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+                          <p className="text-xs font-black mb-1 flex items-center gap-1.5 uppercase tracking-wider">
+                            <span className="material-symbols-outlined text-[16px]">error</span> Generation Error
+                          </p>
+                          <pre className="text-[12px] whitespace-pre-wrap font-mono overflow-x-auto text-red-800 bg-white/50 p-3 rounded-lg mt-2 border border-red-100">
+                            {generateError}
+                          </pre>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : exerciseTestCases.length === 0 ? (
