@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { ContestSidebar } from './ContestSidebar';
-import { authService } from '../services/authService';
 
 export interface ContestOverviewData {
   id: number;
@@ -21,7 +20,7 @@ export interface ContestOverviewData {
 }
 
 export const Layout: React.FC = () => {
-  const { user, cart, logout, updateUser } = useApp();
+  const { user, cart, logout } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,29 +38,29 @@ export const Layout: React.FC = () => {
     navigate('/login');
   };
 
-  const [appealReasonText, setAppealReasonText] = useState('');
-  const [isSubmittingAppeal, setIsSubmittingAppeal] = useState(false);
-  const [appealError, setAppealError] = useState<string | null>(null);
+  // const [appealReasonText, setAppealReasonText] = useState('');
+  // const [isSubmittingAppeal, setIsSubmittingAppeal] = useState(false);
+  // const [appealError, setAppealError] = useState<string | null>(null);
 
-  const handleAppealSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!appealReasonText.trim()) {
-      setAppealError('Vui lòng nhập nội dung khiếu nại.');
-      return;
-    }
-    setIsSubmittingAppeal(true);
-    setAppealError(null);
-    try {
-      await authService.submitAppeal(appealReasonText.trim());
-      if (updateUser) {
-        updateUser({ lockAppeal: appealReasonText.trim() });
-      }
-    } catch (err: any) {
-      setAppealError(err.message || 'Gửi khiếu nại thất bại. Vui lòng thử lại.');
-    } finally {
-      setIsSubmittingAppeal(false);
-    }
-  };
+  // const handleAppealSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!appealReasonText.trim()) {
+  //     setAppealError('Vui lòng nhập nội dung khiếu nại.');
+  //     return;
+  //   }
+  //   setIsSubmittingAppeal(true);
+  //   setAppealError(null);
+  //   try {
+  //     await authService.submitAppeal(appealReasonText.trim());
+  //     if (updateUser) {
+  //       updateUser({ lockAppeal: appealReasonText.trim() });
+  //     }
+  //   } catch (err: any) {
+  //     setAppealError(err.message || 'Gửi khiếu nại thất bại. Vui lòng thử lại.');
+  //   } finally {
+  //     setIsSubmittingAppeal(false);
+  //   }
+  // };
 
   // Contest State
   const [contest, setContest] = useState<ContestOverviewData | null>(null);
@@ -398,6 +397,12 @@ export const Layout: React.FC = () => {
                       <span className="material-symbols-outlined text-green-600 text-3xl mb-1 icon-fill">verified_user</span>
                       <p className="text-sm font-bold">Registered</p>
                       <p className="text-xs text-green-600 mt-1">You are in this arena!</p>
+                    </div>
+                  ) : contest.status === 'ENDED' ? (
+                    <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 text-center">
+                      <span className="material-symbols-outlined text-red-600 text-3xl mb-1">lock</span>
+                      <p className="text-sm font-bold">Registration Closed</p>
+                      <p className="text-xs text-red-600 mt-1">This contest has already ended.</p>
                     </div>
                   ) : (
                     <form onSubmit={handleRegister} className="space-y-4">
