@@ -12,7 +12,6 @@ import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse.Month
 import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse.TopRevenueCourse;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.course.CourseEntity;
-import com.swp391.coding_platform.entity.enums.ContestStatus;
 import com.swp391.coding_platform.entity.enums.OrderStatus;
 import com.swp391.coding_platform.entity.enums.StatusTransaction;
 import com.swp391.coding_platform.entity.enums.TransactionType;
@@ -69,7 +68,7 @@ public class AdminDashboardService {
     public AdminDashboardStatsResponse getDashboardStats() {
         // 1. KPI Counts
         long activeUsers = userRepository.countByStatus(UserStatus.ACTIVE);
-        long activeContests = contestRepository.countByStatus(ContestStatus.RUNNING);
+        long activeContests = contestRepository.countActiveContests(Instant.now());
         long totalCourses = courseRepository.count();
         long totalInstructors = instructorRepository.count();
         long totalProblems = problemRepository.count();
