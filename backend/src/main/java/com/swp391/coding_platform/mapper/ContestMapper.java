@@ -1,8 +1,10 @@
 package com.swp391.coding_platform.mapper;
 
 import com.swp391.coding_platform.dto.response.ContestResponse;
+import com.swp391.coding_platform.dto.response.AdminContestResponse;
+import com.swp391.coding_platform.dto.response.AdminContestProblemResponse;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
-import com.swp391.coding_platform.entity.enums.ContestStatus;
+import com.swp391.coding_platform.entity.contest.ContestProblemEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -11,14 +13,21 @@ public interface ContestMapper {
 
     @Mapping(target = "creatorName", source = "createdBy.displayname")
     @Mapping(target = "isPrivate", expression = "java(contestEntity.getPasswordHash() != null && !contestEntity.getPasswordHash().trim().isEmpty())")
-    @Mapping(target = "status", expression = "java(mapStatus(contestEntity.getStatus()))")
+    @Mapping(target = "status", ignore = true)
     ContestResponse toContestResponse(ContestEntity contestEntity);
 
-    default String mapStatus(ContestStatus status) {
-        if (status == null) return null;
-        if (status == ContestStatus.RUNNING) {
-            return "ONGOING";
-        }
-        return status.name();
-    }
+    @Mapping(target = "creatorName", source = "createdBy.displayname")
+    @Mapping(target = "isPrivate", expression = "java(contestEntity.getPasswordHash() != null && !contestEntity.getPasswordHash().trim().isEmpty())")
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "participantCount", ignore = true)
+    @Mapping(target = "problemCount", ignore = true)
+    @Mapping(target = "submissionCount", ignore = true)
+    @Mapping(target = "averageScore", ignore = true)
+    AdminContestResponse toAdminContestResponse(ContestEntity contestEntity);
+
+    @Mapping(target = "problemId", source = "problem.id")
+    @Mapping(target = "title", source = "problem.title")
+    @Mapping(target = "difficulty", expression = "java(contestProblemEntity.getProblem().getDifficulty() != null ? contestProblemEntity.getProblem().getDifficulty().name() : null)")
+    @Mapping(target = "score", source = "problem.score")
+    AdminContestProblemResponse toAdminContestProblemResponse(ContestProblemEntity contestProblemEntity);
 }
