@@ -10,12 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
+
 import java.time.Instant;
 import java.util.List;
 import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
@@ -137,11 +133,36 @@ public class InstructorCourseController {
         return ResponseEntity.ok(ApiResponse.<InstructorCourseResponse>builder()
                 .status(200)
                 .code(1000)
-                .message("Course updated successfully. Status set to PENDING for admin review.")
+                .message("Course draft saved successfully.")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());
     }
+    @PutMapping("/courses/{id}/submit-review")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<Void>> submitCourseForReview(@AuthenticationPrincipal Jwt jwt,
+                                                                   @PathVariable("id") Long courseId) {
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        instructorCourseService.submitCourseForReview(userId, courseId);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Course submitted for review successfully")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
     @GetMapping("/courses/{id}/statistics")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.CourseStatisticResponse>> getCourseStatistics(

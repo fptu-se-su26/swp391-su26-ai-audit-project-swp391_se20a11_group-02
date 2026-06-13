@@ -1,5 +1,11 @@
 const BASE_URL = 'http://localhost:8080/nonstopcoding';
 
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+}
+
 export interface InstructorCourse {
   id: string;
   title: string;
@@ -75,6 +81,24 @@ export interface InstructorCourseRegistrationsResponse {
   totalTrendRegistrations: number;
 }
 
+export interface CreateCoursePayload {
+  title: string;
+  shortDescription: string;
+  longDescription?: string;
+  level?: string;
+  topic?: string;
+  categoryIds?: number[];
+  isFree?: boolean;
+  price?: number;
+  whatYouLearn?: string[];
+  courseHighlight?: string[];
+  technologyTool?: string[];
+  prerequisites?: string[];
+  targetAudience?: string[];
+  completionBenefits?: string[];
+  thumbnailUrl?: string;
+}
+
 export const instructorService = {
   async getCourses(): Promise<InstructorCourse[]> {
     const response = await fetch(`${BASE_URL}/instructor/courses`, {
@@ -93,13 +117,35 @@ export const instructorService = {
     return data.result;
   },
 
-  async createCourse(courseData: {
-    title: string;
-    shortDescription: string;
-    level: string;
-    topic: string;
-    price: number;
-  }): Promise<InstructorCourse> {
+  async getCategories(): Promise<Category[]> {
+    const response = await fetch(`${BASE_URL}/categories`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch categories');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async submitCourseForReview(courseId: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}/submit-review`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to submit course for review');
+    }
+  },
+
+  async createCourse(courseData: CreateCoursePayload): Promise<InstructorCourse> {
     const response = await fetch(`${BASE_URL}/instructor/courses`, {
       method: 'POST',
       headers: {
@@ -140,6 +186,8 @@ export const instructorService = {
     longDescription?: string;
     level?: string;
     topic?: string;
+    categoryIds?: number[];
+    isFree?: boolean;
     price?: number;
     whatYouLearn?: string;
     courseHighlight?: string;

@@ -12,7 +12,15 @@ import java.math.BigDecimal;
 public class InstructorCourseCreateRequest {
     String title;
     String shortDescription;
-    String level;
-    String topic;
+    String longDescription;
+    java.util.List<Integer> categoryIds;
+    Boolean isFree;
     BigDecimal price;
+    java.util.List<String> whatYouLearn;
+    java.util.List<String> courseHighlight;
+    java.util.List<String> technologyTool;
+    java.util.List<String> prerequisites;
+    java.util.List<String> targetAudience;
+    java.util.List<String> completionBenefits;
+    String thumbnailUrl;
 }

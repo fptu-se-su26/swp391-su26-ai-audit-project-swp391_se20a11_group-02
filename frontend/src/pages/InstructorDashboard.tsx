@@ -211,6 +211,7 @@ export const InstructorDashboard: React.FC = () => {
 
   // Modals Visibility
   const [isCreateCourseOpen, setIsCreateCourseOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   // Active course syllabus details for the WORKSPACE PANEL
   const [workspaceCourseTitle, setWorkspaceCourseTitle] = useState('Data Structures & Algorithms');
@@ -383,7 +384,7 @@ export const InstructorDashboard: React.FC = () => {
   };
 
   const handleAddTestCase = () => {
-    setExerciseTestCases(prev => [...prev, { id: Date.now(), input: '', expectedOutput: '', isHidden: false }]);
+    setExerciseTestCases(prev => [...prev, { id: Date.now(), input: '', output: '', isHidden: false }]);
   };
 
   const handleUpdateTestCase = (idx: number, field: string, value: any) => {
@@ -482,6 +483,18 @@ export const InstructorDashboard: React.FC = () => {
     setQuizQuestions(prev => {
       const updated = [...prev];
       updated[qIdx].options.push({ id: Date.now(), content: '', isCorrect: false });
+      return updated;
+    });
+  };
+
+  const handleDeleteQuizOption = (qIdx: number, optIdx: number) => {
+    setQuizQuestions(prev => {
+      const updated = [...prev];
+      updated[qIdx].options.splice(optIdx, 1);
+      // Ensure at least one option remains, or reset isCorrect if needed
+      if (updated[qIdx].options.length === 0) {
+        updated[qIdx].options.push({ id: Date.now(), content: '', isCorrect: true });
+      }
       return updated;
     });
   };
@@ -700,11 +713,9 @@ export const InstructorDashboard: React.FC = () => {
     }
   };
 
-  const [isEditorLoading, setIsEditorLoading] = useState(false);
   const [workspaceCourseId, setWorkspaceCourseId] = useState<string | null>(null);
 
   const openSyllabusEditor = async (course: InstructorCourse) => {
-    setIsEditorLoading(true);
     setWorkspaceCourseId(course.id);
     setWorkspaceCourseTitle(course.title);
     
@@ -713,8 +724,12 @@ export const InstructorDashboard: React.FC = () => {
       
       setCourseTitleInput(detail.title || course.title);
       setCourseDescInput(detail.shortDescription || course.description);
-      setCourseLevelInput(detail.level || course.level || 'Intermediate');
-      setCourseTopicInput(detail.topic || course.topic || 'Theory & Practices');
+      
+      if (detail.categories && Array.isArray(detail.categories)) {
+        setCourseCategoryIdsInput(detail.categories.map((c: any) => c.id));
+      } else {
+        setCourseCategoryIdsInput([]);
+      }
       
       const numericPrice = detail.price ? detail.price.toString() : (course.price ? course.price.toString().replace(/[^\d]/g, '') : '0');
       setCoursePriceInput(numericPrice);
@@ -761,14 +776,11 @@ export const InstructorDashboard: React.FC = () => {
       window.location.hash = '#edit-course';
     } catch (err) {
       console.error('Failed to load course details', err);
-      // Fallback to mock data if it fails, or show alert
       alert('Could not load course details from server. Fallback to basic details.');
       setCourseTitleInput(course.title);
       setCourseDescInput(course.description);
       setCurriculumData({ chapters: [] });
       window.location.hash = '#edit-course';
-    } finally {
-      setIsEditorLoading(false);
     }
   };
 
@@ -794,8 +806,7 @@ export const InstructorDashboard: React.FC = () => {
         title: courseTitleInput.trim(),
         shortDescription: courseDescInput.trim(),
         longDescription: courseLongDescInput.trim(),
-        level: courseLevelInput,
-        topic: courseTopicInput,
+        categoryIds: courseCategoryIdsInput,
         price: Number(coursePriceInput) || 0,
         whatYouLearn: learnPoints.filter(p => p.trim()).join('#'),
         courseHighlight: highlightPoints.filter(p => p.trim()).join('#'),
@@ -841,7 +852,11 @@ export const InstructorDashboard: React.FC = () => {
         })
       );
       setWorkspaceCourseTitle(updatedCourse.title);
-      alert('✅ Course changes saved successfully! It is now pending admin review.');
+      if (updatedCourse.status === 'review') {
+        alert('✅ Course changes saved successfully! It is now pending admin review.');
+      } else {
+        alert('✅ Course draft saved successfully!');
+      }
       window.location.hash = '#my-courses';
     } catch (error) {
       console.error('Failed to save course:', error);
@@ -890,6 +905,8 @@ export const InstructorDashboard: React.FC = () => {
   const [appliedEndDate, setAppliedEndDate] = useState<string>('');
   const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
 
+  const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+
   useEffect(() => {
     const fetchInstructorCourses = async () => {
       try {
@@ -906,8 +923,18 @@ export const InstructorDashboard: React.FC = () => {
       }
     };
 
+    const fetchCategories = async () => {
+      try {
+        const cats = await instructorService.getCategories();
+        setCategories(cats);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+
     if (user) {
       fetchInstructorCourses();
+      fetchCategories();
     }
   }, [user]);
 
@@ -1368,20 +1395,19 @@ export const InstructorDashboard: React.FC = () => {
 
 
   // Create Course Form Specification Builders (Highlights, learn metrics, tools, etc.)
-  const [learnPoints, setLearnPoints] = useState<string[]>(['Architect scalable MERN applications']);
-  const [highlightPoints, setHighlightPoints] = useState<string[]>(['15+ Real-world Projects']);
-  const [techPoints, setTechPoints] = useState<string[]>(['React']);
-  const [prereqPoints, setPrereqPoints] = useState<string[]>(['Basic JavaScript knowledge (ES6+ features)']);
-  const [audiencePoints, setAudiencePoints] = useState<string[]>(['Aspiring Full-Stack Developers']);
-  const [benefitPoints, setBenefitPoints] = useState<string[]>(['Professional Certificate']);
+  const [learnPoints, setLearnPoints] = useState<string[]>(['']);
+  const [highlightPoints, setHighlightPoints] = useState<string[]>(['']);
+  const [techPoints, setTechPoints] = useState<string[]>(['']);
+  const [prereqPoints, setPrereqPoints] = useState<string[]>(['']);
+  const [audiencePoints, setAudiencePoints] = useState<string[]>(['']);
+  const [benefitPoints, setBenefitPoints] = useState<string[]>(['']);
 
-  const [courseTitleInput, setCourseTitleInput] = useState('Mastering Full-Stack React & Node.js');
-  const [courseTopicInput, setCourseTopicInput] = useState('Web Development');
-  const [courseLanguageInput, setCourseLanguageInput] = useState('JavaScript');
-  const [courseLevelInput, setCourseLevelInput] = useState('Intermediate');
-  const [coursePriceInput, setCoursePriceInput] = useState('499000');
-  const [courseDescInput, setCourseDescInput] = useState('Build scalable, production-ready web applications from scratch. Learn advanced patterns...');
-  const [courseLongDescInput, setCourseLongDescInput] = useState('The "Mastering Full-Stack React & Node.js" course is a transformative journey designed to take you from zero to a production-ready developer...');
+  const [courseTitleInput, setCourseTitleInput] = useState('');
+  const [courseCategoryIdsInput, setCourseCategoryIdsInput] = useState<number[]>([]);
+  const [courseIsFreeInput, setCourseIsFreeInput] = useState<boolean>(false);
+  const [coursePriceInput, setCoursePriceInput] = useState('');
+  const [courseDescInput, setCourseDescInput] = useState('');
+  const [courseLongDescInput, setCourseLongDescInput] = useState('');
   
   // Thumbnail file mock state
   const [thumbnailFile, setThumbnailFile] = useState<{ name: string; size: string; url: string } | null>(null);
@@ -1408,13 +1434,21 @@ export const InstructorDashboard: React.FC = () => {
       const createdCourse = await instructorService.createCourse({
         title: courseTitleInput || 'Untitled Course',
         shortDescription: courseDescInput || 'No description provided.',
-        level: courseLevelInput,
-        topic: courseTopicInput,
-        price: Number(coursePriceInput) || 0
+        longDescription: courseLongDescInput,
+        categoryIds: courseCategoryIdsInput,
+        isFree: courseIsFreeInput,
+        price: Number(coursePriceInput) || 0,
+        whatYouLearn: learnPoints.filter(p => p.trim()),
+        courseHighlight: highlightPoints.filter(p => p.trim()),
+        technologyTool: techPoints.filter(p => p.trim()),
+        prerequisites: prereqPoints.filter(p => p.trim()),
+        targetAudience: audiencePoints.filter(p => p.trim()),
+        completionBenefits: benefitPoints.filter(p => p.trim()),
+        thumbnailUrl: thumbnailFile ? thumbnailFile.url : undefined
       });
 
       setInstructorCourses(prev => [createdCourse, ...prev]);
-      alert(`Course "${courseTitleInput}" has been successfully created and submitted for review!`);
+      alert(`Course "${courseTitleInput}" has been successfully created and saved to drafts!`);
       setIsCreateCourseOpen(false);
 
       // Fetch the updated list from server to ensure sync
@@ -1427,17 +1461,24 @@ export const InstructorDashboard: React.FC = () => {
         console.error("Failed to refetch courses after creation", err);
       }
 
+      // Change tab to drafts
+      setActiveTab('my-courses');
+      setCourseSubTab('draft');
+
       // Reset simple values
       setCourseTitleInput('');
       setCourseDescInput('');
-      setCoursePriceInput('0');
+      setCourseLongDescInput('');
+      setCoursePriceInput('');
+      setCourseCategoryIdsInput([]);
+      setCourseIsFreeInput(false);
       setThumbnailFile(null);
-      setLearnPoints(['Architect scalable MERN applications']);
-      setHighlightPoints(['15+ Real-world Projects']);
-      setTechPoints(['React']);
-      setPrereqPoints(['Basic JavaScript knowledge (ES6+ features)']);
-      setAudiencePoints(['Aspiring Full-Stack Developers']);
-      setBenefitPoints(['Professional Certificate']);
+      setLearnPoints(['']);
+      setHighlightPoints(['']);
+      setTechPoints(['']);
+      setPrereqPoints(['']);
+      setAudiencePoints(['']);
+      setBenefitPoints(['']);
 
     } catch (err) {
       console.error("Failed to create course", err);
@@ -2901,13 +2942,19 @@ export const InstructorDashboard: React.FC = () => {
                                 <span className="material-symbols-outlined text-[16px]">edit</span> Resume Edit
                               </button>
                               <button
-                                onClick={() => {
-                                  setInstructorCourses((prev) =>
-                                    prev.map((c) =>
-                                      c.id === course.id ? { ...c, status: 'review' } : c
-                                    )
-                                  );
-                                  alert(`Submitted successfully! Course "${course.title}" has been sent for admin review.`);
+                                onClick={async () => {
+                                  try {
+                                    await instructorService.submitCourseForReview(course.id);
+                                    setInstructorCourses((prev) =>
+                                      prev.map((c) =>
+                                        c.id === course.id ? { ...c, status: 'review' } : c
+                                      )
+                                    );
+                                    alert(`Submitted successfully! Course "${course.title}" has been sent for admin review.`);
+                                  } catch (error) {
+                                    console.error('Failed to submit course', error);
+                                    alert('Failed to submit course for review. Please try again.');
+                                  }
                                 }}
                                 className="flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-sm"
                               >
@@ -3945,43 +3992,69 @@ export const InstructorDashboard: React.FC = () => {
                         />
                       </div>
 
-                      {/* Course Sub-topic */}
-                      <div className="flex flex-col gap-1.5">
+                      {/* Course Category */}
+                      <div className="flex flex-col gap-1.5 relative">
                         <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Sub-topic / Category</label>
-                        <input
-                          type="text"
-                          value={courseTopicInput}
-                          onChange={(e) => setCourseTopicInput(e.target.value)}
-                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
-                          placeholder="e.g. Web Development"
-                        />
-                      </div>
-
-                      {/* Language of Instruction */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Language of Instruction</label>
-                        <input
-                          type="text"
-                          value={courseLanguageInput}
-                          onChange={(e) => setCourseLanguageInput(e.target.value)}
-                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
-                          placeholder="e.g. English, Vietnamese"
-                        />
-                      </div>
-
-                      {/* Target Skill Level */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Target Skill Level</label>
-                        <select
-                          value={courseLevelInput}
-                          onChange={(e) => setCourseLevelInput(e.target.value)}
-                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
+                        <div 
+                          onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                          className="text-sm border border-slate-200 hover:border-primary rounded-xl p-2.5 cursor-pointer font-medium min-h-[46px] bg-white flex flex-wrap gap-2 items-center w-full"
                         >
-                          <option value="Beginner">Beginner Level</option>
-                          <option value="Intermediate">Intermediate Level</option>
-                          <option value="Advanced">Advanced Level</option>
-                          <option value="All Levels">All Levels (Comprehensive)</option>
-                        </select>
+                          {courseCategoryIdsInput.length === 0 ? (
+                            <span className="text-slate-400">Select one or more topics...</span>
+                          ) : (
+                            courseCategoryIdsInput.map(id => {
+                              const cat = categories.find(c => c.id === id);
+                              return cat ? (
+                                <span key={id} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-md flex items-center gap-1">
+                                  {cat.name}
+                                  <span 
+                                    className="material-symbols-outlined text-[14px] cursor-pointer hover:text-red-500"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setCourseCategoryIdsInput(prev => prev.filter(item => item !== id));
+                                    }}
+                                  >
+                                    close
+                                  </span>
+                                </span>
+                              ) : null;
+                            })
+                          )}
+                          <span className="material-symbols-outlined ml-auto text-slate-400">
+                            {isCategoryDropdownOpen ? 'expand_less' : 'expand_more'}
+                          </span>
+                        </div>
+
+                        {/* Dropdown Menu */}
+                        {isCategoryDropdownOpen && (
+                          <div className="absolute top-[100%] left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto py-2">
+                            {categories.length === 0 ? (
+                              <div className="px-4 py-3 text-sm text-slate-500 text-center">No topics available.</div>
+                            ) : (
+                              categories.map(cat => {
+                                const isSelected = courseCategoryIdsInput.includes(cat.id);
+                                return (
+                                  <div 
+                                    key={cat.id} 
+                                    className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 cursor-pointer"
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        setCourseCategoryIdsInput(prev => prev.filter(id => id !== cat.id));
+                                      } else {
+                                        setCourseCategoryIdsInput(prev => [...prev, cat.id]);
+                                      }
+                                    }}
+                                  >
+                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-primary border-primary' : 'border-slate-300'}`}>
+                                      {isSelected && <span className="material-symbols-outlined text-white text-[14px]">check</span>}
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700">{cat.name}</span>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Purchase Price */}
@@ -4959,59 +5032,114 @@ export const InstructorDashboard: React.FC = () => {
                     </div>
                     
                     {/* Course Topic */}
-                    <div className="flex flex-col gap-1.5">
+                    {/* Course Topic */}
+                    <div className="flex flex-col gap-1.5 md:col-span-2 relative">
                       <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Topic</label>
-                      <select value={courseTopicInput} onChange={(e) => setCourseTopicInput(e.target.value)} className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 cursor-pointer font-medium text-brand-blue">
-                        <option value="Web Development">Web Development</option>
-                        <option value="Mobile Development">Mobile Development</option>
-                        <option value="Algorithms & Data Structures">Algorithms & Data Structures</option>
-                        <option value="Data Science & AI">Data Science & AI</option>
-                        <option value="Database Systems">Database Systems</option>
-                        <option value="Cloud Computing">Cloud Computing</option>
-                        <option value="Cybersecurity">Cybersecurity</option>
-                        <option value="Software Engineering">Software Engineering</option>
-                      </select>
+                      
+                      {/* Trigger Button */}
+                      <div 
+                        onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                        className="text-sm border border-slate-200 hover:border-primary rounded-xl p-2.5 cursor-pointer font-medium min-h-[46px] bg-white flex flex-wrap gap-2 items-center"
+                      >
+                        {courseCategoryIdsInput.length === 0 ? (
+                          <span className="text-slate-400">Select one or more topics...</span>
+                        ) : (
+                          courseCategoryIdsInput.map(id => {
+                            const cat = categories.find(c => c.id === id);
+                            return cat ? (
+                              <span key={id} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-md flex items-center gap-1">
+                                {cat.name}
+                                <span 
+                                  className="material-symbols-outlined text-[14px] cursor-pointer hover:text-red-500"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCourseCategoryIdsInput(prev => prev.filter(item => item !== id));
+                                  }}
+                                >
+                                  close
+                                </span>
+                              </span>
+                            ) : null;
+                          })
+                        )}
+                        <span className="material-symbols-outlined ml-auto text-slate-400">
+                          {isCategoryDropdownOpen ? 'expand_less' : 'expand_more'}
+                        </span>
+                      </div>
+
+                      {/* Dropdown Menu */}
+                      {isCategoryDropdownOpen && (
+                        <div className="absolute top-[100%] left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto py-2">
+                          {categories.length === 0 ? (
+                            <div className="px-4 py-3 text-sm text-slate-500 text-center">No topics available.</div>
+                          ) : (
+                            categories.map(cat => {
+                              const isSelected = courseCategoryIdsInput.includes(cat.id);
+                              return (
+                                <div 
+                                  key={cat.id} 
+                                  className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 cursor-pointer"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setCourseCategoryIdsInput(prev => prev.filter(id => id !== cat.id));
+                                    } else {
+                                      setCourseCategoryIdsInput(prev => [...prev, cat.id]);
+                                    }
+                                  }}
+                                >
+                                  <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-primary border-primary' : 'border-slate-300'}`}>
+                                    {isSelected && <span className="material-symbols-outlined text-white text-[14px]">check</span>}
+                                  </div>
+                                  <span className="text-sm font-medium text-slate-700">{cat.name}</span>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Programming Language */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Programming Language</label>
-                      <select value={courseLanguageInput} onChange={(e) => setCourseLanguageInput(e.target.value)} className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 cursor-pointer font-medium text-brand-blue">
-                        <option value="JavaScript">JavaScript</option>
-                        <option value="TypeScript">TypeScript</option>
-                        <option value="Python">Python</option>
-                        <option value="Java">Java</option>
-                        <option value="C++">C++</option>
-                        <option value="C#">C#</option>
-                        <option value="Go">Go</option>
-                        <option value="PHP">PHP</option>
-                        <option value="Swift">Swift</option>
-                        <option value="HTML/CSS">HTML/CSS</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
 
-                    {/* Difficulty Level */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Difficulty Level</label>
-                      <select value={courseLevelInput} onChange={(e) => setCourseLevelInput(e.target.value)} className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 cursor-pointer font-medium text-brand-blue">
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Advanced">Advanced</option>
-                      </select>
+                    {/* Pricing */}
+                    <div className="flex flex-col gap-1.5 md:col-span-2 mt-2">
+                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Pricing</label>
+                      <div className="flex items-center gap-4 mt-1">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="isFree" 
+                            checked={courseIsFreeInput === true}
+                            onChange={() => setCourseIsFreeInput(true)}
+                            className="text-primary focus:ring-primary"
+                          />
+                          <span className="text-sm font-medium text-slate-700">Free Course</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="isFree" 
+                            checked={courseIsFreeInput === false}
+                            onChange={() => setCourseIsFreeInput(false)}
+                            className="text-primary focus:ring-primary"
+                          />
+                          <span className="text-sm font-medium text-slate-700">Paid Course</span>
+                        </label>
+                      </div>
                     </div>
 
                     {/* Course Price */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Price (₫)</label>
-                      <input
-                        type="number"
-                        value={coursePriceInput}
-                        onChange={(e) => setCoursePriceInput(e.target.value)}
-                        placeholder="e.g. 499000"
-                        className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue"
-                      />
-                    </div>
+                    {!courseIsFreeInput && (
+                      <div className="flex flex-col gap-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Price (₫)</label>
+                        <input
+                          type="number"
+                          value={coursePriceInput}
+                          onChange={(e) => setCoursePriceInput(e.target.value)}
+                          placeholder="e.g. 499000"
+                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -5329,18 +5457,7 @@ export const InstructorDashboard: React.FC = () => {
         const rawPrice = selectedCourseForStats.price || "0";
         const cleanPriceStr = rawPrice.replace(/[^\d]/g, '');
         const priceVal = cleanPriceStr ? parseInt(cleanPriceStr, 10) : 0;
-        const estimatedRevenue = priceVal * selectedCourseForStats.studentsCount;
-
         // Custom metrics for the course based on rating/data
-        const completionRate = selectedCourseForStats.rating > 0 
-          ? Math.round(55 + (selectedCourseForStats.rating * 8)) 
-          : 0;
-        const quizPassRate = selectedCourseForStats.rating > 0 
-          ? Math.round(75 + (selectedCourseForStats.rating * 4)) 
-          : 0;
-        const activeLearners = selectedCourseForStats.rating > 0
-          ? Math.round(80 + (selectedCourseForStats.rating * 3))
-          : 0;
 
         return (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
@@ -5831,8 +5948,8 @@ export const InstructorDashboard: React.FC = () => {
                           <div className="flex flex-col gap-1">
                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Expected Output</label>
                             <textarea 
-                              value={tc.expectedOutput} 
-                              onChange={(e) => handleUpdateTestCase(idx, 'expectedOutput', e.target.value)}
+                              value={tc.output || ''} 
+                              onChange={(e) => handleUpdateTestCase(idx, 'output', e.target.value)}
                               className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16"
                               placeholder="e.g. [3, 2, 1]"
                             />
@@ -5929,6 +6046,14 @@ export const InstructorDashboard: React.FC = () => {
                                 className={`flex-1 bg-white border ${opt.isCorrect ? 'border-green-300 bg-green-50/30' : 'border-slate-200'} rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue`}
                                 placeholder={`Option ${optIdx + 1}`}
                               />
+                              <button 
+                                type="button" 
+                                onClick={() => handleDeleteQuizOption(qIdx, optIdx)} 
+                                className="text-slate-400 hover:text-red-500 transition-colors"
+                                title="Delete Option"
+                              >
+                                <span className="material-symbols-outlined text-sm">close</span>
+                              </button>
                             </div>
                           ))}
                           <button type="button" onClick={() => handleAddQuizOption(qIdx)} className="text-xs text-primary font-bold hover:underline self-start mt-1">

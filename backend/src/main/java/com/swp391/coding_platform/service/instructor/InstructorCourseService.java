@@ -34,6 +34,7 @@ public class InstructorCourseService {
     private final com.swp391.coding_platform.repository.course.LessonProblemRepository lessonProblemRepository;
     private final com.swp391.coding_platform.repository.course.EnrollmentRepository enrollmentRepository;
     private final com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository completedLessonCountRepository;
+    private final com.swp391.coding_platform.repository.CategoryRepository categoryRepository;
 
     public InstructorCourseDetailResponse getCourseDetail(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
@@ -58,11 +59,17 @@ public class InstructorCourseService {
                 .instructor(instructor)
                 .title(request.getTitle())
                 .shortDescription(request.getShortDescription())
-                .thumbnailUrl("https://placehold.co/600x400/2563eb/ffffff?text=Course")
-                .longDescription(request.getShortDescription())
-                .price(request.getPrice() != null ? request.getPrice() : BigDecimal.ZERO)
-                .type(request.getTopic() != null ? request.getTopic() : "OTHER")
-                .status(CourseStatus.PENDING)
+                .thumbnailUrl(request.getThumbnailUrl() != null && !request.getThumbnailUrl().isEmpty() ? request.getThumbnailUrl() : "https://placehold.co/600x400/2563eb/ffffff?text=Course")
+                .longDescription(request.getLongDescription() != null ? request.getLongDescription() : request.getShortDescription())
+                .whatYouLearn(request.getWhatYouLearn() != null ? String.join("#", request.getWhatYouLearn()) : "")
+                .courseHighlight(request.getCourseHighlight() != null ? String.join("#", request.getCourseHighlight()) : "")
+                .technologyTool(request.getTechnologyTool() != null ? String.join("#", request.getTechnologyTool()) : "")
+                .prerequisites(request.getPrerequisites() != null ? String.join("#", request.getPrerequisites()) : "")
+                .targetAudience(request.getTargetAudience() != null ? String.join("#", request.getTargetAudience()) : "")
+                .completionBenefits(request.getCompletionBenefits() != null ? String.join("#", request.getCompletionBenefits()) : "")
+                .price(Boolean.TRUE.equals(request.getIsFree()) ? BigDecimal.ZERO : (request.getPrice() != null ? request.getPrice() : BigDecimal.ZERO))
+                .type(Boolean.TRUE.equals(request.getIsFree()) ? "FREE" : (request.getPrice() != null && request.getPrice().compareTo(BigDecimal.ZERO) > 0 ? "PAID" : "FREE"))
+                .status(CourseStatus.DRAFTS)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .totalEnrolled(0)
@@ -73,9 +80,14 @@ public class InstructorCourseService {
                 .totalVideos(0)
                 .build();
                 
+        if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
+            java.util.List<com.swp391.coding_platform.entity.category.CategoryEntity> categories = categoryRepository.findAllById(request.getCategoryIds());
+            newCourse.setCategories(new java.util.HashSet<>(categories));
+        }
+
         CourseEntity savedCourse = courseRepository.save(newCourse);
         
-        String status = "review";
+        String status = "draft";
         String gradient = "from-orange-400 to-primary";
         if (savedCourse.getId() != null) {
             if (savedCourse.getId() % 3 == 0) gradient = "from-blue-500 to-indigo-600";
@@ -90,7 +102,7 @@ public class InstructorCourseService {
         return InstructorCourseResponse.builder()
                 .id(String.valueOf(savedCourse.getId()))
                 .title(savedCourse.getTitle())
-                .level(request.getLevel() != null ? request.getLevel() : "Beginner")
+                .level("All Levels")
                 .topic(savedCourse.getType())
                 .price(formatVndPrice(savedCourse.getPrice()))
                 .studentsCount(0)
@@ -153,17 +165,55 @@ public class InstructorCourseService {
         return responses;
     }
 
+    public void submitCourseForReview(Integer userId, Long courseId) {
+        InstructorEntity instructor = getInstructorByUserId(userId);
+        CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        if (course.getStatus() != CourseStatus.DRAFTS) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION); // Replace with specific code if needed
+        }
+
+        course.setStatus(CourseStatus.PENDING);
+        courseRepository.save(course);
+    }
+
     public InstructorCourseResponse updateCourse(Integer userId, Long courseId, com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest request) {
         InstructorEntity instructor = getInstructorByUserId(userId);
         CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
+        // Allow editing even if it's PENDING, so they don't get errors when saving multiple times.
+        // if (course.getStatus() == CourseStatus.PENDING) {
+        //     throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        // }
+
         // Update all editable fields
         if (request.getTitle() != null) course.setTitle(request.getTitle());
         if (request.getShortDescription() != null) course.setShortDescription(request.getShortDescription());
         if (request.getLongDescription() != null) course.setLongDescription(request.getLongDescription());
-        if (request.getTopic() != null) course.setType(request.getTopic());
-        if (request.getPrice() != null) course.setPrice(request.getPrice());
+        if (request.getIsFree() != null) {
+            if (Boolean.TRUE.equals(request.getIsFree())) {
+                course.setPrice(BigDecimal.ZERO);
+                course.setType("FREE");
+            } else if (request.getPrice() != null) {
+                course.setPrice(request.getPrice());
+                course.setType(request.getPrice().compareTo(BigDecimal.ZERO) > 0 ? "PAID" : "FREE");
+            }
+        } else if (request.getPrice() != null) {
+            course.setPrice(request.getPrice());
+            course.setType(request.getPrice().compareTo(BigDecimal.ZERO) > 0 ? "PAID" : "FREE");
+        }
+        
+        if (request.getCategoryIds() != null) {
+            java.util.List<com.swp391.coding_platform.entity.category.CategoryEntity> categories = categoryRepository.findAllById(request.getCategoryIds());
+            if (course.getCategories() != null) {
+                course.getCategories().clear();
+                course.getCategories().addAll(categories);
+            } else {
+                course.setCategories(new java.util.HashSet<>(categories));
+            }
+        }
         if (request.getWhatYouLearn() != null) course.setWhatYouLearn(request.getWhatYouLearn());
         if (request.getCourseHighlight() != null) course.setCourseHighlight(request.getCourseHighlight());
         if (request.getTechnologyTool() != null) course.setTechnologyTool(request.getTechnologyTool());
@@ -427,8 +477,11 @@ public class InstructorCourseService {
             course.setTotalQuizzes(totalQuizzes);
         }
 
-        // After edit, course goes back to PENDING for admin approval
-        course.setStatus(CourseStatus.PENDING);
+        // According to Flow 1: Any edits made to a course (even if it was ACTIVE or REJECTED)
+        // will move it back to DRAFTS so the instructor can continue editing incrementally.
+        if (course.getStatus() != CourseStatus.DRAFTS) {
+            course.setStatus(CourseStatus.DRAFTS);
+        }
         course.setUpdatedAt(Instant.now());
 
         CourseEntity saved = courseRepository.save(course);
@@ -447,7 +500,7 @@ public class InstructorCourseService {
         return InstructorCourseResponse.builder()
                 .id(String.valueOf(saved.getId()))
                 .title(saved.getTitle())
-                .level(request.getLevel() != null ? request.getLevel() : "Intermediate")
+                .level("All Levels")
                 .topic(saved.getType())
                 .price(formatVndPrice(saved.getPrice()))
                 .studentsCount(saved.getTotalEnrolled())
