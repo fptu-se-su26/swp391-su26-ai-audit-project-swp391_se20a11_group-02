@@ -282,7 +282,7 @@ export interface AdminContest {
   startTime: string;
   endTime: string;
   durations: number; // in minutes
-  status: 'UPCOMING' | 'RUNNING' | 'ENDED' | 'CANCELLED';
+  status: 'UPCOMING' | 'ONGOING' | 'ENDED' | 'CANCELLED';
   participantCount: number;
   submissionCount: number;
   averageScore: number;
@@ -617,7 +617,7 @@ let mockContests: AdminContest[] = [
     startTime: "2026-06-07T09:00:00Z",
     endTime: "2026-06-07T11:00:00Z",
     durations: 120,
-    status: "RUNNING",
+    status: "ONGOING",
     participantCount: 89,
     submissionCount: 201,
     averageScore: 78.2

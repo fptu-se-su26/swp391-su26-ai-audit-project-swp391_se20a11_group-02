@@ -119,6 +119,9 @@ database/fake_instructor_revenue_data.sql
 database/fake_testcases.sql
 database/generate_jane_data.py
 database/generate_testcases.py
+database/seed.sql
+database/contest_seed.sql
+seed_instructors.sql
 
 # ------------------------------------------
 # User Uploads
