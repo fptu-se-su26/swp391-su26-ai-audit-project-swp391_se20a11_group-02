@@ -127,4 +127,9 @@ seed_instructors.sql
 # User Uploads
 # ------------------------------------------
 uploads/
-backend/uploads/
+backend/uploads/
+
+# ------------------------------------------
+# AI Memory Storage
+# ------------------------------------------
+backend/src/main/resources/storage/memories/
