@@ -34,7 +34,6 @@ public class ContestEntity {
     String description;
 
     @Enumerated(EnumType.STRING)
-    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
     @Builder.Default
     @Column(name = "scoring_rule")
     ScoringRule scoringRule = ScoringRule.ICPC;
@@ -51,11 +50,9 @@ public class ContestEntity {
     @Column(name = "durations", nullable = false)
     Integer durations;
 
-    @Enumerated(EnumType.STRING)
-    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
     @Builder.Default
-    @Column(name = "status")
-    ContestStatus status = ContestStatus.UPCOMING;
+    @Column(name = "is_cancelled", nullable = false)
+    Boolean isCancelled = false;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)

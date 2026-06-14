@@ -38,6 +38,30 @@ export const Layout: React.FC = () => {
     navigate('/login');
   };
 
+  // const [appealReasonText, setAppealReasonText] = useState('');
+  // const [isSubmittingAppeal, setIsSubmittingAppeal] = useState(false);
+  // const [appealError, setAppealError] = useState<string | null>(null);
+
+  // const handleAppealSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!appealReasonText.trim()) {
+  //     setAppealError('Vui lòng nhập nội dung khiếu nại.');
+  //     return;
+  //   }
+  //   setIsSubmittingAppeal(true);
+  //   setAppealError(null);
+  //   try {
+  //     await authService.submitAppeal(appealReasonText.trim());
+  //     if (updateUser) {
+  //       updateUser({ lockAppeal: appealReasonText.trim() });
+  //     }
+  //   } catch (err: any) {
+  //     setAppealError(err.message || 'Gửi khiếu nại thất bại. Vui lòng thử lại.');
+  //   } finally {
+  //     setIsSubmittingAppeal(false);
+  //   }
+  // };
+
   // Contest State
   const [contest, setContest] = useState<ContestOverviewData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -191,6 +215,46 @@ export const Layout: React.FC = () => {
   return (
     <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex flex-col antialiased selection:bg-primary-light selection:text-brand-blue relative">
 
+      {/* LOCKED ACCOUNT MODAL OVERLAY */}
+      {user && user.status === 'LOCKED' && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-2xl max-w-md w-full p-8 text-left animate-fade-in flex flex-col gap-6">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-500 animate-pulse">
+                <span className="material-symbols-outlined text-4xl">lock</span>
+              </div>
+              <h2 className="font-display font-black text-2xl text-red-600">Account Locked</h2>
+              <p className="text-xs text-text-muted max-w-sm leading-relaxed">
+                The account <strong>@{user.username}</strong> has been locked. Please contact our support team via Gmail to request an unlock.
+              </p>
+            </div>
+
+            <div className="bg-red-50/50 rounded-2xl border border-red-100/50 p-5 space-y-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-red-500">Lock Reason</span>
+                <p className="text-xs text-slate-700 font-semibold mt-1 leading-relaxed bg-white/80 border border-slate-100 p-3 rounded-xl">
+                  {user.lockReason || 'Violation of platform terms of service or security guidelines.'}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2 text-xs text-slate-600 pt-1 border-t border-red-100/30">
+                <span className="material-symbols-outlined text-base text-red-500">mail</span>
+                <span>Support Gmail: <a href="mailto:nonstopcoding.support@gmail.com" className="font-bold text-primary hover:underline">nonstopcoding.support@gmail.com</a></span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <span className="material-symbols-outlined text-sm">arrow_back</span>
+              Go Back
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Glowing Backdrop Circles */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]"></div>
@@ -333,6 +397,12 @@ export const Layout: React.FC = () => {
                       <span className="material-symbols-outlined text-green-600 text-3xl mb-1 icon-fill">verified_user</span>
                       <p className="text-sm font-bold">Registered</p>
                       <p className="text-xs text-green-600 mt-1">You are in this arena!</p>
+                    </div>
+                  ) : contest.status === 'ENDED' ? (
+                    <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 text-center">
+                      <span className="material-symbols-outlined text-red-600 text-3xl mb-1">lock</span>
+                      <p className="text-sm font-bold">Registration Closed</p>
+                      <p className="text-xs text-red-600 mt-1">This contest has already ended.</p>
                     </div>
                   ) : (
                     <form onSubmit={handleRegister} className="space-y-4">

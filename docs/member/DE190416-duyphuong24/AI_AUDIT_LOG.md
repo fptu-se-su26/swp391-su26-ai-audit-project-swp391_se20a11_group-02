@@ -253,6 +253,67 @@ Tốt, hãy thực thi theo Cách 2: Sử dụng Nested Routes đi
 
 ---
 
+### Lần sử dụng AI số 4
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 13/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Tái cấu trúc trạng thái Contest động, sửa lỗi lọc Contest List, Khóa đăng ký khi Contest kết thúc, thu gọn Banner Spotlight trống và kết nối danh sách bài nộp thực tế (Real Contest Submissions Feed). |
+| Phần việc liên quan | Database / Backend / Frontend / Refactoring / Security |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Được sử dụng chuỗi prompt phân tích lỗi lọc danh sách contest và đề xuất thiết kế:
+"Tôi muốn bạn Phân tích hệ thống và viết những cái cơ bản lặp đi lặp lại thôi, còn những phần quan trọng hãy phân tích rồi hướng dẫn tôi làm... Tôi đang nghĩ đến phương án bỏ luôn cột status vì nó state phụ thuộc starttime và endtime. Nếu tôi bỏ status và dùng logic để tính ra status cho frontend hoặc gửi endtime và starttime luôn cho frontend thì sao? Đồng ý, hãy cập nhật lại implementation_plan.md thêm lần nữa đi"
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+- AI đề xuất loại bỏ cột status tĩnh trong database để tránh xung đột kiểu dữ liệu enum của JPA và PostgreSQL khi filter dữ liệu. Thay vào đó tính toán trạng thái động (UPCOMING, ONGOING, ENDED) tại runtime từ startTime, endTime, và flag is_cancelled.
+- AI hướng dẫn cấu hình JPA Query trong ContestRepository sử dụng so sánh Instant.now() cho ba trạng thái.
+- Hướng dẫn thiết kế endpoint backend /contests/{contestId}/submissions và phân quyền cho phép User chỉ thấy bài nộp của mình, còn Admin thấy toàn bộ bài nộp của tất cả participants.
+- Đề xuất sửa UI để ẩn Banner Spotlight khi không có contest nào sắp diễn ra (wrap banner trong điều kiện check bannerContest) và hiển thị "Registration Closed" ở sidebar của Contest khi trạng thái là ENDED.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+- Sử dụng thiết kế dynamic status filter ở cả tầng cơ sở dữ liệu (init.sql, contest_seed.sql), Entity, Repository và Service.
+- Áp dụng endpoint /contests/{contestId}/submissions ở controller để phục vụ việc tải danh sách bài nộp thực tế.
+- Tích hợp điều kiện render banner ở frontend Contests.tsx, hiển thị giao diện khóa đăng ký ở Layout.tsx và kết nối logic React hooks useEffect để fetch dữ liệu bài nộp thật trong ContestSubmissions.tsx.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+- Khắc phục các lỗi biên dịch TypeScript nghiêm trọng trong Layout.tsx do các biến và import dư thừa (unused variables/imports như appealReasonText, isSubmittingAppeal, appealError, handleAppealSubmit, authService, updateUser) của phần code cũ để lại làm cản trở quá trình build production.
+- Tối ưu hóa định dạng hiển thị bộ nhớ (sử dụng Locale.US và chia cho 1024.0 để đổi sang MB) và định dạng thời gian ở backend trước khi gửi về client, giảm thiểu gánh nặng tính toán và định dạng ở phía Frontend.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/feature/DE190416-CRUD-Contest |
+| File liên quan | init.sql, contest_seed.sql, ContestEntity.java, ContestRepository.java, ContestService.java, ContestController.java, ContestSubmissions.tsx, Contests.tsx, Layout.tsx |
+| Screenshot | |
+| Kết quả chạy/test | Đã biên dịch backend thành công và build frontend production thành công. Chức năng chạy mượt mà, lọc contest chính xác, ẩn banner và hiện thông báo khóa đăng ký chuẩn xác. |
+| Link video demo | |
+| Ghi chú khác | Core Prompt: System Refactoring, Data Synchronization, Security & Role Checking. |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+(Contextualization): Thiết kế trạng thái động là phương pháp tốt nhất để tránh hiện tượng không đồng bộ dữ liệu (data out-of-sync) thường gặp khi sử dụng cron-job/scheduler cập nhật cột status tĩnh. Bằng cách tính toán trực tiếp dựa trên mốc thời gian thực tế startTime và endTime so với Instant.now(), dữ liệu cơ sở dữ liệu luôn ở dạng chuẩn hóa (normalized).
+(Critical Thinking): Khi làm việc với TypeScript có bật chế độ kiểm tra nghiêm ngặt (noUnusedLocals, noUnusedParameters), việc chỉnh sửa code lân cận đôi khi sẽ kích hoạt lỗi biên dịch ở những đoạn mã không liên quan. Dev cần tỉnh táo dọn dẹp các import/khai báo thừa để giúp build thành công thay vì đổ lỗi cho AI.
+```
+
+---
+
 ## 5. Bảng tổng hợp mức độ sử dụng AI
 
 Đánh dấu mức độ AI hỗ trợ ở từng hạng mục.
@@ -265,7 +326,7 @@ Tốt, hãy thực thi theo Cách 2: Sử dụng Nested Routes đi
 | Thiết kế kiến trúc hệ thống |  |      x       |                 |               |  |
 | Thiết kế giao diện |  |              |        x        |               | Hỗ trợ sửa UI Layout & Admin Dashboard |
 | Code frontend |  |              |        x        |               | Cập nhật điều hướng Layout và Dynamic router |
-| Code backend |  |      x       |                 |               | Sửa API tìm kiếm contest |
+| Code backend |  |              |        x        |               | Tái cấu trúc ContestService, Repository và Endpoint |
 | Debug lỗi |  |              |        x        |               | Tìm ra nguyên nhân ẩn nút Admin |
 | Viết test case |  |              |                 |               |  |
 | Kiểm thử sản phẩm |  |              |                 |               |  |

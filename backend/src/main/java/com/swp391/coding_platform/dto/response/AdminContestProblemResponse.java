@@ -8,12 +8,10 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
-    Long id;
-    String displayName;
-    String email;
-    String avatarUrl;
-    String status;
-    String lockReason;
-    String lockAppeal;
+public class AdminContestProblemResponse {
+    Integer problemId;
+    String title;
+    String difficulty; // EASY, MEDIUM, HARD
+    Integer orderIndex;
+    Double score;
 }
