@@ -7,9 +7,8 @@ import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopCo
 import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopInstructor;
 import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse.TopProblem;
 import com.swp391.coding_platform.dto.response.AdminDepositHistoryResponse;
-import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse;
-import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse.MonthlyFinancialRecord;
-import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse.TopRevenueCourse;
+import com.swp391.coding_platform.dto.response.AdminFinancialMonthlyRecordResponse;
+import com.swp391.coding_platform.dto.response.AdminFinancialTopCourseResponse;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.enums.ContestStatus;
@@ -298,31 +297,16 @@ public class AdminDashboardService {
     }
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public AdminFinancialStatsResponse getFinancialStats() {
+    public List<AdminFinancialMonthlyRecordResponse> getMonthlyFinancialRecords() {
         // Query completed orders
-        List<OrderEntity> allCompletedOrders = orderRepository.findAllByStatusWithDetails(OrderStatus.COMPLETED);
+        List<OrderEntity> completedOrders = orderRepository.findAllByStatusWithDetails(OrderStatus.COMPLETED);
 
         // Query successful AWARD transactions (if any)
         List<WalletTransactionEntity> awards = walletTransactionRepository.findAll().stream()
                 .filter(t -> t.getType() == TransactionType.AWARD && t.getStatus() == StatusTransaction.SUCCESS)
                 .collect(Collectors.toList());
 
-        // 1. Get Monthly Financial Records (Last 12 Months)
-        List<MonthlyFinancialRecord> financialMonthlyRecords = getMonthlyFinancialRecords(allCompletedOrders, awards);
-
-        // 2. Get Top Revenue Generating Courses
-        List<TopRevenueCourse> topRevenueCourses = getTopRevenueCoursesData();
-
-        return AdminFinancialStatsResponse.builder()
-                .financialMonthlyRecords(financialMonthlyRecords)
-                .topRevenueCourses(topRevenueCourses)
-                .build();
-    }
-
-    private List<MonthlyFinancialRecord> getMonthlyFinancialRecords(
-            List<OrderEntity> completedOrders, List<WalletTransactionEntity> awards) {
-
-        List<MonthlyFinancialRecord> records = new ArrayList<>();
+        List<AdminFinancialMonthlyRecordResponse> records = new ArrayList<>();
         DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("MMM yy", Locale.ENGLISH);
         DateTimeFormatter datePrefixFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
         LocalDate today = LocalDate.now();
@@ -353,18 +337,18 @@ public class AdminDashboardService {
             long serverCost = (monthDate.isBefore(LocalDate.of(2025, 11, 1))) ? 1200000L : 1500000L;
             long marketingCost = marketingMap.getOrDefault(label, 1500000L);
 
-            records.add(new MonthlyFinancialRecord(label, datePrefix, 0L, 0L, 0L, serverCost, marketingCost));
+            records.add(new AdminFinancialMonthlyRecordResponse(label, datePrefix, 0L, 0L, 0L, serverCost, marketingCost));
         }
 
-        Map<String, MonthlyFinancialRecord> recordMap = records.stream()
-                .collect(Collectors.toMap(MonthlyFinancialRecord::getLabel, r -> r));
+        Map<String, AdminFinancialMonthlyRecordResponse> recordMap = records.stream()
+                .collect(Collectors.toMap(AdminFinancialMonthlyRecordResponse::getLabel, r -> r));
 
         // Aggregate completed orders for gross revenue and sales counts
         for (OrderEntity order : completedOrders) {
             if (order.getCreatedAt() != null && order.getCreatedAt().isAfter(oneYearAgo)) {
                 LocalDate date = order.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
                 String label = date.format(labelFormatter);
-                MonthlyFinancialRecord rec = recordMap.get(label);
+                AdminFinancialMonthlyRecordResponse rec = recordMap.get(label);
                 if (rec != null) {
                     rec.setGross(rec.getGross() + order.getTotalAmount().longValue());
                     long itemsCount = order.getOrderItems() != null ? order.getOrderItems().size() : 0;
@@ -378,7 +362,7 @@ public class AdminDashboardService {
             if (tx.getCreatedAt() != null && tx.getCreatedAt().isAfter(oneYearAgo)) {
                 LocalDate date = tx.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
                 String label = date.format(labelFormatter);
-                MonthlyFinancialRecord rec = recordMap.get(label);
+                AdminFinancialMonthlyRecordResponse rec = recordMap.get(label);
                 if (rec != null) {
                     rec.setRewards(rec.getRewards() + tx.getAmount().longValue());
                 }
@@ -388,14 +372,17 @@ public class AdminDashboardService {
         return records;
     }
 
-    private List<TopRevenueCourse> getTopRevenueCoursesData() {
-        List<OrderItemEntity> completedOrderItems = orderItemRepository.findAllCompletedOrderItemsWithDetails();
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<AdminFinancialTopCourseResponse> getTopRevenueCoursesData() {
+        List<OrderEntity> allCompletedOrders = orderRepository.findAllByStatusWithDetails(OrderStatus.COMPLETED);
 
-        Map<CourseEntity, List<OrderItemEntity>> itemsByCourse = completedOrderItems.stream()
+        Map<CourseEntity, List<OrderItemEntity>> itemsByCourse = allCompletedOrders.stream()
+                .filter(order -> order.getOrderItems() != null)
+                .flatMap(order -> order.getOrderItems().stream())
                 .filter(item -> item.getCourse() != null)
                 .collect(Collectors.groupingBy(OrderItemEntity::getCourse));
 
-        List<TopRevenueCourse> topRevenueCourses = itemsByCourse.entrySet().stream()
+        List<AdminFinancialTopCourseResponse> topRevenueCourses = itemsByCourse.entrySet().stream()
                 .map(entry -> {
                     CourseEntity course = entry.getKey();
                     List<OrderItemEntity> items = entry.getValue();
@@ -404,7 +391,7 @@ public class AdminDashboardService {
                     long payout = Math.round(gross * 0.7);
                     long plat = Math.round(gross * 0.3);
                     String tutor = course.getInstructor() != null ? course.getInstructor().getFullName() : "Unknown Instructor";
-                    return new TopRevenueCourse(course.getTitle(), tutor, sold, gross, payout, plat);
+                    return new AdminFinancialTopCourseResponse(course.getTitle(), tutor, sold, gross, payout, plat);
                 })
                 .sorted((c1, c2) -> Long.compare(c2.getGross(), c1.getGross()))
                 .collect(Collectors.toList());

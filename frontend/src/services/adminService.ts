@@ -33,10 +33,6 @@ export interface TopRevenueCourse {
   plat: number;
 }
 
-export interface AdminFinancialStats {
-  financialMonthlyRecords: MonthlyFinancialRecord[];
-  topRevenueCourses: TopRevenueCourse[];
-}
 
 export interface OrderDetails {
   id: string;
@@ -994,43 +990,54 @@ export const adminService = {
     ];
   },
 
-  async getFinancialStats(): Promise<AdminFinancialStats> {
+  async getFinancialMonthlyRecords(): Promise<MonthlyFinancialRecord[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/dashboard/financial`, { credentials: 'include' });
+      const response = await fetch(`${BASE_URL}/admin/financial/monthly-records`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Financial Stats:", err);
+      console.warn("Using mock data for Monthly Records:", err);
     }
     await delay(300);
-    return {
-      financialMonthlyRecords: [
-        { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
-        { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
-        { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
-        { label: 'Oct 25', datePrefix: '2025-10', gross: 17200000, count: 34, rewards: 900000, server: 1200000, marketing: 1500000 },
-        { label: 'Nov 25', datePrefix: '2025-11', gross: 19000000, count: 38, rewards: 1000000, server: 1500000, marketing: 1500000 },
-        { label: 'Dec 25', datePrefix: '2025-12', gross: 21500000, count: 43, rewards: 1500000, server: 1500000, marketing: 2000000 },
-        { label: 'Jan 26', datePrefix: '2026-01', gross: 12000000, count: 24, rewards: 800000, server: 1500000, marketing: 800000 },
-        { label: 'Feb 26', datePrefix: '2026-02', gross: 15000000, count: 30, rewards: 1000000, server: 1500000, marketing: 1000000 },
-        { label: 'Mar 26', datePrefix: '2026-03', gross: 18500000, count: 37, rewards: 1200000, server: 1500000, marketing: 1500000 },
-        { label: 'Apr 26', datePrefix: '2026-04', gross: 16000000, count: 32, rewards: 1000000, server: 1500000, marketing: 1200000 },
-        { label: 'May 26', datePrefix: '2026-05', gross: 22000000, count: 44, rewards: 1500000, server: 1500000, marketing: 1800000 },
-        { label: 'Jun 26', datePrefix: '2026-06', gross: 24580000, count: 49, rewards: 1800000, server: 1500000, marketing: 2000000 }
-      ],
-      topRevenueCourses: [
-        { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
-        { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
-        { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
-        { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
-      ]
-    };
+    return [
+      { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
+      { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
+      { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
+      { label: 'Oct 25', datePrefix: '2025-10', gross: 17200000, count: 34, rewards: 900000, server: 1200000, marketing: 1500000 },
+      { label: 'Nov 25', datePrefix: '2025-11', gross: 19000000, count: 38, rewards: 1000000, server: 1500000, marketing: 1500000 },
+      { label: 'Dec 25', datePrefix: '2025-12', gross: 21500000, count: 43, rewards: 1500000, server: 1500000, marketing: 2000000 },
+      { label: 'Jan 26', datePrefix: '2026-01', gross: 12000000, count: 24, rewards: 800000, server: 1500000, marketing: 800000 },
+      { label: 'Feb 26', datePrefix: '2026-02', gross: 15000000, count: 30, rewards: 1000000, server: 1500000, marketing: 1000000 },
+      { label: 'Mar 26', datePrefix: '2026-03', gross: 18500000, count: 37, rewards: 1200000, server: 1500000, marketing: 1500000 },
+      { label: 'Apr 26', datePrefix: '2026-04', gross: 16000000, count: 32, rewards: 1000000, server: 1500000, marketing: 1200000 },
+      { label: 'May 26', datePrefix: '2026-05', gross: 22000000, count: 44, rewards: 1500000, server: 1500000, marketing: 1800000 },
+      { label: 'Jun 26', datePrefix: '2026-06', gross: 24580000, count: 49, rewards: 1800000, server: 1500000, marketing: 2000000 }
+    ];
+  },
+
+  async getFinancialTopCourses(): Promise<TopRevenueCourse[]> {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/financial/top-courses`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("Using mock data for Top Courses:", err);
+    }
+    await delay(300);
+    return [
+      { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
+      { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
+      { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
+      { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
+    ];
   },
 
   async getFinancialDetails(): Promise<AdminFinancialDetails> {
-    const response = await fetch(`${BASE_URL}/admin/dashboard/financial/details`, { credentials: 'include' });
+    const response = await fetch(`${BASE_URL}/admin/financial/details`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch financial audit details');
     }

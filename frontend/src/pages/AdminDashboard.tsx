@@ -11,7 +11,8 @@ import type {
   AdminContest,
   AdminDepositHistory,
   AdminProblemTestcase,
-  AdminFinancialStats
+  MonthlyFinancialRecord,
+  TopRevenueCourse
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -490,7 +491,8 @@ export const AdminDashboard: React.FC = () => {
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
-  const [financialStats, setFinancialStats] = useState<AdminFinancialStats | null>(null);
+  const [monthlyRecords, setMonthlyRecords] = useState<MonthlyFinancialRecord[]>([]);
+  const [topCourses, setTopCourses] = useState<TopRevenueCourse[]>([]);
   const [financialDetails, setFinancialDetails] = useState<AdminFinancialDetails | null>(null);
   const [activeFinancialModal, setActiveFinancialModal] = useState<'gross' | 'instructor' | 'platform' | 'awards' | 'profit' | 'sales' | 'courses-sold-all' | null>(null);
 
@@ -723,7 +725,8 @@ export const AdminDashboard: React.FC = () => {
         contestsRes,
         recentDepositsRes,
         tagsRes,
-        financialRes,
+        monthlyRecordsRes,
+        topCoursesRes,
         financialDetailsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
@@ -735,7 +738,8 @@ export const AdminDashboard: React.FC = () => {
         adminService.getContests(),
         adminService.getRecentDeposits(),
         adminService.getTags(),
-        adminService.getFinancialStats(),
+        adminService.getFinancialMonthlyRecords(),
+        adminService.getFinancialTopCourses(),
         adminService.getFinancialDetails()
       ]);
 
@@ -748,7 +752,8 @@ export const AdminDashboard: React.FC = () => {
       setContests(contestsRes);
       setRecentDeposits(recentDepositsRes);
       setAllTags(tagsRes || []);
-      setFinancialStats(financialRes);
+      setMonthlyRecords(monthlyRecordsRes || []);
+      setTopCourses(topCoursesRes || []);
       setFinancialDetails(financialDetailsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
@@ -777,7 +782,7 @@ export const AdminDashboard: React.FC = () => {
   const [newProbScore, setNewProbScore] = useState(100);
   const [newProbTimeLimit, setNewProbTimeLimit] = useState(2000);
   const [newProbMemoryLimit, setNewProbMemoryLimit] = useState(128000);
-  const [newProbIsPublic, setNewProbIsPublic] = useState(true);
+  const [newProbIsPublic, setNewProbIsPublic] = useState(false);
   const [newProbSolutions, setNewProbSolutions] = useState('');
   const [newProbTags, setNewProbTags] = useState<string[]>([]);
   const [newProbStarterC, setNewProbStarterC] = useState('');
@@ -821,7 +826,7 @@ export const AdminDashboard: React.FC = () => {
   const [hoveredCourseSalesIndex, setHoveredCourseSalesIndex] = useState<number | null>(null);
   // 12-month raw financial records (Jul 25 to Jun 26)
   const financialMonthlyRecords = useMemo(() => {
-    const rawChartData = financialStats?.financialMonthlyRecords || [
+    const rawChartData = monthlyRecords.length > 0 ? monthlyRecords : [
       { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
       { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
       { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
@@ -862,7 +867,7 @@ export const AdminDashboard: React.FC = () => {
         netProfit
       };
     });
-  }, [financialStats]);
+  }, [monthlyRecords]);
 
   // Filtered dataset according to UI state
   const filteredFinancialData = useMemo(() => {
@@ -1099,7 +1104,7 @@ export const AdminDashboard: React.FC = () => {
       setNewProbScore(100);
       setNewProbTimeLimit(2000);
       setNewProbMemoryLimit(128000);
-      setNewProbIsPublic(true);
+      setNewProbIsPublic(false);
       setNewProbSolutions('');
       setNewProbTags([]);
       setNewProbStarterC('');
@@ -1198,7 +1203,7 @@ export const AdminDashboard: React.FC = () => {
       setNewProbScore(100);
       setNewProbTimeLimit(2000);
       setNewProbMemoryLimit(128000);
-      setNewProbIsPublic(true);
+      setNewProbIsPublic(false);
       setNewProbSolutions('');
       setNewProbTags([]);
       setNewProbStarterC('');
@@ -4506,7 +4511,7 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
-                        {(financialStats?.topRevenueCourses || [
+                        {(topCourses || [
                           { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
                           { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
                           { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
@@ -4645,7 +4650,7 @@ export const AdminDashboard: React.FC = () => {
                   setNewProbScore(100);
                   setNewProbTimeLimit(2000);
                   setNewProbMemoryLimit(128000);
-                  setNewProbIsPublic(true);
+                  setNewProbIsPublic(false);
                   setNewProbSolutions('');
                   setNewProbTags([]);
                   setNewProbStarterC('');
@@ -5410,12 +5415,12 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                        {(financialStats?.topRevenueCourses || []).length === 0 ? (
+                        {(topCourses || []).length === 0 ? (
                           <tr>
                             <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu doanh thu khóa học.</td>
                           </tr>
                         ) : (
-                          (financialStats?.topRevenueCourses || []).map((c, idx) => (
+                          (topCourses || []).map((c, idx) => (
                             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                               <td className="p-3 text-slate-900 font-bold">{c.name}</td>
                               <td className="p-3 text-slate-500 font-extrabold">{c.tutor}</td>
