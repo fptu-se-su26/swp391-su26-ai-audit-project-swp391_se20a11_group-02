@@ -55,7 +55,7 @@ Sinh viên/nhóm cần ghi lại:
 | 1 | 19/05/2026 | NotebookLM | Tái cấu trúc Use Case phân hệ Admin | Hỏi review use case admin và cách gộp các use case lock/unlock, approve/reject | Đề xuất gộp các Use Case nhỏ vào Use Case tổng để giảm tải Use Case Bloat | Có | Use Case Diagram và Bảng đặc tả SRS |
 | 2 | 09/06/2026 | Antigravity | Fix điều hướng và seed DB | Tìm nguyên nhân ẩn nút Admin và tạo dữ liệu test contest | Đưa ra cách fix trong Layout.tsx và sinh file SQL seed dữ liệu mẫu | Có | Commit 6192af56 |
 | 3 | 09/06/2026 | Antigravity | Thiết kế Nested Routing | Nhấp vào thanh điều hướng Admin Dashboard chỉ đổi nội dung bên phải mà giữ nguyên layout | Đề xuất giải pháp Hybrid Nested Routes (Dynamic Route lồng vào state) | Có | Commit 6192af56 |
-| 4 |  |  |  |  |  | Có / Không |  |
+| 4 | 13/06/2026 | Antigravity | Tái cấu trúc trạng thái Contest động và tích hợp Real Submissions | Đề xuất xóa cột status tĩnh, tính toán động tại runtime và phân quyền xem submissions | Loại bỏ cột status trong DB, sinh API submissions và update Layout/Submissions UI | Có | Commit feature/DE190416-CRUD-Contest |
 | 5 |  |  |  |  |  | Có / Không |  |
 | 6 |  |  |  |  |  | Có / Không |  |
 | 7 |  |  |  |  |  | Có / Không |  |
@@ -290,6 +290,77 @@ Bổ sung xử lý fallback để nếu URL chứa :tab không hợp lệ thì h
 
 ```text
 Giải pháp Hybrid đã giải quyết hoàn hảo bài toán định tuyến mà không cần phân tách file lớn nguy hiểm.
+```
+
+---
+
+### Prompt số 4
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 13/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Tái cấu trúc trạng thái Contest động và tích hợp Real Submissions |
+| Phần việc liên quan | Database / Backend / Frontend / Refactoring |
+| Mức độ sử dụng | Hỏi sinh code / Hỏi tối ưu |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tôi muốn bạn Phân tích hệ thống và viết những cái cơ bản lặp đi lặp lại thôi, còn những phần quan trọng hãy phân tích rồi hướng dẫn tôi làm... Tôi đang nghĩ đến phương án bỏ luôn cột status vì nó state phụ thuộc starttime và endtime. Nếu tôi bỏ status và dùng logic để tính ra status cho frontend hoặc gửi endtime và starttime luôn cho frontend thì sao? Đồng ý, hãy cập nhật lại implementation_plan.md thêm lần nữa đi
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+```text
+Hệ thống gặp lỗi so sánh kiểu dữ liệu enum trong câu lệnh JPQL của ContestRepository với cột status tĩnh kiểu character varying trong PostgreSQL. Đồng thời, các tính năng quan trọng như khóa đăng ký khi kỳ thi kết thúc, thu gọn banner spotlight, và hiển thị submissions thật vẫn chưa được kết nối backend.
+```
+
+#### 5.3. Kết quả AI trả về
+
+```text
+AI đề xuất giải pháp kiến trúc dynamic status tính toán tại runtime từ startTime và endTime, loại bỏ cột status trong DB để tránh không đồng bộ dữ liệu. Đồng thời cung cấp phương án cấu hình truy vấn thời gian thực ở backend, expose endpoint GET /contests/{contestId}/submissions phân quyền theo vai trò (User/Admin), và cách cập nhật UI frontend tương ứng.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+```text
+Cập nhật init.sql, contest_seed.sql để đồng bộ cơ sở dữ liệu. Refactor ContestEntity, ContestRepository, ContestService, ContestController ở backend và các component Contests.tsx, Layout.tsx, ContestSubmissions.tsx ở frontend.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+```text
+- Tự rà soát và dọn dẹp các import cùng biến khai báo thừa trong Layout.tsx (appealReasonText, authService...) vốn là tàn dư từ tính năng khiếu nại chưa hoàn thiện, giúp vượt qua rào cản nghiêm ngặt của TypeScript compiler (noUnusedLocals) để build production thành công.
+- Chuẩn hóa định dạng hiển thị bộ nhớ dùng Double.parseDouble để đổi sang MB tại backend trước khi đẩy về Frontend.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/feature/DE190416-CRUD-Contest |
+| File liên quan | ContestRepository.java, ContestService.java, ContestController.java, Contests.tsx, Layout.tsx, ContestSubmissions.tsx |
+| Screenshot | |
+| Kết quả chạy/test | Đã build production frontend và backend thành công. Chức năng chạy đúng thiết kế. |
+| Link tài liệu/báo cáo | |
+| Ghi chú khác | |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Việc tự chủ động đặt câu hỏi phản biện về kiến trúc cơ sở dữ liệu (xóa bỏ status column) đã giúp tối giản hóa đáng kể hệ thống và triệt tiêu các bug tiềm ẩn về đồng bộ trạng thái.
 ```
 
 ---

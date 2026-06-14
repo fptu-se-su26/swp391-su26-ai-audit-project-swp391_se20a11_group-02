@@ -520,7 +520,7 @@ export const AdminDashboard: React.FC = () => {
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
-  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
+  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'CANCELLED'>('ALL');
 
   // Status change confirm modal state
   const [statusConfirmTarget, setStatusConfirmTarget] = useState<{
@@ -2211,7 +2211,7 @@ export const AdminDashboard: React.FC = () => {
                     <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
                       <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
                         <span className="material-symbols-outlined text-text-muted">info</span> Contest Overview
-                        <span className={`ml-auto text-white text-xs font-bold px-3 py-1 rounded-full ${reviewingContest.status === 'RUNNING' ? 'bg-brand-green' : reviewingContest.status === 'UPCOMING' ? 'bg-primary' : 'bg-gray-400'
+                        <span className={`ml-auto text-white text-xs font-bold px-3 py-1 rounded-full ${reviewingContest.status === 'ONGOING' ? 'bg-brand-green' : reviewingContest.status === 'UPCOMING' ? 'bg-primary' : 'bg-gray-400'
                           }`}>
                           {reviewingContest.status}
                         </span>
@@ -3798,7 +3798,7 @@ export const AdminDashboard: React.FC = () => {
                     >
                       <option value="ALL">All Status</option>
                       <option value="UPCOMING">Upcoming</option>
-                      <option value="RUNNING">Running</option>
+                      <option value="ONGOING">Ongoing</option>
                       <option value="ENDED">Ended</option>
                       <option value="CANCELLED">Cancelled</option>
                     </select>
@@ -3837,7 +3837,7 @@ export const AdminDashboard: React.FC = () => {
                             <td className="py-4 px-6">{c.durations} mins</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{c.participantCount}</td>
                             <td className="py-4 px-6 text-center">
-                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${c.status === 'RUNNING' ? 'bg-red-50 text-red-500 animate-pulse' :
+                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${c.status === 'ONGOING' ? 'bg-red-50 text-red-500 animate-pulse' :
                                 c.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'
                                 }`}>{c.status}</span>
                             </td>
