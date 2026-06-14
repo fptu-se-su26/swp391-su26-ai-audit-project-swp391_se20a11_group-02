@@ -73,10 +73,10 @@ ON CONFLICT (id) DO NOTHING;
 -- Contest 1: Summer Code Clash 2026 (Đang diễn ra)
 -- Contest 2: Beginner Challenge Arena #1 (Sắp diễn ra, yêu cầu mật khẩu là '123')
 -- Contest 3: Algorithmic Masters Cup (Đã kết thúc)
-INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, status, created_at, updated_at) VALUES
-(1, 1, 'Summer Code Clash 2026', 'Chào mừng bạn đến với cuộc thi Summer Code Clash 2026! Giải 5 bài toán từ Dễ đến Khó theo luật ICPC của ACM. Phần thưởng trị giá 5.000.000đ đang chờ đón nhà vô địch!', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '1 hour', CURRENT_TIMESTAMP + INTERVAL '3 hours', 240, 'RUNNING', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 1, 'Beginner Challenge Arena #1', 'Cuộc thi thuật toán dành riêng cho các lập trình viên mới bắt đầu. Yêu cầu nhập mật khẩu bảo vệ để đăng ký tham gia. Mật khẩu là "123".', 'ICPC', '$2a$10$vD0QlyF6.s0wR/1nK0.ZteXgZzM21yT/fPzIqHpe1jX5wO04R2Oze', CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 4 hours', 240, 'UPCOMING', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(3, 1, 'Algorithmic Masters Cup', 'Trận chung kết tranh cúp vô địch thuật toán Masters Cup năm 2026. Giải đấu đã khép lại thành công tốt đẹp.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP - INTERVAL '5 days 4 hours', 240, 'ENDED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, is_cancelled, created_at, updated_at) VALUES
+(1, 1, 'Summer Code Clash 2026', 'Chào mừng bạn đến với cuộc thi Summer Code Clash 2026! Giải 5 bài toán từ Dễ đến Khó theo luật ICPC của ACM. Phần thưởng trị giá 5.000.000đ đang chờ đón nhà vô địch!', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '1 hour', CURRENT_TIMESTAMP + INTERVAL '3 hours', 240, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 1, 'Beginner Challenge Arena #1', 'Cuộc thi thuật toán dành riêng cho các lập trình viên mới bắt đầu. Yêu cầu nhập mật khẩu bảo vệ để đăng ký tham gia. Mật khẩu là "123".', 'ICPC', '$2a$10$vD0QlyF6.s0wR/1nK0.ZteXgZzM21yT/fPzIqHpe1jX5wO04R2Oze', CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 4 hours', 240, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 1, 'Algorithmic Masters Cup', 'Trận chung kết tranh cúp vô địch thuật toán Masters Cup năm 2026. Giải đấu đã khép lại thành công tốt đẹp.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP - INTERVAL '5 days 4 hours', 240, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
 -- 8. Bản đồ các Bài tập trong Cuộc thi (Contest Problems)
