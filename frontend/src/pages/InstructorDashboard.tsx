@@ -5960,7 +5960,7 @@ export const InstructorDashboard: React.FC = () => {
                         options={{
                           minimap: { enabled: false },
                           fontSize: 13,
-                          lineHeight: 1.6,
+                          lineHeight: 24,
                           padding: { top: 16, bottom: 16 },
                           fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
                           scrollBeyondLastLine: false,
