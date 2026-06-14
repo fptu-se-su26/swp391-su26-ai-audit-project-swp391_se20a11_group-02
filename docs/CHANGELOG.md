@@ -214,55 +214,55 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+11/06/2026 - 13/06/2026
 ```
 
 ## Đã hoàn thành
 
 - [ ] Tạo project structure
 - [ ] Cài đặt database connection
-- [ ] Xây dựng backend
-- [ ] Xây dựng frontend
+- [x] Xây dựng backend
+- [x] Xây dựng frontend
 - [ ] Xây dựng authentication/authorization
-- [ ] Xử lý CRUD
+- [x] Xử lý CRUD
 - [ ] Xử lý validation
-- [ ] Tích hợp API
+- [x] Tích hợp API
 - [ ] Xử lý upload/download file
-- [ ] Xử lý lỗi
-- [ ] Tối ưu giao diện
+- [x] Xử lý lỗi
+- [x] Tối ưu giao diện
 - [ ] Cập nhật README hướng dẫn chạy
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | Tạo controller, request DTOs và response DTOs phục vụ tính năng CRUD Contest của Admin | Nguyễn Duy Phương | AdminContestController, request/response DTOs | Commit feature/DE190416-CRUD-Contest |
+| 2 | Loại bỏ cột status tĩnh trong database và thực thể ContestEntity, thay bằng flag is_cancelled để phục vụ tính toán trạng thái Contest động | Nguyễn Duy Phương | init.sql, contest_seed.sql, ContestEntity | Commit feature/DE190416-CRUD-Contest |
+| 3 | Tái cấu trúc logic đếm active contest và CRUD Contest động dựa trên mốc thời gian so với Instant.now() ở tầng Service | Nguyễn Duy Phương | ContestService, AdminDashboardService | Commit feature/DE190416-CRUD-Contest |
+| 4 | Xây dựng API và các query JPA lấy danh sách bài nộp của Contest phân quyền theo vai trò (User chỉ thấy bài nộp của mình, Admin thấy toàn bộ) | Nguyễn Duy Phương | ContestRepository, ProblemSubmissionRepository, ContestController, ContestSubmissionResponse | Commit feature/DE190416-CRUD-Contest |
+| 5 | Tích hợp frontend: ẩn spotlight banner trống, khóa đăng ký contest đã kết thúc và hiển thị danh sách bài nộp thật từ backend | Nguyễn Duy Phương | Contests.tsx, Layout.tsx, ContestSubmissions.tsx | Commit feature/DE190416-CRUD-Contest |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
+AI hỗ trợ phân tích thiết kế dynamic status thay thế DB static column, viết các câu lệnh JPQL so sánh thời gian thực, viết khung mapping dữ liệu DTO và sinh các component hooks để fetch submissions thật ở frontend.
 ```
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+Commit trên nhánh feature/DE190416-CRUD-Contest
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+Đảm bảo đồng bộ hóa múi giờ hệ thống khi tính toán thời gian bắt đầu và kết thúc của kỳ thi.
 ```
 
 ---
@@ -272,62 +272,61 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+13/06/2026
 ```
 
 ## Đã hoàn thành
 
 - [ ] Viết test case
-- [ ] Chạy test chức năng chính
-- [ ] Kiểm tra output
+- [x] Chạy test chức năng chính
+- [x] Kiểm tra output
 - [ ] Kiểm tra validation
-- [ ] Kiểm tra lỗi giao diện
-- [ ] Kiểm tra lỗi database
-- [ ] Kiểm tra phân quyền
+- [x] Kiểm tra lỗi giao diện
+- [x] Kiểm tra lỗi database
+- [x] Kiểm tra phân quyền
 - [ ] Kiểm tra bảo mật cơ bản
-- [ ] Fix bug
-- [ ] Chạy lại sau khi fix bug
-- [ ] Ghi nhận kết quả test
+- [x] Fix bug
+- [x] Chạy lại sau khi fix bug
+- [x] Ghi nhận kết quả test
 
 ## Danh sách lỗi đã xử lý
 
 | STT | Lỗi phát hiện | Nguyên nhân | Cách xử lý | Trạng thái |
 |---:|---|---|---|---|
-| 1 |  |  |  | Open / Fixed / Pending |
-| 2 |  |  |  | Open / Fixed / Pending |
-| 3 |  |  |  | Open / Fixed / Pending |
-| 4 |  |  |  | Open / Fixed / Pending |
-| 5 |  |  |  | Open / Fixed / Pending |
+| 1 | Lỗi SQL Type Binding Mismatch trên PostgreSQL khi lọc Contest theo enum | PostgreSQL không thể so sánh trực tiếp VARCHAR với custom ENUM của Hibernate | Thay đổi thiết kế từ DB static status column sang dynamic status tính tại runtime | Fixed |
+| 2 | Spotlight Banner hiển thị dữ liệu cứng trống rỗng khi không có contest mới | Component bannerContest ở frontend không kiểm tra null, tự render tiêu đề mẫu | Thêm khối check {bannerContest && ( ... )} bao quanh banner để ẩn hoàn toàn nếu null | Fixed |
+| 3 | Lỗi biên dịch TypeScript ở frontend do code cũ của Layout.tsx | Có các biến unused variables (appealReasonText, authService...) do tính năng cũ để lại | Comment out các biến dư thừa và dọn dẹp import để vượt qua strict check | Fixed |
+| 4 | Lỗi bỏ qua khóa đăng ký khi contest đã kết thúc | Form đăng ký ở sidebar vẫn cho phép click nộp password sau khi kỳ thi đã đóng | Thêm check status === 'ENDED' để render UI thông báo Registration Closed tĩnh | Fixed |
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Fix lỗi biên dịch và các import chưa sử dụng | Nguyễn Duy Phương | Layout.tsx | Commit feature/DE190416-CRUD-Contest |
+| 2 | Sửa logic đếm active contest và dynamic status check | Nguyễn Duy Phương | ContestService.java, ContestRepository.java | Commit feature/DE190416-CRUD-Contest |
+| 3 | Test phân quyền user và admin đối với Contest Submissions API | Nguyễn Duy Phương | ContestController.java | Commit feature/DE190416-CRUD-Contest |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
+AI hỗ trợ rà soát compiler logs của frontend và backend, gợi ý các giải pháp fix bug và test chức năng phân quyền.
 ```
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+Commit trên nhánh feature/DE190416-CRUD-Contest
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+Sử dụng cmd.exe để build sản phẩm thay cho PowerShell để tránh lỗi Execution Policy trên Windows.
 ```
 
 ---

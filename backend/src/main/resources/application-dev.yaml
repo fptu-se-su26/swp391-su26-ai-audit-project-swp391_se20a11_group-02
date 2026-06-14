@@ -4,8 +4,12 @@ server:
     context-path: /nonstopcoding
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/NonstopCoding}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/nonstopcoding}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:}
     hikari:
@@ -42,7 +46,7 @@ jwt:
   valid-duration: ${JWT_VALID_DURATION:3600}
   refreshable-duration: ${JWT_REFRESHABLE_DURATION:604800}
 
-auth: 
+auth:
   cookie:
     access-token:
       name: ${ACCESS_TOKEN_COOKIE_NAME:access_token}
@@ -62,14 +66,17 @@ auth:
 
 judge0:
   base-url: http://localhost:2358
+  #base-url: ${JUDGE0_URL:http://thanhmila.local:2358}
+  #base-url: ${JUDGE0_URL:https://humility-reflector-unarmored.ngrok-free.dev}
   timeout: 20s
 
 websocket:
-  # Danh sách domain được phép kết nối WebSocket (cách nhau bằng dấu phẩy)
   allowed-origins: http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173
 
 app:
   webhook-base-url: ${WEBHOOK_BASE_URL:http://localhost:8080/nonstopcoding}
+  #webhook-base-url: ${WEBHOOK_BASE_URL:http://192.168.1.69:8080/nonstopcoding}
+  #webhook-base-url: ${WEBHOOK_BASE_URL:https://flattered-hamburger-shakiness.ngrok-free.dev/nonstopcoding}
 
 payos:
   client-id: ${PAYOS_CLIENT_ID}
@@ -82,5 +89,8 @@ google:
   client-id: ${GOOGLE_CLIENT_ID}
 
 
-
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
 

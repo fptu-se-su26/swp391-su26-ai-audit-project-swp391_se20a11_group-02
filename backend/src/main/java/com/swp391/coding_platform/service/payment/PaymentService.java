@@ -9,6 +9,7 @@ import com.swp391.coding_platform.dto.response.PaymentDepositResponse;
 import com.swp391.coding_platform.entity.enums.PaymentType;
 import com.swp391.coding_platform.entity.enums.StatusTransaction;
 import com.swp391.coding_platform.entity.enums.TransactionType;
+import com.swp391.coding_platform.entity.enums.UserStatus;
 import com.swp391.coding_platform.entity.payment.PaymentTransactionEntity;
 import com.swp391.coding_platform.entity.payment.WalletEntity;
 import com.swp391.coding_platform.entity.payment.WalletTransactionEntity;
@@ -57,9 +58,17 @@ public class PaymentService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         user.validateStatus();
 
-        // 1. Get Wallet
+        // 1. Get Wallet (Create on the fly if missing)
         WalletEntity wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseGet(() -> {
+                    log.info("Wallet not found for user {}, creating a new one.", userId);
+                    WalletEntity newWallet = WalletEntity.builder()
+                            .user(user)
+                            .balance(BigDecimal.ZERO)
+                            .status(UserStatus.ACTIVE)
+                            .build();
+                    return walletRepository.save(newWallet);
+                });
 
         // 2. Generate a unique transaction code (using current time ms for simplicity, PayOS requires integer orderCode)
         long orderCode = System.currentTimeMillis();
@@ -100,6 +109,7 @@ public class PaymentService {
                     .defaultHeader("x-client-id", payosProps.getClientId())
                     .defaultHeader("x-api-key", payosProps.getApiKey())
                     .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .defaultHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                     .build();
 
             // Execute POST request synchronously

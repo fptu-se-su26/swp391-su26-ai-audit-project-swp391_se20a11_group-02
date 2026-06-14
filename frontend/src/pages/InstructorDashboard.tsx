@@ -685,6 +685,8 @@ export const InstructorDashboard: React.FC = () => {
   const [appliedEndDate, setAppliedEndDate] = useState<string>('');
   const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
 
+  const [isSuspended, setIsSuspended] = useState<boolean>(false);
+
   useEffect(() => {
     const fetchInstructorCourses = async () => {
       try {
@@ -693,8 +695,11 @@ export const InstructorDashboard: React.FC = () => {
         if (coursesData && coursesData.length > 0) {
           setWorkspaceCourseTitle(coursesData[0].title);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load instructor courses:", err);
+        if (err.message === 'SUSPENDED') {
+          setIsSuspended(true);
+        }
       }
     };
 
@@ -716,8 +721,11 @@ export const InstructorDashboard: React.FC = () => {
         setPayouts(payoutLogs || []);
         setBackendMonthlyChartData(padMonthlyChartData(chartData || []));
         setLifetimeGrossRevenue(lifetimeSummary?.totalGrossRevenue || 0);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load general revenue data:", err);
+        if (err.message === 'SUSPENDED') {
+          setIsSuspended(true);
+        }
       }
     };
 
@@ -740,8 +748,11 @@ export const InstructorDashboard: React.FC = () => {
         setTransactions(sales || []);
         setCourseBreakdown(breakdown || []);
         setBreakdownPage(1);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load filtered revenue data:", err);
+        if (err.message === 'SUSPENDED') {
+          setIsSuspended(true);
+        }
       }
     };
 
@@ -757,8 +768,11 @@ export const InstructorDashboard: React.FC = () => {
         setCourseRegistrationsState(trendRes?.courseRegistrations || []);
         setTotalTrendRegistrationsState(trendRes?.totalTrendRegistrations || 0);
         setCourseRegPage(1);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load trend data:", err);
+        if (err.message === 'SUSPENDED') {
+          setIsSuspended(true);
+        }
       }
     };
 
@@ -1385,6 +1399,25 @@ export const InstructorDashboard: React.FC = () => {
         <Link to="/login" className="bg-primary hover:bg-primary-hover text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-md">
           Sign In
         </Link>
+      </div>
+    );
+  }
+
+  if (isSuspended) {
+    return (
+      <div className="bg-[#f0f4f9] min-h-[70vh] flex items-center justify-center p-6 w-full text-left">
+        <div className="bg-white rounded-3xl border border-slate-200/60 p-10 text-center shadow-xl max-w-lg w-full relative z-10">
+          <div className="w-20 h-20 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-500 mx-auto mb-6">
+            <span className="material-symbols-outlined text-5xl">warning</span>
+          </div>
+          <h3 className="font-display font-black text-2xl text-slate-800 mb-3">Account Suspended</h3>
+          <p className="font-body text-sm text-text-muted mb-8 leading-relaxed font-semibold">
+            Your instructor account has been temporarily suspended. Please contact the administrator at <strong className="text-primary">admin@codingarena.edu.vn</strong> for more details and to request reactivation.
+          </p>
+          <Link to="/dashboard" className="inline-block bg-primary hover:bg-primary-hover text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-md">
+            Back to Home
+          </Link>
+        </div>
       </div>
     );
   }

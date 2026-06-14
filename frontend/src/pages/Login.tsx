@@ -25,7 +25,7 @@ export const Login: React.FC = () => {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(err.message || 'Đăng nhập không thành công. Vui lòng kiểm tra lại.');
+      setError(err.message || 'Login failed. Please check your details.');
     } finally {
       setLoading(false);
     }

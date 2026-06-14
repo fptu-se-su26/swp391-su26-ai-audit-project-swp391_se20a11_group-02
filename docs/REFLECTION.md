@@ -4,15 +4,15 @@
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày hoàn thành reflection |  |
+| Môn học | Software development project |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | Summer 2026 |
+| Tên bài tập / Project | Integrated Coding Education and Competitive Programming Platform |
+| Tên sinh viên / Nhóm | Nguyễn Duy Phương (DE190416) - Nhóm 2 |
+| MSSV / Danh sách MSSV | DE190416 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Ngày hoàn thành reflection | 13/06/2026 |
 
 ---
 
@@ -35,7 +35,7 @@ Reflection cần thể hiện:
 Mô tả ngắn gọn quá trình sử dụng AI trong bài tập/project này.
 
 ```text
-Viết tại đây...
+Trong quá trình phát triển tính năng CRUD Contest và tái cấu trúc hệ thống, tôi đã sử dụng AI xuyên suốt từ giai đoạn thiết kế Use Case cho tới lập trình frontend/backend và sửa lỗi compile. AI đã hỗ trợ giải quyết xung đột JPQL enum và PostgreSQL bằng thiết kế dynamic status, đồng thời gỡ lỗi các khai báo thừa giúp build production thành công.
 ```
 
 Gợi ý:
@@ -52,26 +52,26 @@ Gợi ý:
 
 Đánh dấu các công cụ AI đã sử dụng.
 
-- [ ] ChatGPT
-- [ ] Gemini
+- [x] ChatGPT
+- [x] Gemini
 - [ ] Claude
-- [ ] GitHub Copilot
-- [ ] Cursor
-- [ ] Antigravity
+- [x] GitHub Copilot
+- [x] Cursor
+- [x] Antigravity
 - [ ] Microsoft Copilot
 - [ ] Perplexity
-- [ ] Công cụ khác: ....................................
+- [x] Công cụ khác: NotebookLM
 
 ### Công cụ được sử dụng nhiều nhất
 
 ```text
-Viết tại đây...
+Antigravity
 ```
 
 ### Lý do sử dụng công cụ đó
 
 ```text
-Viết tại đây...
+Được tích hợp sâu vào môi trường Pair Programming của IDE, có khả năng đọc hiểu cấu trúc dự án lớn và đề xuất refactoring chéo giữa các tầng Backend và Frontend rất chính xác.
 ```
 
 ---
@@ -80,27 +80,27 @@ Viết tại đây...
 
 Đánh dấu các nội dung phù hợp.
 
-- [ ] Hiểu yêu cầu đề bài
-- [ ] Phân tích bài toán
+- [x] Hiểu yêu cầu đề bài
+- [x] Phân tích bài toán
 - [ ] Tìm ý tưởng giải pháp
-- [ ] Thiết kế database
-- [ ] Thiết kế giao diện
-- [ ] Thiết kế kiến trúc hệ thống
-- [ ] Viết code mẫu
-- [ ] Debug lỗi
+- [x] Thiết kế database
+- [x] Thiết kế giao diện
+- [x] Thiết kế kiến trúc hệ thống
+- [x] Viết code mẫu
+- [x] Debug lỗi
 - [ ] Viết test case
-- [ ] Review code
-- [ ] Tối ưu code
+- [x] Review code
+- [x] Tối ưu code
 - [ ] Kiểm tra bảo mật
-- [ ] Viết báo cáo
+- [x] Viết báo cáo
 - [ ] Chuẩn bị thuyết trình
-- [ ] Tìm hiểu công nghệ mới
+- [x] Tìm hiểu công nghệ mới
 - [ ] Khác: ....................................
 
 ### Mô tả chi tiết
 
 ```text
-Viết tại đây...
+AI hỗ trợ viết các câu lệnh truy vấn JPA thời gian thực, thiết kế cấu trúc API submissions phân quyền theo role, ẩn banner spotlight khi không có contest mới, khóa form đăng ký khi kỳ thi kết thúc và dọn dẹp các biến dư thừa ở frontend để vượt qua compiler check.
 ```
 
 ---
@@ -110,7 +110,7 @@ Viết tại đây...
 ### 6.1. Những điểm AI giúp em/nhóm học tốt hơn
 
 ```text
-Viết tại đây...
+Giúp nắm vững cách tích hợp React Router lồng nhau (Nested Routing) động theo URL trình duyệt mà vẫn giữ nguyên state layout gốc. Giúp hiểu rõ cơ chế type mapping giữa JPA và PostgreSQL.
 ```
 
 Gợi ý:
@@ -126,7 +126,7 @@ Gợi ý:
 ### 6.2. Những điểm AI chưa giúp tốt hoặc gây khó khăn
 
 ```text
-Viết tại đây...
+AI thường đưa ra giải pháp máy móc theo sách giáo khoa (ví dụ: chia nhỏ file 4400 dòng của AdminDashboard) mà bỏ qua độ phức tạp của props drilling, dễ làm lỗi compile toàn cục nếu không có sự phản biện của lập trình viên.
 ```
 
 Gợi ý:
@@ -142,14 +142,14 @@ Gợi ý:
 ### 6.3. Em/nhóm có bị phụ thuộc vào AI không?
 
 - [ ] Không phụ thuộc
-- [ ] Phụ thuộc ít
+- [x] Phụ thuộc ít
 - [ ] Phụ thuộc trung bình
 - [ ] Phụ thuộc nhiều
 
 Giải thích:
 
 ```text
-Viết tại đây...
+Tôi chỉ dùng AI để tăng tốc viết mã lặp đi lặp lại và gợi ý giải thuật. Các quyết định về kiến trúc cơ sở dữ liệu (dynamic status) và sửa lỗi nghiêm ngặt của compiler đều do tôi tự nghiên cứu và giải quyết.
 ```
 
 ---
@@ -158,33 +158,33 @@ Viết tại đây...
 
 Đánh dấu các cách đã sử dụng.
 
-- [ ] Chạy thử chương trình
-- [ ] Kiểm tra output
+- [x] Chạy thử chương trình
+- [x] Kiểm tra output
 - [ ] Viết test case
-- [ ] So sánh với yêu cầu đề bài
-- [ ] Đối chiếu với tài liệu môn học
-- [ ] Review code
+- [x] So sánh với yêu cầu đề bài
+- [x] Đối chiếu với tài liệu môn học
+- [x] Review code
 - [ ] Hỏi lại giảng viên
-- [ ] Tra cứu tài liệu chính thống
-- [ ] Thảo luận với thành viên nhóm
-- [ ] Kiểm tra bằng dữ liệu mẫu
-- [ ] So sánh trước và sau khi dùng AI
+- [x] Tra cứu tài liệu chính thống
+- [x] Thảo luận với thành viên nhóm
+- [x] Kiểm tra bằng dữ liệu mẫu
+- [x] So sánh trước và sau khi dùng AI
 - [ ] Khác: ....................................
 
 ### Mô tả quá trình kiểm chứng
 
 ```text
-Viết tại đây...
+Thực hiện chạy thử chương trình cả backend và frontend, chạy lệnh 'npm run build' ở client để kiểm tra khả năng biên dịch không lỗi và so sánh hoạt động của dynamic filter với mốc thời gian thực tế trong DB.
 ```
 
 ### Ví dụ cụ thể về một lần kiểm chứng
 
 | Nội dung | Mô tả |
 |---|---|
-| AI đã gợi ý gì? |  |
-| Em/nhóm đã kiểm tra bằng cách nào? |  |
-| Kết quả kiểm tra | Đúng / Sai / Cần chỉnh sửa |
-| Em/nhóm đã xử lý tiếp như thế nào? |  |
+| AI đã gợi ý gì? | Gợi ý code đăng ký contest cho phép điền password ở mọi trạng thái. |
+| Em/nhóm đã kiểm tra bằng cách nào? | Test giao diện với contest đã kết thúc (ENDED) nhưng nút Đăng ký vẫn hiển thị. |
+| Kết quả kiểm tra | Cần chỉnh sửa |
+| Em/nhóm đã xử lý tiếp như thế nào? | Bổ sung logic render có điều kiện ở Layout.tsx để hiển thị thông báo "Registration Closed" thay vì form nhập mật khẩu khi contest đã ended. |
 
 ---
 
