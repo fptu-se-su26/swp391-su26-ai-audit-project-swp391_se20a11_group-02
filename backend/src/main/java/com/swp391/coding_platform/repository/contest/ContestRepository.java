@@ -13,14 +13,14 @@ import java.util.List;
 
 @Repository
 public interface ContestRepository extends JpaRepository<ContestEntity, Integer> {
-    @Query("SELECT COUNT(c) FROM ContestEntity c WHERE c.isCancelled = false AND c.startTime <= :now AND c.endTime >= :now")
+    @Query("SELECT COUNT(c) FROM ContestEntity c WHERE c.status = com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED AND c.startTime <= :now AND c.endTime >= :now")
     long countActiveContests(@Param("now") java.time.Instant now);
 
     @Query("SELECT c, " +
            "(SELECT COUNT(p) FROM ContestParticipantEntity p WHERE p.contest.id = c.id), " +
            "(SELECT COUNT(cp) FROM ContestProblemEntity cp WHERE cp.contest.id = c.id) " +
            "FROM ContestEntity c WHERE " +
-           "c.isCancelled = false AND " +
+           "c.status = com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED AND " +
            "(:search IS NULL OR :search = '' OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:statusFilter = 'All' OR " +
            " (:statusFilter = 'Ongoing' AND c.startTime <= :now AND c.endTime >= :now) OR " +
@@ -48,10 +48,10 @@ public interface ContestRepository extends JpaRepository<ContestEntity, Integer>
     @Query("SELECT COUNT(cp) FROM ContestProblemEntity cp WHERE cp.contest.id = :contestId")
     long countProblems(@Param("contestId") Integer contestId);
 
-    @Query("SELECT c FROM ContestEntity c WHERE c.isCancelled = false AND c.startTime <= :now AND c.endTime >= :now ORDER BY c.startTime DESC")
+    @Query("SELECT c FROM ContestEntity c WHERE c.status = com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED AND c.startTime <= :now AND c.endTime >= :now ORDER BY c.startTime DESC")
     Page<ContestEntity> findOngoingContests(@Param("now") java.time.Instant now, Pageable pageable);
 
-    @Query("SELECT c FROM ContestEntity c WHERE c.isCancelled = false AND c.startTime > :now ORDER BY c.startTime ASC")
+    @Query("SELECT c FROM ContestEntity c WHERE c.status = com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED AND c.startTime > :now ORDER BY c.startTime ASC")
     Page<ContestEntity> findUpcomingContests(@Param("now") java.time.Instant now, Pageable pageable);
 
     @Query("SELECT c, " +

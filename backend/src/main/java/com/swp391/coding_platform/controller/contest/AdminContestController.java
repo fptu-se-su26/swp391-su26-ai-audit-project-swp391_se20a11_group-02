@@ -100,6 +100,41 @@ public class AdminContestController {
                 .build());
     }
 
+    @PutMapping("/{id}/publish")
+    public ResponseEntity<ApiResponse<AdminContestResponse>> publishContest(@PathVariable Integer id) {
+        AdminContestResponse result = contestService.publishAdminContest(id);
+        return ResponseEntity.ok(ApiResponse.<AdminContestResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Published contest successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PutMapping("/{id}/restore")
+    public ResponseEntity<ApiResponse<AdminContestResponse>> restoreContest(@PathVariable Integer id) {
+        AdminContestResponse result = contestService.restoreAdminContest(id);
+        return ResponseEntity.ok(ApiResponse.<AdminContestResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Restored contest successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @DeleteMapping("/{id}/hard")
+    public ResponseEntity<ApiResponse<Void>> hardDeleteContest(@PathVariable Integer id) {
+        contestService.hardDeleteAdminContest(id);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Permanently deleted contest successfully")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
     @GetMapping("/{id}/problems")
     public ResponseEntity<ApiResponse<List<AdminContestProblemResponse>>> getContestProblems(@PathVariable Integer id) {
         List<AdminContestProblemResponse> result = contestService.getAdminContestProblems(id);
