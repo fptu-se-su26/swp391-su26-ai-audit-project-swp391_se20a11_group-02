@@ -34,4 +34,23 @@ public interface ProblemSubmissionRepository extends JpaRepository<ProblemSubmis
            "WHERE p.user.id = :userId " +
            "GROUP BY p.verdict")
     List<Object[]> countVerdictsByUserId(@Param("userId") Integer userId);
+
+    long countByContestId(Integer contestId);
+
+    @Query("SELECT AVG(ps.score) FROM ProblemSubmissionEntity ps WHERE ps.contest.id = :contestId")
+    Double getAverageScoreByContestId(@Param("contestId") Integer contestId);
+
+    @Query("SELECT ps FROM ProblemSubmissionEntity ps " +
+           "JOIN FETCH ps.user " +
+           "JOIN FETCH ps.problem " +
+           "WHERE ps.contest.id = :contestId " +
+           "ORDER BY ps.submittedAt DESC")
+    List<ProblemSubmissionEntity> findByContestId(@Param("contestId") Integer contestId);
+
+    @Query("SELECT ps FROM ProblemSubmissionEntity ps " +
+           "JOIN FETCH ps.user " +
+           "JOIN FETCH ps.problem " +
+           "WHERE ps.contest.id = :contestId AND ps.user.username = :username " +
+           "ORDER BY ps.submittedAt DESC")
+    List<ProblemSubmissionEntity> findByContestIdAndUsername(@Param("contestId") Integer contestId, @Param("username") String username);
 }

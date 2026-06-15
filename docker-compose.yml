@@ -15,7 +15,7 @@ services:
     container_name: nonstopcoding_db
     restart: always
     ports:
-      - "5433:5432"
+      - "5432:5432"
     env_file:
       - backend/.env
     volumes:
@@ -60,6 +60,7 @@ services:
   judge0-server:
     image: judge0/judge0:1.13.1
     container_name: judge0_server
+    profiles: ["judge0"] # <-- Gắn nhãn profile
     volumes:
       - ./judge0.conf:/judge0.conf:ro
     ports:

@@ -72,8 +72,12 @@ public class InstructorCourseService {
     }
 
     private InstructorEntity getInstructorByUserId(Integer userId) {
-        return instructorRepository.findByUserId(userId)
+        InstructorEntity instructor = instructorRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        if (instructor.getStatus() == com.swp391.coding_platform.entity.enums.InstructorStatus.SUSPENDED) {
+            throw new AppException(ErrorCode.ACCESS_DENIED);
+        }
+        return instructor;
     }
 
     private String formatVndPrice(BigDecimal price) {

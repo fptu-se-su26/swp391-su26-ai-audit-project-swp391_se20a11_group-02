@@ -1,16 +1,19 @@
 package com.swp391.coding_platform.controller.contest;
 
+import com.swp391.coding_platform.dto.request.ContestSearchRequest;
 import com.swp391.coding_platform.dto.request.ContestRegisterRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.ContestProblemResponse;
 import com.swp391.coding_platform.dto.response.ContestResponse;
 import com.swp391.coding_platform.dto.response.ContestUserStatsResponse;
+import com.swp391.coding_platform.dto.response.ContestSubmissionResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.service.contest.ContestService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -29,14 +32,10 @@ public class ContestController {
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ContestResponse>>> getContests(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "status", required = false, defaultValue = "All") String status,
-            @RequestParam(value = "access", required = false, defaultValue = "All") String access,
-            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-            @RequestParam(value = "size", required = false, defaultValue = "5") int size) {
+            @jakarta.validation.Valid ContestSearchRequest request) {
 
         String username = getUsername(jwt);
-        PageResponse<ContestResponse> result = contestService.getContests(search, status, access, page, size, username);
+        PageResponse<ContestResponse> result = contestService.getContests(request, username);
 
         return ResponseEntity.ok(ApiResponse.<PageResponse<ContestResponse>>builder()
                 .status(200)
@@ -121,6 +120,27 @@ public class ContestController {
                 .status(200)
                 .code(1000)
                 .message("Get contest problems successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/{contestId}/submissions")
+    public ResponseEntity<ApiResponse<List<ContestSubmissionResponse>>> getContestSubmissions(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("contestId") Integer contestId,
+            Authentication authentication) {
+
+        String username = getUsername(jwt);
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
+
+        List<ContestSubmissionResponse> result = contestService.getContestSubmissions(contestId, username, isAdmin);
+
+        return ResponseEntity.ok(ApiResponse.<List<ContestSubmissionResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Get contest submissions successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());
