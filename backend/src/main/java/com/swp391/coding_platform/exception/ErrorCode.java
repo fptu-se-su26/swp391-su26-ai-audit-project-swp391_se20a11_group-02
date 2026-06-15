@@ -86,15 +86,25 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(8000, "Comment not found", HttpStatus.NOT_FOUND),
     COURSE_REVIEW_ALREADY_EXISTS(8101, "User already reviewed this course", HttpStatus.CONFLICT),
     INVALID_COMMENT_LESSON(8102, "Invalid comment lesson", HttpStatus.BAD_REQUEST),
+    INVALID_COMMENT_LEVEL(8103, "Replies can only be added to root comments (1-level nesting maximum)", HttpStatus.BAD_REQUEST),
 
     CONTEST_NOT_FOUND(9000, "Contest not found", HttpStatus.NOT_FOUND),
     CONTEST_PASSWORD_INVALID(9003, "Contest password is invalid", HttpStatus.UNAUTHORIZED),
     CONTEST_NOT_JOINED(9202, "User has not joined this contest", HttpStatus.FORBIDDEN),
+    CONTEST_ALREADY_ENDED(9004, "Contest has already ended", HttpStatus.BAD_REQUEST),
 
     INSUFFICIENT_BALANCE(10001, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
     COURSE_ALREADY_IN_CART(10002, "Course already in cart", HttpStatus.CONFLICT),
 
-    DASHBOARD_STATS_FETCH_FAILED(11000, "Failed to fetch dashboard statistics", HttpStatus.INTERNAL_SERVER_ERROR);
+    DASHBOARD_STATS_FETCH_FAILED(11000, "Failed to fetch dashboard statistics", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    ALREADY_INSTRUCTOR(12001, "Tài khoản của bạn đã là giảng viên rồi.", HttpStatus.BAD_REQUEST),
+    APPLICATION_PENDING(12002, "Bạn đã gửi một đơn đăng ký và đang chờ Admin duyệt.", HttpStatus.BAD_REQUEST),
+    INVALID_CV_FORMAT(12003, "File CV không hợp lệ hoặc bị lỗi định dạng PDF.", HttpStatus.BAD_REQUEST),
+    INVALID_CV_CONTENT(12004, "CV không chứa nội dung văn bản hợp lệ hoặc không đọc được.", HttpStatus.BAD_REQUEST),
+    NOT_A_CV(12005, "Tệp tải lên không phải là một CV hợp lệ (Thiếu thông tin kinh nghiệm, học vấn, kỹ năng).", HttpStatus.BAD_REQUEST),
+    FILE_SAVE_ERROR(12006, "Lỗi lưu file CV lên hệ thống. Vui lòng thử lại.", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_TOO_LARGE(12007, "Kích thước file vượt quá giới hạn cho phép (Tối đa 5MB).", HttpStatus.BAD_REQUEST);
 
     private final int code;
     private final String message;

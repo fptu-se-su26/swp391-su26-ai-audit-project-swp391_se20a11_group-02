@@ -26,8 +26,14 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "wallet", ignore = true)
+    @Mapping(target = "avatarurl", ignore = true)
+    @Mapping(target = "score", ignore = true)
+    @Mapping(target = "lockReason", ignore = true)
+    @Mapping(target = "lockAppeal", ignore = true)
     UserEntity toUserEntity(RegisterRequest registerRequest);
 
+    @Mapping(target = "displayName", source = "displayname")
+    @Mapping(target = "avatarUrl", source = "avatarurl")
     UserResponse toUserResponse(UserEntity userEntity);
 
     default Set<String> map(Set<RoleEntity> roles) {

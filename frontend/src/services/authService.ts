@@ -12,6 +12,9 @@ export interface LoginResponse {
     email: string;
     balance?: number;
     roles?: string[];
+    status?: string;
+    lockReason?: string;
+    lockAppeal?: string;
   };
 }
 
@@ -85,5 +88,74 @@ export const authService = {
     if (!response.ok) {
       throw new Error('Đăng xuất không thành công');
     }
+  },
+
+  async changePassword(changePasswordData: any): Promise<void> {
+    const response = await fetch(`${BASE_URL}/me/change-password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // CRITICAL: Required to send HttpOnly cookies
+      body: JSON.stringify(changePasswordData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Thay đổi mật khẩu không thành công');
+    }
+  },
+
+  async getMyInfo(): Promise<any> {
+    const response = await fetch(`${BASE_URL}/me/my-info`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // CRITICAL: Required to send HttpOnly cookies
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Không thể lấy thông tin người dùng');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async submitAppeal(appealReason: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/me/appeal`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ appealReason }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to submit appeal');
+    }
+  },
+
+  async refresh(): Promise<LoginResponse['result']> {
+    const response = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // CRITICAL: Required to send and receive HttpOnly cookies
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to refresh token');
+    }
+
+    const data: LoginResponse = await response.json();
+    return data.result;
   }
 };
+

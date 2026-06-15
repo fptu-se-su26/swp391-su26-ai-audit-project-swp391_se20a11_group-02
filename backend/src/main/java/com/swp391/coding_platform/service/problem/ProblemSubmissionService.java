@@ -35,11 +35,15 @@ import java.util.stream.Collectors;
 public class ProblemSubmissionService {
 
     ProblemSubmissionRepository problemSubmissionRepository;
+    ProblemRepository problemRepository;
 
     public List<ProblemSubmissionResponse> getSubmissions(Integer problemId, Integer userId) {
         if (userId == null) {
             return Collections.emptyList();
         }
+
+        problemRepository.findByIdAndIsPublicTrue(problemId)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         List<ProblemSubmissionEntity> subs = problemSubmissionRepository.findByUserIdAndProblemId(userId.intValue(),
                 problemId);

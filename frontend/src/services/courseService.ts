@@ -813,3 +813,259 @@ export const submitCourseReview = async (id: number | string, star: number, cont
     throw new Error(errorData.message || 'Không thể gửi đánh giá');
   }
 };
+
+export interface LearningDetailResponse {
+  courseId: number;
+  courseTitle: string;
+  instructorName: string;
+  progressPercentage: number;
+  activeLessonId?: number;
+  activeLessonTitle?: string;
+  activeLessonVideoUrl?: string;
+  activeLessonTheoryContent?: string;
+}
+
+export interface LearningCurriculumLessonResponse {
+  id: number;
+  title: string;
+  isTrial: boolean;
+  orderIndex: number;
+  type: string;
+  isCompleted: boolean;
+}
+
+export interface LearningCurriculumChapterResponse {
+  id: number;
+  title: string;
+  orderIndex: number;
+  lessons: LearningCurriculumLessonResponse[];
+}
+
+export interface LearningLessonResponse {
+  id: number;
+  title: string;
+  videoUrl: string;
+  theoryContent: string;
+}
+
+export const fetchCourseLearningDetail = async (id: number | string): Promise<LearningDetailResponse> => {
+  const response = await fetch(`${BASE_URL}/courses/${id}/learning-detail`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải thông tin học tập');
+  }
+
+  const data: ApiResponse<LearningDetailResponse> = await response.json();
+  return data.result;
+};
+
+export const fetchCourseLearningCurriculum = async (id: number | string): Promise<LearningCurriculumChapterResponse[]> => {
+  const response = await fetch(`${BASE_URL}/courses/${id}/learning-curriculum`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải chương trình học tập');
+  }
+
+  const data: ApiResponse<LearningCurriculumChapterResponse[]> = await response.json();
+  return data.result;
+};
+
+export const fetchLearningLessonDetail = async (courseId: number | string, lessonId: number | string): Promise<LearningLessonResponse> => {
+  const response = await fetch(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải chi tiết bài học');
+  }
+
+  const data: ApiResponse<LearningLessonResponse> = await response.json();
+  return data.result;
+};
+
+export interface LessonComment {
+  id: number;
+  author: string;
+  avatar_url?: string;
+  text: string;
+  createdAt: string;
+  parentId?: number | null;
+  replies: LessonComment[];
+}
+
+export interface CreateCommentRequest {
+  content: string;
+  parentId?: number | null;
+}
+
+export const fetchLessonComments = async (lessonId: number | string): Promise<LessonComment[]> => {
+  const response = await fetch(`${BASE_URL}/courses/lessons/${lessonId}/comments`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải bình luận bài học');
+  }
+
+  const data: ApiResponse<LessonComment[]> = await response.json();
+  return data.result;
+};
+
+export const postLessonComment = async (lessonId: number | string, data: CreateCommentRequest): Promise<LessonComment> => {
+  const response = await fetch(`${BASE_URL}/courses/lessons/${lessonId}/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể gửi bình luận');
+  }
+
+  const resData: ApiResponse<LessonComment> = await response.json();
+  return resData.result;
+};
+
+export interface QuizOption {
+  optionId: number;
+  content: string;
+  orderIndex: number;
+  isCorrect?: boolean;
+}
+
+export interface QuizQuestion {
+  questionId: number;
+  content: string;
+  orderIndex: number;
+  options: QuizOption[];
+  selectedOptionId?: number | null;
+  correctOptionId?: number;
+  isCorrect?: boolean;
+}
+
+export interface QuizDetail {
+  quizId: number;
+  title: string;
+  submitted: boolean;
+  score?: number;
+  totalQuestion?: number;
+  correctQuestion?: number;
+  submittedAt?: string;
+  questions: QuizQuestion[];
+}
+
+export interface QuizAnswerItem {
+  questionId: number;
+  selectedOptionId: number | null;
+}
+
+export interface QuizSubmitRequest {
+  answers: QuizAnswerItem[];
+}
+
+export interface QuizOptionResult {
+  optionId: number;
+  content: string;
+  orderIndex: number;
+  isCorrect: boolean;
+}
+
+export interface QuizQuestionResult {
+  questionId: number;
+  content: string;
+  selectedOptionId: number | null;
+  correctOptionId: number;
+  isCorrect: boolean;
+  options: QuizOptionResult[];
+}
+
+export interface QuizSubmitResult {
+  attemptId: number;
+  totalQuestion: number;
+  correctQuestion: number;
+  score: number;
+  submittedAt: string;
+  results: QuizQuestionResult[];
+}
+
+export const fetchQuizByLesson = async (courseId: number | string, lessonId: number | string): Promise<QuizDetail> => {
+  const response = await fetch(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}/quiz`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể tải chi tiết bài trắc nghiệm');
+  }
+
+  const data: ApiResponse<QuizDetail> = await response.json();
+  return data.result;
+};
+
+export const submitQuiz = async (courseId: number | string, quizId: number | string, data: QuizSubmitRequest): Promise<QuizSubmitResult> => {
+  const response = await fetch(`${BASE_URL}/courses/${courseId}/quizzes/${quizId}/submit`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể nộp bài trắc nghiệm');
+  }
+
+  const resData: ApiResponse<QuizSubmitResult> = await response.json();
+  return resData.result;
+};
+
+export const completeLesson = async (courseId: number | string, lessonId: number | string): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}/complete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Không thể hoàn thành bài học');
+  }
+};
+
+

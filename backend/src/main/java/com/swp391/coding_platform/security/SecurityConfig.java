@@ -49,9 +49,14 @@ public class SecurityConfig {
 
                         // 2. Các API xác thực (Auth)
                         .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
 
                         // 3. Các API Public để xem dữ liệu (Giới hạn HTTP GET)
-                        .requestMatchers(HttpMethod.GET, "/courses/**", "/lessons/{lessonId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses/{id}/curriculum").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses/{id}/reviews").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/lessons/{lessonId}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/contests", "/contests/banner", "/contests/{contestId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/problems").permitAll()
                         .requestMatchers("/online-judge/problems/practice").permitAll()

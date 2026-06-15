@@ -1,11 +1,14 @@
 package com.swp391.coding_platform.service.problem;
 
+import com.swp391.coding_platform.dto.request.AdminProblemRequest;
 import com.swp391.coding_platform.dto.request.CreateCommentRequest;
+import com.swp391.coding_platform.dto.response.AdminProblemResponse;
 import com.swp391.coding_platform.dto.response.ProblemCommentResponse;
 import com.swp391.coding_platform.dto.response.ProblemDescriptionResponse;
 import com.swp391.coding_platform.dto.response.ProblemListItemResponse;
 import com.swp391.coding_platform.dto.response.ProblemSolutionResponse;
 import com.swp391.coding_platform.entity.enums.OjVerdict;
+import com.swp391.coding_platform.entity.enums.ProblemDifficulty;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.entity.enums.ProblemScope;
@@ -18,7 +21,14 @@ import com.swp391.coding_platform.repository.problem.ProblemCommentRepository;
 import com.swp391.coding_platform.repository.problem.ProblemRepository;
 import com.swp391.coding_platform.repository.problem.ProblemSubmissionRepository;
 import com.swp391.coding_platform.repository.problem.ProblemTagMappingRepository;
+import com.swp391.coding_platform.repository.problem.ProblemTagRepository;
+import com.swp391.coding_platform.entity.problem.ProblemTagEntity;
+import com.swp391.coding_platform.dto.response.ProblemTagResponse;
 import com.swp391.coding_platform.repository.user.UserRepository;
+import com.swp391.coding_platform.repository.problem.ProblemTestcaseRepository;
+import com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity;
+import com.swp391.coding_platform.dto.request.AdminTestcaseRequest;
+import com.swp391.coding_platform.dto.response.AdminTestcaseResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -41,9 +51,14 @@ public class ProblemService {
     ProblemSubmissionRepository problemSubmissionRepository;
     ProblemCommentRepository problemCommentRepository;
     UserRepository userRepository;
+    ProblemTestcaseRepository problemTestcaseRepository;
+    ProblemTagRepository problemTagRepository;
+
+    @lombok.experimental.NonFinal
+    com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
     public List<ProblemListItemResponse> getProblems(Integer userId) {
-        List<ProblemEntity> problems = problemRepository.findByProblemScopeInAndIsActiveTrue(
+        List<ProblemEntity> problems = problemRepository.findByProblemScopeInAndIsActiveTrueAndIsPublicTrue(
                 List.of(ProblemScope.PRACTICE, ProblemScope.SHARED)
         );
 
@@ -105,7 +120,7 @@ public class ProblemService {
     }
 
     public ProblemDescriptionResponse getProblemDescription(Integer id, Integer userId) {
-        ProblemEntity problem = problemRepository.findById(id)
+        ProblemEntity problem = problemRepository.findByIdAndIsPublicTrue(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         List<ProblemTagMappingEntity> mappings = problemTagMappingRepository.findByProblemId(id);
@@ -192,6 +207,8 @@ public class ProblemService {
     }
 
     public List<ProblemCommentResponse> getComments(Integer problemId) {
+        problemRepository.findByIdAndIsPublicTrue(problemId)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
         List<ProblemCommentEntity> topComments =
                 problemCommentRepository.findByProblemIdAndParentIsNullOrderByCreatedAtDesc(problemId);
         return topComments.stream().map(this::mapCommentToResponse).toList();
@@ -203,7 +220,7 @@ public class ProblemService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        ProblemEntity problem = problemRepository.findById(problemId)
+        ProblemEntity problem = problemRepository.findByIdAndIsPublicTrue(problemId)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         UserEntity user = userRepository.findById(userId.intValue())
@@ -263,7 +280,7 @@ public class ProblemService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        ProblemEntity problem = problemRepository.findById(id)
+        ProblemEntity problem = problemRepository.findByIdAndIsPublicTrue(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         // Check if the user has solved this problem
@@ -285,4 +302,363 @@ public class ProblemService {
                 .solutionCode(solutionCode)
                 .build();
     }
+
+    public List<AdminProblemResponse> getAdminProblems() {
+        return problemRepository.findAll().stream()
+                .map(this::mapToAdminResponse)
+                .toList();
+    }
+
+    public List<ProblemTagResponse> getAllTags() {
+        if (problemTagRepository.count() == 0) {
+            List<String> defaultTags = List.of("Arrays", "Hash Map", "Dynamic Programming", "Two Pointers", "Math", "String", "Binary Search", "Greedy", "Sorting", "Trees");
+            for (String tagName : defaultTags) {
+                String slug = tagName.toLowerCase().replace(" ", "-");
+                problemTagRepository.save(ProblemTagEntity.builder()
+                        .name(tagName)
+                        .slug(slug)
+                        .createdAt(Instant.now())
+                        .updatedAt(Instant.now())
+                        .build());
+            }
+        }
+        return problemTagRepository.findAll().stream()
+                .map(t -> ProblemTagResponse.builder()
+                        .id(t.getId())
+                        .name(t.getName())
+                        .slug(t.getSlug())
+                        .build())
+                .toList();
+    }
+
+    @Transactional
+    public AdminProblemResponse createAdminProblem(AdminProblemRequest request, Integer adminUserId) {
+        UserEntity createdBy = userRepository.findById(adminUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        ProblemScope scope = ProblemScope.PRACTICE;
+        if (request.getProblemScope() != null) {
+            try {
+                scope = ProblemScope.valueOf(request.getProblemScope());
+            } catch (IllegalArgumentException e) {
+                // Keep default
+            }
+        }
+
+        ProblemDifficulty difficulty = ProblemDifficulty.MEDIUM;
+        if (request.getDifficulty() != null) {
+            try {
+                difficulty = ProblemDifficulty.valueOf(request.getDifficulty());
+            } catch (IllegalArgumentException e) {
+                // Keep default
+            }
+        }
+
+        String templatesJson = null;
+        if (request.getStarterTemplates() != null) {
+            try {
+                templatesJson = objectMapper.writeValueAsString(request.getStarterTemplates());
+            } catch (Exception e) {
+                log.warn("Failed to serialize starter templates: {}", e.getMessage());
+            }
+        }
+
+        ProblemEntity problem = ProblemEntity.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .inputDescription(request.getInputDescription())
+                .outputDescription(request.getOutputDescription())
+                .constraints(request.getConstraints())
+                .exampleInput(request.getExampleInput())
+                .exampleOutput(request.getExampleOutput())
+                .hint(request.getHint())
+                .problemScope(scope)
+                .difficulty(difficulty)
+                .isActive(false)
+                .createdBy(createdBy)
+                .totalTestcase(0)
+                .timeLimitMs(request.getTimeLimitMs() != null ? request.getTimeLimitMs() : 2000)
+                .memoryLimitKb(request.getMemoryLimitKb() != null ? request.getMemoryLimitKb() : 128000)
+                .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
+                .score(request.getScore() != null ? java.math.BigDecimal.valueOf(request.getScore()) : new java.math.BigDecimal("100.00"))
+                .solutions(request.getSolutions())
+                .starterTemplates(templatesJson)
+                .totalSubmission(0)
+                .totalAccepted(0)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+
+        ProblemEntity saved = problemRepository.save(problem);
+
+        if (request.getTags() != null) {
+            for (String tagName : request.getTags()) {
+                if (tagName == null || tagName.isBlank()) continue;
+                ProblemTagEntity tag = problemTagRepository.findByName(tagName)
+                        .orElseGet(() -> {
+                            String slug = tagName.toLowerCase().replace(" ", "-");
+                            return problemTagRepository.save(ProblemTagEntity.builder()
+                                    .name(tagName)
+                                    .slug(slug)
+                                    .createdAt(Instant.now())
+                                    .updatedAt(Instant.now())
+                                    .build());
+                        });
+                problemTagMappingRepository.save(ProblemTagMappingEntity.builder()
+                        .problem(saved)
+                        .tag(tag)
+                        .build());
+            }
+        }
+
+        return mapToAdminResponse(saved);
+    }
+
+    @Transactional
+    public AdminProblemResponse updateAdminProblem(Integer id, AdminProblemRequest request) {
+        ProblemEntity problem = problemRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        problem.setTitle(request.getTitle());
+        problem.setDescription(request.getDescription());
+        problem.setInputDescription(request.getInputDescription());
+        problem.setOutputDescription(request.getOutputDescription());
+        problem.setConstraints(request.getConstraints());
+        problem.setExampleInput(request.getExampleInput());
+        problem.setExampleOutput(request.getExampleOutput());
+        problem.setHint(request.getHint());
+        problem.setSolutions(request.getSolutions());
+
+        if (request.getProblemScope() != null) {
+            try {
+                problem.setProblemScope(ProblemScope.valueOf(request.getProblemScope()));
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid enum
+            }
+        }
+
+        if (request.getDifficulty() != null) {
+            try {
+                problem.setDifficulty(ProblemDifficulty.valueOf(request.getDifficulty()));
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid enum
+            }
+        }
+
+        if (request.getTotalTestcases() != null) {
+            problem.setTotalTestcase(request.getTotalTestcases());
+            problem.setIsActive(request.getTotalTestcases() > 0);
+        }
+        if (request.getTimeLimitMs() != null) {
+            problem.setTimeLimitMs(request.getTimeLimitMs());
+        }
+        if (request.getMemoryLimitKb() != null) {
+            problem.setMemoryLimitKb(request.getMemoryLimitKb());
+        }
+        if (request.getIsPublic() != null) {
+            problem.setIsPublic(request.getIsPublic());
+        }
+        if (request.getScore() != null) {
+            problem.setScore(java.math.BigDecimal.valueOf(request.getScore()));
+        }
+
+        if (request.getStarterTemplates() != null) {
+            try {
+                problem.setStarterTemplates(objectMapper.writeValueAsString(request.getStarterTemplates()));
+            } catch (Exception e) {
+                log.warn("Failed to serialize starter templates: {}", e.getMessage());
+            }
+        }
+
+        if (request.getTags() != null) {
+            problemTagMappingRepository.deleteByProblemId(problem.getId());
+            problemTagMappingRepository.flush();
+            java.util.Set<String> uniqueTags = new java.util.LinkedHashSet<>(request.getTags());
+            for (String tagName : uniqueTags) {
+                if (tagName == null || tagName.isBlank()) continue;
+                ProblemTagEntity tag = problemTagRepository.findByName(tagName)
+                        .orElseGet(() -> {
+                            String slug = tagName.toLowerCase().replace(" ", "-");
+                            return problemTagRepository.save(ProblemTagEntity.builder()
+                                    .name(tagName)
+                                    .slug(slug)
+                                    .createdAt(Instant.now())
+                                    .updatedAt(Instant.now())
+                                    .build());
+                        });
+                problemTagMappingRepository.save(ProblemTagMappingEntity.builder()
+                        .problem(problem)
+                        .tag(tag)
+                        .build());
+            }
+        }
+
+        problem.setUpdatedAt(Instant.now());
+
+        ProblemEntity saved = problemRepository.save(problem);
+        return mapToAdminResponse(saved);
+    }
+
+    @Transactional
+    public AdminProblemResponse updateAdminProblemScope(Integer id, String scopeStr) {
+        ProblemEntity problem = problemRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        try {
+            problem.setProblemScope(ProblemScope.valueOf(scopeStr));
+            problem.setUpdatedAt(Instant.now());
+            ProblemEntity saved = problemRepository.save(problem);
+            return mapToAdminResponse(saved);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+    }
+
+    @Transactional
+    public AdminProblemResponse updateAdminProblemPublicStatus(Integer id, Boolean isPublic) {
+        ProblemEntity problem = problemRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        problem.setIsPublic(isPublic);
+        problem.setUpdatedAt(Instant.now());
+        ProblemEntity saved = problemRepository.save(problem);
+        return mapToAdminResponse(saved);
+    }
+
+    @Transactional
+    public AdminProblemResponse activateAdminProblem(Integer id, Integer totalTestcases) {
+        ProblemEntity problem = problemRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        problem.setTotalTestcase(totalTestcases);
+        problem.setIsActive(totalTestcases > 0);
+        if (totalTestcases > 0) {
+            problem.setIsPublic(true);
+        }
+        problem.setUpdatedAt(Instant.now());
+        ProblemEntity saved = problemRepository.save(problem);
+        return mapToAdminResponse(saved);
+    }
+
+    @Transactional
+    public void deleteAdminProblem(Integer id) {
+        ProblemEntity problem = problemRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        // Delete comments first due to lack of ON DELETE CASCADE
+        problemCommentRepository.deleteByProblemId(problem.getId());
+
+        // Now we can delete the problem itself, other related records (submissions, testcases, tag mappings, etc.) will cascade delete
+        problemRepository.delete(problem);
+    }
+
+    private AdminProblemResponse mapToAdminResponse(ProblemEntity entity) {
+        List<ProblemTagMappingEntity> tagMappings = problemTagMappingRepository.findByProblemId(entity.getId());
+        List<String> tags = tagMappings.stream()
+                .map(m -> m.getTag().getName())
+                .collect(Collectors.toList());
+
+        Map<String, String> templates = null;
+        if (entity.getStarterTemplates() != null && !entity.getStarterTemplates().isBlank()) {
+            try {
+                templates = objectMapper.readValue(entity.getStarterTemplates(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {});
+            } catch (Exception e) {
+                log.warn("Failed to parse starter templates for problem {}: {}", entity.getId(), e.getMessage());
+            }
+        }
+
+        return AdminProblemResponse.builder()
+                .id(entity.getId())
+                .title(entity.getTitle())
+                .description(entity.getDescription())
+                .inputDescription(entity.getInputDescription())
+                .outputDescription(entity.getOutputDescription())
+                .constraints(entity.getConstraints())
+                .exampleInput(entity.getExampleInput())
+                .exampleOutput(entity.getExampleOutput())
+                .hint(entity.getHint())
+                .problemScope(entity.getProblemScope() != null ? entity.getProblemScope().name() : null)
+                .difficulty(entity.getDifficulty() != null ? entity.getDifficulty().name() : null)
+                .isActive(entity.getIsActive())
+                .createdBy(entity.getCreatedBy() != null ? entity.getCreatedBy().getId() : null)
+                .createdAt(entity.getCreatedAt() != null ? entity.getCreatedAt().toString() : null)
+                .totalTestcases(entity.getTotalTestcase() != null ? entity.getTotalTestcase() : 0)
+                .timeLimitMs(entity.getTimeLimitMs())
+                .memoryLimitKb(entity.getMemoryLimitKb())
+                .isPublic(entity.getIsPublic())
+                .score(entity.getScore() != null ? entity.getScore().doubleValue() : 0.0)
+                .solutions(entity.getSolutions())
+                .totalSubmissions(entity.getTotalSubmission() != null ? entity.getTotalSubmission() : 0)
+                .acceptedSubmissions(entity.getTotalAccepted() != null ? entity.getTotalAccepted() : 0)
+                .tags(tags)
+                .starterTemplates(templates)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminTestcaseResponse> getProblemTestcases(Integer problemId) {
+        problemRepository.findById(problemId)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+        
+        List<ProblemTestcaseEntity> tcs = problemTestcaseRepository.findByProblemIdOrderByOrderIndexAsc(problemId);
+        return tcs.stream()
+                .map(tc -> AdminTestcaseResponse.builder()
+                        .id(tc.getId())
+                        .problemId(problemId)
+                        .inputData(tc.getInputData())
+                        .expectedOutput(tc.getExpectedOutput())
+                        .orderIndex(tc.getOrderIndex())
+                        .token(tc.getToken())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<AdminTestcaseResponse> saveProblemTestcases(Integer problemId, List<AdminTestcaseRequest> requests) {
+        ProblemEntity problem = problemRepository.findById(problemId)
+                .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        // Validate requests
+        for (AdminTestcaseRequest req : requests) {
+            if (req.getInputData() == null || req.getInputData().trim().isEmpty() ||
+                req.getExpectedOutput() == null || req.getExpectedOutput().trim().isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
+        }
+
+        // Delete existing
+        problemTestcaseRepository.deleteByProblemId(problemId);
+
+        // Map and save new
+        List<ProblemTestcaseEntity> newEntities = requests.stream()
+                .map(req -> ProblemTestcaseEntity.builder()
+                        .problem(problem)
+                        .inputData(req.getInputData())
+                        .expectedOutput(req.getExpectedOutput())
+                        .orderIndex(req.getOrderIndex())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<ProblemTestcaseEntity> savedEntities = problemTestcaseRepository.saveAll(newEntities);
+
+        // Update problem count and isActive status
+        problem.setTotalTestcase(savedEntities.size());
+        problem.setIsActive(savedEntities.size() > 0);
+        if (savedEntities.size() > 0) {
+            problem.setIsPublic(true);
+        }
+        problemRepository.save(problem);
+
+        return savedEntities.stream()
+                .map(tc -> AdminTestcaseResponse.builder()
+                        .id(tc.getId())
+                        .problemId(problemId)
+                        .inputData(tc.getInputData())
+                        .expectedOutput(tc.getExpectedOutput())
+                        .orderIndex(tc.getOrderIndex())
+                        .token(tc.getToken())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
+

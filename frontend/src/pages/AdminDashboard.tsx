@@ -1,15 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { adminService } from '../services/adminService';
 import type {
   AdminDashboardStats,
   AdminCourse,
-  AdminInstructorApplication,
   AdminInstructor,
   AdminUser,
   AdminProblem,
   AdminContest,
-  AdminDepositHistory
+  AdminDepositHistory,
+  AdminProblemTestcase,
+  MonthlyFinancialRecord,
+  TopRevenueCourse,
+  AdminFinancialDetails,
+  MonthlyFinancialBreakdown,
+  OrderDetails,
+  AwardDetails,
+  SaleDetails
 } from '../services/adminService';
 
 interface ProblemDetail {
@@ -96,8 +103,8 @@ const tabHeaderDetails: Record<string, { badge: string; icon: string; title: str
   instructor: {
     badge: 'Instructor Management',
     icon: 'school',
-    title: 'Instructor Applications 🎓',
-    desc: 'Review instructor registration requests, CVs, and manage current platform instructors.'
+    title: 'Platform Instructors 🎓',
+    desc: 'View and manage all platform instructors. Monitor their courses, ratings, student counts, and control account status.'
   },
   users: {
     badge: 'User Management',
@@ -323,7 +330,159 @@ const rankingFormatMinutes = (m: number): string => {
   return `${hrs}h ${mins}m`;
 };
 
+const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }> = ({ details }) => {
+  const [selectedYear, setSelectedYear] = useState<string>('ALL');
+
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set<string>();
+    (details?.monthlyBreakdowns || []).forEach((b: MonthlyFinancialBreakdown) => {
+      if (b.datePrefix && b.datePrefix.length >= 4) {
+        const year = b.datePrefix.substring(0, 4);
+        yearsSet.add(year);
+      }
+    });
+    return Array.from(yearsSet).sort().reverse();
+  }, [details]);
+
+  const filteredBreakdowns = useMemo(() => {
+    const list = details?.monthlyBreakdowns || [];
+    if (selectedYear === 'ALL') return list;
+    return list.filter((b: MonthlyFinancialBreakdown) => b.datePrefix && b.datePrefix.startsWith(selectedYear));
+  }, [details, selectedYear]);
+
+  const summary = useMemo(() => {
+    let gross = 0;
+    let count = 0;
+    let rewards = 0;
+    let server = 0;
+    let marketing = 0;
+    let netProfit = 0;
+
+    filteredBreakdowns.forEach((item: MonthlyFinancialBreakdown) => {
+      gross += item.gross || 0;
+      count += item.count || 0;
+      rewards += item.rewards || 0;
+      server += item.server || 0;
+      marketing += item.marketing || 0;
+      netProfit += item.netProfit || 0;
+    });
+
+    const platformShare = Math.round(gross * 0.3);
+    const instructorShare = Math.round(gross * 0.7);
+    const gatewayFees = Math.round(gross * 0.02);
+
+    return {
+      gross,
+      count,
+      rewards,
+      server,
+      marketing,
+      netProfit,
+      platformShare,
+      instructorShare,
+      gatewayFees
+    };
+  }, [filteredBreakdowns]);
+
+  return (
+    <div className="flex flex-col gap-5 text-slate-800">
+      {/* Year Selector */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-600">Lọc theo năm báo cáo:</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-brand-blue outline-none cursor-pointer"
+          >
+            <option value="ALL">Toàn bộ thời gian hoạt động</option>
+            {availableYears.map(yr => (
+              <option key={yr} value={yr}>Năm {yr}</option>
+            ))}
+          </select>
+        </div>
+        <span className="text-[10px] font-black uppercase text-slate-400">
+          Thời gian: {selectedYear === 'ALL' ? 'Từ đầu hoạt động' : `Năm ${selectedYear}`}
+        </span>
+      </div>
+
+      {/* KPI summaries for selected range */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Doanh thu gộp (Gross)</p>
+          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.gross.toLocaleString()} ₫</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Giữ lại Platform (30%)</p>
+          <p className="text-sm font-mono font-black text-indigo-600 mt-1">{summary.platformShare.toLocaleString()} ₫</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Khóa học bán ra</p>
+          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.count.toLocaleString()} copies</p>
+        </div>
+        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase font-black">Lợi nhuận ròng (Net Profit)</p>
+          <p className={`text-sm font-mono font-black mt-1 ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {summary.netProfit.toLocaleString()} ₫
+          </p>
+        </div>
+      </div>
+
+      {/* Monthly Breakdown Sheet */}
+      <div>
+        <h4 className="font-display font-black text-slate-900 text-xs mb-3">
+          Bảng báo cáo chi tiết tài chính từng tháng
+        </h4>
+        <div className="overflow-x-auto border border-slate-100 rounded-xl">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                <th className="p-3">Tháng</th>
+                <th className="p-3 text-right">Doanh thu gộp</th>
+                <th className="p-3 text-right">Platform (30%)</th>
+                <th className="p-3 text-right">Giải thưởng (AWARD)</th>
+                <th className="p-3 text-right">Chi phí vận hành</th>
+                <th className="p-3 text-right">Lợi nhuận ròng</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+              {filteredBreakdowns.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu.</td>
+                </tr>
+              ) : (
+                filteredBreakdowns.map((b: MonthlyFinancialBreakdown, idx: number) => {
+                  const gross = b.gross || 0;
+                  const platformShare = Math.round(gross * 0.3);
+                  const gatewayFees = Math.round(gross * 0.02);
+                  const operCosts = (b.server || 0) + (b.marketing || 0) + gatewayFees;
+                  return (
+                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-3 text-slate-900 font-bold">{b.label}</td>
+                      <td className="p-3 text-right font-mono text-slate-900">{gross.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-indigo-600">+{platformShare.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-rose-500">-{b.rewards.toLocaleString()} ₫</td>
+                      <td className="p-3 text-right font-mono text-slate-500" title={`Server: ${(b.server || 0).toLocaleString()} ₫, Marketing: ${(b.marketing || 0).toLocaleString()} ₫, Gateway Fee (2%): ${gatewayFees.toLocaleString()} ₫`}>
+                        -{operCosts.toLocaleString()} ₫
+                      </td>
+                      <td className={`p-3 text-right font-mono font-bold ${b.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {b.netProfit.toLocaleString()} ₫
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const AdminDashboard: React.FC = () => {
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
   const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'>('dashboard');
@@ -332,36 +491,76 @@ export const AdminDashboard: React.FC = () => {
   // States for API data
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [courses, setCourses] = useState<AdminCourse[]>([]);
-  const [applications, setApplications] = useState<AdminInstructorApplication[]>([]);
+
   const [instructors, setInstructors] = useState<AdminInstructor[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
+  const [monthlyRecords, setMonthlyRecords] = useState<MonthlyFinancialRecord[]>([]);
+  const [topCourses, setTopCourses] = useState<TopRevenueCourse[]>([]);
+  const [financialDetails, setFinancialDetails] = useState<AdminFinancialDetails | null>(null);
+  const [activeFinancialModal, setActiveFinancialModal] = useState<'gross' | 'instructor' | 'platform' | 'awards' | 'profit' | 'sales' | 'courses-sold-all' | null>(null);
 
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
+  const [globalToast, setGlobalToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showGlobalToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setGlobalToast({ message, type });
+    setTimeout(() => setGlobalToast(null), 3000);
+  };
 
   // Filter states
   const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
-  const [instructorAppFilter, setInstructorAppFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
+
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
   const [userOnlineFilter, setUserOnlineFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
+  const [instSearch, setInstSearch] = useState('');
+  const [instStatusFilter, setInstStatusFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
-  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest'>('repository');
-  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
+  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
+  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'CANCELLED'>('ALL');
+
+  // Status change confirm modal state
+  const [statusConfirmTarget, setStatusConfirmTarget] = useState<{
+    id: number;
+    name: string;
+    type: 'INSTRUCTOR' | 'USER';
+    newStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  } | null>(null);
+  const [isProcessingStatusChange, setIsProcessingStatusChange] = useState<boolean>(false);
 
   // Modal / review panel states
-
-  const [selectedAppForReview, setSelectedAppForReview] = useState<AdminInstructorApplication | null>(null);
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
   const [editingProblemId, setEditingProblemId] = useState<number | null>(null);
+
+  // Testcase state variables
+  const [isTestcaseModalOpen, setIsTestcaseModalOpen] = useState(false);
+  const [testcaseProblem, setTestcaseProblem] = useState<AdminProblem | null>(null);
+  const [testcasesList, setTestcasesList] = useState<Omit<AdminProblemTestcase, 'id'>[]>([]);
+  const [testcaseTab, setTestcaseTab] = useState<'manual' | 'upload'>('manual');
+  const [zipFile, setZipFile] = useState<File | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [isSavingTestcases, setIsSavingTestcases] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
+
+  // Confirmation Modal state
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmModalTitle, setConfirmModalTitle] = useState('');
+  const [confirmModalMessage, setConfirmModalMessage] = useState('');
+  const [confirmModalAction, setConfirmModalAction] = useState<(() => void) | null>(null);
+
+  const triggerConfirm = (title: string, message: string, action: () => void) => {
+    setConfirmModalTitle(title);
+    setConfirmModalMessage(message);
+    setConfirmModalAction(() => action);
+    setIsConfirmModalOpen(true);
+  };
 
   // Course Player Review Mode states
   const [reviewingCourse, setReviewingCourse] = useState<AdminCourse | null>(null);
@@ -414,51 +613,47 @@ export const AdminDashboard: React.FC = () => {
   const [newContestPassword, setNewContestPassword] = useState('');
   const [newContestConfirmPassword, setNewContestConfirmPassword] = useState('');
 
-  // Hash-based routing synchronization
+  // Nested routing synchronization based on React Router path parameter
   useEffect(() => {
-    const handleRouting = () => {
-      let currentHash = window.location.hash || '#dashboard';
+    // Close active review player and modals when navigating tabs
+    setReviewingCourse(null);
+    setReviewingContest(null);
+    setReviewContestTab('overview');
+    setReviewContestProblemId(null);
+    setSelectedUserDetail(null);
+    setIsCreateProblemOpen(false);
+    setIsEditProblemOpen(false);
+    setEditingProblemId(null);
+    setIsCreateContestOpen(false);
+    setIsTestcaseModalOpen(false);
+    setTestcaseProblem(null);
+    setTestcasesList([]);
+    setZipFile(null);
 
-      // Close active review player and modals when navigating tabs
-      setReviewingCourse(null);
-      setReviewingContest(null);
-      setReviewContestTab('overview');
-      setReviewContestProblemId(null);
-      setSelectedAppForReview(null);
-      setSelectedUserDetail(null);
-      setIsCreateProblemOpen(false);
-      setIsEditProblemOpen(false);
-      setEditingProblemId(null);
-      setIsCreateContestOpen(false);
+    if (tab === 'courses') {
+      setActiveTab('courses');
+    } else if (tab === 'problems') {
+      setActiveTab('problems');
+    } else if (tab === 'contests') {
+      setActiveTab('contest');
+    } else if (tab === 'instructors') {
+      setActiveTab('instructor');
+    } else if (tab === 'users') {
+      setActiveTab('users');
+    } else if (tab === 'financial') {
+      setActiveTab('financial');
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [tab]);
 
-      if (currentHash === '#courses') {
-        setActiveTab('courses');
-      } else if (currentHash === '#problems') {
-        setActiveTab('problems');
-      } else if (currentHash === '#contest') {
-        setActiveTab('contest');
-      } else if (currentHash === '#instructor') {
-        setActiveTab('instructor');
-      } else if (currentHash === '#users') {
-        setActiveTab('users');
-      } else if (currentHash === '#financial') {
-        setActiveTab('financial');
-      } else {
-        setActiveTab('dashboard');
-      }
-    };
-
-    window.addEventListener('hashchange', handleRouting);
-    handleRouting();
-
+  useEffect(() => {
     const savedCollapsed = localStorage.getItem('admin-sidebar-collapsed');
     if (savedCollapsed !== null) {
       setIsSidebarCollapsed(savedCollapsed === 'true');
     } else {
       setIsSidebarCollapsed(window.innerWidth < 768);
     }
-
-    return () => window.removeEventListener('hashchange', handleRouting);
   }, []);
 
   // useEffect for contest ticking countdown timer
@@ -530,31 +725,40 @@ export const AdminDashboard: React.FC = () => {
       const [
         statsRes,
         coursesRes,
-        appsRes,
         instsRes,
         usersRes,
         probsRes,
         contestsRes,
-        recentDepositsRes
+        recentDepositsRes,
+        tagsRes,
+        monthlyRecordsRes,
+        topCoursesRes,
+        financialDetailsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getCourses(),
-        adminService.getInstructorApplications(),
         adminService.getInstructors(),
         adminService.getUsers(),
         adminService.getProblems(),
         adminService.getContests(),
-        adminService.getRecentDeposits()
+        adminService.getRecentDeposits(),
+        adminService.getTags(),
+        adminService.getFinancialMonthlyRecords(),
+        adminService.getFinancialTopCourses(),
+        adminService.getFinancialDetails()
       ]);
 
       setStats(statsRes);
       setCourses(coursesRes);
-      setApplications(appsRes);
       setInstructors(instsRes);
       setUsers(usersRes);
       setProblems(probsRes);
       setContests(contestsRes);
       setRecentDeposits(recentDepositsRes);
+      setAllTags(tagsRes || []);
+      setMonthlyRecords(monthlyRecordsRes || []);
+      setTopCourses(topCoursesRes || []);
+      setFinancialDetails(financialDetailsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -582,8 +786,16 @@ export const AdminDashboard: React.FC = () => {
   const [newProbScore, setNewProbScore] = useState(100);
   const [newProbTimeLimit, setNewProbTimeLimit] = useState(2000);
   const [newProbMemoryLimit, setNewProbMemoryLimit] = useState(128000);
-  const [newProbIsPublic, setNewProbIsPublic] = useState(true);
+  const [newProbIsPublic, setNewProbIsPublic] = useState(false);
   const [newProbSolutions, setNewProbSolutions] = useState('');
+  const [newProbTags, setNewProbTags] = useState<string[]>([]);
+  const [newProbStarterC, setNewProbStarterC] = useState('');
+  const [newProbStarterCpp, setNewProbStarterCpp] = useState('');
+  const [newProbStarterJava, setNewProbStarterJava] = useState('');
+  const [newProbStarterPython, setNewProbStarterPython] = useState('');
+  const [newProbStarterCsharp, setNewProbStarterCsharp] = useState('');
+  const [allTags, setAllTags] = useState<{ id: number; name: string; slug: string }[]>([]);
+  const [starterActiveTab, setStarterActiveTab] = useState<'C' | 'C++' | 'Java' | 'Python 3' | 'C#'>('C');
 
   // Add Contest form state
   const [newContestTitle, setNewContestTitle] = useState('');
@@ -592,10 +804,23 @@ export const AdminDashboard: React.FC = () => {
   const [newContestStartTime, setNewContestStartTime] = useState('');
   const [newContestEndTime, setNewContestEndTime] = useState('');
 
-  const dashboardTimeFilter = '12';
-
   // SVG Chart Computations
-  const financialChartData = useMemo(() => adminService.getFinancialChartData(), []);
+  const financialChartData = useMemo(() => {
+    return stats?.financialChartData || [
+      { label: 'Jul 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Aug 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Sep 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Oct 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Nov 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Dec 25', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Jan 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Feb 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Mar 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Apr 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'May 26', amount: 0, count: 0, usersCount: 0 },
+      { label: 'Jun 26', amount: 0, count: 0, usersCount: 0 }
+    ];
+  }, [stats]);
 
   // Financial Page state variables
   const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '3months' | '9months' | '12months' | 'custom'>('12months');
@@ -605,7 +830,7 @@ export const AdminDashboard: React.FC = () => {
   const [hoveredCourseSalesIndex, setHoveredCourseSalesIndex] = useState<number | null>(null);
   // 12-month raw financial records (Jul 25 to Jun 26)
   const financialMonthlyRecords = useMemo(() => {
-    const rawChartData = [
+    const rawChartData = monthlyRecords.length > 0 ? monthlyRecords : [
       { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
       { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
       { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
@@ -646,7 +871,7 @@ export const AdminDashboard: React.FC = () => {
         netProfit
       };
     });
-  }, []);
+  }, [monthlyRecords]);
 
   // Filtered dataset according to UI state
   const filteredFinancialData = useMemo(() => {
@@ -740,59 +965,29 @@ export const AdminDashboard: React.FC = () => {
 
   // Top course categories data and computations for SVG Donut Chart
   const categoryChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    // Simulate slight filter variations
-    const multiplier = months / 12;
-    return [
-      { name: 'Web Developer', count: Math.round(180 * multiplier), color: '#F36F21' },
-      { name: 'Data Science & AI', count: Math.round(140 * multiplier), color: '#12284C' },
-      { name: 'Mobile App', count: Math.round(95 * multiplier), color: '#10B981' },
-      { name: 'Cloud Computing', count: Math.round(65 * multiplier), color: '#3B82F6' },
-      { name: 'Others', count: Math.round(40 * multiplier), color: '#6B7280' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topCategories || [];
+  }, [stats]);
 
   const categoryTotal = useMemo(() => categoryChartData.reduce((sum, c) => sum + c.count, 0), [categoryChartData]);
 
   // Top courses data and computations for SVG Donut Chart
   const topCoursesChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'React Full-Stack', instructor: 'Dr. Jenkins', count: Math.round(120 * multiplier), color: '#F36F21' },
-      { name: 'Java Algorithms', instructor: 'Alice Miller', count: Math.round(95 * multiplier), color: '#10B981' },
-      { name: 'Go Microservices', instructor: 'John Doe', count: Math.round(80 * multiplier), color: '#3B82F6' },
-      { name: 'Python ML', instructor: 'Dr. Jenkins', count: Math.round(50 * multiplier), color: '#6366F1' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topCourses || [];
+  }, [stats]);
 
   const topCoursesTotal = useMemo(() => topCoursesChartData.reduce((sum, c) => sum + c.count, 0), [topCoursesChartData]);
 
   // Top instructors data and computations for SVG Donut Chart
   const topInstructorsChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'Dr. Jenkins', count: Math.round(170 * multiplier), color: '#F36F21' },
-      { name: 'Alice Miller', count: Math.round(115 * multiplier), color: '#12284C' },
-      { name: 'John Doe', count: Math.round(80 * multiplier), color: '#10B981' },
-      { name: 'Sarah Connor', count: Math.round(55 * multiplier), color: '#3B82F6' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topInstructors || [];
+  }, [stats]);
 
   const topInstructorsTotal = useMemo(() => topInstructorsChartData.reduce((sum, c) => sum + c.count, 0), [topInstructorsChartData]);
 
   // Top problems data and computations for SVG Donut Chart
   const topProblemsChartData = useMemo(() => {
-    const months = parseInt(dashboardTimeFilter);
-    const multiplier = months / 12;
-    return [
-      { name: 'Two Sum', difficulty: 'EASY', count: Math.round(350 * multiplier), color: '#F36F21' },
-      { name: 'Binary Search', difficulty: 'EASY', count: Math.round(240 * multiplier), color: '#12284C' },
-      { name: 'Longest Path', difficulty: 'HARD', count: Math.round(180 * multiplier), color: '#10B981' },
-      { name: 'Valid Parentheses', difficulty: 'MEDIUM', count: Math.round(150 * multiplier), color: '#3B82F6' },
-    ];
-  }, [dashboardTimeFilter]);
+    return stats?.topProblems || [];
+  }, [stats]);
 
   const topProblemsTotal = useMemo(() => topProblemsChartData.reduce((sum, c) => sum + c.count, 0), [topProblemsChartData]);
 
@@ -816,54 +1011,77 @@ export const AdminDashboard: React.FC = () => {
       // reload stats
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
-      alert(`Successfully ${status.toLowerCase()} course application.`);
+      showGlobalToast(`Successfully ${status.toLowerCase()} course application.`, "success");
     } catch (error) {
-      alert("Failed to process course approval");
+      showGlobalToast("Failed to process course approval", "error");
     }
   };
-
-  const handleApproveInstructor = async (appId: number, status: 'APPROVED' | 'REJECTED') => {
-    try {
-      const updated = await adminService.approveInstructorApplication(appId, status, "Approved by Admin dashboard panel");
-      setApplications(prev => prev.map(a => a.id === appId ? updated : a));
-      setSelectedAppForReview(null);
-      // reload instructors and stats
-      const [newStats, newInsts] = await Promise.all([
-        adminService.getDashboardStats(),
-        adminService.getInstructors()
-      ]);
-      setStats(newStats);
-      setInstructors(newInsts);
-      alert(`Successfully ${status.toLowerCase()} instructor application.`);
-    } catch (error) {
-      alert("Failed to process instructor application approval");
-    }
+  const handleUserStatusChange = (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
+    const user = users.find(u => u.id === userId);
+    const name = user ? user.name : `User #${userId}`;
+    setStatusConfirmTarget({
+      id: userId,
+      name,
+      type: 'USER',
+      newStatus
+    });
   };
 
-  const handleUserStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'LOCKED') => {
-    const confirmMsg = `Are you sure you want to change this user status to ${newStatus}?`;
-    if (!window.confirm(confirmMsg)) return;
 
+
+
+
+  const handleInstructorStatusChange = (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
+    const inst = instructors.find(ins => ins.id === instructorId);
+    const name = inst ? inst.fullName : `Instructor #${instructorId}`;
+    setStatusConfirmTarget({
+      id: instructorId,
+      name,
+      type: 'INSTRUCTOR',
+      newStatus
+    });
+
+  };
+
+  const executeStatusChange = async () => {
+    if (!statusConfirmTarget) return;
+    setIsProcessingStatusChange(true);
+    const { id, type, newStatus } = statusConfirmTarget;
     try {
-      const updated = await adminService.setUserLockStatus(userId, newStatus);
-      setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-      if (selectedUserDetail?.id === userId) {
-        setSelectedUserDetail(updated);
+      if (type === 'USER') {
+        const updated = await adminService.setUserLockStatus(id, newStatus as 'ACTIVE' | 'LOCKED');
+        setUsers(prev => prev.map(u => u.id === id ? updated : u));
+        if (selectedUserDetail?.id === id) {
+          setSelectedUserDetail(updated);
+        }
+      } else {
+        const updated = await adminService.setInstructorStatus(id, newStatus as 'ACTIVE' | 'SUSPENDED');
+        setInstructors(prev => prev.map(ins => ins.id === id ? updated : ins));
       }
-      alert(`User status successfully updated to ${newStatus}`);
+      setStatusConfirmTarget(null);
+      showGlobalToast(`${type === 'USER' ? 'User' : 'Instructor'} status successfully updated to ${newStatus}`, "success");
     } catch (error) {
-      alert("Failed to update user status");
+      showGlobalToast(`Failed to update ${type.toLowerCase()} status.`, "error");
+    } finally {
+      setIsProcessingStatusChange(false);
     }
   };
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      alert("Please fill in the title and description.");
+      showGlobalToast("Please fill in the title and description.", "error");
       return;
     }
 
     try {
+      const starterTemplates: Record<string, string> = {};
+      if (newProbStarterC) starterTemplates['C'] = newProbStarterC;
+      if (newProbStarterCpp) starterTemplates['C++'] = newProbStarterCpp;
+      if (newProbStarterJava) starterTemplates['Java'] = newProbStarterJava;
+      if (newProbStarterPython) starterTemplates['Python 3'] = newProbStarterPython;
+      if (newProbStarterCsharp) starterTemplates['C#'] = newProbStarterCsharp;
+
       const newProb = await adminService.createProblem({
         title: newProbTitle.trim(),
         description: newProbDesc.trim(),
@@ -880,7 +1098,9 @@ export const AdminDashboard: React.FC = () => {
         memoryLimitKb: newProbMemoryLimit,
         isPublic: newProbIsPublic,
         score: newProbScore,
-        solutions: newProbSolutions.trim()
+        solutions: newProbSolutions.trim(),
+        tags: newProbTags,
+        starterTemplates
       });
 
       setProblems(prev => [...prev, newProb]);
@@ -900,12 +1120,19 @@ export const AdminDashboard: React.FC = () => {
       setNewProbScore(100);
       setNewProbTimeLimit(2000);
       setNewProbMemoryLimit(128000);
-      setNewProbIsPublic(true);
+      setNewProbIsPublic(false);
       setNewProbSolutions('');
+      setNewProbTags([]);
+      setNewProbStarterC('');
+      setNewProbStarterCpp('');
+      setNewProbStarterJava('');
+      setNewProbStarterPython('');
+      setNewProbStarterCsharp('');
+      setStarterActiveTab('C');
 
-      alert(`Problem "${newProb.title}" created successfully!`);
+      showGlobalToast(`Problem "${newProb.title}" created successfully!`, "success");
     } catch (error) {
-      alert("Failed to create problem");
+      showGlobalToast("Failed to create problem", "error");
     }
   };
 
@@ -926,6 +1153,13 @@ export const AdminDashboard: React.FC = () => {
     setNewProbMemoryLimit(p.memoryLimitKb);
     setNewProbIsPublic(p.isPublic);
     setNewProbSolutions(p.solutions || '');
+    setNewProbTags(p.tags || []);
+    setNewProbStarterC(p.starterTemplates?.['C'] || '');
+    setNewProbStarterCpp(p.starterTemplates?.['C++'] || '');
+    setNewProbStarterJava(p.starterTemplates?.['Java'] || '');
+    setNewProbStarterPython(p.starterTemplates?.['Python 3'] || '');
+    setNewProbStarterCsharp(p.starterTemplates?.['C#'] || '');
+    setStarterActiveTab('C');
     setIsEditProblemOpen(true);
   };
 
@@ -933,12 +1167,19 @@ export const AdminDashboard: React.FC = () => {
     e.preventDefault();
     if (editingProblemId === null) return;
     if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      alert("Please fill in the title and description.");
+      showGlobalToast("Please fill in the title and description.", "error");
       return;
     }
 
     try {
       const existingProb = problems.find(p => p.id === editingProblemId);
+      const starterTemplates: Record<string, string> = {};
+      if (newProbStarterC) starterTemplates['C'] = newProbStarterC;
+      if (newProbStarterCpp) starterTemplates['C++'] = newProbStarterCpp;
+      if (newProbStarterJava) starterTemplates['Java'] = newProbStarterJava;
+      if (newProbStarterPython) starterTemplates['Python 3'] = newProbStarterPython;
+      if (newProbStarterCsharp) starterTemplates['C#'] = newProbStarterCsharp;
+
       const updatedProb = await adminService.updateProblem(editingProblemId, {
         title: newProbTitle.trim(),
         description: newProbDesc.trim(),
@@ -955,7 +1196,9 @@ export const AdminDashboard: React.FC = () => {
         memoryLimitKb: newProbMemoryLimit,
         isPublic: newProbIsPublic,
         score: newProbScore,
-        solutions: newProbSolutions.trim()
+        solutions: newProbSolutions.trim(),
+        tags: newProbTags,
+        starterTemplates
       });
 
       setProblems(prev => prev.map(p => p.id === editingProblemId ? updatedProb : p));
@@ -976,12 +1219,19 @@ export const AdminDashboard: React.FC = () => {
       setNewProbScore(100);
       setNewProbTimeLimit(2000);
       setNewProbMemoryLimit(128000);
-      setNewProbIsPublic(true);
+      setNewProbIsPublic(false);
       setNewProbSolutions('');
+      setNewProbTags([]);
+      setNewProbStarterC('');
+      setNewProbStarterCpp('');
+      setNewProbStarterJava('');
+      setNewProbStarterPython('');
+      setNewProbStarterCsharp('');
+      setStarterActiveTab('C');
 
-      alert(`Problem "${updatedProb.title}" updated successfully!`);
+      showGlobalToast(`Problem "${updatedProb.title}" updated successfully!`, "success");
     } catch (error) {
-      alert("Failed to update problem");
+      showGlobalToast("Failed to update problem", "error");
     }
   };
 
@@ -990,7 +1240,7 @@ export const AdminDashboard: React.FC = () => {
       const updated = await adminService.updateProblemScope(problemId, scope);
       setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
     } catch (error) {
-      alert("Failed to update problem scope.");
+      showGlobalToast("Failed to update problem scope.", "error");
     }
   };
 
@@ -998,45 +1248,175 @@ export const AdminDashboard: React.FC = () => {
     try {
       const updated = await adminService.updateProblemPublicStatus(problemId, isPublic);
       setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
-      alert(`Problem successfully ${isPublic ? "published" : "made private"}.`);
+      showGlobalToast(`Problem successfully ${isPublic ? "published" : "made private"}.`, "success");
     } catch (error) {
-      alert("Failed to update publication status.");
+      showGlobalToast("Failed to update publication status.", "error");
     }
   };
 
-  const handleActivateProblem = async (problemId: number) => {
-    const countStr = prompt("Add Test Cases to Activate this problem.\nEnter number of test cases to add (e.g. 5, 10):", "5");
-    if (countStr === null) return;
-    const count = parseInt(countStr);
-    if (isNaN(count) || count <= 0) {
-      alert("Please enter a valid positive number.");
-      return;
-    }
+  const handleDeleteProblemClick = async (problemId: number) => {
+    triggerConfirm(
+      "Delete Problem",
+      "Are you sure you want to delete this programming problem? This action cannot be undone.",
+      async () => {
+        try {
+          await adminService.deleteProblem(problemId);
+          setProblems(prev => prev.filter(p => p.id !== problemId));
+          showGlobalToast("Problem deleted successfully.", "success");
+        } catch (error) {
+          showGlobalToast("Failed to delete problem.", "error");
+        }
+      }
+    );
+  };
+
+  const handleOpenTestcaseModal = async (p: AdminProblem) => {
+    setTestcaseProblem(p);
+    setTestcaseTab('manual');
+    setZipFile(null);
+    setIsTestcaseModalOpen(true);
     try {
-      const updated = await adminService.activateProblem(problemId, count);
-      setProblems(prev => prev.map(p => p.id === problemId ? updated : p));
-      alert("Problem successfully activated and moved to Private/Draft Problems!");
+      const existing = await adminService.getProblemTestcases(p.id);
+      if (existing && existing.length > 0) {
+        setTestcasesList(existing.map(tc => ({
+          problemId: tc.problemId,
+          inputData: tc.inputData,
+          expectedOutput: tc.expectedOutput,
+          orderIndex: tc.orderIndex
+        })));
+      } else {
+        setTestcasesList([{ problemId: p.id, inputData: '', expectedOutput: '', orderIndex: 0 }]);
+      }
     } catch (error) {
-      alert("Failed to activate problem.");
+      console.error("Failed to load test cases:", error);
+      setTestcasesList([{ problemId: p.id, inputData: '', expectedOutput: '', orderIndex: 0 }]);
     }
+  };
+
+  const handleSaveTestcases = async () => {
+    if (!testcaseProblem) return;
+    setIsSavingTestcases(true);
+    try {
+      let savedTcs: AdminProblemTestcase[] = [];
+      if (testcaseTab === 'manual') {
+        const invalid = testcasesList.some(tc => !tc.inputData.trim() || !tc.expectedOutput.trim());
+        if (invalid) {
+          showGlobalToast("Please fill in both Input Data and Expected Output for all test cases.", "error");
+          setIsSavingTestcases(false);
+          return;
+        }
+        savedTcs = await adminService.saveProblemTestcases(testcaseProblem.id, testcasesList);
+      } else {
+        if (!zipFile) {
+          showGlobalToast("Please select a .zip archive containing test cases.", "error");
+          setIsSavingTestcases(false);
+          return;
+        }
+        savedTcs = await adminService.uploadTestcaseZip(testcaseProblem.id, zipFile);
+      }
+
+      setProblems(prev => prev.map(p => p.id === testcaseProblem.id ? {
+        ...p,
+        totalTestcases: savedTcs.length,
+        isActive: savedTcs.length > 0,
+        isPublic: savedTcs.length > 0 ? true : p.isPublic
+      } : p));
+
+      showGlobalToast(`Successfully saved ${savedTcs.length} test cases for "${testcaseProblem.title}"!`, "success");
+
+      // Auto-jump/switch to the corresponding scope tab
+      const scope = testcaseProblem.problemScope;
+      if (scope === 'PRACTICE') {
+        setProblemSubTab('practice');
+      } else if (scope === 'CONTEST') {
+        setProblemSubTab('contest');
+      } else if (scope === 'SHARED') {
+        setProblemSubTab('shared');
+      }
+
+      setIsTestcaseModalOpen(false);
+      setTestcaseProblem(null);
+      setTestcasesList([]);
+      setZipFile(null);
+    } catch (error) {
+      showGlobalToast("Failed to save test cases.", "error");
+    } finally {
+      setIsSavingTestcases(false);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.name.endsWith('.zip')) {
+        setZipFile(file);
+      } else {
+        showGlobalToast("Only .zip files are supported.", "error");
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.name.endsWith('.zip')) {
+        setZipFile(file);
+      } else {
+        showGlobalToast("Only .zip files are supported.", "error");
+      }
+    }
+  };
+
+  const handleAddManualRow = () => {
+    if (!testcaseProblem) return;
+    setTestcasesList(prev => [...prev, {
+      problemId: testcaseProblem.id,
+      inputData: '',
+      expectedOutput: '',
+      orderIndex: prev.length
+    }]);
+  };
+
+  const handleRemoveManualRow = (index: number) => {
+    setTestcasesList(prev => {
+      const filtered = prev.filter((_, idx) => idx !== index);
+      return filtered.map((tc, idx) => ({ ...tc, orderIndex: idx }));
+    });
+  };
+
+  const handleManualRowChange = (index: number, field: 'inputData' | 'expectedOutput', value: string) => {
+    setTestcasesList(prev => prev.map((tc, idx) => idx === index ? { ...tc, [field]: value } : tc));
   };
 
   const handleCreateContestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newContestTitle.trim() || !newContestStartTime || !newContestEndTime) {
-      alert("Please fill in the title and duration dates.");
+      showGlobalToast("Please fill in the title and duration dates.", "error");
       return;
     }
 
     if (newContestPassword !== newContestConfirmPassword) {
-      alert("Passwords do not match!");
+      showGlobalToast("Passwords do not match!", "error");
       return;
     }
 
     const start = new Date(newContestStartTime).getTime();
     const end = new Date(newContestEndTime).getTime();
     if (end <= start) {
-      alert("End Time must be after Start Time!");
+      showGlobalToast("End Time must be after Start Time!", "error");
       return;
     }
 
@@ -1069,9 +1449,9 @@ export const AdminDashboard: React.FC = () => {
       const newStats = await adminService.getDashboardStats();
       setStats(newStats);
 
-      alert(`Contest "${newContest.title}" created successfully!`);
+      showGlobalToast(`Contest "${newContest.title}" created successfully!`, "success");
     } catch (error) {
-      alert("Failed to create contest");
+      showGlobalToast("Failed to create contest", "error");
     }
   };
 
@@ -1081,10 +1461,6 @@ export const AdminDashboard: React.FC = () => {
     return courses.filter(c => c.status === courseFilter);
   }, [courses, courseFilter]);
 
-  const filteredApplications = useMemo(() => {
-    if (instructorAppFilter === 'ALL') return applications;
-    return applications.filter(a => a.status === instructorAppFilter);
-  }, [applications, instructorAppFilter]);
 
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
@@ -1095,6 +1471,18 @@ export const AdminDashboard: React.FC = () => {
       return matchesSearch && matchesStatus && matchesOnline;
     });
   }, [users, userSearch, userStatusFilter, userOnlineFilter]);
+
+  const filteredInstructors = useMemo(() => {
+    return instructors.filter(ins => {
+      const matchesSearch = ins.fullName.toLowerCase().includes(instSearch.toLowerCase()) ||
+        ins.major.toLowerCase().includes(instSearch.toLowerCase()) ||
+        (ins.bio && ins.bio.toLowerCase().includes(instSearch.toLowerCase()));
+      const matchesStatus = instStatusFilter === 'ALL' || ins.status === instStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [instructors, instSearch, instStatusFilter]);
+
+
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
@@ -1109,6 +1497,8 @@ export const AdminDashboard: React.FC = () => {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'PRACTICE';
       } else if (problemSubTab === 'contest') {
         matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'CONTEST';
+      } else if (problemSubTab === 'shared') {
+        matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'SHARED';
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -1192,8 +1582,8 @@ export const AdminDashboard: React.FC = () => {
         {/* Sidebar Nav */}
         <nav className="flex-1 flex flex-col gap-1.5 py-6 px-2.5 overflow-y-auto">
           <a
-            href="#dashboard"
-            onClick={() => setActiveTab('dashboard')}
+            href="/admin"
+            onClick={(e) => { e.preventDefault(); navigate('/admin'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1202,8 +1592,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#courses"
-            onClick={() => setActiveTab('courses')}
+            href="/admin/courses"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/courses'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'courses' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1212,8 +1602,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#problems"
-            onClick={() => setActiveTab('problems')}
+            href="/admin/problems"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/problems'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'problems' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1222,8 +1612,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#contest"
-            onClick={() => setActiveTab('contest')}
+            href="/admin/contests"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/contests'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'contest' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1232,8 +1622,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#instructor"
-            onClick={() => setActiveTab('instructor')}
+            href="/admin/instructors"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/instructors'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'instructor' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1242,8 +1632,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#users"
-            onClick={() => setActiveTab('users')}
+            href="/admin/users"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/users'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'users' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1252,8 +1642,8 @@ export const AdminDashboard: React.FC = () => {
           </a>
 
           <a
-            href="#financial"
-            onClick={() => setActiveTab('financial')}
+            href="/admin/financial"
+            onClick={(e) => { e.preventDefault(); navigate('/admin/financial'); }}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${activeTab === 'financial' ? 'bg-white/10 text-white font-bold border-l-4 border-primary' : 'hover:bg-white/5 text-slate-300 hover:text-white font-medium'
               }`}
           >
@@ -1826,7 +2216,7 @@ export const AdminDashboard: React.FC = () => {
                     <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
                       <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
                         <span className="material-symbols-outlined text-text-muted">info</span> Contest Overview
-                        <span className={`ml-auto text-white text-xs font-bold px-3 py-1 rounded-full ${reviewingContest.status === 'RUNNING' ? 'bg-brand-green' : reviewingContest.status === 'UPCOMING' ? 'bg-primary' : 'bg-gray-400'
+                        <span className={`ml-auto text-white text-xs font-bold px-3 py-1 rounded-full ${reviewingContest.status === 'ONGOING' ? 'bg-brand-green' : reviewingContest.status === 'UPCOMING' ? 'bg-primary' : 'bg-gray-400'
                           }`}>
                           {reviewingContest.status}
                         </span>
@@ -3098,27 +3488,7 @@ export const AdminDashboard: React.FC = () => {
                           <p className="text-xs text-text-muted italic">No pending course registrations.</p>
                         )}
 
-                        <hr className="my-2 border-slate-100" />
 
-                        {/* Instructor Application approvals quick preview */}
-                        <h4 className="text-xs font-black text-text-muted uppercase tracking-wider">Pending Instructors ({applications.filter(a => a.status === 'PENDING').length})</h4>
-                        {applications.filter(a => a.status === 'PENDING').slice(0, 2).map((app) => (
-                          <div key={app.id} className="flex items-center justify-between bg-slate-50/50 border border-slate-100 p-3 rounded-xl">
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-text-main truncate">{app.fullName}</p>
-                              <p className="text-[10px] text-text-muted">{app.email}</p>
-                            </div>
-                            <button
-                              onClick={() => setSelectedAppForReview(app)}
-                              className="text-[10px] bg-primary hover:bg-primary-hover text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
-                            >
-                              Review
-                            </button>
-                          </div>
-                        ))}
-                        {applications.filter(a => a.status === 'PENDING').length === 0 && (
-                          <p className="text-xs text-text-muted italic">No pending instructor requests.</p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -3284,6 +3654,16 @@ export const AdminDashboard: React.FC = () => {
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
                     Contest Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'CONTEST').length})
                   </button>
+                  <button
+                    onClick={() => setProblemSubTab('shared')}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'shared'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-primary'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">share</span>
+                    Shared Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'SHARED').length})
+                  </button>
                 </div>
 
                 {/* Problems List Table */}
@@ -3321,7 +3701,15 @@ export const AdminDashboard: React.FC = () => {
                                 {totalSubs.toLocaleString()}
                               </td>
                               <td className="py-4 px-6 text-right font-mono font-bold text-slate-800">
-                                {acceptedRate}%
+                                <div className="flex flex-col items-end gap-1.5">
+                                  <span>{acceptedRate}%</span>
+                                  <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                    <div 
+                                      className="h-full bg-emerald-500 rounded-full transition-all" 
+                                      style={{ width: `${acceptedRate}%` }}
+                                    />
+                                  </div>
+                                </div>
                               </td>
                               <td className="py-4 px-6 text-center">
                                 <select
@@ -3366,7 +3754,7 @@ export const AdminDashboard: React.FC = () => {
                                 <div className="flex items-center justify-center gap-2">
                                   {!p.isActive ? (
                                     <button
-                                      onClick={() => handleActivateProblem(p.id)}
+                                      onClick={() => handleOpenTestcaseModal(p)}
                                       className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
                                     >
                                       <span className="material-symbols-outlined text-[14px]">tune</span> Add Test Cases
@@ -3379,6 +3767,12 @@ export const AdminDashboard: React.FC = () => {
                                       <span className="material-symbols-outlined text-[14px]">edit</span> Edit
                                     </button>
                                   )}
+                                  <button
+                                    onClick={() => handleDeleteProblemClick(p.id)}
+                                    className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">delete</span> Delete
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -3409,7 +3803,7 @@ export const AdminDashboard: React.FC = () => {
                     >
                       <option value="ALL">All Status</option>
                       <option value="UPCOMING">Upcoming</option>
-                      <option value="RUNNING">Running</option>
+                      <option value="ONGOING">Ongoing</option>
                       <option value="ENDED">Ended</option>
                       <option value="CANCELLED">Cancelled</option>
                     </select>
@@ -3448,7 +3842,7 @@ export const AdminDashboard: React.FC = () => {
                             <td className="py-4 px-6">{c.durations} mins</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{c.participantCount}</td>
                             <td className="py-4 px-6 text-center">
-                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${c.status === 'RUNNING' ? 'bg-red-50 text-red-500 animate-pulse' :
+                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${c.status === 'ONGOING' ? 'bg-red-50 text-red-500 animate-pulse' :
                                 c.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'
                                 }`}>{c.status}</span>
                             </td>
@@ -3477,96 +3871,98 @@ export const AdminDashboard: React.FC = () => {
             {activeTab === 'instructor' && (
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Active Instructors & Applicants</h2>
-                  <div className="flex gap-2">
-                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (
-                      <button
-                        key={filterVal}
-                        onClick={() => setInstructorAppFilter(filterVal as any)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${instructorAppFilter === filterVal
-                          ? 'bg-primary text-white border-primary shadow-sm'
-                          : 'bg-surface hover:bg-slate-50 text-slate-600 border-slate-200'
-                          }`}
-                      >
-                        {filterVal === 'ALL' ? 'All Applications' : filterVal === 'APPROVED' ? 'Approved Applicants' : filterVal === 'PENDING' ? 'Pending Approvals' : 'Rejected Applications'}
-                      </button>
-                    ))}
+                  <h2 className="text-2xl font-display font-black text-brand-blue">Platform Instructors</h2>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <input
+                      type="text"
+                      placeholder="Search by name, major..."
+                      value={instSearch}
+                      onChange={(e) => setInstSearch(e.target.value)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-primary focus:border-primary w-full sm:w-60"
+                    />
+                    <select
+                      value={instStatusFilter}
+                      onChange={(e) => setInstStatusFilter(e.target.value as any)}
+                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="ALL">All Status</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="SUSPENDED">Suspended</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* Applications section */}
-                {filteredApplications.length > 0 && (
-                  <div className="flex flex-col gap-4">
-                    <h3 className="text-sm font-black text-text-muted uppercase tracking-wider mb-1">Instructor Registrations / Profile Reviews</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {filteredApplications.map((app) => (
-                        <div key={app.id} className="bg-surface rounded-2xl border border-slate-200/50 p-6 ambient-shadow flex flex-col justify-between">
-                          <div>
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-display font-bold text-base text-brand-blue">{app.fullName}</h4>
-                                <p className="text-xs text-text-muted">{app.email}</p>
+
+
+
+                
+
+                {/* Instructors table */}
+                <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
+                          <th className="py-4 px-6">Name</th>
+                          <th className="py-4 px-6">Major</th>
+                          <th className="py-4 px-6">Bio</th>
+                          <th className="py-4 px-6 text-center">Courses</th>
+                          <th className="py-4 px-6 text-center">Rating</th>
+                          <th className="py-4 px-6 text-center">Students</th>
+                          <th className="py-4 px-6">Status</th>
+                          <th className="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
+                        {filteredInstructors.map((ins) => (
+                          <tr key={ins.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-3">
+                                <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-8 h-8 rounded-full object-cover border border-slate-100" alt="" />
+                                <span className="font-bold text-slate-900">{ins.fullName}</span>
                               </div>
-                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                app.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
-                                }`}>{app.status}</span>
-                            </div>
-                            <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl line-clamp-3 italic">"{app.introduction}"</p>
-                            <a
-                              href={app.cvUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary-hover font-bold mt-4"
-                            >
-                              <span className="material-symbols-outlined text-sm">picture_as_pdf</span> View Curriculum Vitae (CV)
-                            </a>
-                          </div>
+                            </td>
+                            <td className="py-4 px-6 text-slate-500 font-extrabold">{ins.major}</td>
+                            <td className="py-4 px-6 text-slate-400 font-medium max-w-xs truncate" title={ins.bio}>{ins.bio}</td>
+                            <td className="py-4 px-6 text-center font-bold text-slate-800">{ins.coursesCount}</td>
+                            <td className="py-4 px-6 text-center font-bold text-orange-500">★ {ins.rating}</td>
+                            <td className="py-4 px-6 text-center font-bold text-slate-800">{ins.studentsCount}</td>
+                            <td className="py-4 px-6">
+                              <span className={`inline-block font-bold rounded-lg px-2.5 py-1 text-[11px] border ${
+                                ins.status === 'ACTIVE'
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200/30'
+                                  : 'bg-red-50 text-red-500 border-red-200/30'
+                              }`}>
+                                {ins.status === 'ACTIVE' ? 'Active' : 'Suspended'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              {ins.status === 'SUSPENDED' ? (
+                                <button
+                                  onClick={() => handleInstructorStatusChange(ins.id, 'ACTIVE')}
+                                  className="text-emerald-600 hover:text-emerald-800 hover:underline bg-transparent border-none cursor-pointer font-bold"
+                                >
+                                  Activate
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleInstructorStatusChange(ins.id, 'SUSPENDED')}
+                                  className="text-red-500 hover:text-red-700 hover:underline bg-transparent border-none cursor-pointer font-bold"
+                                >
+                                  Suspend
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredInstructors.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="py-12 text-center text-text-muted italic">No instructors found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
 
-                          {app.status === 'PENDING' && (
-                            <div className="flex gap-3 border-t border-slate-100 pt-4 mt-4">
-                              <button
-                                onClick={() => handleApproveInstructor(app.id, 'APPROVED')}
-                                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleApproveInstructor(app.id, 'REJECTED')}
-                                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-sm"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Active Instructors list */}
-                <div className="flex flex-col gap-4 mt-4">
-                  <h3 className="text-sm font-black text-text-muted uppercase tracking-wider">Active Platform Instructors ({instructors.length})</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {instructors.map((ins) => (
-                      <div key={ins.id} className="bg-surface rounded-2xl border border-slate-200/50 p-5 ambient-shadow flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-10 h-10 rounded-full object-cover border border-slate-100" alt="" />
-                            <div>
-                              <h4 className="font-display font-bold text-sm text-brand-blue">{ins.fullName}</h4>
-                              <p className="text-[10px] text-text-muted truncate max-w-[180px] font-semibold">{ins.major}</p>
-                            </div>
-                          </div>
-                          <p className="text-xs text-slate-500 line-clamp-3">{ins.bio}</p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 mt-4 text-[10px] font-bold text-slate-600 bg-slate-50 p-2 rounded-xl text-center">
-                          <div>Courses: <span className="block text-brand-blue text-xs font-black">{ins.coursesCount}</span></div>
-                          <div>Rating: <span className="block text-orange-500 text-xs font-black">★ {ins.rating}</span></div>
-                          <div>Students: <span className="block text-slate-800 text-xs font-black">{ins.studentsCount}</span></div>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -3775,9 +4171,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.gross.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total sales volume generated
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total sales volume generated</span>
+                      <button onClick={() => setActiveFinancialModal('gross')} className="text-[10px] text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 2: Instructor Share (70%) */}
@@ -3792,9 +4191,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.instructorPayouts.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      70% split allocated to lecturers
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">70% split allocated to lecturers</span>
+                      <button onClick={() => setActiveFinancialModal('instructor')} className="text-[10px] text-violet-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 3: Platform Cut (30%) */}
@@ -3809,9 +4211,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.platformNet.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      System shares from courses
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">System shares from courses</span>
+                      <button onClick={() => setActiveFinancialModal('platform')} className="text-[10px] text-indigo-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 4: Contest Prizes */}
@@ -3826,9 +4231,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.contestRewards.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total cash rewarded to top users
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total cash rewarded to top users</span>
+                      <button onClick={() => setActiveFinancialModal('awards')} className="text-[10px] text-rose-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 5: Net Operating Profit */}
@@ -3845,9 +4253,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.netProfit.toLocaleString()} ₫
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Platform Share after expenses
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Platform Share after expenses</span>
+                      <button onClick={() => setActiveFinancialModal('profit')} className="text-[10px] text-emerald-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 6: Courses Sold */}
@@ -3862,9 +4273,12 @@ export const AdminDashboard: React.FC = () => {
                         {financialSummary.coursesSold.toLocaleString()} copies
                       </h4>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-4">
-                      Total purchased copies count
-                    </p>
+                    <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
+                      <span className="text-[10px] text-slate-400 font-semibold">Total purchased copies count</span>
+                      <button onClick={() => setActiveFinancialModal('sales')} className="text-[10px] text-amber-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -3970,7 +4384,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                           <div className="flex justify-between items-center gap-4">
                             <span className="text-slate-400">Platform Cut:</span>
-                            <span className="font-mono text-[#12284C]">
+                            <span className="font-mono text-[#38bdf8]">
                               {financialMonthlyRecords[hoveredMonthIndex].platformShare.toLocaleString()} ₫
                             </span>
                           </div>
@@ -4015,7 +4429,7 @@ export const AdminDashboard: React.FC = () => {
                         <path
                           d={`M 50 230 L ${financialMonthlyRecords
                             .map((item, idx) => `${50 + idx * 49} ${230 - (item.coursesSold / 60) * 200}`)
-                            .join(' L ')} L ${50 + 11 * 49} 230 Z`}
+                            .join(' L ')} L ${50 + (financialMonthlyRecords.length - 1) * 49} 230 Z`}
                           fill="url(#courses-sales-grad)"
                         />
 
@@ -4077,12 +4491,17 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Table: Top-Selling Courses Table - occupies 100% full width */}
                 <div className="w-full bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
-                      Top Revenue Generating Courses
-                    </h3>
-                    <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-lg text-primary">auto_graph</span>
+                        Top Revenue Generating Courses
+                      </h3>
+                      <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
+                    </div>
+                    <button onClick={() => setActiveFinancialModal('courses-sold-all')} className="text-xs text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors border border-blue-100 hover:bg-blue-50/50 px-3 py-1.5 rounded-xl">
+                      Xem tất cả <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
                   </div>
 
                   <div className="overflow-x-auto mt-4">
@@ -4098,12 +4517,12 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
-                        {[
+                        {(topCourses || [
                           { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
                           { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
                           { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
                           { name: 'Python Data Science and Machine Learning', tutor: 'Dr. Jenkins', sold: 50, gross: 29950000, payout: 20965000, plat: 8985000 }
-                        ].map((c, i) => (
+                        ]).slice(0, 10).map((c, i) => (
                           <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                             <td className="py-3 px-4 font-bold text-slate-900">{c.name}</td>
                             <td className="py-3 px-4 text-slate-500 font-extrabold">{c.tutor}</td>
@@ -4124,54 +4543,8 @@ export const AdminDashboard: React.FC = () => {
 
 
 
-      {/* ================= MODAL: INSTRUCTOR APPLICATION REVIEW ================= */}
-      {selectedAppForReview && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-lg w-full p-6 animate-fade-in text-left">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2 py-0.5 rounded-md">Instructor Application Review</span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">{selectedAppForReview.fullName}</h3>
-              </div>
-              <button onClick={() => setSelectedAppForReview(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
-            </div>
 
-            <div className="flex flex-col gap-4 text-xs">
-              <div className="bg-slate-50 p-3.5 rounded-xl">
-                <p className="font-semibold text-slate-500">Applicant Email:</p>
-                <p className="font-bold text-brand-blue text-sm mt-0.5">{selectedAppForReview.email}</p>
-              </div>
 
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Introduction Profile</h4>
-                <p className="text-slate-600 leading-relaxed bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 whitespace-pre-line italic">"{selectedAppForReview.introduction}"</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px] mb-1">Curriculum Vitae File</h4>
-                <a href={selectedAppForReview.cvUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-bold text-sm bg-orange-50 p-3 rounded-xl w-full border border-orange-100">
-                  <span className="material-symbols-outlined text-base">picture_as_pdf</span> Open CV document (Elena Rostova CV)
-                </a>
-              </div>
-
-              <div className="flex gap-4 border-t border-slate-150 pt-5 mt-3">
-                <button
-                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'APPROVED')}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Approve Application
-                </button>
-                <button
-                  onClick={() => handleApproveInstructor(selectedAppForReview.id, 'REJECTED')}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md"
-                >
-                  Reject Application
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ================= MODAL: USER PURCHASES VIEW ================= */}
       {selectedUserDetail && (
@@ -4237,8 +4610,15 @@ export const AdminDashboard: React.FC = () => {
                   setNewProbScore(100);
                   setNewProbTimeLimit(2000);
                   setNewProbMemoryLimit(128000);
-                  setNewProbIsPublic(true);
+                  setNewProbIsPublic(false);
                   setNewProbSolutions('');
+                  setNewProbTags([]);
+                  setNewProbStarterC('');
+                  setNewProbStarterCpp('');
+                  setNewProbStarterJava('');
+                  setNewProbStarterPython('');
+                  setNewProbStarterCsharp('');
+                  setStarterActiveTab('C');
                 }}
                 className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -4271,6 +4651,38 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Tags Section */}
+              {allTags.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-muted">Problem Tags</label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {allTags.map(tag => {
+                      const isSelected = newProbTags.includes(tag.name);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setNewProbTags(newProbTags.filter(t => t !== tag.name));
+                            } else {
+                              setNewProbTags([...newProbTags, tag.name]);
+                            }
+                          }}
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all border ${
+                            isSelected 
+                              ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-extrabold' 
+                              : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          }`}
+                        >
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Problem Description *</label>
@@ -4324,6 +4736,74 @@ export const AdminDashboard: React.FC = () => {
                 <input type="text" value={newProbHint} onChange={e => setNewProbHint(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Tip or pointer..." />
               </div>
 
+              {/* Starter Templates Tabbed Editor */}
+              <div className="flex flex-col gap-1 border border-slate-200/60 rounded-2xl p-4 bg-slate-50/50">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-text-muted font-black uppercase tracking-wider text-[10px]">Starter Code Templates (Optional)</label>
+                  <div className="flex gap-1.5">
+                    {(['C', 'C++', 'Java', 'Python 3', 'C#'] as const).map(lang => (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setStarterActiveTab(lang)}
+                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
+                          starterActiveTab === lang 
+                            ? 'bg-indigo-600 text-white shadow-sm' 
+                            : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-100'
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {starterActiveTab === 'C' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterC}
+                    onChange={e => setNewProbStarterC(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="void solve() {&#10;}"
+                  />
+                )}
+                {starterActiveTab === 'C++' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterCpp}
+                    onChange={e => setNewProbStarterCpp(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution {&#10;public:&#10;    void solve() {&#10;    }&#10;};"
+                  />
+                )}
+                {starterActiveTab === 'Java' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterJava}
+                    onChange={e => setNewProbStarterJava(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution {&#10;    public void solve() {&#10;    }&#10;}"
+                  />
+                )}
+                {starterActiveTab === 'Python 3' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterPython}
+                    onChange={e => setNewProbStarterPython(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="class Solution:&#10;    def solve(self):&#10;        pass"
+                  />
+                )}
+                {starterActiveTab === 'C#' && (
+                  <textarea
+                    rows={4}
+                    value={newProbStarterCsharp}
+                    onChange={e => setNewProbStarterCsharp(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
+                    placeholder="public class Solution {&#10;    public void Solve() {&#10;    }&#10;}"
+                  />
+                )}
+              </div>
+
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Solution Code</label>
                 <textarea rows={2} value={newProbSolutions} onChange={e => setNewProbSolutions(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono" placeholder="Sample solution code..." />
@@ -4334,13 +4814,263 @@ export const AdminDashboard: React.FC = () => {
                 <label className="text-slate-700">Make this problem public immediately</label>
               </div>
 
-              <button
-                type="submit"
-                className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4"
-              >
-                {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
-              </button>
+              <div className="flex gap-4 mt-4 w-full">
+                {isEditProblemOpen && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentProb = problems.find(p => p.id === editingProblemId);
+                      if (currentProb) {
+                        handleOpenTestcaseModal(currentProb);
+                      }
+                    }}
+                    className="flex-1 bg-white hover:bg-slate-50 text-indigo-600 border border-indigo-200 hover:border-indigo-300 font-bold text-sm py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base font-black">tune</span>
+                    Edit Test Cases
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className={`${isEditProblemOpen ? 'flex-1' : 'w-full'} bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md cursor-pointer`}
+                >
+                  {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
+                </button>
+              </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: TESTCASE BUILDER ================= */}
+      {isTestcaseModalOpen && testcaseProblem && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200/50 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col animate-fade-in text-left overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex justify-between items-start p-6 border-b border-slate-150/70">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-orange-50 px-2 py-0.5 rounded-md">
+                  Problem testcases
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  Manage Test Cases
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Define inputs and outputs for <span className="font-bold text-slate-800">"{testcaseProblem.title}"</span>.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsTestcaseModalOpen(false);
+                  setTestcaseProblem(null);
+                  setTestcasesList([]);
+                  setZipFile(null);
+                }}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors cursor-pointer border-none bg-transparent"
+              >
+                close
+              </button>
+            </div>
+
+            {/* Tab Selector */}
+            <div className="flex border-b border-slate-150/50 px-6 bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setTestcaseTab('manual')}
+                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
+                  testcaseTab === 'manual'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm font-black">edit_note</span>
+                Manual test cases ({testcasesList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTestcaseTab('upload')}
+                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
+                  testcaseTab === 'upload'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm font-black">folder_zip</span>
+                Upload ZIP Archive
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 text-xs font-semibold">
+              
+              {/* TAB 1: MANUAL BUILDER */}
+              {testcaseTab === 'manual' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50/80 p-3 rounded-xl border border-slate-100 mb-2">
+                    <div>
+                      <p className="font-bold text-slate-700">Manual Entry</p>
+                      <p className="text-[10px] text-text-muted mt-0.5">Provide plain text inputs and correct outputs. Evaluation uses exact match or whitespace normalization.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddManualRow}
+                      className="bg-white hover:bg-slate-50 text-primary border border-primary/20 hover:border-primary/40 font-black px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-base font-black">add</span> Add Row
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-3 max-h-[40vh] overflow-y-auto pr-1">
+                    {testcasesList.map((tc, idx) => (
+                      <div key={idx} className="flex gap-3 bg-slate-50/40 p-4 rounded-xl border border-slate-200/50 hover:border-slate-350 transition-all items-start relative group">
+                        
+                        {/* TC Index Badge */}
+                        <div className="flex flex-col items-center justify-center bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-[10px] w-9 h-9 rounded-lg mt-1 shrink-0">
+                          <span>TC</span>
+                          <span>#{idx + 1}</span>
+                        </div>
+
+                        {/* Textareas Side-by-Side */}
+                        <div className="grid grid-cols-2 gap-3 flex-1">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Input Data</label>
+                            <textarea
+                              rows={3}
+                              value={tc.inputData}
+                              onChange={(e) => handleManualRowChange(idx, 'inputData', e.target.value)}
+                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
+                              placeholder="e.g. 5\n1 2 3"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Expected Output</label>
+                            <textarea
+                              rows={3}
+                              value={tc.expectedOutput}
+                              onChange={(e) => handleManualRowChange(idx, 'expectedOutput', e.target.value)}
+                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
+                              placeholder="e.g. 15"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Remove Action */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveManualRow(idx)}
+                          disabled={testcasesList.length === 1}
+                          className={`material-symbols-outlined text-red-500 hover:text-red-750 transition-colors cursor-pointer border-none bg-transparent self-center p-1.5 rounded-lg hover:bg-red-50 ${
+                            testcasesList.length === 1 ? 'opacity-30 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          delete
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: ZIP ARCHIVE UPLOAD */}
+              {testcaseTab === 'upload' && (
+                <div className="flex flex-col gap-4">
+                  <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 leading-relaxed text-slate-600">
+                    <p className="font-bold text-slate-800">ZIP File Requirements:</p>
+                    <ul className="list-disc pl-4 mt-1 text-[11px] text-text-muted flex flex-col gap-0.5">
+                      <li>The archive must contain test case files matching patterns: <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.in</code> and <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.out</code> or <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.ans</code>.</li>
+                      <li>File base names must match to pair input/output (e.g. <code className="font-semibold text-slate-800">input_01.in</code> pairs with <code className="font-semibold text-slate-800">input_01.out</code>).</li>
+                      <li>Maximum upload size is <strong>20 MB</strong>.</li>
+                    </ul>
+                  </div>
+
+                  {/* Drag and Drop Zone */}
+                  <div
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-3 transition-all ${
+                      dragActive
+                        ? 'border-primary bg-orange-50/30'
+                        : zipFile
+                        ? 'border-emerald-400 bg-emerald-50/10'
+                        : 'border-slate-250 hover:border-slate-400'
+                    }`}
+                  >
+                    <span className={`material-symbols-outlined text-4xl ${zipFile ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      {zipFile ? 'task' : 'cloud_upload'}
+                    </span>
+                    <div className="text-center">
+                      {zipFile ? (
+                        <p className="text-sm font-bold text-slate-800">"{zipFile.name}"</p>
+                      ) : (
+                        <p className="text-sm text-slate-600 font-bold">
+                          Drag and drop your testcase ZIP here, or <label className="text-primary hover:underline cursor-pointer">browse files<input type="file" onChange={handleFileChange} className="hidden" accept=".zip" /></label>
+                        </p>
+                      )}
+                      <p className="text-[10px] text-text-muted mt-1">Supports standard compressed .zip archives.</p>
+                    </div>
+                  </div>
+
+                  {/* Selected File Card Details */}
+                  {zipFile && (
+                    <div className="flex justify-between items-center bg-emerald-50/40 border border-emerald-150 p-3.5 rounded-xl animate-fade-in">
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-emerald-600 bg-white p-2 rounded-lg border border-emerald-100">folder_zip</span>
+                        <div>
+                          <p className="font-bold text-slate-800">{zipFile.name}</p>
+                          <p className="text-[10px] text-slate-500">{(zipFile.size / 1024).toFixed(1)} KB • Ready for upload</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setZipFile(null)}
+                        className="text-[10px] text-red-500 hover:text-red-750 bg-white border border-red-100 hover:border-red-200 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer"
+                      >
+                        Remove File
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-slate-150/70 p-4 bg-slate-50/50 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTestcaseModalOpen(false);
+                  setTestcaseProblem(null);
+                  setTestcasesList([]);
+                  setZipFile(null);
+                }}
+                className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 hover:border-slate-300 font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveTestcases}
+                disabled={isSavingTestcases}
+                className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingTestcases ? (
+                  <>
+                    <span className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm font-black">save</span>
+                    Save Test Cases
+                  </>
+                )}
+              </button>
+            </div>
+
           </div>
         </div>
       )}
@@ -4417,6 +5147,360 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-surface w-full max-w-sm rounded-2xl p-6 border border-slate-200/50 shadow-2xl scale-100 transform transition-all duration-300 flex flex-col gap-4 text-left">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-red-500 text-[24px] bg-red-50 p-2 rounded-xl">warning</span>
+              <h3 className="text-sm font-black text-slate-900">{confirmModalTitle || "Confirm Action"}</h3>
+            </div>
+            <p className="text-xs font-bold text-slate-500 leading-relaxed">
+              {confirmModalMessage}
+            </p>
+            <div className="flex justify-end gap-2.5 mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                  setConfirmModalAction(null);
+                }}
+                className="px-4 py-2 text-[10px] font-black text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmModalAction) confirmModalAction();
+                  setIsConfirmModalOpen(false);
+                  setConfirmModalAction(null);
+                }}
+                className="px-4 py-2 text-[10px] font-black text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= FINANCIAL DETAILS MODALS ================= */}
+      {activeFinancialModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col p-6 animate-fade-in text-left text-slate-800">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2.5 py-1 rounded-md">
+                  Báo cáo chi tiết tài chính
+                </span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
+                  {activeFinancialModal === 'gross' && 'Chi tiết doanh thu gộp (Gross Revenue)'}
+                  {activeFinancialModal === 'instructor' && 'Chi tiết chia sẻ doanh thu Giảng viên (Instructor Share - 70%)'}
+                  {activeFinancialModal === 'platform' && 'Chi tiết chia sẻ doanh thu Nền tảng (Platform Cut - 30%)'}
+                  {activeFinancialModal === 'awards' && 'Chi tiết tiền thưởng giải đấu (Contest Prizes)'}
+                  {activeFinancialModal === 'profit' && 'Báo cáo lợi nhuận toàn diện (Comprehensive Profit Report)'}
+                  {activeFinancialModal === 'sales' && 'Danh sách chi tiết các lượt bán khóa học (Course Sales)'}
+                  {activeFinancialModal === 'courses-sold-all' && 'Báo cáo xếp hạng doanh thu tất cả khóa học'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveFinancialModal(null)}
+                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors border border-slate-100 p-1.5 rounded-lg"
+              >
+                close
+              </button>
+            </div>
+
+            <div className="overflow-y-auto my-4 flex-1 pr-1 text-xs">
+              {/* Case 1: Gross / Instructor / Platform (Orders detail list) */}
+              {(activeFinancialModal === 'gross' || activeFinancialModal === 'instructor' || activeFinancialModal === 'platform') && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng quan toàn bộ thời gian:</span>
+                    <span className="font-mono font-black text-sm text-slate-900">
+                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
+                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã đơn</th>
+                          <th className="p-3">Học viên</th>
+                          <th className="p-3">Khóa học</th>
+                          <th className="p-3 text-right">Doanh thu gộp</th>
+                          <th className="p-3 text-right">Giảng viên (70%)</th>
+                          <th className="p-3 text-right">Platform (30%)</th>
+                          <th className="p-3">Ngày giao dịch</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.orders || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-4 text-center text-slate-400 italic">Chưa có giao dịch nào được ghi nhận.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.orders || []).map((o: OrderDetails, idx: number) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{o.id}</td>
+                              <td className="p-3">
+                                <div>{o.customerName}</div>
+                                <div className="text-[10px] text-slate-400 font-medium">{o.customerEmail}</div>
+                              </td>
+                              <td className="p-3 max-w-[200px] truncate" title={o.courses}>{o.courses}</td>
+                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{o.grossAmount.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-violet-600">+{o.instructorShare.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-indigo-600">+{o.platformCut.toLocaleString()} ₫</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(o.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 2: Awards details list */}
+              {activeFinancialModal === 'awards' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng phần thưởng giải đấu toàn thời gian:</span>
+                    <span className="font-mono font-black text-sm text-rose-600">
+                      -{((financialDetails?.awards || []).reduce((acc: number, a: AwardDetails) => acc + a.amount, 0)).toLocaleString()} ₫
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã GD</th>
+                          <th className="p-3">Tài khoản nhận giải</th>
+                          <th className="p-3 text-right">Tiền thưởng</th>
+                          <th className="p-3">Nội dung giải thưởng</th>
+                          <th className="p-3">Thời gian</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.awards || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-slate-400 italic">Chưa có phần thưởng giải đấu nào được trao.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.awards || []).map((a: AwardDetails, idx: number) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{a.id}</td>
+                              <td className="p-3">
+                                <div>{a.userName}</div>
+                                <div className="text-[10px] text-slate-400 font-medium">{a.userEmail}</div>
+                              </td>
+                              <td className="p-3 text-right font-mono text-rose-600 font-bold">-{a.amount.toLocaleString()} ₫</td>
+                              <td className="p-3 font-medium text-slate-600">{a.referenceId || 'Giải thưởng cuộc thi lập trình'}</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(a.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 3: Courses Sold sales list (order items detail) */}
+              {activeFinancialModal === 'sales' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <span className="font-semibold text-slate-500">Tổng số lượng bản copy đã bán toàn thời gian:</span>
+                    <span className="font-black text-sm text-slate-900">
+                      {(financialDetails?.sales || []).length} copies
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Mã đơn</th>
+                          <th className="p-3">Học viên</th>
+                          <th className="p-3">Khóa học</th>
+                          <th className="p-3">Giảng viên</th>
+                          <th className="p-3 text-right">Giá bán</th>
+                          <th className="p-3">Ngày bán</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(financialDetails?.sales || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có lượt bán khóa học nào.</td>
+                          </tr>
+                        ) : (
+                          (financialDetails?.sales || []).map((s: SaleDetails, idx: number) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">#{s.orderId}</td>
+                              <td className="p-3">{s.customerName}</td>
+                              <td className="p-3 max-w-[200px] truncate" title={s.courseTitle}>{s.courseTitle}</td>
+                              <td className="p-3 text-slate-500 font-extrabold">{s.instructorName}</td>
+                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{s.price.toLocaleString()} ₫</td>
+                              <td className="p-3 text-slate-400 font-medium">{new Date(s.date).toLocaleString()}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 4: courses-sold-all - Top Revenue Generating Courses full list */}
+              {activeFinancialModal === 'courses-sold-all' && (
+                <div className="flex flex-col gap-4">
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Tên khóa học</th>
+                          <th className="p-3">Giảng viên</th>
+                          <th className="p-3 text-center">Bản đã bán</th>
+                          <th className="p-3 text-right">Doanh thu gộp</th>
+                          <th className="p-3 text-right">Giảng viên (70%)</th>
+                          <th className="p-3 text-right">Platform (30%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {(topCourses || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu doanh thu khóa học.</td>
+                          </tr>
+                        ) : (
+                          (topCourses || []).map((c, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 text-slate-900 font-bold">{c.name}</td>
+                              <td className="p-3 text-slate-500 font-extrabold">{c.tutor}</td>
+                              <td className="p-3 text-center font-mono font-bold">{c.sold}</td>
+                              <td className="p-3 text-right font-mono font-bold text-slate-900">{c.gross.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-violet-600">+{c.payout.toLocaleString()} ₫</td>
+                              <td className="p-3 text-right font-mono text-indigo-600">+{c.plat.toLocaleString()} ₫</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Case 5: profit - Comprehensive Financial Report (All time, by year) */}
+              {activeFinancialModal === 'profit' && (
+                <FinancialAllTimeReport details={financialDetails} />
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setActiveFinancialModal(null)}
+                className="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Đóng báo cáo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: STATUS CHANGE CONFIRMATION ================= */}
+      {statusConfirmTarget && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-md w-full p-6 animate-fade-in text-left">
+            <div className="flex flex-col items-center text-center gap-4">
+              
+              {/* Dynamic Icon/Theme based on newStatus */}
+              {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? (
+                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-200 text-red-500 animate-pulse">
+                  <span className="material-symbols-outlined text-4xl">warning</span>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200 text-emerald-500">
+                  <span className="material-symbols-outlined text-4xl">check_circle</span>
+                </div>
+              )}
+
+              <div>
+                <h3 className="font-display font-black text-lg text-slate-800">
+                  {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                    ? `Confirm Account Restriction` 
+                    : `Confirm Account Activation`}
+                </h3>
+                <p className="text-xs text-text-muted mt-2 px-2 leading-relaxed">
+                  Are you sure you want to change the status of <strong>{statusConfirmTarget.name}</strong> ({statusConfirmTarget.type.toLowerCase()}) to <span className={`font-bold ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') ? 'text-red-500' : 'text-emerald-500'
+                  }`}>{statusConfirmTarget.newStatus}</span>?
+                </p>
+                
+                {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') && (
+                  <p className="text-[11px] text-red-500 bg-red-50/50 border border-red-100 p-2.5 rounded-xl mt-3 text-left">
+                    ⚠️ <strong>Important note:</strong> Restricting this account will prevent them from logging in, managing courses, or submitting answers on the platform until they are reactivated.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 w-full mt-4">
+                <button
+                  type="button"
+                  onClick={() => setStatusConfirmTarget(null)}
+                  disabled={isProcessingStatusChange}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs disabled:opacity-50 cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={executeStatusChange}
+                  disabled={isProcessingStatusChange}
+                  className={`flex-1 py-2.5 rounded-xl text-white font-bold transition-all text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer ${
+                    (statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED')
+                      ? 'bg-red-500 hover:bg-red-650'
+                      : 'bg-emerald-500 hover:bg-emerald-600'
+                  }`}
+                >
+                  {isProcessingStatusChange ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {(statusConfirmTarget.newStatus === 'SUSPENDED' || statusConfirmTarget.newStatus === 'LOCKED') 
+                        ? 'Confirm Suspend' 
+                        : 'Confirm Activate'}
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Global Toast Alert */}
+      {globalToast && (
+        <div className={`fixed bottom-6 right-6 z-[999] text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in ${
+          globalToast.type === 'success' ? 'bg-green-600 border border-green-500' :
+          globalToast.type === 'error' ? 'bg-red-600 border border-red-500' : 'bg-brand-blue border border-brand-blue-light'
+        }`}>
+          <span className="material-symbols-outlined text-[18px]">
+            {globalToast.type === 'success' ? 'check_circle' :
+             globalToast.type === 'error' ? 'error' : 'info'}
+          </span>
+          <span>{globalToast.message}</span>
         </div>
       )}
     </div>
