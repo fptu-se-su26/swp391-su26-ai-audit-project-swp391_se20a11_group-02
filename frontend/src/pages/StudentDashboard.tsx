@@ -28,7 +28,11 @@ const TX_TYPE_OPTIONS = [
   { value: 'AWARD', label: 'Award', bg: 'bg-amber-100 text-amber-700' }
 ];
 
-// Mock data for contest participation display
+// ==========================================
+// MOCK DATA & PLACEHOLDERS - CONTEST MODULE
+// TODO: Replace participatedContests and contestHistoryData with real user-specific contest histories.
+// E.g. fetch from backend endpoints: `/contests/user-stats` or `/contests/user-history`.
+// ==========================================
 const participatedContests: any[] = [];
 const contestHistoryData: any[] = [];
 
@@ -3507,13 +3511,20 @@ export const StudentDashboard: React.FC = () => {
                 <p className="text-text-muted mt-1 text-sm md:text-base">Track your competitive coding journey, review points, and view past contest standings.</p>
               </div>
 
-              {/* Performance Stats Grid */}
+              {/* 
+                ==========================================
+                MOCK DATA - HIDING PERFORMANCE STATS GRID
+                TODO: Uncomment and replace hardcoded stats below with dynamic API response from user contest stats.
+                ==========================================
+              */}
+              {/* 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
                 <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
                   <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Total Points</span>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Total Points (MOCK)</span>
                       <p className="text-3xl font-display font-black text-brand-blue mt-1">780 <span className="text-xs font-semibold text-text-muted">pts</span></p>
                     </div>
                     <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
@@ -3529,7 +3540,7 @@ export const StudentDashboard: React.FC = () => {
                   <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-blue"></div>
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Global Rank</span>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Global Rank (MOCK)</span>
                       <p className="text-3xl font-display font-black text-brand-blue mt-1">#458</p>
                     </div>
                     <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-brand-blue group-hover:scale-110 transition-transform duration-300">
@@ -3545,7 +3556,7 @@ export const StudentDashboard: React.FC = () => {
                   <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-green"></div>
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Contests Attended</span>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Contests Attended (MOCK)</span>
                       <p className="text-3xl font-display font-black text-brand-blue mt-1">3</p>
                     </div>
                     <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-brand-green group-hover:scale-110 transition-transform duration-300">
@@ -3561,7 +3572,7 @@ export const StudentDashboard: React.FC = () => {
                   <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Top Placements</span>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Top Placements (MOCK)</span>
                       <div className="flex items-center gap-2.5 mt-2">
                         <span className="inline-flex items-center bg-amber-50 text-amber-700 border border-amber-250/20 rounded-full px-3 py-1 text-sm font-black shadow-sm transition-transform hover:scale-105" title="Top 1">
                           <span className="text-base mr-1">🥇</span> 1
@@ -3583,6 +3594,7 @@ export const StudentDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
+              */}
 
               {/* Filter Navigation & Search */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-3">
