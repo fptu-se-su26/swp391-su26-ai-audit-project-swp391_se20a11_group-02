@@ -278,11 +278,13 @@ export interface AdminContest {
   startTime: string;
   endTime: string;
   durations: number; // in minutes
-  status: 'UPCOMING' | 'ONGOING' | 'ENDED' | 'CANCELLED';
+  status: 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'CANCELLED' | 'DELETED';
   participantCount: number;
   submissionCount: number;
   averageScore: number;
   password?: string;
+  isDeleted?: boolean;
+  databaseStatus?: string;
 }
 
 export interface ActivityLog {
@@ -591,34 +593,7 @@ let mockProblems: AdminProblem[] = [
 ];
 */
 
-let mockContests: AdminContest[] = [
-  {
-    id: 1,
-    title: "Non-Stop Coding Championship Season 1",
-    description: "Our quarterly programming contest containing 5 hard problems. ICPC rules.",
-    scoringRule: "ICPC",
-    startTime: "2026-06-15T18:00:00Z",
-    endTime: "2026-06-15T21:00:00Z",
-    durations: 180,
-    status: "UPCOMING",
-    participantCount: 124,
-    submissionCount: 412,
-    averageScore: 68.5
-  },
-  {
-    id: 2,
-    title: "Weekly Practice Contest #12",
-    description: "Weekly friendly challenge containing 3 easy-to-medium problems.",
-    scoringRule: "IOI",
-    startTime: "2026-06-07T09:00:00Z",
-    endTime: "2026-06-07T11:00:00Z",
-    durations: 120,
-    status: "ONGOING",
-    participantCount: 89,
-    submissionCount: 201,
-    averageScore: 78.2
-  }
-];
+let mockContests: AdminContest[] = [];
 
 let mockActivityLogs: ActivityLog[] = [
   {
@@ -1012,13 +987,12 @@ export const adminService = {
       const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
-        return data.result;
+        return data.result || [];
       }
     } catch (err) {
-      console.warn("Using mock data for Contests:", err);
+      console.warn("Failed to get Contests from backend:", err);
     }
-    await delay(300);
-    return mockContests;
+    return [];
   },
 
   async createContest(contest: Omit<AdminContest, 'id' | 'status' | 'participantCount' | 'submissionCount' | 'averageScore'>): Promise<AdminContest> {
@@ -1049,6 +1023,103 @@ export const adminService = {
     mockStats.activeContests += 1;
     return newContest;
   },
+
+  async getContestProblems(contestId: number): Promise<any[]> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/problems`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch contest problems');
+    }
+    const data = await response.json();
+    return data.result || [];
+  },
+
+  async addProblemToContest(contestId: number, problemId: number, orderIndex: number): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/problems`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ problemId, orderIndex }),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to add problem to contest');
+    }
+  },
+
+  async removeProblemFromContest(contestId: number, problemId: number): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/problems/${problemId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to remove problem from contest');
+    }
+  },
+
+  async updateContest(contestId: number, contest: Partial<AdminContest>): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(contest),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to update contest');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async deleteContest(contestId: number): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to delete contest');
+    }
+  },
+
+  async publishContest(contestId: number): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/publish`, {
+      method: 'PUT',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to publish contest');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async restoreContest(contestId: number): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/restore`, {
+      method: 'PUT',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to restore contest');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async hardDeleteContest(contestId: number): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/hard`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to permanently delete contest');
+    }
+  },
+
 
   // Financial Chart details for 12 months
   getFinancialChartData() {

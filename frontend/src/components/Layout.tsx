@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { ContestSidebar } from './ContestSidebar';
@@ -71,6 +71,7 @@ export const Layout: React.FC = () => {
   const [password, setPassword] = useState('');
   const [registering, setRegistering] = useState(false);
   const [registrationMessage, setRegistrationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const timeOffsetRef = useRef<number>(0);
 
   const fetchContest = async () => {
     if (!contestId) return;
@@ -82,6 +83,9 @@ export const Layout: React.FC = () => {
       if (data && data.result) {
         setContest(data.result);
         setError(null);
+        if (data.timestamp) {
+          timeOffsetRef.current = new Date(data.timestamp).getTime() - Date.now();
+        }
       } else {
         setError(data.message || 'Failed to fetch contest details');
       }
@@ -118,7 +122,7 @@ export const Layout: React.FC = () => {
     setTimerLabel(label);
 
     const updateTimer = () => {
-      const now = Date.now();
+      const now = Date.now() + timeOffsetRef.current;
       const end = new Date(targetTime).getTime();
       const diff = end - now;
 

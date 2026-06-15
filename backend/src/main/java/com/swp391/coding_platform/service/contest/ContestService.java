@@ -62,8 +62,11 @@ public class ContestService {
     PasswordEncoder passwordEncoder;
 
     private String calculateStatus(ContestEntity contest, Instant now) {
-        if (Boolean.TRUE.equals(contest.getIsCancelled())) {
-            return "CANCELLED";
+        if (contest.getStatus() == ContestStatus.DELETED) {
+            return "DELETED";
+        }
+        if (contest.getStatus() == ContestStatus.DRAFT) {
+            return "DRAFT";
         }
         if (now.isBefore(contest.getStartTime())) {
             return "UPCOMING";
@@ -345,7 +348,7 @@ public class ContestService {
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .durations((int) durationMinutes)
-                .isCancelled(false)
+                .status(ContestStatus.DRAFT)
                 .createdBy(creator)
                 .build();
 
@@ -358,20 +361,38 @@ public class ContestService {
         ContestEntity contest = contestRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-        contest.setTitle(request.getTitle());
-        contest.setDescription(request.getDescription());
-        contest.setScoringRule(ScoringRule.valueOf(request.getScoringRule()));
-        contest.setStartTime(request.getStartTime());
-        contest.setEndTime(request.getEndTime());
+        Instant now = Instant.now();
+        String currentStatus = calculateStatus(contest, now);
 
-        long durationMinutes = java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
-        contest.setDurations((int) durationMinutes);
+        if (currentStatus.equals("DELETED")) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
 
-        if (request.getPassword() != null) {
-            if (request.getPassword().trim().isEmpty()) {
-                contest.setPasswordHash(null);
-            } else {
-                contest.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED")) {
+            boolean timesChanged = !contest.getStartTime().equals(request.getStartTime()) ||
+                                   !contest.getEndTime().equals(request.getEndTime());
+            boolean scoringRuleChanged = contest.getScoringRule() != ScoringRule.valueOf(request.getScoringRule());
+            if (timesChanged || scoringRuleChanged) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
+            contest.setTitle(request.getTitle());
+            contest.setDescription(request.getDescription());
+        } else {
+            contest.setTitle(request.getTitle());
+            contest.setDescription(request.getDescription());
+            contest.setScoringRule(ScoringRule.valueOf(request.getScoringRule()));
+            contest.setStartTime(request.getStartTime());
+            contest.setEndTime(request.getEndTime());
+
+            long durationMinutes = java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
+            contest.setDurations((int) durationMinutes);
+
+            if (request.getPassword() != null) {
+                if (request.getPassword().trim().isEmpty()) {
+                    contest.setPasswordHash(null);
+                } else {
+                    contest.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+                }
             }
         }
 
@@ -386,12 +407,68 @@ public class ContestService {
 
         Instant now = Instant.now();
         String currentStatus = calculateStatus(contest, now);
-        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED")) {
+        if (!currentStatus.equals("DRAFT") && !currentStatus.equals("UPCOMING")) {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        contest.setIsCancelled(true);
+        contest.setStatus(ContestStatus.DELETED);
         contestRepository.save(contest);
+    }
+
+    @Transactional
+    public AdminContestResponse publishAdminContest(Integer id) {
+        ContestEntity contest = contestRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        if (contest.getStatus() != ContestStatus.DRAFT) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        contest.setStatus(ContestStatus.PUBLISHED);
+        contestRepository.save(contest);
+        return getAdminContestById(id);
+    }
+
+    @Transactional
+    public AdminContestResponse restoreAdminContest(Integer id) {
+        ContestEntity contest = contestRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        if (contest.getStatus() != ContestStatus.DELETED) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        contest.setStatus(ContestStatus.DRAFT);
+        contestRepository.save(contest);
+        return getAdminContestById(id);
+    }
+
+    @Transactional
+    public void hardDeleteAdminContest(Integer id) {
+        ContestEntity contest = contestRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        if (contest.getStatus() != ContestStatus.DELETED) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        long subCount = problemSubmissionRepository.countByContestId(id);
+        if (subCount > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        contestParticipantRepository.deleteByContestId(id);
+
+        List<ContestProblemEntity> cpList = contestProblemRepository.findByContestIdWithProblem(id);
+        for (ContestProblemEntity cp : cpList) {
+            ProblemEntity problem = cp.getProblem();
+            problem.setProblemScope(ProblemScope.PRACTICE);
+            problem.setIsPublic(false);
+            problemRepository.save(problem);
+        }
+        contestProblemRepository.deleteByContestId(id);
+
+        contestRepository.delete(contest);
     }
 
     @Transactional(readOnly = true)
@@ -406,6 +483,13 @@ public class ContestService {
     public void addProblemToContest(Integer contestId, AdminContestProblemRequest request) {
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        Instant now = Instant.now();
+        String currentStatus = calculateStatus(contest, now);
+        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED") || currentStatus.equals("DELETED")) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
         var problem = problemRepository.findById(request.getProblemId())
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
@@ -428,6 +512,15 @@ public class ContestService {
 
     @Transactional
     public void removeProblemFromContest(Integer contestId, Integer problemId) {
+        var contest = contestRepository.findById(contestId)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        Instant now = Instant.now();
+        String currentStatus = calculateStatus(contest, now);
+        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED") || currentStatus.equals("DELETED")) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
         ContestProblemEntity cp = contestProblemRepository.findByContestIdAndProblemId(contestId, problemId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
@@ -435,6 +528,7 @@ public class ContestService {
 
         ProblemEntity problem = cp.getProblem();
         problem.setProblemScope(ProblemScope.PRACTICE);
+        problem.setIsPublic(false);
         problemRepository.save(problem);
     }
 
@@ -455,7 +549,7 @@ public class ContestService {
             if (!isRegistered) {
                 throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
             }
-            submissions = problemSubmissionRepository.findByContestIdAndUsername(contestId, username);
+            submissions = problemSubmissionRepository.findByContestId(contestId);
         }
 
         List<ContestProblemEntity> cpList = contestProblemRepository.findByContestIdWithProblem(contestId);

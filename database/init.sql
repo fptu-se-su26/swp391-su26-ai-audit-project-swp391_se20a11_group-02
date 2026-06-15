@@ -559,7 +559,7 @@ CREATE TABLE public.contest (
     start_time timestamp with time zone NOT NULL,
     end_time timestamp with time zone NOT NULL,
     durations integer NOT NULL,
-    is_cancelled boolean DEFAULT false NOT NULL,
+    status character varying(255) DEFAULT 'DRAFT' NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     fts_document tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, ((public.f_unaccent((title)::text) || ' '::text) || public.f_unaccent(COALESCE(description, ''::text))))) STORED

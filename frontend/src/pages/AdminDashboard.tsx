@@ -522,7 +522,8 @@ export const AdminDashboard: React.FC = () => {
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
-  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'CANCELLED'>('ALL');
+  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'DELETED'>('ALL');
+  const [contestSubTab, setContestSubTab] = useState<'active' | 'trash'>('active');
 
   // Status change confirm modal state
   const [statusConfirmTarget, setStatusConfirmTarget] = useState<{
@@ -548,6 +549,9 @@ export const AdminDashboard: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [isSavingTestcases, setIsSavingTestcases] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
+  const [isEditContestMode, setIsEditContestMode] = useState(false);
+  const [editingContestId, setEditingContestId] = useState<number | null>(null);
+  const [editingContestStatus, setEditingContestStatus] = useState<string>('');
 
   // Confirmation Modal state
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -572,9 +576,17 @@ export const AdminDashboard: React.FC = () => {
   const [reviewSolveCode, setReviewSolveCode] = useState('');
 
   // Contest Detail Review Mode states
-  const [reviewingContest, setReviewingContest] = useState<AdminContest | null>(null);
-  const [reviewContestTab, setReviewContestTab] = useState<'overview' | 'problems' | 'submissions' | 'ranking'>('overview');
+  const [reviewingContest, setReviewingContest] = useState<AdminContest | null>(() => {
+    const saved = sessionStorage.getItem('adminReviewingContest');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [reviewContestTab, setReviewContestTab] = useState<'overview' | 'problems' | 'submissions' | 'ranking'>(() => {
+    return (sessionStorage.getItem('adminReviewContestTab') as any) || 'overview';
+  });
   const [reviewContestProblemId, setReviewContestProblemId] = useState<number | null>(null);
+
+  const [contestProblems, setContestProblems] = useState<any[]>([]);
+  const [loadingContestProblems, setLoadingContestProblems] = useState<boolean>(false);
 
   // Contest Countdown Timer states
   const [contestTimeLeft, setContestTimeLeft] = useState<string>('--:--:--');
@@ -607,18 +619,91 @@ export const AdminDashboard: React.FC = () => {
 
   // Contest Add Problems states
   const [isAddContestProblemOpen, setIsAddContestProblemOpen] = useState(false);
-  const [contestAddedProblemIds, setContestAddedProblemIds] = useState<Set<number>>(new Set());
 
   // Create Contest Password states
   const [newContestPassword, setNewContestPassword] = useState('');
   const [newContestConfirmPassword, setNewContestConfirmPassword] = useState('');
 
+  // Sync contest states to sessionStorage
+  useEffect(() => {
+    if (reviewingContest) {
+      sessionStorage.setItem('adminReviewingContest', JSON.stringify(reviewingContest));
+    } else {
+      sessionStorage.removeItem('adminReviewingContest');
+    }
+  }, [reviewingContest]);
+
+  useEffect(() => {
+    sessionStorage.setItem('adminReviewContestTab', reviewContestTab);
+  }, [reviewContestTab]);
+
+  // Sync reviewingContest from contests list updates
+  useEffect(() => {
+    if (reviewingContest && contests.length > 0) {
+      const updated = contests.find(c => c.id === reviewingContest.id);
+      if (updated) {
+        setReviewingContest(updated);
+      }
+    }
+  }, [contests]);
+
+  const fetchContestProblems = async (contestId: number) => {
+    setLoadingContestProblems(true);
+    try {
+      const res = await adminService.getContestProblems(contestId);
+      const sorted = [...res].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+      setContestProblems(sorted);
+    } catch (err) {
+      console.error("Failed to load contest problems:", err);
+      showGlobalToast("Failed to load contest problems", "error");
+    } finally {
+      setLoadingContestProblems(false);
+    }
+  };
+
+  const handleAddProblemToContest = async (problemId: number) => {
+    if (!reviewingContest) return;
+    try {
+      const orderIndex = contestProblems.length;
+      await adminService.addProblemToContest(reviewingContest.id, problemId, orderIndex);
+      showGlobalToast("Added problem to contest successfully");
+      await fetchContestProblems(reviewingContest.id);
+    } catch (err: any) {
+      console.error("Failed to add problem:", err);
+      showGlobalToast(err.message || "Failed to add problem", "error");
+    }
+  };
+
+  const handleRemoveProblemFromContest = async (problemId: number) => {
+    if (!reviewingContest) return;
+    try {
+      await adminService.removeProblemFromContest(reviewingContest.id, problemId);
+      showGlobalToast("Removed problem from contest successfully");
+      await fetchContestProblems(reviewingContest.id);
+    } catch (err: any) {
+      console.error("Failed to remove problem:", err);
+      showGlobalToast(err.message || "Failed to remove problem", "error");
+    }
+  };
+
+  useEffect(() => {
+    if (reviewingContest) {
+      fetchContestProblems(reviewingContest.id);
+    } else {
+      setContestProblems([]);
+    }
+  }, [reviewingContest]);
+
   // Nested routing synchronization based on React Router path parameter
   useEffect(() => {
     // Close active review player and modals when navigating tabs
     setReviewingCourse(null);
-    setReviewingContest(null);
-    setReviewContestTab('overview');
+    if (tab !== 'contests') {
+      setReviewingContest(null);
+      setReviewContestTab('overview');
+      sessionStorage.removeItem('adminReviewingContest');
+      sessionStorage.removeItem('adminReviewContestTab');
+    }
     setReviewContestProblemId(null);
     setSelectedUserDetail(null);
     setIsCreateProblemOpen(false);
@@ -1454,6 +1539,141 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleEditContestClick = (c: AdminContest) => {
+    setNewContestTitle(c.title);
+    setNewContestDesc(c.description || '');
+    setNewContestScoringRule(c.scoringRule);
+    const formatDateForInput = (isoString: string) => {
+      if (!isoString) return '';
+      const date = new Date(isoString);
+      const tzoffset = date.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(date.getTime() - tzoffset)).toISOString().slice(0, 16);
+      return localISOTime;
+    };
+    setNewContestStartTime(formatDateForInput(c.startTime));
+    setNewContestEndTime(formatDateForInput(c.endTime));
+    setNewContestPassword('');
+    setNewContestConfirmPassword('');
+    
+    setEditingContestId(c.id);
+    setEditingContestStatus(c.status);
+    setIsEditContestMode(true);
+    setIsCreateContestOpen(true);
+  };
+
+  const handleEditContestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingContestId === null) return;
+    if (!newContestTitle.trim()) {
+      showGlobalToast("Please fill in the title.", "error");
+      return;
+    }
+
+    let body: any = {
+      title: newContestTitle.trim(),
+      description: newContestDesc.trim()
+    };
+
+    if (editingContestStatus !== 'ONGOING' && editingContestStatus !== 'ENDED') {
+      if (!newContestStartTime || !newContestEndTime) {
+        showGlobalToast("Please fill in duration dates.", "error");
+        return;
+      }
+      const start = new Date(newContestStartTime).getTime();
+      const end = new Date(newContestEndTime).getTime();
+      if (end <= start) {
+        showGlobalToast("End Time must be after Start Time!", "error");
+        return;
+      }
+      const computedDuration = Math.round((end - start) / 60000);
+      body = {
+        ...body,
+        scoringRule: newContestScoringRule,
+        startTime: newContestStartTime,
+        endTime: newContestEndTime,
+        durations: computedDuration,
+        password: newContestPassword.trim() || undefined
+      };
+    }
+
+    try {
+      const updatedContest = await adminService.updateContest(editingContestId, body);
+      setContests(prev => prev.map(c => c.id === editingContestId ? updatedContest : c));
+      setIsCreateContestOpen(false);
+      setIsEditContestMode(false);
+      setEditingContestId(null);
+      setEditingContestStatus('');
+
+      // Reset form
+      setNewContestTitle('');
+      setNewContestDesc('');
+      setNewContestScoringRule('ICPC');
+      setNewContestStartTime('');
+      setNewContestEndTime('');
+      setNewContestPassword('');
+      setNewContestConfirmPassword('');
+
+      showGlobalToast(`Contest "${updatedContest.title}" updated successfully!`, "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to update contest", "error");
+    }
+  };
+
+  const handlePublishContest = async (id: number) => {
+    try {
+      const updated = await adminService.publishContest(id);
+      setContests(prev => prev.map(c => c.id === id ? updated : c));
+      if (reviewingContest && reviewingContest.id === id) {
+        setReviewingContest(updated);
+      }
+      showGlobalToast(`Contest "${updated.title}" published successfully!`, "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to publish contest", "error");
+    }
+  };
+
+  const handleRestoreContest = async (id: number) => {
+    try {
+      const updated = await adminService.restoreContest(id);
+      setContests(prev => prev.map(c => c.id === id ? updated : c));
+      if (reviewingContest && reviewingContest.id === id) {
+        setReviewingContest(updated);
+      }
+      showGlobalToast(`Contest "${updated.title}" restored successfully!`, "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to restore contest", "error");
+    }
+  };
+
+  const handleDeleteContest = async (id: number) => {
+    try {
+      await adminService.deleteContest(id);
+      const updatedContests = await adminService.getContests();
+      setContests(updatedContests);
+      if (reviewingContest && reviewingContest.id === id) {
+        const found = updatedContests.find(c => c.id === id);
+        if (found) setReviewingContest(found);
+      }
+      showGlobalToast("Contest moved to trash successfully!", "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to delete contest", "error");
+    }
+  };
+
+  const handleHardDeleteContest = async (id: number) => {
+    try {
+      await adminService.hardDeleteContest(id);
+      setContests(prev => prev.filter(c => c.id !== id));
+      if (reviewingContest && reviewingContest.id === id) {
+        setReviewingContest(null);
+        setReviewContestProblemId(null);
+      }
+      showGlobalToast("Contest permanently deleted!", "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to permanently delete contest", "error");
+    }
+  };
+
   // Computations for filters
   const filteredCourses = useMemo(() => {
     if (courseFilter === 'ALL') return courses;
@@ -1505,9 +1725,17 @@ export const AdminDashboard: React.FC = () => {
   }, [problems, problemSearch, problemDifficultyFilter, problemScopeFilter, problemSubTab]);
 
   const filteredContests = useMemo(() => {
-    if (contestStatusFilter === 'ALL') return contests;
-    return contests.filter(c => c.status === contestStatusFilter);
-  }, [contests, contestStatusFilter]);
+    let list = contests;
+    if (contestSubTab === 'trash') {
+      list = contests.filter(c => c.status === 'DELETED');
+    } else {
+      list = contests.filter(c => c.status !== 'DELETED');
+      if (contestStatusFilter !== 'ALL') {
+        list = list.filter(c => c.status === contestStatusFilter);
+      }
+    }
+    return list;
+  }, [contests, contestStatusFilter, contestSubTab]);
 
   // Auth checking context (Only allow role == ADMIN, or default username admin, let's keep it safe)
   // const isAdmin = useMemo(() => {
@@ -2201,8 +2429,84 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-xs font-semibold text-amber-900 leading-tight">{reviewingContest.title}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-amber-700 font-semibold hidden md:inline">Status: {reviewingContest.status}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-amber-700 font-semibold bg-amber-100/60 px-3 py-1.5 rounded-lg border border-amber-200">
+                  Status: {reviewingContest.status}
+                </span>
+                
+                {/* Publish Button (Only for DRAFT status) */}
+                {reviewingContest.status === 'DRAFT' && (
+                  <button
+                    onClick={() => handlePublishContest(reviewingContest.id)}
+                    className="flex items-center gap-1.5 text-xs text-white font-bold bg-primary hover:bg-primary-hover border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">publish</span>
+                    Publish
+                  </button>
+                )}
+
+                {/* Edit Button */}
+                {reviewingContest.status !== 'DELETED' && (
+                  <button
+                    onClick={() => handleEditContestClick(reviewingContest)}
+                    className="flex items-center gap-1.5 text-xs text-slate-700 font-bold bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    Edit
+                  </button>
+                )}
+
+                {/* Restore Button (Only for DELETED status) */}
+                {reviewingContest.status === 'DELETED' && (
+                  <button
+                    onClick={() => handleRestoreContest(reviewingContest.id)}
+                    className="flex items-center gap-1.5 text-xs text-white font-bold bg-green-600 hover:bg-green-700 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">restore</span>
+                    Restore
+                  </button>
+                )}
+
+                {/* Delete Button (For DRAFT/UPCOMING status) */}
+                {(reviewingContest.status === 'DRAFT' || reviewingContest.status === 'UPCOMING') && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to move this contest to trash?")) {
+                        handleDeleteContest(reviewingContest.id);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 text-xs text-white font-bold bg-red-500 hover:bg-red-655 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    Delete
+                  </button>
+                )}
+
+                {/* Hard Delete Button (Only for DELETED status that has 0 submissions) */}
+                {reviewingContest.status === 'DELETED' && (
+                  reviewingContest.submissionCount === 0 ? (
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to permanently delete this contest? This cannot be undone.")) {
+                          handleHardDeleteContest(reviewingContest.id);
+                        }
+                      }}
+                      className="flex items-center gap-1.5 text-xs text-white font-bold bg-red-600 hover:bg-red-700 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                      Hard Delete
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      title="Only contests with 0 submissions can be permanently deleted"
+                      className="flex items-center gap-1.5 text-xs text-slate-400 font-bold bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg cursor-not-allowed transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                      Hard Delete
+                    </button>
+                  )
+                )}
               </div>
             </div>
 
@@ -2294,91 +2598,76 @@ export const AdminDashboard: React.FC = () => {
                               </tr>
                             </thead>
                             <tbody className="text-xs font-semibold divide-y divide-gray-200">
-                              {[
-                                { id: 101, title: 'Two Sum', totalAccepted: 1245, totalSubmissions: 1580, isBuiltIn: true },
-                                { id: 102, title: 'Reverse Linked List', totalAccepted: 850, totalSubmissions: 1200, isBuiltIn: true },
-                                { id: 103, title: 'Spring Context Hierarchy Solver', totalAccepted: 420, totalSubmissions: 980, isBuiltIn: true },
-                                ...Array.from(contestAddedProblemIds)
-                                  .map(id => problems.find(p => p.id === id))
-                                  .filter((p): p is AdminProblem => !!p)
-                                  .map(p => ({
-                                    id: p.id,
-                                    title: p.title,
-                                    totalAccepted: p.acceptedSubmissions,
-                                    totalSubmissions: p.totalSubmissions,
-                                    isBuiltIn: false
-                                  }))
-                              ].map((cp, idx) => {
-                                const acPercent = cp.totalSubmissions > 0 ? Math.round((cp.totalAccepted / cp.totalSubmissions) * 100) : 0;
-                                const totalTeams = (reviewingContest?.participantCount && reviewingContest.participantCount > 0) ? reviewingContest.participantCount : 100;
-                                const acTeams = Math.min(Math.round((acPercent / 100) * totalTeams), totalTeams);
-                                const orderLetter = String.fromCharCode(65 + idx);
+                              {loadingContestProblems ? (
+                                <tr>
+                                  <td colSpan={6} className="p-8 text-center text-text-muted">
+                                    <span className="animate-pulse">Loading contest problems...</span>
+                                  </td>
+                                </tr>
+                              ) : contestProblems.length === 0 ? (
+                                <tr>
+                                  <td colSpan={6} className="p-8 text-center text-text-muted">
+                                    No problems added to this contest yet.
+                                  </td>
+                                </tr>
+                              ) : (
+                                contestProblems.map((cp, idx) => {
+                                  const fullProblem = problems.find(p => p.id === cp.problemId);
+                                  const totalSubmissions = fullProblem ? fullProblem.totalSubmissions : 0;
+                                  const totalAccepted = fullProblem ? fullProblem.acceptedSubmissions : 0;
+                                  const acPercent = totalSubmissions > 0 ? Math.round((totalAccepted / totalSubmissions) * 100) : 0;
+                                  const totalTeams = (reviewingContest?.participantCount && reviewingContest.participantCount > 0) ? reviewingContest.participantCount : 0;
+                                  const acTeams = totalTeams > 0 ? Math.min(Math.round((acPercent / 100) * totalTeams), totalTeams) : 0;
+                                  const orderLetter = String.fromCharCode(65 + idx);
 
-                                return (
-                                  <tr key={cp.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="p-4 text-center font-bold text-brand-blue">
-                                      {orderLetter}
-                                    </td>
-                                    <td className="p-4">
-                                      <button
-                                        onClick={() => {
-                                          setReviewContestProblemId(cp.id);
-                                          setContestSolveLang('Java');
-                                          setContestSolveCode(problemData[cp.title]?.code?.['Java'] || JAVA_TEMPLATE);
-                                        }}
-                                        className="text-primary hover:underline font-bold text-left bg-transparent border-none cursor-pointer p-0"
-                                      >
-                                        {cp.title}
-                                      </button>
-                                    </td>
-                                    <td className="p-4 text-center">
-                                      <span className={`font-bold ${acPercent >= 70 ? 'text-brand-green' : acPercent >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
-                                        {acPercent}%
-                                      </span>
-                                    </td>
-                                    <td className="p-4 text-center font-mono text-slate-600">
-                                      {cp.totalSubmissions.toLocaleString()}
-                                    </td>
-                                    <td className="p-4 text-center font-mono text-slate-600">
-                                      {acTeams}/{totalTeams}
-                                    </td>
-                                    <td className="p-4 text-center">
-                                      {cp.isBuiltIn ? (
-                                        <button
-                                          onClick={() => { /* built-in problems can also be removed if needed */ }}
-                                          className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 p-1.5 rounded-lg transition-all cursor-pointer"
-                                          title="Delete problem"
-                                        >
-                                          <span className="material-symbols-outlined text-[16px]">delete</span>
-                                        </button>
-                                      ) : (
+                                  return (
+                                    <tr key={cp.problemId} className="hover:bg-slate-50/50 transition-colors">
+                                      <td className="p-4 text-center font-bold text-brand-blue">
+                                        {orderLetter}
+                                      </td>
+                                      <td className="p-4">
                                         <button
                                           onClick={() => {
-                                            setContestAddedProblemIds(prev => {
-                                              const next = new Set(prev);
-                                              next.delete(cp.id);
-                                              return next;
-                                            });
+                                            setReviewContestProblemId(cp.problemId);
+                                            setContestSolveLang('Java');
+                                            setContestSolveCode(fullProblem?.starterTemplates?.['Java'] || problemData[cp.title]?.code?.['Java'] || JAVA_TEMPLATE);
                                           }}
+                                          className="text-primary hover:underline font-bold text-left bg-transparent border-none cursor-pointer p-0"
+                                        >
+                                          {cp.title}
+                                        </button>
+                                      </td>
+                                      <td className="p-4 text-center">
+                                        <span className={`font-bold ${acPercent >= 70 ? 'text-brand-green' : acPercent >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
+                                          {acPercent}%
+                                        </span>
+                                      </td>
+                                      <td className="p-4 text-center font-mono text-slate-600">
+                                        {totalSubmissions.toLocaleString()}
+                                      </td>
+                                      <td className="p-4 text-center font-mono text-slate-600">
+                                        {acTeams}/{totalTeams}
+                                      </td>
+                                      <td className="p-4 text-center">
+                                        <button
+                                          onClick={() => handleRemoveProblemFromContest(cp.problemId)}
                                           className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 p-1.5 rounded-lg transition-all cursor-pointer"
                                           title="Delete problem"
                                         >
                                           <span className="material-symbols-outlined text-[16px]">delete</span>
                                         </button>
-                                      )}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              )}
                             </tbody>
                           </table>
                         </div>
                         <div className="p-4 border-t border-gray-150 bg-slate-50/50 flex justify-between items-center">
                           <p className="text-xs text-text-muted">
                             Total: <span className="font-bold text-text-main">
-                              {3 + Array.from(contestAddedProblemIds)
-                                .map(id => problems.find(p => p.id === id))
-                                .filter(Boolean).length}
+                              {contestProblems.length}
                             </span> problems
                           </p>
                           <button
@@ -2427,8 +2716,7 @@ export const AdminDashboard: React.FC = () => {
                                 </thead>
                                 <tbody className="text-sm divide-y divide-gray-100">
                                   {problems.filter(p => p.problemScope === 'CONTEST' && p.isActive && p.isPublic).map((p) => {
-                                    const isAdded = contestAddedProblemIds.has(p.id);
-                                    const isBuiltIn = [101, 102, 103].includes(p.id);
+                                    const isAdded = contestProblems.some(cp => cp.problemId === p.id);
                                     return (
                                       <tr key={p.id} className={`transition-colors ${isAdded ? 'bg-green-50/50' : 'hover:bg-slate-50/50'}`}>
                                         <td className="p-3 text-center">
@@ -2448,30 +2736,16 @@ export const AdminDashboard: React.FC = () => {
                                         </td>
                                         <td className="p-3 text-center font-bold text-slate-600">{p.score}</td>
                                         <td className="p-3 text-center">
-                                          {isBuiltIn ? (
-                                            <span className="text-[10px] text-slate-400 font-semibold">Built-in</span>
-                                          ) : isAdded ? (
+                                          {isAdded ? (
                                             <button
-                                              onClick={() => {
-                                                setContestAddedProblemIds(prev => {
-                                                  const next = new Set(prev);
-                                                  next.delete(p.id);
-                                                  return next;
-                                                });
-                                              }}
+                                              onClick={() => handleRemoveProblemFromContest(p.id)}
                                               className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1 rounded-lg font-bold text-[10px] transition-all cursor-pointer"
                                             >
                                               Remove
                                             </button>
                                           ) : (
                                             <button
-                                              onClick={() => {
-                                                setContestAddedProblemIds(prev => {
-                                                  const next = new Set(prev);
-                                                  next.add(p.id);
-                                                  return next;
-                                                });
-                                              }}
+                                              onClick={() => handleAddProblemToContest(p.id)}
                                               className="bg-primary hover:bg-primary-hover text-white border-none px-3 py-1 rounded-lg font-bold text-[10px] transition-all cursor-pointer shadow-sm"
                                             >
                                               Add
@@ -2487,7 +2761,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                           <div className="p-4 border-t border-gray-200 flex items-center justify-between shrink-0 bg-slate-50">
                             <p className="text-xs text-text-muted font-semibold">
-                              <span className="text-brand-blue font-bold">{contestAddedProblemIds.size}</span> problem{contestAddedProblemIds.size !== 1 ? 's' : ''} added
+                              <span className="text-brand-blue font-bold">{contestProblems.length}</span> problem{contestProblems.length !== 1 ? 's' : ''} added
                             </p>
                             <button
                               onClick={() => setIsAddContestProblemOpen(false)}
@@ -2501,8 +2775,19 @@ export const AdminDashboard: React.FC = () => {
                     )}
 
                     </>) : (() => {
-                      const probName = reviewContestProblemId === 101 ? 'Two Sum' : reviewContestProblemId === 102 ? 'Reverse Linked List' : 'Spring Context Hierarchy Solver';
-                      const probDetail = problemData[probName];
+                      const realProb = problems.find(p => p.id === reviewContestProblemId);
+                      const probName = realProb ? realProb.title : (reviewContestProblemId === 101 ? 'Two Sum' : reviewContestProblemId === 102 ? 'Reverse Linked List' : 'Spring Context Hierarchy Solver');
+                      const probDetail = realProb ? {
+                        difficulty: realProb.difficulty,
+                        description: realProb.description,
+                        code: realProb.starterTemplates || {}
+                      } : problemData[probName];
+                      const difficultyText = realProb ? (realProb.difficulty === 'EASY' ? 'Easy' : realProb.difficulty === 'MEDIUM' ? 'Medium' : 'Hard') : (reviewContestProblemId === 103 ? 'Medium' : 'Easy');
+                      const difficultyClass = realProb 
+                        ? (realProb.difficulty === 'EASY' ? 'bg-green-50 text-brand-green border border-green-200' 
+                           : realProb.difficulty === 'MEDIUM' ? 'bg-blue-50 text-blue-600 border border-blue-200' 
+                           : 'bg-red-50 text-red-600 border border-red-200')
+                        : (reviewContestProblemId === 103 ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-green-50 text-brand-green border border-green-200');
                       const contestSolveLineCount = Math.max(contestSolveCode.split('\n').length, 6);
 
                       return (
@@ -2522,9 +2807,8 @@ export const AdminDashboard: React.FC = () => {
                               {/* Title & Difficulty */}
                               <div className="flex items-center gap-3">
                                 <h1 className="text-2xl font-display font-bold text-text-main">{probName}</h1>
-                                <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${reviewContestProblemId === 103 ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-green-50 text-brand-green border border-green-200'
-                                  }`}>
-                                  {reviewContestProblemId === 103 ? 'Medium' : 'Easy'}
+                                <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${difficultyClass}`}>
+                                  {difficultyText}
                                 </span>
                               </div>
 
@@ -2534,30 +2818,63 @@ export const AdminDashboard: React.FC = () => {
                                 dangerouslySetInnerHTML={{ __html: probDetail?.description || '' }}
                               />
 
+                              {realProb && (realProb.inputDescription || realProb.outputDescription) && (
+                                <div className="space-y-4 pt-4 border-t border-gray-100">
+                                  {realProb.inputDescription && (
+                                    <div>
+                                      <h3 className="font-semibold text-base mb-1 text-text-main">Input Description</h3>
+                                      <p className="text-sm text-text-muted leading-relaxed">{realProb.inputDescription}</p>
+                                    </div>
+                                  )}
+                                  {realProb.outputDescription && (
+                                    <div>
+                                      <h3 className="font-semibold text-base mb-1 text-text-main">Output Description</h3>
+                                      <p className="text-sm text-text-muted leading-relaxed">{realProb.outputDescription}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
                               {/* Example */}
-                              <div>
-                                <h3 className="font-semibold text-lg mb-3 text-text-main">Example 1:</h3>
-                                <div className="bg-brand-blue text-white rounded-lg p-5 font-mono text-sm shadow-sm space-y-2">
-                                  <div>
-                                    <span className="text-gray-400 select-none">Input:</span> nums = [2,7,11,15], target = 9
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-400 select-none">Output:</span> [0,1]
-                                  </div>
-                                  <div className="text-gray-300">
-                                    <span className="text-gray-400 select-none">Explanation:</span> Because nums[0] + nums[1] == 9, we return [0, 1].
+                              {(realProb ? (realProb.exampleInput || realProb.exampleOutput) : true) && (
+                                <div>
+                                  <h3 className="font-semibold text-lg mb-3 text-text-main">Example 1:</h3>
+                                  <div className="bg-brand-blue text-white rounded-lg p-5 font-mono text-sm shadow-sm space-y-2">
+                                    <div>
+                                      <span className="text-gray-400 select-none">Input:</span> {realProb ? realProb.exampleInput : 'nums = [2,7,11,15], target = 9'}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400 select-none">Output:</span> {realProb ? realProb.exampleOutput : '[0,1]'}
+                                    </div>
+                                    {!realProb && (
+                                      <div className="text-gray-300">
+                                        <span className="text-gray-400 select-none">Explanation:</span> Because nums[0] + nums[1] == 9, we return [0, 1].
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
-                              </div>
+                              )}
 
                               {/* Constraints */}
                               <div>
                                 <h3 className="font-semibold text-lg mb-3 text-text-main">Constraints:</h3>
                                 <ul className="list-disc list-inside space-y-2 text-text-main bg-surface-gray p-5 rounded-lg border border-gray-200">
-                                  <li><code className="font-mono text-sm">2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
-                                  <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-                                  <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
-                                  <li><strong>Only one valid answer exists.</strong></li>
+                                  {realProb ? (
+                                    realProb.constraints ? (
+                                      realProb.constraints.split('\n').filter(c => c.trim().length > 0).map((c, i) => (
+                                        <li key={i}>{c}</li>
+                                      ))
+                                    ) : (
+                                      <li>No constraints specified.</li>
+                                    )
+                                  ) : (
+                                    <>
+                                      <li><code className="font-mono text-sm">2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
+                                      <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
+                                      <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
+                                      <li><strong>Only one valid answer exists.</strong></li>
+                                    </>
+                                  )}
                                 </ul>
                               </div>
 
@@ -2568,7 +2885,7 @@ export const AdminDashboard: React.FC = () => {
                                   <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
                                 </summary>
                                 <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-white">
-                                  A really brute force way would be to search for all possible pairs of numbers but that would be too slow. Again, it's best to try out brute force solutions for just for completeness. It is from these brute force solutions that you can come up with optimizations.
+                                  {realProb ? (realProb.hint || 'No hints available for this problem.') : 'A really brute force way would be to search for all possible pairs of numbers but that would be too slow. Again, it\'s best to try out brute force solutions for just for completeness. It is from these brute force solutions that you can come up with optimizations.'}
                                 </div>
                               </details>
                             </div>
@@ -3794,25 +4111,69 @@ export const AdminDashboard: React.FC = () => {
             {activeTab === 'contest' && (
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Contests & Competitions</h2>
-                  <div className="flex gap-3 w-full sm:w-auto">
-                    <select
-                      value={contestStatusFilter}
-                      onChange={(e) => setContestStatusFilter(e.target.value as any)}
-                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
-                    >
-                      <option value="ALL">All Status</option>
-                      <option value="UPCOMING">Upcoming</option>
-                      <option value="ONGOING">Ongoing</option>
-                      <option value="ENDED">Ended</option>
-                      <option value="CANCELLED">Cancelled</option>
-                    </select>
-                    <button
-                      onClick={() => setIsCreateContestOpen(true)}
-                      className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 ml-auto"
-                    >
-                      <span className="material-symbols-outlined text-xs">add</span> Create Contest
-                    </button>
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-2xl font-display font-black text-brand-blue">Contests & Competitions</h2>
+                    {/* Sub-tab Selection */}
+                    <div className="flex gap-4 border-b border-slate-200 mt-2">
+                      <button
+                        onClick={() => {
+                          setContestSubTab('active');
+                          setContestStatusFilter('ALL');
+                        }}
+                        className={`pb-2 text-xs font-bold transition-all px-2 cursor-pointer border-b-2 ${
+                          contestSubTab === 'active' ? 'border-primary text-primary font-black' : 'border-transparent text-slate-400 hover:text-slate-600'
+                        }`}
+                      >
+                        Active Contests
+                      </button>
+                      <button
+                        onClick={() => {
+                          setContestSubTab('trash');
+                          setContestStatusFilter('ALL');
+                        }}
+                        className={`pb-2 text-xs font-bold transition-all px-2 cursor-pointer border-b-2 ${
+                          contestSubTab === 'trash' ? 'border-primary text-primary font-black' : 'border-transparent text-slate-400 hover:text-slate-600'
+                        }`}
+                      >
+                        Thùng rác (Trash)
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3 w-full sm:w-auto items-center">
+                    {contestSubTab === 'active' && (
+                      <select
+                        value={contestStatusFilter}
+                        onChange={(e) => setContestStatusFilter(e.target.value as any)}
+                        className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary cursor-pointer"
+                      >
+                        <option value="ALL">All Status</option>
+                        <option value="DRAFT">Draft</option>
+                        <option value="UPCOMING">Upcoming</option>
+                        <option value="ONGOING">Ongoing</option>
+                        <option value="ENDED">Ended</option>
+                      </select>
+                    )}
+                    {contestSubTab === 'active' && (
+                      <button
+                        onClick={() => {
+                          setIsEditContestMode(false);
+                          setEditingContestId(null);
+                          setEditingContestStatus('');
+                          setNewContestTitle('');
+                          setNewContestDesc('');
+                          setNewContestScoringRule('ICPC');
+                          setNewContestStartTime('');
+                          setNewContestEndTime('');
+                          setNewContestPassword('');
+                          setNewContestConfirmPassword('');
+                          setIsCreateContestOpen(true);
+                        }}
+                        className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 ml-auto cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-xs">add</span> Create Contest
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -3842,24 +4203,74 @@ export const AdminDashboard: React.FC = () => {
                             <td className="py-4 px-6">{c.durations} mins</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{c.participantCount}</td>
                             <td className="py-4 px-6 text-center">
-                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${c.status === 'ONGOING' ? 'bg-red-50 text-red-500 animate-pulse' :
-                                c.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'
-                                }`}>{c.status}</span>
+                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${
+                                c.status === 'ONGOING' ? 'bg-red-50 text-red-500 animate-pulse' :
+                                c.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' :
+                                c.status === 'DRAFT' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
+                              }`}>{c.status}</span>
                             </td>
                             <td className="py-4 px-6 text-center">
-                              <button
-                                onClick={() => {
-                                  setReviewingContest(c);
-                                  setReviewContestTab('overview');
-                                  setReviewContestProblemId(null);
-                                }}
-                                className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
-                              >
-                                Detail
-                              </button>
+                              <div className="flex justify-center gap-2">
+                                {contestSubTab === 'active' ? (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setReviewingContest(c);
+                                        setReviewContestTab('overview');
+                                        setReviewContestProblemId(null);
+                                      }}
+                                      className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                    >
+                                      Detail
+                                    </button>
+                                    {(c.status === 'UPCOMING' || c.status === 'DRAFT') && (
+                                      <button
+                                        onClick={() => handleDeleteContest(c.id)}
+                                        className="bg-red-500 hover:bg-red-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                      >
+                                        Delete
+                                      </button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => handleRestoreContest(c.id)}
+                                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                    >
+                                      Restore
+                                    </button>
+                                    {c.submissionCount === 0 ? (
+                                      <button
+                                        onClick={() => {
+                                          if (window.confirm("Are you sure you want to permanently delete this contest? This cannot be undone.")) {
+                                            handleHardDeleteContest(c.id);
+                                          }
+                                        }}
+                                        className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                      >
+                                        Hard Delete
+                                      </button>
+                                    ) : (
+                                      <button
+                                        disabled
+                                        title="Only contests with 0 submissions can be permanently deleted"
+                                        className="bg-slate-200 text-slate-400 font-bold text-[10px] px-3 py-1.5 rounded-xl border-none cursor-not-allowed"
+                                      >
+                                        Hard Delete
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
+                        {filteredContests.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="py-12 text-center text-text-muted italic">No contests found.</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -5078,14 +5489,23 @@ export const AdminDashboard: React.FC = () => {
       {/* ================= MODAL: CREATE CONTEST ================= */}
       {isCreateContestOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-2xl w-full p-6 animate-fade-in text-left">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-2xl w-full p-6 animate-fade-in text-left bg-white">
             <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-display font-black text-xl text-brand-blue">Create Contest</h3>
-                <p className="text-xs text-text-muted mt-0.5">Input the basic meta details of the competition.</p>
+                <h3 className="font-display font-black text-xl text-brand-blue">
+                  {isEditContestMode ? "Edit Contest" : "Create Contest"}
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {isEditContestMode
+                    ? "Modify details. Core fields are locked once the contest starts."
+                    : "Input the basic meta details of the competition."}
+                </p>
               </div>
               <button onClick={() => {
                 setIsCreateContestOpen(false);
+                setIsEditContestMode(false);
+                setEditingContestId(null);
+                setEditingContestStatus('');
                 setNewContestTitle('');
                 setNewContestDesc('');
                 setNewContestScoringRule('ICPC');
@@ -5093,18 +5513,23 @@ export const AdminDashboard: React.FC = () => {
                 setNewContestEndTime('');
                 setNewContestPassword('');
                 setNewContestConfirmPassword('');
-              }} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
+              }} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors border-none bg-transparent cursor-pointer">close</button>
             </div>
 
-            <form onSubmit={handleCreateContestSubmit} className="flex flex-col gap-4 text-xs font-semibold">
+            <form onSubmit={isEditContestMode ? handleEditContestSubmit : handleCreateContestSubmit} className="flex flex-col gap-4 text-xs font-semibold">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Contest Title *</label>
-                  <input required type="text" value={newContestTitle} onChange={e => setNewContestTitle(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="e.g. Nonstop Coding Winter Cup" />
+                  <input required type="text" value={newContestTitle} onChange={e => setNewContestTitle(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary" placeholder="e.g. Nonstop Coding Winter Cup" />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Scoring Rule</label>
-                  <select value={newContestScoringRule} onChange={e => setNewContestScoringRule(e.target.value as any)} className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-xs">
+                  <select
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestScoringRule}
+                    onChange={e => setNewContestScoringRule(e.target.value as any)}
+                    className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  >
                     <option value="ICPC">ICPC Rule</option>
                     <option value="IOI">IOI Rule</option>
                     <option value="CUSTOM">Custom Rule</option>
@@ -5114,36 +5539,64 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Contest Description</label>
-                <textarea rows={3} value={newContestDesc} onChange={e => setNewContestDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Detail contest guidelines..." />
+                <textarea rows={3} value={newContestDesc} onChange={e => setNewContestDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary" placeholder="Detail contest guidelines..." />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Start Time *</label>
-                  <input required type="datetime-local" value={newContestStartTime} onChange={e => setNewContestStartTime(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800" />
+                  <input
+                    required
+                    type="datetime-local"
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestStartTime}
+                    onChange={e => setNewContestStartTime(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">End Time *</label>
-                  <input required type="datetime-local" value={newContestEndTime} onChange={e => setNewContestEndTime(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800" />
+                  <input
+                    required
+                    type="datetime-local"
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestEndTime}
+                    onChange={e => setNewContestEndTime(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Password (Optional)</label>
-                  <input type="password" value={newContestPassword} onChange={e => setNewContestPassword(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Leave empty for public" />
+                  <input
+                    type="password"
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestPassword}
+                    onChange={e => setNewContestPassword(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    placeholder="Leave empty for public"
+                  />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Confirm Password</label>
-                  <input type="password" value={newContestConfirmPassword} onChange={e => setNewContestConfirmPassword(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Confirm contest password" />
+                  <input
+                    type="password"
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestConfirmPassword}
+                    onChange={e => setNewContestConfirmPassword(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    placeholder="Confirm contest password"
+                  />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4"
+                className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4 border-none cursor-pointer"
               >
-                Create Contest Meta
+                {isEditContestMode ? "Save Changes" : "Create Contest Meta"}
               </button>
             </form>
           </div>
