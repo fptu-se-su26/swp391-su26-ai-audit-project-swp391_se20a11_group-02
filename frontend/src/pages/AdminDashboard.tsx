@@ -1318,8 +1318,7 @@ export const AdminDashboard: React.FC = () => {
       setProblems(prev => prev.map(p => p.id === testcaseProblem.id ? {
         ...p,
         totalTestcases: savedTcs.length,
-        isActive: savedTcs.length > 0,
-        isPublic: savedTcs.length > 0 ? true : p.isPublic
+        isActive: savedTcs.length > 0
       } : p));
 
       showGlobalToast(`Successfully saved ${savedTcs.length} test cases for "${testcaseProblem.title}"!`, "success");
@@ -3686,7 +3685,8 @@ export const AdminDashboard: React.FC = () => {
                         {filteredProblems.map((p, index) => {
                           const totalSubs = p.totalSubmissions || 0;
                           const acceptedSubs = p.acceptedSubmissions || 0;
-                          const acceptedRate = totalSubs > 0 ? (acceptedSubs / totalSubs * 100).toFixed(1) : "0.0";
+                          const calculatedRate = totalSubs > 0 ? (acceptedSubs / totalSubs * 100) : 0;
+                          const acceptedRate = Math.min(calculatedRate, 100).toFixed(1);
 
                           return (
                             <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
