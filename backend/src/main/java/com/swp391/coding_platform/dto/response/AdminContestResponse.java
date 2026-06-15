@@ -25,4 +25,6 @@ public class AdminContestResponse {
     Integer problemCount;
     Integer submissionCount;
     Double averageScore;
+    Boolean isDeleted;
+    String databaseStatus;
 }
