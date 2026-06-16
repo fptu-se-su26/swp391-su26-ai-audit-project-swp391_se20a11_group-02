@@ -32,10 +32,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import vn.payos.PayOS;
 import vn.payos.type.Webhook;
 import vn.payos.type.WebhookData;
+import vn.payos.type.PaymentLinkData;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Slf4j
 @Service
@@ -185,28 +190,7 @@ public class PaymentService {
             }
 
             // 4. Lock Wallet and Process
-            WalletEntity wallet = walletRepository.findByUserIdWithLock(paymentTx.getWallet().getUser().getId())
-                    .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
-
-            // Update Payment Transaction
-            paymentTx.setStatus(StatusTransaction.SUCCESS);
-            paymentTransactionRepository.save(paymentTx);
-
-            // Create Wallet Ledger Transaction
-            WalletTransactionEntity walletTx = WalletTransactionEntity.builder()
-                    .wallet(wallet)
-                    .amount(paymentTx.getAmount())
-                    .type(TransactionType.DEPOSIT)
-                    .status(StatusTransaction.SUCCESS)
-                    .referenceId(paymentTx.getId().toString())
-                    .build();
-            walletTransactionRepository.save(walletTx);
-
-            // Add balance
-            wallet.setBalance(wallet.getBalance().add(paymentTx.getAmount()));
-            walletRepository.save(wallet);
-
-            log.info("Successfully processed deposit for transaction: {}", transactionCode);
+            processSuccessfulPayment(paymentTx);
 
         } catch (Exception e) {
             log.error("Error processing PayOS Webhook", e);
@@ -259,6 +243,59 @@ public class PaymentService {
             payOS.cancelPaymentLink(orderCode, "Customer cancelled");
         } catch (Exception e) {
             log.warn("Failed to cancel PayOS payment link for orderCode {}: {}", transactionCode, e.getMessage());
+        }
+    }
+
+    private void processSuccessfulPayment(PaymentTransactionEntity paymentTx) {
+        WalletEntity wallet = walletRepository.findByUserIdWithLock(paymentTx.getWallet().getUser().getId())
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        paymentTx.setStatus(StatusTransaction.SUCCESS);
+        paymentTransactionRepository.save(paymentTx);
+
+        WalletTransactionEntity walletTx = WalletTransactionEntity.builder()
+                .wallet(wallet)
+                .amount(paymentTx.getAmount())
+                .type(TransactionType.DEPOSIT)
+                .status(StatusTransaction.SUCCESS)
+                .referenceId(paymentTx.getId().toString())
+                .build();
+        walletTransactionRepository.save(walletTx);
+
+        wallet.setBalance(wallet.getBalance().add(paymentTx.getAmount()));
+        walletRepository.save(wallet);
+
+        log.info("Successfully processed deposit for transaction: {}", paymentTx.getTransactionCode());
+    }
+
+    @Scheduled(fixedRate = 3600000)
+    @Transactional
+    public void reconcilePendingTransactions() {
+        Instant timeLimit = Instant.now().minus(24, ChronoUnit.HOURS);
+        List<PaymentTransactionEntity> pendingTxs = paymentTransactionRepository
+                .findByStatusAndCreatedAtBefore(StatusTransaction.PENDING, timeLimit);
+
+        for (PaymentTransactionEntity tx : pendingTxs) {
+            try {
+                long orderCode = Long.parseLong(tx.getTransactionCode());
+                PaymentLinkData payosData = payOS.getPaymentLinkInformation(orderCode);
+
+                if ("PAID".equals(payosData.getStatus())) {
+                    processSuccessfulPayment(tx);
+                    log.info("Reconciled and recovered missing webhook for transaction: {}", orderCode);
+                } else if ("CANCELLED".equals(payosData.getStatus()) || "EXPIRED".equals(payosData.getStatus())) {
+                    tx.setStatus(StatusTransaction.CANCELLED);
+                    paymentTransactionRepository.save(tx);
+                    log.info("Cleaned up abandoned transaction: {}", orderCode);
+                } else if ("PENDING".equals(payosData.getStatus())) {
+                    payOS.cancelPaymentLink(orderCode, "Expired after 24h");
+                    tx.setStatus(StatusTransaction.CANCELLED);
+                    paymentTransactionRepository.save(tx);
+                    log.info("Cancelled expired pending transaction: {}", orderCode);
+                }
+            } catch (Exception e) {
+                log.error("Error reconciling transaction: {}", tx.getTransactionCode(), e);
+            }
         }
     }
 }
