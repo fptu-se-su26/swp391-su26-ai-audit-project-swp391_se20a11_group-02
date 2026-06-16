@@ -4611,24 +4611,36 @@ export const AdminDashboard: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Difficulty Level</label>
-                  <div className="flex gap-3">
-                    {['EASY', 'MEDIUM', 'HARD'].map(diff => (
-                      <label key={diff} className={`flex-1 flex items-center justify-center gap-2 py-3 border rounded-xl cursor-pointer transition-colors ${newProbDifficulty === diff ? 'bg-primary/10 border-primary text-primary font-bold' : 'border-slate-200 text-slate-500 font-medium hover:bg-slate-50'}`}>
-                        <input type="radio" name="probDifficulty" value={diff} checked={newProbDifficulty === diff} onChange={() => setNewProbDifficulty(diff as any)} className="hidden" />
-                        {diff}
-                      </label>
-                    ))}
+                  <div className="flex p-1 bg-slate-100/80 rounded-xl border border-slate-200/50 shadow-inner">
+                    {['EASY', 'MEDIUM', 'HARD'].map(diff => {
+                      const isSelected = newProbDifficulty === diff;
+                      let textColor = 'text-brand-blue';
+                      if (isSelected) {
+                        if (diff === 'EASY') textColor = 'text-emerald-600';
+                        if (diff === 'MEDIUM') textColor = 'text-amber-500';
+                        if (diff === 'HARD') textColor = 'text-rose-600';
+                      }
+                      return (
+                        <label key={diff} className={`flex-1 flex items-center justify-center py-2 rounded-lg cursor-pointer transition-all duration-300 text-[13px] font-bold tracking-wide ${isSelected ? `bg-white ${textColor} shadow-sm ring-1 ring-black/5` : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                          <input type="radio" name="probDifficulty" value={diff} checked={isSelected} onChange={() => setNewProbDifficulty(diff as any)} className="hidden" />
+                          {diff}
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Scope</label>
-                  <div className="flex gap-3">
-                    {['PRACTICE', 'CONTEST', 'SHARED'].map(sc => (
-                      <label key={sc} className={`flex-1 flex items-center justify-center gap-2 py-3 border rounded-xl cursor-pointer transition-colors ${newProbScope === sc ? 'bg-primary/10 border-primary text-primary font-bold' : 'border-slate-200 text-slate-500 font-medium hover:bg-slate-50'}`}>
-                        <input type="radio" name="probScope" value={sc} checked={newProbScope === sc} onChange={() => setNewProbScope(sc as any)} className="hidden" />
-                        {sc}
-                      </label>
-                    ))}
+                  <div className="flex p-1 bg-slate-100/80 rounded-xl border border-slate-200/50 shadow-inner">
+                    {['PRACTICE', 'CONTEST', 'SHARED'].map(sc => {
+                      const isSelected = newProbScope === sc;
+                      return (
+                        <label key={sc} className={`flex-1 flex items-center justify-center py-2 rounded-lg cursor-pointer transition-all duration-300 text-[13px] font-bold tracking-wide ${isSelected ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                          <input type="radio" name="probScope" value={sc} checked={isSelected} onChange={() => setNewProbScope(sc as any)} className="hidden" />
+                          {sc}
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
