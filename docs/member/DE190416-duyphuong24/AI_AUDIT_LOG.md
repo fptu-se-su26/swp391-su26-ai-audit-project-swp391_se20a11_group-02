@@ -314,6 +314,61 @@ Tốt, hãy thực thi theo Cách 2: Sử dụng Nested Routes đi
 
 ---
 
+### Lần sử dụng AI số 5
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 16/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Rà soát logic xóa cứng kỳ thi và cơ chế đưa bài tập thi về trạng thái nháp (Draft) an toàn |
+| Phần việc liên quan | Database / Backend / Frontend / Refactoring |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+nếu vậy thì khi xóa cứng contest thì nên update biến isPublished là false thôi chứ? hình như isPublished ở đây là đại diện cho draft ở trên UI thì phải
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+- AI xác nhận biến isPublic = false chính là trạng thái Ẩn/Draft của bài tập trên UI (lọc theo điều kiện !p.isPublic để đưa vào tab Repository & Drafts).
+- AI phân tích và phản biện rằng chỉ đổi isPublic = false là chưa đủ. Vì nếu giữ nguyên problemScope = CONTEST thì khi Admin chỉnh sửa và Publish lại bài tập đó từ Repository, nó sẽ tự động nhảy vào tab "Contest Problems" mặc dù kỳ thi gốc đã bị xóa cứng. 
+- AI khuyến nghị cần đồng thời chuyển problemScope về PRACTICE để dọn sạch quan hệ và giữ tính nhất quán dữ liệu.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+- Giữ nguyên cấu trúc logic ở cả phương thức hardDeleteAdminContest và removeProblemFromContest: vừa set isPublic = false vừa set problemScope = PRACTICE.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+- Cấu hình lại cơ chế lọc tab trên AdminDashboard.tsx ở frontend để hỗ trợ nhận diện chính xác các trạng thái bài tập (Practice, Contest, Shared) dựa vào các cặp điều kiện (isPublic, problemScope, isActive).
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/feature/de190416-contest-status-refactoring |
+| File liên quan | ContestService.java, AdminDashboard.tsx |
+| Screenshot | |
+| Kết quả chạy/test | Đã chạy thử xóa contest, bài tập tự động chuyển về tab Repository & Drafts dưới dạng Draft ẩn và có scope PRACTICE. |
+| Link video demo | |
+| Ghi chú khác | Core Prompt: Data Integrity & Architectural Logic. |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+(Critical Thinking): Khi xóa một thực thể cha (Contest), việc xử lý các thực thể con liên kết (Problem) không chỉ đơn thuần là ẩn đi (isPublic = false) mà phải trả nó về trạng thái mặc định ban đầu (problemScope = PRACTICE). Việc phân tích luồng di chuyển dữ liệu (Data Lifecycle) trên giao diện giúp ngăn ngừa các lỗi hiển thị sai lệch khi tái bản bài viết/bài tập sau này.
+```
+
+---
+
 ## 5. Bảng tổng hợp mức độ sử dụng AI
 
 Đánh dấu mức độ AI hỗ trợ ở từng hạng mục.
