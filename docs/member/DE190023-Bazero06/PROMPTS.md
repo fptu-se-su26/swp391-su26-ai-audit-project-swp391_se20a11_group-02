@@ -54,7 +54,7 @@ Sinh viên/nhóm cần ghi lại:
 |---:|---|---|---|---|---|---|---|
 | 1 | 2026-05-18 | Claude | Xác định & đếm số lượng Use Case Specification cho Instructor | "Chức năng Instructor... có bao nhiêu use case specification?" | Claude đề xuất danh sách 19 Use Case | Có | docs/member/DE190023-Bazero06/AI_AUDIT_LOG.md |
 | 2 | 2026-05-19 | Claude | Viết đầy đủ 19 Use Case Specification theo template chuẩn | "UC SPECIFICATION TEMPLATE... làm mỗi usecase cho tôi" | Claude xuất 19 Use Case theo template 11 trường | Có | docs/member/DE190023-Bazero06/AI_AUDIT_LOG.md |
-| 3 |  |  |  |  |  | Có / Không |  |
+| 3 | 2026-06-12 | Antigravity | Tinh chỉnh màn hình khóa tài khoản | "không thông báo ở đây, vẫn cho đăng nhập vào..." | Chặn user.status === 'LOCKED' bằng overlay modal, dịch sang tiếng Anh, nút Go Back logout | Có | docs/member/DE190023-Bazero06/AI_AUDIT_LOG.md |
 | 4 |  |  |  |  |  | Có / Không |  |
 | 5 |  |  |  |  |  | Có / Không |  |
 | 6 |  |  |  |  |  | Có / Không |  |
@@ -235,68 +235,68 @@ AI sinh nội dung rất tốt và có cấu trúc rõ ràng, tuy nhiên các s�
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích |  |
-| Phần việc liên quan | Requirement / Design / Database / Coding / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỏi ý tưởng / Hỏi giải thích / Hỏi review / Hỏi debug / Hỏi sinh code / Hỏi tối ưu |
+| Ngày sử dụng | 2026-06-12 |
+| Công cụ AI | Antigravity |
+| Mục đích | Thiết kế màn hình khóa và chặn truy cập chức năng cho tài khoản bị LOCKED |
+| Phần việc liên quan | Coding / Testing |
+| Mức độ sử dụng | Hỏi sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+không thông báo ở đây, vẫn cho đăng nhập vào nhưng không cho truy cập chức năng nào hết, hiện ra thông báo tài khoản bạn đã bị lock, liên hệ gmail cho chúng tôi và có 1 nút back ra ngoài
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
 ```text
-Viết tại đây...
+Tài khoản người dùng bị khóa khi đăng nhập vẫn cần truy cập được thông tin cơ bản để khiếu nại nhưng không được sử dụng bất kỳ chức năng nào khác. Cần có một giao diện che phủ hoàn toàn để thông báo khóa và hướng dẫn liên hệ gmail, cùng với nút quay lại để đăng xuất.
 ```
 
 #### 5.3. Kết quả AI trả về
 
 ```text
-Viết tại đây...
+Đề xuất code thay đổi trong Layout.tsx để kiểm tra user.status === 'LOCKED' và hiển thị màn hình modal che phủ toàn bộ trang web. Đồng thời điều chỉnh AppContext.tsx để duy trì trạng thái khi người dùng tải lại trang web và cung cấp nút Go Back thực hiện logout.
 ```
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
 ```text
-Viết tại đây...
+Áp dụng trực tiếp thiết kế giao diện modal Locked Account tiếng Anh sang trọng, đồng thời sử dụng cấu trúc đồng bộ dữ liệu người dùng trong AppContext.tsx khi token refresh được kích hoạt.
 ```
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
 ```text
-Viết tại đây...
+Bổ sung việc khởi động lại ứng dụng backend để đảm bảo JWT filter cho phép giải mã token của tài khoản bị khóa nhằm lấy thông tin profile hiển thị lên màn hình modal.
 ```
 
 #### 5.6. Đánh giá chất lượng prompt
 
-- [ ] Prompt rõ ràng
-- [ ] Prompt có đủ bối cảnh
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [ ] Prompt tạo ra kết quả tốt
+- [x] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
 - [ ] Kết quả AI có lỗi hoặc chưa chính xác
 
 #### 5.7. Minh chứng liên quan
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link tài liệu/báo cáo |  |
+| Link commit | 3fef6ee / 259058b |
+| File liên quan | frontend/src/components/Layout.tsx, frontend/src/context/AppContext.tsx |
+| Screenshot | docs/member/DE190023-Bazero06/screenshots/account_locked.png |
+| Kết quả chạy/test | TypeScript compiles OK, Maven tests OK |
+| Link tài liệu/báo cáo | docs/member/DE190023-Bazero06/AI_AUDIT_LOG.md |
 | Ghi chú khác |  |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Viết tại đây...
+Prompt đã phản ánh đúng nghiệp vụ cần phát triển, giúp AI định hướng chính xác giải pháp ở cả Client và Server.
 ```
 
 ---

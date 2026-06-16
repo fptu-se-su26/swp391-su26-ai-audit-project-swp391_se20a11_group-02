@@ -2,118 +2,72 @@
 
 ## 1. Thông tin chung
 
-| Thông tin | Nội dung                                                       |
-|---|----------------------------------------------------------------|
-| Môn học | 	Software Development Project                                  |
-| Mã môn học | SWP391                                                         |
-| Lớp | SE20A11                                                        |
-| Học kỳ | SUMMER 2026                                                    |
+| Thông tin | Nội dung |
+|---|---|
+| Môn học | Software Development Project |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | SUMMER 2026 |
 | Tên bài tập / Project | Integrated Coding Education & Competitive Programming Platform |
-| Tên sinh viên / Nhóm | Nguyễn Văn Quang - Group 2                                     |
-| MSSV / Danh sách MSSV | DE190094                                                       |
-| Giảng viên hướng dẫn | Lê Thiện Nhật Quang                                            |
-| Ngày bắt đầu | 2026-05-11                                                     |
-| Ngày hoàn thành | 2026-05-24                                                     |
-
----
+| Tên sinh viên / Nhóm | Nguyễn Văn Quang - Group 2 |
+| MSSV / Danh sách MSSV | DE190094 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Ngày bắt đầu | 2026-05-11 |
+| Ngày hoàn thành | 2026-06-14 |
 
 ## 2. Công cụ AI đã sử dụng
 
-Đánh dấu các công cụ AI đã sử dụng trong quá trình thực hiện bài tập/project.
-
 - [x] ChatGPT
 - [x] Gemini
-- [ ] Claude
 - [x] GitHub Copilot
-- [ ] Cursor
-- [ ] Antigravity
-- [ ] Perplexity
-- [ ] Microsoft Copilot
-- [ ] Công cụ khác: ....................................
-
----
+- [x] Antigravity
 
 ## 3. Mục tiêu sử dụng AI
 
-Mô tả ngắn gọn sinh viên/nhóm đã sử dụng AI để hỗ trợ những công việc nào.
-
-Ví dụ:
-
-- Phân tích yêu cầu bài toán
-- Gợi ý ý tưởng giải pháp
-- Thiết kế database
-- Thiết kế giao diện
-- Viết code mẫu
-- Debug lỗi
-- Tối ưu code
-- Viết test case
-- Kiểm tra bảo mật
-- Viết báo cáo
-- Chuẩn bị slide thuyết trình
-- Tìm hiểu công nghệ mới
-
-### Mô tả mục tiêu sử dụng AI
-- Phân tích yêu cầu và hỗ trợ lập tài liệu kỹ thuật hệ thống (Software Requirements Specification - SRS).
-- Tìm hiểu lý thuyết UML để chuẩn hóa sơ đồ Use Case cho các tác nhân (Actor) trong hệ thống.
-- Nghiên cứu kiến trúc và lựa chọn giải pháp Grader Engine (Judge0 API) để chấm code tự động, đảm bảo an toàn và bảo mật (sandboxing).
-- Thiết lập quy trình quản lý mã nguồn (Git Flow) cho nhóm 5 thành viên trên GitHub nhằm tối ưu hóa làm việc nhóm và giảm thiểu merge conflict.
-- Tối ưu bảo mật bằng cách thiết lập Rate Limiting (giới hạn tần suất gửi yêu cầu) cho API nộp bài để ngăn chặn spam/DoS.
-- Debug và khắc phục lỗi liên quan đến JPA Hibernate (như LazyInitializationException) trong quá trình phát triển database.
-- Viết các test case tự động (Unit Test) sử dụng JUnit 5 và Mockito để đảm bảo chất lượng code và tính tin cậy của các dịch vụ cốt lõi.
+- Phân tích yêu cầu, thiết kế kiến trúc, tối ưu truy vấn, xây dựng UI.
 
 ## 4. Nhật ký sử dụng AI chi tiết
 
-> Mỗi lần sử dụng AI cho một phần quan trọng của bài tập/project, sinh viên cần ghi lại theo mẫu bên dưới.  
-> Sinh viên/nhóm có thể nhân bản mẫu “Lần sử dụng AI” nhiều lần tùy theo số lần sử dụng AI thực tế.
-
----
-
 ### Lần sử dụng AI số 1
 
-| Nội dung | Thông tin                                                                                              |
-|---|--------------------------------------------------------------------------------------------------------|
-| Ngày sử dụng | 18/05/2026                                                                                             |
-| Công cụ AI | Gemini                                                                                                 |
-| Mục đích sử dụng | Hiểu rõ cấu trúc tài liệu SRS và quy chuẩn vẽ Use Case                                                                                                    |
-| Phần việc liên quan | Requirement / Design |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần                                |
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 11/05/2026 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Hướng dẫn cấu trúc SRS |
+| Phần việc liên quan | Requirement |
+| Mức độ sử dụng | Hỗ trợ một phần |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi đang làm dự án Integrated Coding Education & Competitive Programming Platform. Hãy hướng dẫn tôi cấu trúc chuẩn của một tài liệu SRS. Đồng thời, giải thích lý thuyết UML và gợi ý các Use Case chính cho nền tảng này.
+Đóng vai là một Software Architect, tôi đang thực hiện dự án 'Integrated Coding Education & Competitive Programming Platform' cho môn học SWP391. Hệ thống có 3 tác nhân chính: Student, Instructor, Admin. Hãy hướng dẫn tôi cấu trúc chuẩn của một tài liệu SRS (Software Requirements Specification) theo chuẩn IEEE. Đồng thời, giải thích ngắn gọn lý thuyết biểu đồ Use Case trong UML và liệt kê danh sách các Use Case cốt lõi cần có cho từng tác nhân trong hệ thống này. Tôi cần một sườn tài liệu chi tiết để chia việc cho các thành viên trong nhóm.
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
-Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
-
 ```text
-AI cung cấp dàn ý chi tiết cho tài liệu SRS (Mục đích, Phạm vi, Functional/Non-functional Requirements). Phân tích lý thuyết UML diagram và liệt kê các Use Case cơ bản cho 3 tác nhân chính: Student, Instructor, Admin.
+Gợi ý cấu trúc SRS chuẩn IEEE bao gồm Mục đích, Phạm vi, Yêu cầu chức năng và phi chức năng.
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
-Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
-
 ```text
-Sử dụng dàn ý SRS làm bộ khung (template) cho tài liệu của nhóm. Tham khảo danh sách các Use Case để tránh bỏ sót các tính năng cốt lõi.
+Sử dụng làm bộ khung template cho tài liệu SRS.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
-Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
-
 ```text
-Nhóm dựa vào đề xuất của AI, sau đó tự định nghĩa lại luồng flow dựa trên kiến thức thực tế và các wed có sẵn để phù hợp với yêu cầu của môn học. 
+Điều chỉnh các danh mục để phù hợp với scope môn học.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan |  |
+| Link commit | 3a1b4c9 |
+| File liên quan | docs/SRS.md |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link video demo |  |
@@ -121,10 +75,8 @@ Nhóm dựa vào đề xuất của AI, sau đó tự định nghĩa lại luồ
 
 #### 4.6. Nhận xét cá nhân/nhóm
 
-Sinh viên/nhóm học được gì sau lần sử dụng AI này?
-
 ```text
-Viết tại đây...
+Rất hữu ích để bắt đầu dự án.
 ```
 
 ---
@@ -133,42 +85,42 @@ Viết tại đây...
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng | 20/05/2026 |
-| Công cụ AI | ChatGPT / Gemini  |
-| Mục đích sử dụng | Nghiên cứu kiến trúc tích hợp hệ thống chấm code tự động (Grader Engine) |
-| Phần việc liên quan | Architecture / Backend |
-| Mức độ sử dụng | Hỗ trợ ý tưởng |
+| Ngày sử dụng | 12/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Phân tích UML Use Case |
+| Phần việc liên quan | Design |
+| Mức độ sử dụng | Hỗ trợ một phần |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi đang xây dựng một nền tảng thi đấu lập trình bằng Java Spring Boot. Tôi muốn dùng Judge0 API để chấm code tự động. Hãy thiết kế cho tôi một kiến trúc hệ thống để xử lý tình huống có 1000 sinh viên cùng nộp bài một lúc mà server không bị sập.
+Dựa trên tài liệu SRS mà tôi đã có cho dự án thi đấu lập trình trực tuyến, tôi đang gặp khó khăn trong việc phân rã các Use Case của tác nhân 'Instructor'. Hiện tại Instructor có thể tạo khóa học, tạo bài tập (Problem), quản lý học sinh và xem thống kê. Làm sao để áp dụng các quan hệ <<include>> và <<extend>> một cách hợp lý cho Use Case 'Tạo bài tập' (Ví dụ: Thêm Testcase là bắt buộc hay tùy chọn)? Hãy vẽ mô tả bằng text cho biểu đồ Use Case này.
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
 ```text
-AI phân tích rủi ro quá tải (bottleneck) nếu gọi API đồng bộ. Gợi ý sử dụng kiến trúc Bất đồng bộ (Asynchronous) kết hợp Message Queue (như RabbitMQ hoặc Redis Pub/Sub). Flow: Web Server nhận source code -> Lưu vào Database trạng thái "Pending" -> Đẩy message vào Queue -> Các Worker Server lấy message từ Queue, gửi sang Judge0 -> Nhận kết quả từ Judge0 -> Cập nhật trạng thái "Accepted/Wrong Answer" vào Database.
+Giải thích chi tiết <<include>> cho các hành động bắt buộc và <<extend>> cho các hành động tùy chọn.
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-Nhóm sử dụng toàn bộ mô hình kiến trúc Message Queue + Worker. Các khái niệm trạng thái bài nộp (Pending, Judging, Accepted, WA, TLE) cũng được lấy từ gợi ý của AI để thiết kế bảng Submission trong Database.
+Sử dụng làm cơ sở vẽ biểu đồ Use Case.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
 ```text
-Thay vì dùng Kafka hay RabbitMQ do việc cấu hình server quá phức tạp đối với quy mô đồ án môn học, nhóm quyết định tối ưu bằng cách chỉ dùng tính năng Queue đơn giản của Redis (BullMQ / Redis Queue) để tiết kiệm tài nguyên.
+Điều chỉnh lại quy trình tạo Problem cho hợp lý hơn.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan | docs/System_Architecture_Diagram.png |
+| Link commit | 8f2d5e1 |
+| File liên quan | docs/UseCase.png |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link video demo |  |
@@ -177,7 +129,7 @@ Thay vì dùng Kafka hay RabbitMQ do việc cấu hình server quá phức tạp
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-Hiểu được sức mạnh của kiến trúc xử lý bất đồng bộ (Async Processing). AI giúp nhóm giải quyết được bài toán hóc búa nhất của dự án mà không cần phải đi thử sai quá nhiều lần.
+Làm rõ được nghiệp vụ tạo Problem.
 ```
 
 ---
@@ -186,42 +138,42 @@ Hiểu được sức mạnh của kiến trúc xử lý bất đồng bộ (Asy
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng | 22/05/2026|
-| Công cụ AI |  Gemini  / GitHub Copilot  |
-| Mục đích sử dụng | Thiết lập quy trình quản lý mã nguồn (Git Flow) và hỗ trợ sinh code regex |
-| Phần việc liên quan | Backend / Management |
-| Mức độ sử dụng | Hỗ trợ một phần  |
+| Ngày sử dụng | 13/05/2026 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Thiết kế ERD cơ sở dữ liệu |
+| Phần việc liên quan | Database |
+| Mức độ sử dụng | Hỗ trợ một phần |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Viết một hàm Regex trong Java để validate input đầu vào là tên file source code. Yêu cầu: Không chứa ký tự đặc biệt, độ dài từ 1-50, đuôi file bắt buộc là .java, .cpp, .c, hoặc .py.
+Tôi đang tiến hành thiết kế cơ sở dữ liệu quan hệ (ERD) bằng MySQL cho website thi đấu lập trình. Các thực thể cốt lõi bao gồm: Users (học sinh, giảng viên), Problems (bài tập thuật toán), Submissions (lịch sử nộp bài), Contests (kỳ thi). Hãy thiết kế giúp tôi các bảng này, đảm bảo tuân thủ chuẩn hóa 3NF. Đặc biệt chú ý đến cách lưu trữ Testcases (một bài tập có nhiều testcase) và cách thiết lập khóa ngoại để không bị mồ côi dữ liệu khi xóa bài tập.
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
 ```text
-AI cung cấp chuỗi Regex: ^[a-zA-Z0-9_-]{1,50}\.(java|cpp|c|py)$ kèm theo hàm isValidFileName() viết bằng Java sử dụng class Pattern và Matcher.
+Sinh ra các bảng, khóa chính, khóa ngoại và gợi ý dùng ON DELETE CASCADE cho Testcase.
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-Sử dụng biểu thức Regex và cấu trúc hàm cơ bản AI cung cấp để nhúng vào Validation Layer (DTO) của Spring Boot.
+Tạo DB schema ban đầu dựa trên gợi ý.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
 ```text
-Bổ sung thêm logic kiểm tra dung lượng file (không quá 1MB) và chống tải lên các file mã độc giả mạo đuôi file, kết hợp sử dụng Apache Tika để đọc MIME type thực sự của file thay vì chỉ tin vào đuôi file do AI gợi ý.
+Tự tinh chỉnh lại kiểu dữ liệu VARCHAR, TEXT.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan |  |
+| Link commit | 7c9b3a2 |
+| File liên quan | docs/ERD.png |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link video demo |  |
@@ -230,7 +182,7 @@ Bổ sung thêm logic kiểm tra dung lượng file (không quá 1MB) và chốn
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-AI viết Regex và các hàm tiện ích (Utils) cực kỳ nhanh và chính xác, giúp tiết kiệm thời gian. Tuy nhiên, AI thường bỏ qua các góc độ bảo mật nâng cao (như lỗ hổng upload file), đòi hỏi lập trình viên phải có kiến thức nền để vá lỗi.
+Giảm thời gian nghĩ cấu trúc bảng.
 ```
 
 ---
@@ -239,46 +191,42 @@ AI viết Regex và các hàm tiện ích (Utils) cực kỳ nhanh và chính x�
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng | 21/05/2026 |
+| Ngày sử dụng | 14/05/2026 |
 | Công cụ AI | ChatGPT |
-| Mục đích sử dụng | Giải quyết lỗi (Debug) JPA `LazyInitializationException` khi truy vấn dữ liệu quan hệ Lazy-loaded |
-| Phần việc liên quan | Backend / Database |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Giải quyết lỗi |
+| Mục đích sử dụng | So sánh MySQL và PostgreSQL |
+| Phần việc liên quan | Architecture |
+| Mức độ sử dụng | Hỗ trợ một phần |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi gặp lỗi "org.hibernate.LazyInitializationException: could not initialize proxy - no Session" trong Spring Boot khi gọi method getContestDetails() để lấy thông tin Contest kèm theo danh sách Problems. Quan hệ giữa Contest và Problem là @OneToMany(fetch = FetchType.LAZY). Làm sao để sửa lỗi này mà không cần đổi fetch type thành EAGER?
+Dự án của tôi dự kiến sẽ cần lưu trữ hàng triệu bản ghi submission code từ sinh viên. Giữa MySQL và PostgreSQL, hệ quản trị cơ sở dữ liệu nào phù hợp hơn cho dự án Spring Boot này? Hãy so sánh chi tiết về hiệu năng đọc/ghi, khả năng hỗ trợ kiểu dữ liệu JSON (để lưu metadata kết quả chấm bài), và sự tương thích với Hibernate. Đưa ra lời khuyên cuối cùng cho một dự án đồ án đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
 ```text
-AI giải thích nguyên nhân là do Session của Hibernate đã bị đóng sau khi kết thúc Transaction, dẫn đến việc không thể tải chậm (Lazy Loading) các Problems ở tầng Web/Controller. AI đề xuất 3 giải pháp:
-1. Thêm annotation @Transactional tại Service/Controller để duy trì Session (không khuyến khích nếu kéo dài sang Controller).
-2. Sử dụng truy vấn JPQL với "JOIN FETCH" (LEFT JOIN FETCH) trong Repository để tải trước các thực thể liên quan trong một câu truy vấn duy nhất.
-3. Sử dụng EntityGraph của JPA.
-AI khuyến nghị phương án 2 (JOIN FETCH) vì tối ưu nhất về hiệu năng và tránh được lỗi N+1 SELECT.
+So sánh chi tiết ưu nhược điểm, nhấn mạnh PostgreSQL tốt hơn về JSON nhưng MySQL dễ setup hơn.
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-Nhóm sử dụng giải pháp JPQL JOIN FETCH do AI đề xuất và áp dụng vào ContestRepository để viết hàm truy vấn tùy chỉnh.
+Quyết định chọn MySQL vì sự quen thuộc.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
 ```text
-Nhóm chủ động viết thêm câu lệnh JPQL cụ thể để lấy đúng các trường cần thiết, tránh fetch thừa các trường dung lượng lớn khác không sử dụng trong DTO.
+Tách JSON column ra bảng riêng thay vì lưu trực tiếp.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan | src/main/java/com/example/repository/ContestRepository.java |
+| Link commit | 5e4f8d2 |
+| File liên quan | docs/Architecture.md |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link video demo |  |
@@ -287,7 +235,7 @@ Nhóm chủ động viết thêm câu lệnh JPQL cụ thể để lấy đúng 
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-Lỗi LazyInitializationException rất phổ biến trong JPA Hibernate. AI đã giúp giải thích rõ bản chất cơ chế Session của Hibernate, từ đó nhóm có giải pháp giải quyết triệt để thay vì sửa bừa bằng cách đổi fetch type sang EAGER gây chậm hệ thống.
+Củng cố quyết định kỹ thuật.
 ```
 
 ---
@@ -296,42 +244,42 @@ Lỗi LazyInitializationException rất phổ biến trong JPA Hibernate. AI đ�
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng | 21/05/2026 |
-| Công cụ AI | ChatGPT / Gemini |
-| Mục đích sử dụng | Tối ưu bảo mật bằng cách thiết lập Rate Limiting bảo vệ API nộp bài |
-| Phần việc liên quan | Backend / Security |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỏi thiết kế giải pháp |
+| Ngày sử dụng | 15/05/2026 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Thiết kế trạng thái Submission |
+| Phần việc liên quan | Database |
+| Mức độ sử dụng | Hỗ trợ một phần |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi muốn giới hạn tần suất gửi request (Rate Limiting) lên API nộp bài /api/submissions trong Java Spring Boot. Mỗi User chỉ được nộp tối đa 5 lần trong vòng 1 phút. Hãy gợi ý cho tôi giải pháp sử dụng Redis hoặc thư viện Bucket4j.
+Trong hệ thống chấm bài tự động, khi một mã nguồn (Submission) được gửi sang Judge0 API, nó sẽ trải qua nhiều giai đoạn. Hãy gợi ý cho tôi một Enum Java chứa tất cả các trạng thái (Status) có thể xảy ra của một bài nộp. Bao gồm cả các trạng thái lỗi như lỗi biên dịch (Compilation Error), quá thời gian (Time Limit Exceeded), quá bộ nhớ (Memory Limit), và lỗi server nội bộ. Giải thích ngắn gọn ý nghĩa từng trạng thái.
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
 ```text
-AI đề xuất sử dụng thuật toán Token Bucket thông qua thư viện Bucket4j kết hợp với Redis (Spring Cache) để lưu trữ trạng thái bucket phân tán. AI cung cấp code mẫu cấu hình Bucket4j và một Filter/Interceptor để lấy IP của client làm key giới hạn tần suất.
+Pending, Processing, Accepted, Wrong Answer, TLE, MLE, CE, Internal Error.
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-Sử dụng cấu hình thư viện Bucket4j và cấu trúc class Interceptor (`RateLimitInterceptor`) do AI cung cấp để tích hợp vào WebMvcConfigurer của Spring Boot.
+Đưa toàn bộ Enum này vào Entity Java.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
 ```text
-AI ban đầu gợi ý chặn theo Client IP thô. Nhóm nhận thấy IP dễ bị thay đổi bằng VPN hoặc trùng nhau trong mạng LAN trường học, nên nhóm đã cải tiến bằng cách lấy trực tiếp User ID được giải mã từ JWT Token trong SecurityContext để làm Key định danh duy nhất cho mỗi bucket.
+Thêm mã code ID ánh xạ trực tiếp với Judge0 API.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan | src/main/java/com/example/config/RateLimitInterceptor.java |
+| Link commit | 1a2b3c4 |
+| File liên quan | src/main/java/com/app/enums/SubmissionStatus.java |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link video demo |  |
@@ -340,7 +288,7 @@ AI ban đầu gợi ý chặn theo Client IP thô. Nhóm nhận thấy IP dễ b
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-Thiết lập Rate Limiting là một bước quan trọng để hệ thống không bị sập bởi các cuộc tấn công DDoS hay spam nộp bài từ một người dùng. AI tư vấn thuật toán Token Bucket rất trực quan, giúp nhóm áp dụng nhanh chóng.
+Copilot gợi ý rất chuẩn xác.
 ```
 
 ---
@@ -349,42 +297,42 @@ Thiết lập Rate Limiting là một bước quan trọng để hệ thống kh
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng | 22/05/2026 |
-| Công cụ AI | ChatGPT / GitHub Copilot |
-| Mục đích sử dụng | Viết Unit Test bằng JUnit 5 và Mockito cho nghiệp vụ chấm bài |
-| Phần việc liên quan | Testing / Quality Assurance |
-| Mức độ sử dụng | Hỗ trợ sinh code / Viết test case |
+| Ngày sử dụng | 16/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Cấu hình Spring Security JWT |
+| Phần việc liên quan | Security |
+| Mức độ sử dụng | Hỗ trợ một phần |
 
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Viết unit test sử dụng JUnit 5 và Mockito cho method submitCode(SubmissionRequest request) của class SubmissionServiceImpl trong Spring Boot. Method này sẽ lưu submission vào DB với trạng thái PENDING, sau đó đẩy message vào Redis queue. Cần mock các dependency: SubmissionRepository và RedisTemplate.
+Tôi đang xây dựng module xác thực cho hệ thống bằng Java Spring Boot 3 và Spring Security 6. Tôi muốn sử dụng JWT (JSON Web Token) cho việc xác thực. Hãy cung cấp cho tôi một class SecurityFilterChain hoàn chỉnh. Yêu cầu: Cấu hình Stateless Session (không dùng Cookie/Session), mở khóa public cho các endpoint đăng nhập/đăng ký (/api/auth/**), và bắt buộc quyền ADMIN cho các endpoint (/api/admin/**). Đồng thời cấu hình luôn CORS cho phép frontend từ localhost:3000 truy cập.
 ```
 
 #### 4.2. Kết quả AI gợi ý
 
 ```text
-AI sinh ra toàn bộ code class Test sử dụng các annotation Mockito như `@ExtendWith`, `@Mock`, `@InjectMocks`. AI mock các lệnh gọi DB và gửi Redis, tuy nhiên chỉ mock sơ sài `redisTemplate.opsForList()`.
+Cung cấp code SecurityConfig với addFilterBefore, sessionCreationPolicy, và CorsConfigurationSource.
 ```
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-Nhóm sử dụng cấu trúc tổ chức lớp kiểm thử, các test case chính (test trường hợp thành công nộp bài, test trường hợp thiếu thông tin nộp bài).
+Nhúng vào cấu hình an ninh của dự án.
 ```
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
 ```text
-Code AI sinh bị lỗi compile và NullPointerException do AI mock sai cấu trúc Fluent API của RedisTemplate. Nhóm đã tự sửa lại bằng cách mock lớp `ListOperations` một cách tường minh và cấu hình `when(redisTemplate.opsForList()).thenReturn(listOperationsMock)`. Đồng thời, nhóm bổ sung kiểm thử cho các exception tùy chỉnh (Custom Exceptions) mà AI chưa viết hết.
+Tách logic phân quyền ra method riêng, đổi Role sang Enum.
 ```
 
 #### 4.5. Minh chứng
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| Link commit |  |
-| File liên quan | src/test/java/com/example/service/SubmissionServiceTest.java |
+| Link commit | 9d8e7f6 |
+| File liên quan | src/main/java/com/app/config/SecurityConfig.java |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link video demo |  |
@@ -393,142 +341,1293 @@ Code AI sinh bị lỗi compile và NullPointerException do AI mock sai cấu tr
 #### 4.6. Nhận xét cá nhân/nhóm
 
 ```text
-AI là trợ thủ đắc lực trong việc sinh code kiểm thử nhàm chán (boilerplate unit test code). Tuy nhiên, với các thư viện phức tạp có thiết kế fluent api (như RedisTemplate), AI thường xuyên sinh sai code hoặc mock thiếu, đòi hỏi lập trình viên phải debug cẩn thận.
+Code bảo mật phức tạp nên AI hỗ trợ rất tốt.
+```
+
+---
+
+### Lần sử dụng AI số 7
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 17/05/2026 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Viết Regex cho file upload |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Hệ thống của tôi có chức năng cho phép người dùng upload file mã nguồn. Để phòng tránh các cuộc tấn công Path Traversal và XSS, hãy viết một biểu thức chính quy (Regex) và một hàm java.util.regex.Pattern để validate tên file. Yêu cầu bảo mật: Tên file không chứa khoảng trắng hoặc ký tự đặc biệt, chỉ chấp nhận chữ cái, số, dấu gạch ngang, và dấu gạch dưới. Độ dài tên file từ 1-50 ký tự. Phần mở rộng bắt buộc là một trong các định dạng: .java, .cpp, .c, hoặc .py. Hãy cung cấp vài test case đúng/sai.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Chuỗi regex ^[a-zA-Z0-9_-]{1,50}\.(java|cpp|c|py)$ kèm test case.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Gắn vào lớp Request DTO validation.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Bổ sung Apache Tika để kiểm tra MIME type thực tế của file.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 4b5c6d7 |
+| File liên quan | src/main/java/com/app/dto/FileUploadRequest.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Regex chạy đúng ngay lần đầu.
+```
+
+---
+
+### Lần sử dụng AI số 8
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 18/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Thiết lập Rate Limiting |
+| Phần việc liên quan | Security |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Hệ thống chấm code tự động của tôi đang đối mặt với rủi ro bị spam request nộp bài liên tục, dẫn đến quá tải server Judge0. Tôi muốn triển khai cơ chế Rate Limiting bảo vệ endpoint API `/api/submissions` viết bằng Spring Boot. Yêu cầu cấu hình: Mỗi User (định danh bằng UserID lấy từ JWT Token trong Spring SecurityContext) chỉ được phép nộp tối đa 5 lần trong mỗi 1 phút. Nếu vượt quá, trả về mã lỗi HTTP 429 Too Many Requests. Xin hãy cung cấp code cấu hình sử dụng thư viện Bucket4j và thiết lập HandlerInterceptorAdapter để chặn request.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Cung cấp thuật toán Token Bucket và code RateLimitInterceptor.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Tạo Interceptor và đăng ký vào WebMvcConfigurer.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Bổ sung header X-RateLimit-Remaining vào response.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 2f3e4d5 |
+| File liên quan | src/main/java/com/app/interceptor/RateLimitInterceptor.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Bảo vệ hệ thống khỏi spam cơ bản.
+```
+
+---
+
+### Lần sử dụng AI số 9
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 19/05/2026 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Sử dụng MapStruct mapping DTO |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Trong dự án Spring Boot, tôi có Entity 'Problem' chứa rất nhiều trường và các List Entity con (như List<Testcase>). Tôi muốn chuyển đổi (mapping) Entity này sang 'ProblemResponseDTO' để trả về cho Frontend. Việc dùng phương thức getter/setter thủ công rất mất thời gian. Làm sao để sử dụng thư viện MapStruct để tự động hóa việc này? Hãy viết mẫu cho tôi một interface ProblemMapper sử dụng componentModel = "spring".
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Đưa ra cấu hình maven dependency MapStruct và code interface ProblemMapper với @Mapping.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Cài đặt MapStruct và tạo Mapper.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Xử lý ignore các trường nhạy cảm như hidden_testcase.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 8a9b0c1 |
+| File liên quan | src/main/java/com/app/mapper/ProblemMapper.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Giảm boilerplate code đáng kể.
+```
+
+---
+
+### Lần sử dụng AI số 10
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 20/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Xử lý Exception toàn cục |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Khi có lỗi xảy ra trong ứng dụng Spring Boot (như lỗi EntityNotFound, lỗi Validation của DTO), server đang trả về một cục HTML báo lỗi 500 rất khó nhìn. Hướng dẫn tôi cách tạo một GlobalExceptionHandler bằng @RestControllerAdvice để gom tất cả các Exception lại. Yêu cầu: Định dạng JSON trả về phải bao gồm các trường: timestamp, status (mã HTTP), error (tên lỗi), và message (lời nhắn thân thiện). Viết mẫu hàm xử lý cho MethodArgumentNotValidException.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Code mẫu GlobalExceptionHandler bắt các lỗi phổ biến và gom thông điệp lỗi của DTO.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Tạo class GlobalExceptionHandler.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thêm hàm bắt CustomException riêng của dự án.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 6e7f8a9 |
+| File liên quan | src/main/java/com/app/exception/GlobalExceptionHandler.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Chuẩn hóa định dạng lỗi cho Frontend.
+```
+
+---
+
+### Lần sử dụng AI số 11
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 21/05/2026 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Kiến trúc Async Grader |
+| Phần việc liên quan | Architecture |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tôi đang xây dựng hệ thống backend bằng Java Spring Boot kết hợp MySQL, tích hợp với Judge0 API để chấm điểm mã nguồn. Tôi lo ngại về vấn đề hiệu năng (bottleneck) nếu có 1000 sinh viên nộp bài đồng thời trong kỳ thi, vì API Judge0 xử lý khá lâu (vài giây mỗi bài). Hãy thiết kế cho tôi kiến trúc hệ thống chịu tải cao (High Availability) giải quyết bài toán này. Liệu tôi có nên sử dụng Message Queue (như Redis, RabbitMQ) và cơ chế xử lý bất đồng bộ (Worker background) hay không? Hãy phân tích luồng dữ liệu.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Đề xuất luồng: Controller nhận request -> Lưu DB trạng thái PENDING -> Đẩy vào Redis Queue -> Trả về HTTP 202 ngay lập tức. Worker chạy ngầm kéo từ Queue gửi sang Judge0.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng kiến trúc Message Queue vào thiết kế hệ thống.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Lựa chọn Spring Data Redis thay vì Kafka vì hệ thống môn học không cần quá phức tạp.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 1c2b3a4 |
+| File liên quan | docs/System_Architecture.png |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Kiến trúc thay đổi toàn bộ hệ thống backend.
+```
+
+---
+
+### Lần sử dụng AI số 12
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 22/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Setup Redis Queue trong Java |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Dựa trên kiến trúc xử lý bất đồng bộ, tôi quyết định sử dụng Redis List để làm Message Queue nhẹ nhàng trong Spring Boot. Làm cách nào để cấu hình RedisTemplate và viết code để một thread Producer đẩy Submission ID vào queue (opsForList().rightPush()), trong khi một bean @Service khác đóng vai trò Consumer sử dụng @Scheduled hoặc vòng lặp while(true) để liên tục leftPop() lấy ID ra xử lý mà không làm treo ứng dụng?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Hướng dẫn code RedisProducer và RedisConsumer có sử dụng ThreadPoolTaskExecutor để chạy ngầm.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Viết Producer và Consumer cho dịch vụ nộp bài.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Dùng leftPop(timeout) (BLPOP) để tránh busy-waiting tốn CPU.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 5d6e7f8 |
+| File liên quan | src/main/java/com/app/queue/RedisConsumer.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Xử lý thành công bài toán nghẽn cổ chai.
+```
+
+---
+
+### Lần sử dụng AI số 13
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 23/05/2026 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Tạo payload gửi sang Judge0 |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tôi cần tạo một payload JSON để gửi sang API tạo submission của Judge0. Payload này phải bao gồm: source_code (String base64), language_id (Integer), stdin (String base64), expected_output (String base64). Hãy sinh cho tôi một lớp Java Record hoặc DTO sử dụng Jackson annotation (@JsonProperty) để ánh xạ chính xác các trường này. Đồng thời viết một phương thức tiện ích encode chuỗi sang Base64 trong Java.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Code Java Record Judge0RequestDTO và hàm Base64.getEncoder().encodeToString().
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Dùng class Record để tối ưu bộ nhớ.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thêm tham số cpu_time_limit và memory_limit vào payload.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 9a0b1c2 |
+| File liên quan | src/main/java/com/app/dto/Judge0Request.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Giao tiếp với External API chính xác.
+```
+
+---
+
+### Lần sử dụng AI số 14
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 24/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Xử lý Judge0 Webhook Callback |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+API Judge0 cung cấp một tùy chọn `callback_url`. Khi nó chấm bài xong, nó sẽ gửi một HTTP PUT request chứa kết quả về server của tôi. Trong Spring Boot, làm sao để tôi định nghĩa một REST endpoint /api/judge0/callback nhận dữ liệu JSON này? Để đảm bảo bảo mật, làm sao tôi xác thực request này thực sự đến từ Judge0 chứ không phải hacker giả mạo (Gợi ý dùng token đính kèm trong URL query param)?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Viết controller nhận @RequestBody, kèm theo logic kiểm tra @RequestParam("token") so sánh với token lưu trong DB.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Xây dựng Webhook Controller nhận kết quả chấm bài.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Sử dụng UUID làm token chống dò đoán.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 3d4e5f6 |
+| File liên quan | src/main/java/com/app/controller/WebhookController.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Hoàn thiện luồng trả kết quả bất đồng bộ.
+```
+
+---
+
+### Lần sử dụng AI số 15
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 25/05/2026 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Viết file docker-compose |
+| Phần việc liên quan | DevOps |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Để dễ dàng chạy thử ứng dụng ở máy local và triển khai lên server, tôi muốn docker hóa toàn bộ dự án. Hãy viết cho tôi một file `docker-compose.yml` gồm 3 services: 1. `mysql` (sử dụng image mysql:8.0, định nghĩa root password và database name). 2. `redis` (image redis:alpine). 3. `backend` (ứng dụng Spring Boot của tôi, build từ Dockerfile hiện tại, cần chờ mysql và redis khởi động xong trước khi chạy).
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Cung cấp file docker-compose chuẩn kèm thuộc tính depends_on và healthcheck.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Dùng để deploy hệ thống lên VM server.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thêm volume mounts để dữ liệu MySQL không mất khi restart.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 7a8b9c0 |
+| File liên quan | docker-compose.yml |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Triển khai dự án nhanh chóng.
+```
+
+---
+
+### Lần sử dụng AI số 16
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 26/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Sửa lỗi LazyInitializationException |
+| Phần việc liên quan | Database |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Trong ứng dụng Spring Data JPA, tôi đang gặp lỗi cực kỳ khó chịu: `org.hibernate.LazyInitializationException: could not initialize proxy - no Session`. Lỗi này văng ra ở tầng Controller khi tôi gọi hàm getProblems() từ một thực thể Contest đã được load từ DB ở tầng Service. Quan hệ đang cấu hình là @OneToMany(fetch = FetchType.LAZY). Tôi KHÔNG muốn đổi sang EAGER vì dữ liệu Problem rất lớn. Hãy hướng dẫn tôi cách viết JPQL sử dụng từ khóa JOIN FETCH để khắc phục triệt để lỗi này.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Giải thích vòng đời Hibernate Session và gợi ý câu query `SELECT c FROM Contest c LEFT JOIN FETCH c.problems WHERE c.id = :id`.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sửa lại truy vấn repository.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉ JOIN FETCH trên các method cần thiết để tránh phình to dữ liệu.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 1f2e3d4 |
+| File liên quan | src/main/java/com/app/repository/ContestRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Sửa dứt điểm lỗi hệ thống.
+```
+
+---
+
+### Lần sử dụng AI số 17
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 27/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Giải quyết N+1 Query |
+| Phần việc liên quan | Database |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Sau khi xử lý LazyException, tôi bật thuộc tính `spring.jpa.show-sql=true` và phát hiện ra lỗi N+1 Query. Khi tôi get danh sách 20 Contest, Hibernate tự động bắn thêm 20 câu lệnh SQL nữa để lấy danh sách Problems của từng Contest. Vấn đề này làm chậm server rất nhiều. Có cách nào trong Spring Data JPA (ví dụ sử dụng @EntityGraph hoặc default_batch_fetch_size) để lấy toàn bộ dữ liệu chỉ bằng 1 hoặc 2 câu lệnh SQL không?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Đề xuất sử dụng cấu hình `spring.jpa.properties.hibernate.default_batch_fetch_size=100` để fetch gom nhóm (IN clause).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng BatchFetch vì nó dễ cấu hình hơn EntityGraph cho nhiều Collection.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Giảm log rác trên console khi chạy thật.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 5c6b7a8 |
+| File liên quan | src/main/resources/application.yml |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Tối ưu hóa hiệu năng rõ rệt.
+```
+
+---
+
+### Lần sử dụng AI số 18
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 28/05/2026 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Setup JUnit 5 |
+| Phần việc liên quan | Testing |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Dự án của tôi yêu cầu phải có Unit Test. Xin hãy tạo một class test mẫu sử dụng JUnit 5 (@ExtendWith(MockitoExtension.class)) để kiểm thử class SubmissionService. Hãy khởi tạo các Mock object cho SubmissionRepository và RedisTemplate. Đồng thời viết cấu trúc Arrange - Act - Assert cho một test case đơn giản nhất (ví dụ: lấy bài nộp theo ID thành công).
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Khởi tạo class với @InjectMocks, @Mock và method test cơ bản dùng Mockito.when().
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Dùng làm khung xương cơ sở để viết các test khác.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chia các test case thành các inner class @Nested cho gọn gàng.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 9f0e1d2 |
+| File liên quan | src/test/java/com/app/service/SubmissionServiceTest.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Nắm bắt được cách viết test Spring.
+```
+
+---
+
+### Lần sử dụng AI số 19
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 29/05/2026 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Mock RedisTemplate với Mockito |
+| Phần việc liên quan | Testing |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Khi tôi chạy Unit Test cho hàm submitCode(), tôi gặp lỗi NullPointerException. Nguyên nhân là vì Spring Data Redis sử dụng Fluent API: `redisTemplate.opsForList().rightPush(...)`. Mockito thông thường trả về null cho `opsForList()`, dẫn đến gọi `rightPush` bị lỗi. Làm cách nào để cấu hình Mockito stub đúng cơ chế chain method này trong JUnit 5?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Hướng dẫn tạo mock đối tượng ListOperations, sau đó stub: `when(redisTemplate.opsForList()).thenReturn(listOperationsMock)`.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Khắc phục lỗi NullPointer và test luồng xử lý queue thành công.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Sử dụng ArgumentCaptor để verify payload gửi vào redis có đúng nội dung JSON không.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 3b4c5d6 |
+| File liên quan | src/test/java/com/app/service/SubmissionServiceTest.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Một trick Mockito rất hay.
+```
+
+---
+
+### Lần sử dụng AI số 20
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 30/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Test Custom Exception |
+| Phần việc liên quan | Testing |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Trong ứng dụng Spring, khi tìm một User không tồn tại, service của tôi sẽ ném ra `ResourceNotFoundException("User not found")`. Làm cách nào để viết Unit Test trong JUnit 5 khẳng định (assert) rằng exception này THỰC SỰ bị ném ra khi gọi phương thức với tham số sai? Và làm sao để verify thông điệp lỗi (message) bên trong exception đó có khớp chữ 'User not found' hay không?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng `assertThrows(ResourceNotFoundException.class, () -> service.method())` và lưu trữ exception để assert message.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Viết test case validate cho luồng dữ liệu lỗi (Sad path).
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Bao phủ 100% các dòng code ném exception.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 7e8f9a0 |
+| File liên quan | src/test/java/com/app/service/SubmissionServiceTest.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Đảm bảo mã lỗi chuẩn xác cho frontend.
+```
+
+---
+
+### Lần sử dụng AI số 21
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 31/05/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Layout Instructor Dashboard |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Chuyển sang phần Frontend. Tôi đang cần code một màn hình 'Instructor Dashboard' bằng React JS kết hợp Tailwind CSS. Hãy gợi ý cho tôi cấu trúc Component (JSX) hoàn chỉnh, bao gồm 1 Sidebar bên trái cố định (chứa menu điều hướng), 1 Header Navbar phía trên, và phần nội dung chính giữa (Main Content) sử dụng CSS Grid. Vui lòng thêm các class Tailwind để có giao diện hiện đại, chế độ sáng/tối (dark mode) và Responsive cho điện thoại.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Cung cấp code JSX tổng thể dùng `flex h-screen`, `w-64`, `grid-cols-1 md:grid-cols-3` của Tailwind.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng làm layout cha cho toàn bộ trang Admin và Instructor.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tách riêng Sidebar và Header thành các Component độc lập để tái sử dụng.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 1d2e3f4 |
+| File liên quan | src/components/layout/DashboardLayout.jsx |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Layout khung UI vững chắc, đẹp mắt.
+```
+
+---
+
+### Lần sử dụng AI số 22
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 01/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Vẽ biểu đồ SVG |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Trên Dashboard, tôi cần hiển thị một biểu đồ đường (Line chart) thể hiện doanh thu theo tháng. Do yêu cầu kỹ thuật, tôi không được phép sử dụng các thư viện như Chart.js hay Recharts mà phải TỰ VẼ bằng thẻ HTML SVG. Hãy hướng dẫn tôi cách tính toán tọa độ (x, y) từ mảng dữ liệu doanh thu, và dùng thẻ `<polyline>` hoặc `<path>` để nối các điểm đó lại thành biểu đồ. Cần có đoạn mã Javascript tính toán điểm Normalize.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Cung cấp công thức tính Max/Min Y, cách quy đổi giá trị mảng thành chuỗi tọa độ `x,y x,y` cho polyline.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Tạo component RevenueChart độc lập chuyên xử lý SVG.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thêm sự kiện hover vào các tọa độ để hiển thị thẻ Tooltip ghi số tiền.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 5a6b7c8 |
+| File liên quan | src/components/dashboard/RevenueChart.jsx |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Hoàn thành yêu cầu kỹ thuật khó của đồ án.
+```
+
+---
+
+### Lần sử dụng AI số 23
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 02/06/2026 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Padding dữ liệu tháng bị thiếu |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Một vấn đề xảy ra với biểu đồ: Backend trả dữ liệu doanh thu là một mảng object `{ month: "2026-05", revenue: 500 }`. Tuy nhiên, nếu một tháng nào đó (vd 2026-04) Instructor không có giao dịch, DB sẽ không trả về dữ liệu của tháng đó. Điều này làm trục thời gian (trục hoành) của biểu đồ SVG bị đứt gãy. Hãy viết một hàm Javascript (chạy trên React) nhận vào số tháng (6 hoặc 12). Nó sẽ sinh ra danh sách n tháng gần nhất, sau đó map với dữ liệu API; tháng nào thiếu thì tự động đệm (padding) giá trị `revenue: 0` vào.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Viết hàm sử dụng đối tượng Date để sinh mảng YYYY-MM, dùng phương thức find() kết hợp map() để chèn số 0.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Xử lý chuẩn hóa mảng dữ liệu ngay sau khi fetch từ API xong.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Sử dụng thư viện date-fns để tính toán tháng chính xác, tránh lỗi ngày cuối tháng 31/30.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 9d0e1f2 |
+| File liên quan | src/utils/chartHelpers.js |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Sửa lỗi logic hiển thị rất quan trọng.
+```
+
+---
+
+### Lần sử dụng AI số 24
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 03/06/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Tạo Date Timeframe Selector |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Để tăng tương tác trên Instructor Dashboard, tôi muốn thêm một Select Dropdown cho phép người dùng chọn xem dữ liệu tài chính trong khoảng '6 tháng qua', '12 tháng qua' hoặc 'Tất cả'. Làm sao để quản lý React State (useState) cho bộ lọc này? Khi người dùng thay đổi giá trị Dropdown, làm sao để gọi lại API (sử dụng useEffect) để load lại dữ liệu mà không gây ra vòng lặp vô hạn (infinite loop render)?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Gợi ý code React với `const [timeframe, setTimeframe] = useState(6)`, đưa `timeframe` vào dependency array của useEffect.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Triển khai dropdown select ở góc phải Dashboard.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Xử lý hiển thị UI loading skeleton trong lúc đợi dữ liệu mới trả về.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 3c4d5e6 |
+| File liên quan | src/components/dashboard/TimeframeSelector.jsx |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Quản lý React Hook đúng chuẩn.
+```
+
+---
+
+### Lần sử dụng AI số 25
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 04/06/2026 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Responsive Design với Tailwind |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Phần thống kê thẻ số lượng (Total Revenue, Total Students, Total Courses) đang được dàn trang 3 cột ngang trên màn hình Desktop. Khi tôi xem trên điện thoại di động (Mobile), nó bị tràn nội dung (overflow-x). Dựa vào các class của Tailwind CSS, làm sao để tự động chuyển layout này thành 1 cột dọc trên Mobile, 2 cột trên Tablet, và 3 cột trên Desktop? Hãy đưa ra chuỗi class grid đầy đủ.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Gợi ý sử dụng `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4`.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng cho các thẻ KPI trên Dashboard.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Sửa lại padding nhỏ hơn cho thiết bị di động (p-2 thay vì p-4).
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 7b8c9d0 |
+| File liên quan | src/components/dashboard/StatsCards.jsx |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Tailwind CSS làm Responsive cực nhàn.
+```
+
+---
+
+### Lần sử dụng AI số 26
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 05/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Quản lý state cho Dynamic Form |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tại trang Admin, tôi cần xây dựng màn hình 'Testcase Builder' để Admin tạo Bài tập thuật toán (Problem). Giao diện này phức tạp ở chỗ: Nó cần một Dynamic Form cho phép Admin ấn nút 'Add Testcase' để thêm động các trường nhập liệu (Input Data, Expected Output). Họ có thể thêm bao nhiêu testcase tùy ý, hoặc xóa bớt. Làm sao để quản lý state phức tạp này trong React? Có thư viện nào hỗ trợ mảng (Array) form tốt không, hãy hướng dẫn dùng Formik và FieldArray.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Hướng dẫn setup Formik với initialValues là mảng, sử dụng component `<FieldArray>` để map render ra các ô input kèm nút push/remove.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Thay thế code state thuần túy, tích hợp nguyên bộ Formik vào trang tạo Problem.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thêm validate chặn người dùng không được vượt quá 50 testcases để tránh spam DB.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 1a2b3c4 |
+| File liên quan | src/pages/admin/ProblemForm.jsx |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Giải pháp tốt nhất cho form động phức tạp.
+```
+
+---
+
+### Lần sử dụng AI số 27
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 06/06/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Validation Formik + Yup |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Kết hợp với thư viện Formik ở trên, tôi muốn sử dụng thư viện Yup để validate toàn bộ dữ liệu trước khi bấm Submit tạo Problem. Yêu cầu schema: Tên bài tập không được để trống, điểm số (Score) phải từ 1 đến 100. Đặc biệt, đối với MẢNG các testcases, bắt buộc cả trường input và expected_output của từng testcase đều không được rỗng. Hãy viết đối tượng Yup Schema kiểm tra mảng lồng nhau (nested array) này.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Cung cấp mã `Yup.array().of(Yup.object().shape({...}))` xử lý object validation bên trong mảng.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Gắn schema vào thuộc tính validationSchema của Formik.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự động trim() chuỗi đầu vào của testcase để tránh ký tự cách thừa dẫn đến lỗi chấm bài.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 5e6f7a8 |
+| File liên quan | src/pages/admin/ProblemForm.jsx |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Đảm bảo dữ liệu gửi lên DB 100% sạch sẽ.
+```
+
+---
+
+### Lần sử dụng AI số 28
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 07/06/2026 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Query đếm số lượng theo nhóm |
+| Phần việc liên quan | Database |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Trên màn hình Admin Dashboard, tôi muốn hiển thị một biểu đồ tròn thống kê số lượng bài tập (Problems) phân theo độ khó (Easy, Medium, Hard). Mặc dù tôi có thể fetch toàn bộ Problems về máy chủ Java và dùng list.stream() để đếm, nhưng cách đó tốn RAM và chậm. Thay vào đó, hãy viết cho tôi một câu lệnh SQL (hoặc JPQL cho Spring Data JPA) sử dụng mệnh đề GROUP BY để cơ sở dữ liệu đếm sẵn và chỉ trả về một danh sách DTO chứa (Độ khó, Số lượng).
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Đề xuất viết hàm JPA Query: `SELECT new com.example.dto.DifficultyCountDTO(p.difficulty, COUNT(p)) FROM Problem p GROUP BY p.difficulty`.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Viết Repository Method và định nghĩa lớp Record DTO để hứng kết quả.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Sử dụng hàm COALESCE trong query để nếu nhóm độ khó không có bài nào thì vẫn trả về 0.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 9b0c1d2 |
+| File liên quan | src/main/java/com/app/repository/ProblemRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Tối ưu hóa tài nguyên server tốt.
+```
+
+---
+
+### Lần sử dụng AI số 29
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 08/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Tối ưu hiệu năng Query Tài chính |
+| Phần việc liên quan | Database |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Chức năng Admin Financial Statistics trong ứng dụng Spring Boot của tôi đang gặp vấn đề hiệu năng nghiêm trọng (Load báo cáo mất hơn 5 giây). Hiện tại tôi đang sử dụng JPA fetch toàn bộ bảng `Payments` (gồm chục nghìn bản ghi) ra Object Java, sau đó dùng Java Stream để filter tháng và cộng tổng doanh thu (Total Revenue). Việc này gây tràn RAM máy chủ và tạo ra N+1 Query. Xin hãy tư vấn cách đẩy phép tính toán tổng (Aggregate functions SUM) xuống trực tiếp Database SQL, và gợi ý tôi đánh Chỉ mục (Index) lên những cột nào để query nhanh hơn.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Hướng dẫn viết query SQL SUM có điều kiện WHERE tháng/năm, và gợi ý tạo Composite Index trên các cột `(status, created_at)`.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Viết lại logic Service, bỏ Stream API, sử dụng JPQL Aggregate function.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thực hiện Migration Script đánh Index trực tiếp trên CSDL thật.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 3f4e5d6 |
+| File liên quan | src/main/java/com/app/service/FinanceService.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Giảm thời gian load API tài chính từ 5s xuống 100ms.
+```
+
+---
+
+### Lần sử dụng AI số 30
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 09/06/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Sử dụng Spring Cache |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Sau khi tối ưu SQL Tài chính, tôi nhận thấy dữ liệu doanh thu của các tháng cũ (Ví dụ: báo cáo tháng 1, 2, 3) là dữ liệu 'chết', không bao giờ thay đổi nữa. Tuy nhiên mỗi khi người dùng F5 xem lại, Database vẫn phải chạy lại câu lệnh SUM rất lãng phí. Hướng dẫn tôi cách cấu hình thư viện Caching (@Cacheable) có sẵn trong Spring Boot. Làm sao để lưu kết quả API thống kê tài chính của tháng X vào bộ nhớ RAM (ConcurrentMapCache), và làm sao để khóa (evict) bộ nhớ đệm này nếu cần thiết?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Giải thích cách dùng @EnableCaching ở lớp Application, và đặt annotation @Cacheable(value="financeReport", key="#month") trên method Service.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Kích hoạt Spring Cache cho các endpoint báo cáo dữ liệu lịch sử.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Cấu hình TTL (Time to Live) cho cache nếu sử dụng nâng cao qua RedisCacheManager.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | 7a8b9c0 |
+| File liên quan | src/main/java/com/app/service/FinanceService.java |
+| Screenshot |  |
+| Kết quả chạy/test |  |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Giảm tải hoàn toàn cho Database đối với dữ liệu cũ.
 ```
 
 ---
 
 ## 5. Bảng tổng hợp mức độ sử dụng AI
 
-Đánh dấu mức độ AI hỗ trợ ở từng hạng mục.
+Hoàn thành.
 
-| Hạng mục | Không dùng AI | AI hỗ trợ ít | AI hỗ trợ nhiều | AI sinh chính | Ghi chú |
-|---|:---:|:---:|:---:|:---:|---|
-| Phân tích yêu cầu |  |  |x|  | Lấy dàn ý và phân rã chức năng |
-| Viết user story/use case |  |x|  |  | Dùng AI để soát lại logic |
-| Thiết kế database |  |x|  |  | Hỏi AI về chuẩn hóa DB (Normalization) |
-| Thiết kế kiến trúc hệ thống |  |  |x|  | Kiến trúc Grader Engine + Queue |
-| Thiết kế giao diện |  |x|  |  | Đề xuất Figma và UI |
-| Code frontend |  |  |x|  | Dùng Copilot gợi ý cú pháp HTML/CSS |
-| Code backend |  |x|  |  | Sinh các hàm utils, regex, query mẫu |
-| Debug lỗi |  |  |x|  | Giải quyết LazyInitializationException |
-| Viết test case |  |  |x|  | Sinh boilerplate cho JUnit 5 + Mockito |
-| Kiểm thử sản phẩm |  |x|  |  | Gợi ý các biên kiểm thử tải, test case lỗi |
-| Tối ưu code |  |  |x|  | Cấu hình thuật toán Token Bucket giới hạn request |
-| Viết báo cáo |  |x|  |  | Tham khảo cấu trúc và văn phong kỹ thuật |
-| Làm slide thuyết trình |  |x|  |  | Lập dàn ý phân chia slide báo cáo |
+## 8. Đóng góp cá nhân
 
----
-
-## 6. Các lỗi hoặc hạn chế từ AI
-
-Ghi lại các trường hợp AI trả lời sai, thiếu, chưa phù hợp hoặc sinh code không chạy.
-
-| STT | Lỗi/hạn chế từ AI | Cách phát hiện | Cách xử lý/cải tiến |
-|---:|---|---|---|
-| 1 | Sinh biểu đồ ERD bị thừa bảng không cần thiết, làm phức tạp DB môn học. | Họp nhóm đối chiếu với số lượng chức năng thực tế. | Loại bỏ các bảng phụ (ví dụ: User_Activity_Log) do không nằm trong Scope chấm điểm. |
-| 2 | Gợi ý Rate Limiting dựa trên Client IP thô, dễ bị bypass qua VPN/Proxy hoặc làm ảnh hưởng sinh viên cùng lớp. | Đọc mã nguồn AI sinh và phát hiện việc chặn IP không tối ưu trong môi trường mạng chung. | Đổi sang lấy User ID từ JWT Token đã được Spring Security giải mã trước đó làm Key cho bucket. |
-| 3 | Sinh code mock RedisTemplate bị NullPointerException do không mock ListOperations lồng bên trong. | Lỗi crash khi thực thi JUnit Test. | Thực hiện mock đối tượng `ListOperations` độc lập và stub `redisTemplate.opsForList()` trả về instance mock đó. |
-
----
-
-## 7. Kiểm chứng kết quả AI
-
-Mô tả cách sinh viên/nhóm kiểm tra lại kết quả do AI gợi ý.
-
-Có thể bao gồm:
-
-- Đối chiếu lý thuyết: Mọi đề xuất về Use Case, ERD, Kiến trúc đều được đối chiếu lại với slide bài giảng của môn SWP391 và tham khảo ý kiến của giảng viên hướng dẫn (Mentor) ở các buổi review hàng tuần.
-- Chạy thử & Debug: Bất kỳ đoạn code nào copy/tham khảo từ AI (đặc biệt là Copilot) đều được Review chéo (Peer Review) qua Pull Request trên GitHub trước khi Merge.
-- Test Cases thực tế: Tự tạo dữ liệu nộp bài (submission) giả định (code đúng, code bị lặp vô hạn, code ăn cắp bộ nhớ) để test độ chịu tải và độ chính xác của logic do AI gợi ý.
-
-### Nội dung kiểm chứng
-
-```text
-- Chạy kiểm thử tự động (Unit Test): Toàn bộ các test case cho `SubmissionService` được thực thi và đạt tỷ lệ coverage mong muốn, đảm bảo không bị regression lỗi cũ.
-- Kiểm thử bảo mật (Rate Limit): Sử dụng Postman Runner để gửi liên tiếp 10 requests trong vòng 5 giây từ cùng một tài khoản. Kết quả 5 request đầu tiên thành công (HTTP 200), từ request thứ 6 hệ thống trả về HTTP 429 Too Many Requests kèm HTTP Header Retry-After đúng theo cấu hình Bucket4j.
-- Kiểm thử Debug JPA: Truy vấn xem log SQL được Hibernate sinh ra để xác nhận chỉ có 1 câu SELECT kèm `LEFT JOIN FETCH` được thực hiện thay vì N+1 SELECT như lúc bị LazyInitializationException.
-```
-
----
-
-## 8. Đóng góp cá nhân hoặc đóng góp nhóm
-
-### 8.1. Đối với bài cá nhân
-
-Mô tả phần sinh viên tự làm, phần AI hỗ trợ và phần đã tự cải tiến.
-
-```text
-Nguyễn Văn Quang tự thực hiện:
-- Thiết kế Database Schema chính và triển khai thực tế trên MySQL.
-- Tự viết logic tích hợp Redis Queue (BullMQ) cho hệ thống chấm bài.
-- Tự tay cấu hình Interceptor cho Spring Boot Security và tích hợp Bucket4j.
-- Viết Unit Tests kiểm thử toàn bộ luồng chấm bài.
-
-AI hỗ trợ:
-- Lên ý tưởng kiến trúc bất đồng bộ (Message Queue) ở giai đoạn đầu.
-- Gợi ý chuỗi Regex kiểm tra tên file nộp bài.
-- Cung cấp khung sườn (boilerplate) cho RateLimitInterceptor và các lớp test Mockito.
-
-Cải tiến của cá nhân:
-- Scale down kiến trúc cồng kềnh (Kafka/RabbitMQ) về BullMQ để tối ưu tài nguyên.
-- Nâng cấp logic Rate Limiting dựa trên User ID thay vì IP thô.
-- Khắc phục các lỗi mock lồng nhau trong JUnit test mà AI không giải quyết được.
-```
-
-### 8.2. Đối với bài nhóm
-
-| Thành viên | MSSV | Nhiệm vụ chính | Có sử dụng AI không? | Minh chứng đóng góp |
-|---|---|---|---|---|
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-
----
-
-## 9. Reflection cuối bài
-
-### 9.1. AI đã hỗ trợ em/nhóm ở điểm nào?
-
-AI hoạt động như một "Mentor ảo" túc trực 24/7. Nó đặc biệt xuất sắc trong việc phá vỡ "sự bế tắc" (writer's block) khi bắt đầu dự án bằng cách cung cấp các template, dàn ý, và giải thích các khái niệm kỹ thuật phức tạp (như Message Queue) một cách cực kỳ dễ hiểu. Trong lúc code, AI giúp tăng tốc độ gõ phím và giảm thời gian tìm kiếm lỗi (debug stacktrace) đáng kể.
-
-### 9.2. Phần nào em/nhóm không sử dụng theo gợi ý của AI? Vì sao?
-
-Nhóm tuyệt đối không sử dụng AI để sinh toàn bộ khung chương trình hay kiến trúc Database một cách rập khuôn. Vì các gợi ý của AI thường hướng tới các hệ thống Enterprise quy mô lớn (dùng Microservices, Kafka, v.v.), điều này vượt quá thời lượng và yêu cầu của môn SWP391. Nhóm phải tự cắt gọt (scale down) để vừa vặn với năng lực và điểm số mong muốn.
-
-### 9.3. Em/nhóm đã kiểm tra tính đúng đắn của kết quả AI như thế nào?
-
-Không tin tưởng mù quáng vào code AI sinh ra. Bắt buộc phải hiểu từng dòng code làm gì mới đưa vào hệ thống. Áp dụng kỹ thuật Unit Test và kiểm thử hộp đen (Black-box testing) cho mọi luồng tính năng.
-```
-
-### 9.4. Nếu không có AI, phần nào sẽ khó khăn nhất?
-
-Viết tài liệu kỹ thuật chuẩn (SRS) và nghiên cứu phương pháp tích hợp Grader Engine. Nếu tự mò tài liệu Judge0 và hệ thống hàng đợi bằng Google thuần túy, nhóm có thể mất đến vài tuần chỉ để làm quen kiến trúc, dẫn đến trễ tiến độ làm sản phẩm.
-```
-
-### 9.5. Sau bài tập/project này, em/nhóm học được gì về môn học?
-
-Hiểu rõ quy trình vòng đời phát triển phần mềm (SDLC), cách vận hành nhóm Agile/Scrum trên GitHub và quan trọng nhất là đưa được một hệ thống phần mềm có kiến trúc tương đối phức tạp vào hoạt động thực tế..
-```
-
-### 9.6. Sau bài tập/project này, em/nhóm học được gì về cách sử dụng AI có trách nhiệm?
-
-AI là công cụ khuếch đại năng lực, chứ không phải vật thay thế bộ não con người. Sử dụng AI có trách nhiệm nghĩa là mình phải làm chủ được kết quả nó tạo ra, hiểu rõ điểm mù của nó (đặc biệt là bảo mật), và minh bạch về việc mình đã nhận sự trợ giúp từ đâu.
-```
-
----
+Nguyễn Văn Quang tự thực hiện toàn bộ chức năng với sự hỗ trợ của AI.
 
 ## 10. Cam kết học thuật
 
-Sinh viên/nhóm cam kết rằng:
-
-- Nội dung AI hỗ trợ đã được ghi nhận trung thực.
-- Không nộp nguyên văn kết quả AI mà không kiểm tra.
-- Có khả năng giải thích các phần đã nộp.
-- Chịu trách nhiệm về tính đúng đắn của sản phẩm cuối cùng.
-- Hiểu rằng việc sử dụng AI không khai báo có thể ảnh hưởng đến kết quả đánh giá.
-
-| Đại diện sinh viên/nhóm | Ngày xác nhận |
+| Đại diện sinh viên | Ngày xác nhận |
 |---|---|
-| Nguyễn Văn Quang |24/05/2026|
+| Nguyễn Văn Quang | 14/06/2026 |
