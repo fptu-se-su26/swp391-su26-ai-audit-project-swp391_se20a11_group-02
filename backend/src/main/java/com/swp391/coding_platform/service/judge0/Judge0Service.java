@@ -31,6 +31,8 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swp391.coding_platform.event.SubmissionJudgedEvent;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +64,7 @@ public class Judge0Service {
     SimpMessagingTemplate simpMessagingTemplate;
 
     StringRedisTemplate stringRedisTemplate;
+    ObjectMapper objectMapper;
 
     @NonFinal
     @Value("${app.webhook-base-url}")
@@ -253,6 +256,23 @@ public class Judge0Service {
             submissionEntity.setExecutionTime(maxStats.getMaxTime());
             submissionEntity.setMemoryUsed(maxStats.getMaxMemory());
             problemSubmissionRepository.save(submissionEntity);
+
+            // Bắn sự kiện SubmissionJudgedEvent qua Redis Pub/Sub
+            SubmissionJudgedEvent event = SubmissionJudgedEvent.builder()
+                    .submissionId(submissionEntity.getId())
+                    .userId(submissionEntity.getUser().getId())
+                    .contestId(submissionEntity.getContest() != null ? submissionEntity.getContest().getId() : null)
+                    .problemId(submissionEntity.getProblem().getId())
+                    .verdict(overallVerdict.name())
+                    .submitTime(submissionEntity.getSubmittedAt())
+                    .build();
+            try {
+                String eventJson = objectMapper.writeValueAsString(event);
+                stringRedisTemplate.convertAndSend("contest:events", eventJson);
+                log.info("Successfully published SubmissionJudgedEvent to Redis channel contest:events: {}", eventJson);
+            } catch (Exception e) {
+                log.error("Failed to publish SubmissionJudgedEvent to Redis Pub/Sub", e);
+            }
         }
 
         // HIỆU SUẤT: Luôn dọn dẹp key Redis giải phóng RAM khi tất cả webhook đã về đủ

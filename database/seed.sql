@@ -177,11 +177,11 @@ INSERT INTO public.problem_tag_mappings (id, problem_id, tag_id) VALUES
 (9, 6, 7)
 ON CONFLICT (id) DO NOTHING;
 
--- 13. Insert Contests (Sử dụng is_cancelled = false thay thế cho cột status đã bị xóa)
-INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, is_deleted, status, created_at, updated_at) VALUES
-(1, 1, 'Summer Code Clash 2026', 'Welcome to the annual Summer Code Clash! Solve 2 problems A & B under strict ICPC rules to win special awards.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '1 hour', CURRENT_TIMESTAMP + INTERVAL '3 hours', 240, false, 'UPCOMING', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(2, 1, 'Beginner Challenge Arena #1', 'Weekly coding contest designed exclusively for beginners. Password required to join. Password is "123".', 'ICPC', '$2a$10$vD0QlyF6.s0wR/1nK0.ZteXgZzM21yT/fPzIqHpe1jX5wO04R2Oze', CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 4 hours', 240, false, 'UPCOMING', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(3, 1, 'Algorithmic Masters Cup', 'The final round of Masters Cup 2026. This contest has ended.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP - INTERVAL '4 days 20 hours', 240, false, 'UPCOMING', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+-- 13. Insert Contests
+INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, status, created_at, updated_at) VALUES
+(1, 1, 'Summer Code Clash 2026', 'Welcome to the annual Summer Code Clash! Solve 2 problems A & B under strict ICPC rules to win special awards.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '1 hour', CURRENT_TIMESTAMP + INTERVAL '3 hours', 240, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 1, 'Beginner Challenge Arena #1', 'Weekly coding contest designed exclusively for beginners. Password required to join. Password is "123".', 'ICPC', '$2a$10$vD0QlyF6.s0wR/1nK0.ZteXgZzM21yT/fPzIqHpe1jX5wO04R2Oze', CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 4 hours', 240, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(3, 1, 'Algorithmic Masters Cup', 'The final round of Masters Cup 2026. This contest has ended.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP - INTERVAL '4 days 20 hours', 240, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
 -- 14. Contest Problems Mapping

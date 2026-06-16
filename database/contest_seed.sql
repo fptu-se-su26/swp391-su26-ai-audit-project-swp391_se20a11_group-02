@@ -84,7 +84,7 @@ INSERT INTO public.problem_testcases (id, problem_id, input_data, expected_outpu
 (212, 212, '3 3\n0 1\n1 2\n2 0', '1', 0, 'tok-pt-212')
 ON CONFLICT (id) DO NOTHING;
 
--- 7. Thêm 20 Cuộc thi (Contests) (ID 201 - 220, sử dụng is_cancelled thay thế cho status)
+-- 7. Thêm 20 Cuộc thi (Contests) (ID 201 - 220, sử dụng status mới: PUBLISHED / DELETED)
 
 -- == NHÓM 1: 5 CONTESTS ĐANG DIỄN RA (ONGOING) ==
 -- 201: Summer Code Clash 2026 (Public, ICPC)
