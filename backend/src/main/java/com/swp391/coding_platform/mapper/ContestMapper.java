@@ -23,6 +23,8 @@ public interface ContestMapper {
     @Mapping(target = "problemCount", ignore = true)
     @Mapping(target = "submissionCount", ignore = true)
     @Mapping(target = "averageScore", ignore = true)
+    @Mapping(target = "isDeleted", expression = "java(contestEntity.getStatus() == com.swp391.coding_platform.entity.enums.ContestStatus.DELETED)")
+    @Mapping(target = "databaseStatus", expression = "java(contestEntity.getStatus() != null ? contestEntity.getStatus().name() : \"PUBLISHED\")")
     AdminContestResponse toAdminContestResponse(ContestEntity contestEntity);
 
     @Mapping(target = "problemId", source = "problem.id")

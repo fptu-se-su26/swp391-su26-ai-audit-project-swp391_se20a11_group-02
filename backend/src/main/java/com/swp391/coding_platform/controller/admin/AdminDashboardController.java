@@ -2,7 +2,6 @@ package com.swp391.coding_platform.controller.admin;
 
 import com.swp391.coding_platform.dto.response.AdminDashboardStatsResponse;
 import com.swp391.coding_platform.dto.response.AdminDepositHistoryResponse;
-import com.swp391.coding_platform.dto.response.AdminFinancialStatsResponse;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.service.admin.AdminDashboardService;
 import lombok.AccessLevel;
@@ -52,25 +51,13 @@ public class AdminDashboardController {
                 .build());
     }
 
-    @GetMapping("/financial")
-    public ResponseEntity<ApiResponse<AdminFinancialStatsResponse>> getFinancialStats() {
-        AdminFinancialStatsResponse result = adminDashboardService.getFinancialStats();
-        return ResponseEntity.ok(ApiResponse.<AdminFinancialStatsResponse>builder()
+    @GetMapping("/all-deposits")
+    public ResponseEntity<ApiResponse<List<AdminDepositHistoryResponse>>> getAllDeposits() {
+        List<AdminDepositHistoryResponse> result = adminDashboardService.getAllDeposits();
+        return ResponseEntity.ok(ApiResponse.<List<AdminDepositHistoryResponse>>builder()
                 .status(200)
                 .code(1000)
-                .message("Fetched admin dashboard financial statistics successfully")
-                .result(result)
-                .timestamp(Instant.now().toString())
-                .build());
-    }
-
-    @GetMapping("/financial/details")
-    public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse>> getFinancialDetails() {
-        com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse result = adminDashboardService.getFinancialDetails();
-        return ResponseEntity.ok(ApiResponse.<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse>builder()
-                .status(200)
-                .code(1000)
-                .message("Fetched admin dashboard financial audit details successfully")
+                .message("Fetched all admin dashboard deposits successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());

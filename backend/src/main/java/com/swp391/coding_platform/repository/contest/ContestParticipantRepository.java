@@ -13,4 +13,8 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
            "WHERE cp.user.id = :userId AND cp.contest.id IN " +
            "(SELECT cprob.contest.id FROM ContestProblemEntity cprob WHERE cprob.problem.id = :problemId)")
     boolean isUserParticipantOfProblemContest(@Param("userId") Integer userId, @Param("problemId") Integer problemId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM ContestParticipantEntity cp WHERE cp.contest.id = :contestId")
+    void deleteByContestId(@Param("contestId") Integer contestId);
 }
