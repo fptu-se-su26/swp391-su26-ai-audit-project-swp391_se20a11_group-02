@@ -92,12 +92,12 @@ ON CONFLICT (id) DO NOTHING;
 -- 203: Daily Sprint #101 (Public, IOI)
 -- 204: Weekly Match #5 (Public, ICPC)
 -- 205: Pro-Coder Tournament (Private, IOI, password: 123)
-INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, is_cancelled, created_at, updated_at) VALUES
-(201, 1, 'Summer Code Clash 2026', 'Welcome to Summer Code Clash! Solve 5 problems under strict ICPC rules.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '1 hour', CURRENT_TIMESTAMP + INTERVAL '3 hours', 240, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(202, 1, 'Beginner Challenge Arena #2', 'Weekly coding contest designed exclusively for beginners. Password is "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '30 minutes', CURRENT_TIMESTAMP + INTERVAL '2 hours 30 minutes', 180, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(203, 1, 'Daily Sprint #101', 'Quick daily algorithm challenge. 3 problems under IOI format.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '15 minutes', CURRENT_TIMESTAMP + INTERVAL '45 minutes', 60, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(204, 1, 'Weekly Match #5', 'Weekly computational algorithms contest. Standard ICPC scoring.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '2 hours', CURRENT_TIMESTAMP + INTERVAL '2 hours', 240, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(205, 1, 'Pro-Coder Tournament', 'An exclusive invitational tournament for high-rated programmers. Password is "123".', 'IOI', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '1 hour', CURRENT_TIMESTAMP + INTERVAL '5 hours', 360, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, status, created_at, updated_at) VALUES
+(201, 1, 'Summer Code Clash 2026', 'Welcome to Summer Code Clash! Solve 5 problems under strict ICPC rules.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '1 hour', CURRENT_TIMESTAMP + INTERVAL '3 hours', 240, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(202, 1, 'Beginner Challenge Arena #2', 'Weekly coding contest designed exclusively for beginners. Password is "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '30 minutes', CURRENT_TIMESTAMP + INTERVAL '2 hours 30 minutes', 180, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(203, 1, 'Daily Sprint #101', 'Quick daily algorithm challenge. 3 problems under IOI format.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '15 minutes', CURRENT_TIMESTAMP + INTERVAL '45 minutes', 60, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(204, 1, 'Weekly Match #5', 'Weekly computational algorithms contest. Standard ICPC scoring.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '2 hours', CURRENT_TIMESTAMP + INTERVAL '2 hours', 240, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(205, 1, 'Pro-Coder Tournament', 'An exclusive invitational tournament for high-rated programmers. Password is "123".', 'IOI', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '1 hour', CURRENT_TIMESTAMP + INTERVAL '5 hours', 360, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
 -- == NHÓM 2: 5 CONTESTS SẮP DIỄN RA (UPCOMING) ==
@@ -106,12 +106,12 @@ ON CONFLICT (id) DO NOTHING;
 -- 208: Mini Hackathon #1 (Public, IOI)
 -- 209: Algorithms Bootcamp Final (Private, IOI, password: 123)
 -- 210: Logic Arena #4 (Public, ICPC)
-INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, is_cancelled, created_at, updated_at) VALUES
-(206, 1, 'CodeForces Div.3 Training', 'Practice contest modeled after Codeforces Div 3 rounds. Open to everyone.', 'ICPC', NULL, CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 2 hours', 120, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(207, 1, 'FPT Software Cup', 'Annual coding contest organized by FPT Software. Restricted access. Password is "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP + INTERVAL '2 days', CURRENT_TIMESTAMP + INTERVAL '2 days 4 hours', 240, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(208, 1, 'Mini Hackathon #1', '8-hour intensive algorithmic coding hackathon. Solve dynamically to gain points.', 'IOI', NULL, CURRENT_TIMESTAMP + INTERVAL '3 days', CURRENT_TIMESTAMP + INTERVAL '3 days 8 hours', 480, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(209, 1, 'Algorithms Bootcamp Final', 'The final exam for the Algorithms Bootcamp participants. Password is "123".', 'IOI', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP + INTERVAL '5 days', CURRENT_TIMESTAMP + INTERVAL '5 days 3 hours', 180, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(210, 1, 'Logic Arena #4', 'Test your pure logic and code optimization skills in this short match.', 'ICPC', NULL, CURRENT_TIMESTAMP + INTERVAL '12 hours', CURRENT_TIMESTAMP + INTERVAL '14 hours', 120, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, status, created_at, updated_at) VALUES
+(206, 1, 'CodeForces Div.3 Training', 'Practice contest modeled after Codeforces Div 3 rounds. Open to everyone.', 'ICPC', NULL, CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 2 hours', 120, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(207, 1, 'FPT Software Cup', 'Annual coding contest organized by FPT Software. Restricted access. Password is "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP + INTERVAL '2 days', CURRENT_TIMESTAMP + INTERVAL '2 days 4 hours', 240, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(208, 1, 'Mini Hackathon #1', '8-hour intensive algorithmic coding hackathon. Solve dynamically to gain points.', 'IOI', NULL, CURRENT_TIMESTAMP + INTERVAL '3 days', CURRENT_TIMESTAMP + INTERVAL '3 days 8 hours', 480, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(209, 1, 'Algorithms Bootcamp Final', 'The final exam for the Algorithms Bootcamp participants. Password is "123".', 'IOI', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP + INTERVAL '5 days', CURRENT_TIMESTAMP + INTERVAL '5 days 3 hours', 180, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(210, 1, 'Logic Arena #4', 'Test your pure logic and code optimization skills in this short match.', 'ICPC', NULL, CURRENT_TIMESTAMP + INTERVAL '12 hours', CURRENT_TIMESTAMP + INTERVAL '14 hours', 120, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
 -- == NHÓM 3: 5 CONTESTS ĐÃ KẾT THÚC (ENDED) ==
@@ -120,12 +120,12 @@ ON CONFLICT (id) DO NOTHING;
 -- 213: CS101 Midterm Lab (Public, ICPC)
 -- 214: Dynamic Programming Marathon (Public, IOI)
 -- 215: Speed Coding Challenge (Private, ICPC, password: 123)
-INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, is_cancelled, created_at, updated_at) VALUES
-(211, 1, 'Algorithmic Masters Cup 2025', 'The grand final event of 2025. Solve challenging problems under IOI format.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP - INTERVAL '9 days 20 hours', 240, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(212, 1, 'New Year Code Battle', 'Special New Year programming fight. Password was "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP - INTERVAL '4 days 21 hours', 180, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(213, 1, 'CS101 Midterm Lab', 'Practical coding midterm exam for Computer Science students.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '2 days', CURRENT_TIMESTAMP - INTERVAL '1 day 22 hours', 120, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(214, 1, 'Dynamic Programming Marathon', '24-hour marathon focusing purely on complex dynamic programming state logic.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '8 days', CURRENT_TIMESTAMP - INTERVAL '7 days', 1440, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(215, 1, 'Speed Coding Challenge', '60-minute fast paced challenge. Fast finger wins! Password was "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '1 day', CURRENT_TIMESTAMP - INTERVAL '23 hours', 60, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, status, created_at, updated_at) VALUES
+(211, 1, 'Algorithmic Masters Cup 2025', 'The grand final event of 2025. Solve challenging problems under IOI format.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP - INTERVAL '9 days 20 hours', 240, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(212, 1, 'New Year Code Battle', 'Special New Year programming fight. Password was "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP - INTERVAL '4 days 21 hours', 180, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(213, 1, 'CS101 Midterm Lab', 'Practical coding midterm exam for Computer Science students.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '2 days', CURRENT_TIMESTAMP - INTERVAL '1 day 22 hours', 120, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(214, 1, 'Dynamic Programming Marathon', '24-hour marathon focusing purely on complex dynamic programming state logic.', 'IOI', NULL, CURRENT_TIMESTAMP - INTERVAL '8 days', CURRENT_TIMESTAMP - INTERVAL '7 days', 1440, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(215, 1, 'Speed Coding Challenge', '60-minute fast paced challenge. Fast finger wins! Password was "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '1 day', CURRENT_TIMESTAMP - INTERVAL '23 hours', 60, 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
 -- == NHÓM 4: 5 CONTESTS ĐÃ HỦY (CANCELLED) ==
@@ -134,12 +134,12 @@ ON CONFLICT (id) DO NOTHING;
 -- 218: Cancelled AI Coding Challenge (Public, IOI, upcoming but cancelled)
 -- 219: Cancelled Intermediate Cup (Public, ICPC, upcoming but cancelled)
 -- 220: Cancelled Rookie Clash (Private, IOI, ended but cancelled, password: 123)
-INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, is_cancelled, created_at, updated_at) VALUES
-(216, 1, 'Cancelled Spring Sprint', 'This contest was cancelled due to system maintenance schedules.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '1 day', CURRENT_TIMESTAMP - INTERVAL '20 hours', 240, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(217, 1, 'Cancelled Data Structure Duel', 'Cancelled due to database infrastructure migration. Password is "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '5 hours', CURRENT_TIMESTAMP - INTERVAL '1 hour', 240, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(218, 1, 'Cancelled AI Coding Challenge', 'Cancelled contest due to AI API credentials update.', 'IOI', NULL, CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 3 hours', 180, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(219, 1, 'Cancelled Intermediate Cup', 'Intermediate cup postponed indefinitely.', 'ICPC', NULL, CURRENT_TIMESTAMP + INTERVAL '2 days', CURRENT_TIMESTAMP + INTERVAL '2 days 4 hours', 240, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(220, 1, 'Cancelled Rookie Clash', 'Rookie clash cancelled due to lack of participants. Password was "123".', 'IOI', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP - INTERVAL '9 days 22 hours', 120, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO public.contest (id, created_by, title, description, scoring_rule, password_hash, start_time, end_time, durations, status, created_at, updated_at) VALUES
+(216, 1, 'Cancelled Spring Sprint', 'This contest was cancelled due to system maintenance schedules.', 'ICPC', NULL, CURRENT_TIMESTAMP - INTERVAL '1 day', CURRENT_TIMESTAMP - INTERVAL '20 hours', 240, 'DELETED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(217, 1, 'Cancelled Data Structure Duel', 'Cancelled due to database infrastructure migration. Password is "123".', 'ICPC', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '5 hours', CURRENT_TIMESTAMP - INTERVAL '1 hour', 240, 'DELETED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(218, 1, 'Cancelled AI Coding Challenge', 'Cancelled contest due to AI API credentials update.', 'IOI', NULL, CURRENT_TIMESTAMP + INTERVAL '1 day', CURRENT_TIMESTAMP + INTERVAL '1 day 3 hours', 180, 'DELETED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(219, 1, 'Cancelled Intermediate Cup', 'Intermediate cup postponed indefinitely.', 'ICPC', NULL, CURRENT_TIMESTAMP + INTERVAL '2 days', CURRENT_TIMESTAMP + INTERVAL '2 days 4 hours', 240, 'DELETED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(220, 1, 'Cancelled Rookie Clash', 'Rookie clash cancelled due to lack of participants. Password was "123".', 'IOI', '$2a$10$SIHukD9M.hlpQVWC/TrVkeKOaYYzwUW0L0QtLXp1571wbN2I/TfXK', CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP - INTERVAL '9 days 22 hours', 120, 'DELETED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
 -- 8. Ánh xạ Bài tập vào Cuộc thi (Contest Problems)
