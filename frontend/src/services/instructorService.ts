@@ -9,7 +9,6 @@ export interface Category {
 export interface InstructorCourse {
   id: string;
   title: string;
-  level: string;
   topic: string;
   price: string;
   studentsCount: number;
@@ -19,6 +18,7 @@ export interface InstructorCourse {
   icon: string;
   gradient: string;
   description: string;
+  thumbnailUrl?: string;
 }
 
 export interface SalesHistoryItem {
@@ -210,6 +210,7 @@ export const instructorService = {
     categoryIds?: number[];
     isFree?: boolean;
     price?: number;
+    thumbnailUrl?: string;
     whatYouLearn?: string;
     courseHighlight?: string;
     technologyTool?: string;
@@ -225,6 +226,7 @@ export const instructorService = {
         video: string;
         theory: string;
         isTrial: boolean;
+        status?: string;
         quizzes?: {
           id?: number;
           title: string;

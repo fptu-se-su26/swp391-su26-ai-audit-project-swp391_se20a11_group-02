@@ -25,7 +25,6 @@ public class InstructorCourseDetailResponse {
     String targetAudience;
     String completionBenefits;
     BigDecimal price;
-    String level;
     String topic;
     String status;
     List<InstructorChapterResponse> chapters;

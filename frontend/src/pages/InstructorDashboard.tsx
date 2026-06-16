@@ -45,6 +45,7 @@ interface Lesson {
   overview: string;
   questions: StudentQuestion[];
   isTrial?: boolean;
+  status?: string;
   duration?: string;
   theory?: string;
   exercises?: any[];
@@ -780,6 +781,7 @@ export const InstructorDashboard: React.FC = () => {
       
       setCourseTitleInput(detail.title || course.title);
       setCourseDescInput(detail.shortDescription || course.description);
+      setThumbnailFile(detail.thumbnailUrl ? { name: 'Current Thumbnail', size: 'Unknown', url: detail.thumbnailUrl } : null);
       
       if (detail.categories && Array.isArray(detail.categories)) {
         setCourseCategoryIdsInput(detail.categories.map((c: any) => c.id));
@@ -810,6 +812,7 @@ export const InstructorDashboard: React.FC = () => {
             overview: '',
             theory: les.theoryContent || '',
             isTrial: les.isTrial || false,
+            status: les.status || 'ACTIVE',
             questions: [],
             exercises: les.exercises || [],
             quizzes: les.quizzes || []
@@ -841,6 +844,7 @@ export const InstructorDashboard: React.FC = () => {
   };
 
   const closeSyllabusEditor = () => {
+    setWorkspaceCourseId(null);
     window.location.hash = '#my-courses';
   };
 
@@ -858,11 +862,19 @@ export const InstructorDashboard: React.FC = () => {
 
     setIsSaving(true);
     try {
+      let finalThumbnailUrl = undefined;
+      if (thumbnailFile?.file) {
+        finalThumbnailUrl = await instructorService.uploadMedia(thumbnailFile.file, 'courses');
+      } else if (thumbnailFile?.url && thumbnailFile.url.startsWith('http')) {
+        finalThumbnailUrl = thumbnailFile.url;
+      }
+
       const updatePayload = {
         title: courseTitleInput.trim(),
         shortDescription: courseDescInput.trim(),
         longDescription: courseLongDescInput.trim(),
         categoryIds: courseCategoryIdsInput,
+        thumbnailUrl: finalThumbnailUrl,
         price: Number(coursePriceInput) || 0,
         whatYouLearn: learnPoints.filter(p => p.trim()).join('#'),
         courseHighlight: highlightPoints.filter(p => p.trim()).join('#'),
@@ -913,6 +925,7 @@ export const InstructorDashboard: React.FC = () => {
       } else {
         alert('✅ Course draft saved successfully!');
       }
+      setWorkspaceCourseId(null);
       window.location.hash = '#my-courses';
     } catch (error) {
       console.error('Failed to save course:', error);
@@ -2876,7 +2889,7 @@ export const InstructorDashboard: React.FC = () => {
                     >
                       <option value="all">All States</option>
                       <option value="published">Active (Published)</option>
-                      <option value="review">Pending Review (Under Review)</option>
+                      <option value="review">Pending</option>
                       <option value="draft">Draft (Creating)</option>
                     </select>
                     <select
@@ -2905,21 +2918,33 @@ export const InstructorDashboard: React.FC = () => {
                         className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow flex flex-col justify-between hover:shadow-lg transition-all duration-300"
                       >
                         <div>
-                          {/* SVG Thumbnail placeholder */}
-                          <div className={`h-44 bg-gradient-to-r ${course.gradient} p-6 flex flex-col justify-between text-white relative`}>
-                            <span className="px-2.5 py-0.5 rounded bg-white/20 text-white font-bold text-[10px] uppercase w-fit tracking-wider">
-                              {course.level}
-                            </span>
-                            <div className="flex flex-col">
-                              <span className="text-xs font-medium text-white/80">{course.topic}</span>
-                              <span className="text-xl font-display font-extrabold tracking-tight mt-1 leading-tight line-clamp-2">
-                                {course.title}
-                              </span>
+                          {/* Course Thumbnail */}
+                          {course.thumbnailUrl ? (
+                            <div className="h-44 relative group/card-thumb overflow-hidden bg-black">
+                              <img src={course.thumbnailUrl} className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover/card-thumb:scale-105" alt={course.title} />
+                              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1d] via-black/20 to-transparent flex flex-col justify-end p-6">
+                                <div className="flex flex-col text-white transform translate-y-2 group-hover/card-thumb:translate-y-0 transition-transform duration-300">
+                                  <span className="text-xs font-medium text-slate-200 drop-shadow-md">{course.topic}</span>
+                                  <span className="text-xl font-display font-extrabold tracking-tight mt-1 leading-tight line-clamp-2 drop-shadow-lg">
+                                    {course.title}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="absolute bottom-2 right-2 opacity-15">
-                              <span className="material-symbols-outlined text-[80px]">{course.icon}</span>
+                          ) : (
+                            <div className={`h-44 bg-gradient-to-r ${course.gradient} p-6 flex flex-col justify-end text-white relative`}>
+                              {/* SVG Thumbnail placeholder */}
+                              <div className="flex flex-col">
+                                <span className="text-xs font-medium text-white/80">{course.topic}</span>
+                                <span className="text-xl font-display font-extrabold tracking-tight mt-1 leading-tight line-clamp-2">
+                                  {course.title}
+                                </span>
+                              </div>
+                              <div className="absolute bottom-2 right-2 opacity-15">
+                                <span className="material-symbols-outlined text-[80px]">{course.icon}</span>
+                              </div>
                             </div>
-                          </div>
+                          )}
 
                           <div className="p-5 flex flex-col gap-4">
                             <div className="flex items-center justify-between">
@@ -2932,7 +2957,7 @@ export const InstructorDashboard: React.FC = () => {
                               {course.status === 'review' && (
                                 <span className="px-2.5 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700 font-bold flex items-center gap-1 select-none">
                                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                  Under Review
+                                  Pending
                                 </span>
                               )}
                               {course.status === 'draft' && (
@@ -3978,7 +4003,12 @@ export const InstructorDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[10px] font-bold uppercase tracking-wider">Chờ duyệt / Pending</span>
+                {(() => {
+                  const currentCourse = instructorCourses.find(c => c.id === workspaceCourseId);
+                  if (currentCourse?.status === 'published') return <span className="px-2.5 py-0.5 rounded-full bg-brand-green/20 text-brand-green border border-brand-green/30 text-[10px] font-bold uppercase tracking-wider">Active</span>;
+                  if (currentCourse?.status === 'review') return <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[10px] font-bold uppercase tracking-wider">Pending Approval</span>;
+                  return <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-500 border border-slate-300 text-[10px] font-bold uppercase tracking-wider">Draft</span>;
+                })()}
                 <button
                   type="button"
                   onClick={handleSaveAllCourseChanges}
@@ -4136,6 +4166,43 @@ export const InstructorDashboard: React.FC = () => {
                     </h4>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Drag & Drop Thumbnail Upload */}
+                      <div className="flex flex-col gap-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Thumbnail</label>
+                        <div className="relative border-2 border-dashed border-slate-200 hover:border-primary rounded-2xl p-5 flex flex-col items-center justify-center gap-2 bg-slate-50/50 hover:bg-primary-light/5 transition-all group cursor-pointer h-[155px]">
+                          <input type="file" id="edit-course-thumbnail" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleThumbnailUpload} />
+                          <span className="material-symbols-outlined text-4xl text-slate-400 group-hover:text-primary transition-colors">image</span>
+                          <div className="text-center">
+                            <span className="text-sm font-bold text-brand-blue group-hover:text-primary transition-colors block">Upload Thumbnail Image</span>
+                            <span className="text-[11px] text-text-muted mt-1 block">PNG, JPG, WebP up to 5MB</span>
+                          </div>
+                          
+                          {/* Premium Image Thumbnail Preview Element */}
+                          {thumbnailFile && (
+                            <div className="absolute inset-0 rounded-2xl overflow-hidden group/preview z-10 shadow-md">
+                              <img src={thumbnailFile.url} className="w-full h-full object-cover transition-transform duration-500 group-hover/preview:scale-105" alt="Preview" />
+                              
+                              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1d]/90 via-[#0a0f1d]/40 to-transparent opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                                <div className="flex items-center justify-between transform translate-y-4 opacity-0 group-hover/preview:translate-y-0 group-hover/preview:opacity-100 transition-all duration-300">
+                                  <div className="flex flex-col min-w-0 text-left text-white pr-2">
+                                    <span className="text-sm font-bold truncate max-w-[280px]">{thumbnailFile.name}</span>
+                                    <span className="text-[10px] text-slate-300 font-medium tracking-wide uppercase">{thumbnailFile.size}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); document.getElementById('edit-course-thumbnail')?.click(); }} className="h-9 w-9 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white transition-all hover:scale-105 flex items-center justify-center">
+                                      <span className="material-symbols-outlined text-[18px]">edit</span>
+                                    </button>
+                                    <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setThumbnailFile(null); }} className="h-9 w-9 rounded-xl bg-red-500/80 hover:bg-red-600 backdrop-blur-md text-white transition-all hover:scale-105 flex items-center justify-center">
+                                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       {/* Short Description */}
                       <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Short Description</label>
@@ -4538,7 +4605,11 @@ export const InstructorDashboard: React.FC = () => {
                       </div>
                       <h3 className="text-lg font-display font-black text-brand-blue leading-tight mt-1">{activeLesson.title}</h3>
                     </div>
-                    <span className="px-2.5 py-0.5 text-[9px] rounded-full bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 font-bold uppercase tracking-wider shadow-sm shrink-0">Active Lesson</span>
+                    {activeLesson.status === 'INACTIVE' ? (
+                      <span className="px-2.5 py-0.5 text-[9px] rounded-full bg-orange-500/20 text-orange-600 border border-orange-500/30 font-bold uppercase tracking-wider shadow-sm shrink-0">Pending Review</span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 text-[9px] rounded-full bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 font-bold uppercase tracking-wider shadow-sm shrink-0">Active Lesson</span>
+                    )}
                   </div>
 
                   {/* Player Sub-tabs Navigation */}
@@ -4603,23 +4674,37 @@ export const InstructorDashboard: React.FC = () => {
                   </div>
 
                   {/* Tabs Content Card */}
-                  <div className="bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px] shadow-sm">
-                    
-                    {/* TAB 1: Overview */}
-                    {editorTab === 'overview' && (
-                      <div className="flex flex-col gap-5">
-                        <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Lesson Overview</h4>
-                        
-                        <div className="flex flex-col gap-2">
-                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Lesson Title</label>
-                          <input
-                            type="text"
-                            value={lessonTitle}
-                            onChange={(e) => setLessonTitle(e.target.value)}
-                            placeholder="e.g. Introduction to the Course"
-                            className="text-xs border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3 font-semibold text-brand-blue w-full"
-                          />
+                  <div className="relative bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px] shadow-sm">
+                    {selectedItem.type === 'lesson' && activeLesson?.status === 'INACTIVE' && (
+                      <div className="mb-6 z-20 rounded-2xl flex items-start justify-center pointer-events-auto">
+                        <div className="bg-orange-50/90 backdrop-blur-xl border border-orange-200/60 p-4 rounded-2xl shadow-sm flex items-start gap-4 w-full">
+                           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0 text-white">
+                             <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+                           </div>
+                           <div className="flex flex-col mt-0.5">
+                             <h4 className="text-sm font-black text-brand-blue tracking-tight">Lesson Locked (Pending Review)</h4>
+                             <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">This lesson is currently inactive and waiting for admin approval. You can view the contents but cannot make edits.</p>
+                           </div>
                         </div>
+                      </div>
+                    )}
+                    
+                    <div className={selectedItem.type === 'lesson' && activeLesson?.status === 'INACTIVE' ? 'pointer-events-none opacity-80 grayscale-[10%] select-none' : ''}>
+                      {/* TAB 1: Overview */}
+                      {editorTab === 'overview' && (
+                        <div className="flex flex-col gap-5">
+                          <h4 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider border-b border-gray-100 pb-2.5">Lesson Overview</h4>
+                          
+                          <div className="flex flex-col gap-2">
+                            <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Lesson Title</label>
+                            <input
+                              type="text"
+                              value={lessonTitle}
+                              onChange={(e) => setLessonTitle(e.target.value)}
+                              placeholder="e.g. Introduction to the Course"
+                              className="text-xs border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-3 font-semibold text-brand-blue w-full"
+                            />
+                          </div>
 
                         <div className="flex items-center justify-between p-4 bg-slate-50/50 rounded-xl border border-slate-200/30 mt-2">
                           <div className="flex flex-col">
@@ -4821,7 +4906,7 @@ export const InstructorDashboard: React.FC = () => {
                             {uploadedVideoName ? (
                               /* Embedded Video Player */
                               <div className="flex flex-col gap-4">
-                                <div className="w-full bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-200 aspect-video relative flex items-center justify-center group" style={{ maxHeight: '420px' }}>
+                                <div className="w-full bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-200 aspect-video relative flex items-center justify-center group pointer-events-auto" style={{ maxHeight: '420px' }}>
                                   <video 
                                     src={uploadedVideoName.startsWith('http') ? uploadedVideoName : undefined}
                                     controls
@@ -4945,6 +5030,7 @@ export const InstructorDashboard: React.FC = () => {
                       </div>
                     )}
 
+                    </div>
                   </div>
                 </div>
               )}
@@ -5021,8 +5107,14 @@ export const InstructorDashboard: React.FC = () => {
                                 {isSelected ? 'play_arrow' : 'radio_button_unchecked'}
                               </span>
 
-                              <div className="flex items-center min-w-0 flex-1">
+                              <div className="flex items-center min-w-0 flex-1 gap-2">
                                 <span className="title-text break-words whitespace-normal flex-1 mt-0.5">{lesson.title}</span>
+                                {lesson.status === 'INACTIVE' && (
+                                  <span className="shrink-0 flex items-center gap-1 pl-1.5 pr-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] uppercase tracking-wider rounded-md shadow-md shadow-orange-500/20 border border-orange-400/50">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                    Pending
+                                  </span>
+                                )}
                               </div>
 
                               <button
@@ -5219,17 +5311,27 @@ export const InstructorDashboard: React.FC = () => {
                           <span className="text-[11px] text-text-muted mt-1 block">PNG, JPG, WebP up to 5MB</span>
                         </div>
                         
-                        {/* Image Thumbnail Preview Element */}
+                        {/* Premium Image Thumbnail Preview Element */}
                         {thumbnailFile && (
-                          <div id="thumbnail-preview-container" className="absolute inset-0 bg-white rounded-2xl p-2 flex items-center justify-center gap-3">
-                            <img src={thumbnailFile.url} className="h-full max-w-[120px] object-cover rounded-xl border border-slate-200" alt="Preview" />
-                            <div className="flex flex-col min-w-0 text-left">
-                              <span className="text-xs font-bold text-brand-blue truncate max-w-[150px]">{thumbnailFile.name}</span>
-                              <span className="text-[10px] text-text-muted mt-0.5">{thumbnailFile.size}</span>
+                          <div className="absolute inset-0 rounded-2xl overflow-hidden group/preview z-10 shadow-md">
+                            <img src={thumbnailFile.url} className="w-full h-full object-cover transition-transform duration-500 group-hover/preview:scale-105" alt="Preview" />
+                            
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1d]/90 via-[#0a0f1d]/40 to-transparent opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                              <div className="flex items-center justify-between transform translate-y-4 opacity-0 group-hover/preview:translate-y-0 group-hover/preview:opacity-100 transition-all duration-300">
+                                <div className="flex flex-col min-w-0 text-left text-white pr-2">
+                                  <span className="text-sm font-bold truncate max-w-[150px]">{thumbnailFile.name}</span>
+                                  <span className="text-[10px] text-slate-300 font-medium tracking-wide uppercase">{thumbnailFile.size}</span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); document.getElementById('course-thumbnail')?.click(); }} className="h-9 w-9 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white transition-all hover:scale-105 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                                  </button>
+                                  <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setThumbnailFile(null); }} className="h-9 w-9 rounded-xl bg-red-500/80 hover:bg-red-600 backdrop-blur-md text-white transition-all hover:scale-105 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                  </button>
+                                </div>
+                              </div>
                             </div>
-                            <button type="button" onClick={(e) => { e.stopPropagation(); setThumbnailFile(null); }} className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors ml-auto flex items-center justify-center">
-                              <span className="material-symbols-outlined text-base">close</span>
-                            </button>
                           </div>
                         )}
                       </div>

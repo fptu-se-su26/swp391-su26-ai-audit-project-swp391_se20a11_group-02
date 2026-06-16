@@ -18,4 +18,5 @@ public class InstructorLessonResponse {
     String theoryContent;
     java.util.List<InstructorExerciseResponse> exercises;
     java.util.List<InstructorQuizResponse> quizzes;
+    String status;
 }

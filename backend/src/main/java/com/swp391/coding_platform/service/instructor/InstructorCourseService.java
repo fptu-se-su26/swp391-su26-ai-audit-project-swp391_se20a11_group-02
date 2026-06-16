@@ -107,7 +107,6 @@ public class InstructorCourseService {
         return InstructorCourseResponse.builder()
                 .id(String.valueOf(savedCourse.getId()))
                 .title(savedCourse.getTitle())
-                .level("All Levels")
                 .topic(savedCourse.getType())
                 .price(formatVndPrice(savedCourse.getPrice()))
                 .studentsCount(0)
@@ -117,6 +116,7 @@ public class InstructorCourseService {
                 .icon(icon)
                 .gradient(gradient)
                 .description(savedCourse.getShortDescription())
+                .thumbnailUrl(savedCourse.getThumbnailUrl())
                 .build();
     }
 
@@ -154,7 +154,6 @@ public class InstructorCourseService {
             responses.add(InstructorCourseResponse.builder()
                     .id(String.valueOf(course.getId()))
                     .title(course.getTitle())
-                    .level("Intermediate")
                     .topic(course.getType())
                     .price(formatVndPrice(course.getPrice()))
                     .studentsCount(course.getTotalEnrolled())
@@ -164,6 +163,7 @@ public class InstructorCourseService {
                     .icon(icon)
                     .gradient(gradient)
                     .description(course.getShortDescription())
+                    .thumbnailUrl(course.getThumbnailUrl())
                     .build());
         }
 
@@ -197,6 +197,7 @@ public class InstructorCourseService {
         if (request.getTitle() != null) course.setTitle(request.getTitle());
         if (request.getShortDescription() != null) course.setShortDescription(request.getShortDescription());
         if (request.getLongDescription() != null) course.setLongDescription(request.getLongDescription());
+        if (request.getThumbnailUrl() != null) course.setThumbnailUrl(request.getThumbnailUrl());
         if (request.getIsFree() != null) {
             if (Boolean.TRUE.equals(request.getIsFree())) {
                 course.setPrice(BigDecimal.ZERO);
@@ -267,16 +268,32 @@ public class InstructorCourseService {
                     for (int j = 0; j < chDto.getLessons().size(); j++) {
                         var lesDto = chDto.getLessons().get(j);
                         com.swp391.coding_platform.entity.course.LessonEntity lesEntity;
+                        boolean isExistingChanged = false;
 
                         if (lesDto.getId() != null) {
                             lesEntity = existingLessons.stream().filter(l -> l.getId().equals(lesDto.getId())).findFirst().orElse(null);
-                            if (lesEntity == null) {
+                            if (lesEntity != null) {
+                                if (lesEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE) {
+                                    updatedLessons.add(lesEntity);
+                                    continue;
+                                }
+                                if (!java.util.Objects.equals(lesEntity.getTitle(), lesDto.getTitle()) ||
+                                    !java.util.Objects.equals(lesEntity.getTheoryContent(), lesDto.getTheory()) ||
+                                    !java.util.Objects.equals(lesEntity.getVideoUrl(), lesDto.getVideo()) ||
+                                    !java.util.Objects.equals(lesEntity.getIsTrial(), lesDto.getIsTrial() != null ? lesDto.getIsTrial() : false)) {
+                                    isExistingChanged = true;
+                                }
+                            } else {
                                 lesEntity = new com.swp391.coding_platform.entity.course.LessonEntity();
-                                lesEntity.setChapter(chEntity);
                             }
+                            lesEntity.setChapter(chEntity);
                         } else {
                             lesEntity = new com.swp391.coding_platform.entity.course.LessonEntity();
                             lesEntity.setChapter(chEntity);
+                        }
+
+                        if (isExistingChanged) {
+                            lesEntity.setStatus(com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE);
                         }
 
                         lesEntity.setTitle(lesDto.getTitle());
@@ -482,17 +499,17 @@ public class InstructorCourseService {
             course.setTotalQuizzes(totalQuizzes);
         }
 
-        // According to Flow 1: Any edits made to a course (even if it was ACTIVE or REJECTED)
-        // will move it back to DRAFTS so the instructor can continue editing incrementally.
-        if (course.getStatus() != CourseStatus.DRAFTS) {
-            course.setStatus(CourseStatus.DRAFTS);
-        }
         course.setUpdatedAt(Instant.now());
 
         CourseEntity saved = courseRepository.save(course);
 
         // Build response
-        String status = "review"; // PENDING = review
+        String status = "draft";
+        if ("APPROVED".equalsIgnoreCase(saved.getStatus().name())) {
+            status = "published";
+        } else if ("PENDING".equalsIgnoreCase(saved.getStatus().name())) {
+            status = "review";
+        }
         String gradient = "from-orange-400 to-primary";
         if (saved.getId() % 3 == 0) gradient = "from-blue-500 to-indigo-600";
         else if (saved.getId() % 3 == 1) gradient = "from-emerald-500 to-teal-600";
@@ -505,7 +522,6 @@ public class InstructorCourseService {
         return InstructorCourseResponse.builder()
                 .id(String.valueOf(saved.getId()))
                 .title(saved.getTitle())
-                .level("All Levels")
                 .topic(saved.getType())
                 .price(formatVndPrice(saved.getPrice()))
                 .studentsCount(saved.getTotalEnrolled())
@@ -515,6 +531,7 @@ public class InstructorCourseService {
                 .icon(icon)
                 .gradient(gradient)
                 .description(saved.getShortDescription())
+                .thumbnailUrl(saved.getThumbnailUrl())
                 .build();
     }
 

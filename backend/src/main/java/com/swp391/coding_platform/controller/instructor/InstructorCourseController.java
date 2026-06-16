@@ -208,10 +208,10 @@ public class InstructorCourseController {
         }
     }
 
-    @PostMapping("/courses/{courseId}/submit-review")
+    @PutMapping("/courses/{courseId}/submit-review")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<Void>> submitCourseForReview(@AuthenticationPrincipal Jwt jwt,
-                                                                   @PathVariable("id") Long courseId) {
+                                                                   @PathVariable("courseId") Long courseId) {
         Integer userId = null;
         if (jwt != null) {
             Number idClaim = jwt.getClaim("userId");

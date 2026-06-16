@@ -45,11 +45,13 @@ public interface CourseMapper {
     @Mapping(target = "progressPercentage", source = "progressPercentage")
     @Mapping(target = "activeLessonId", source = "activeLesson.id")
     @Mapping(target = "activeLessonTitle", source = "activeLesson.title")
-    @Mapping(target = "activeLessonVideoUrl", source = "activeLesson.videoUrl")
-    @Mapping(target = "activeLessonTheoryContent", source = "activeLesson.theoryContent")
+    @Mapping(target = "activeLessonVideoUrl", expression = "java(activeLesson != null && activeLesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : (activeLesson != null ? activeLesson.getVideoUrl() : null))")
+    @Mapping(target = "activeLessonTheoryContent", expression = "java(activeLesson != null && activeLesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : (activeLesson != null ? activeLesson.getTheoryContent() : null))")
     LearningDetailResponse toLearningDetailResponse(CourseEntity course, int progressPercentage, LessonEntity activeLesson);
 
-    @Mapping(target = "exercises", source = "lessonProblems")
+    @Mapping(target = "exercises", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : lessonEntity.getLessonProblems().stream().map(this::toLearningExerciseResponse).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "videoUrl", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : lessonEntity.getVideoUrl())")
+    @Mapping(target = "theoryContent", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : lessonEntity.getTheoryContent())")
     LearningLessonResponse toLearningLessonResponse(LessonEntity lessonEntity);
 
     @Mapping(target = "id", source = "problem.id")
@@ -99,7 +101,6 @@ public interface CourseMapper {
 
     com.swp391.coding_platform.dto.response.InstructorChapterResponse toInstructorChapterResponse(ChapterEntity chapterEntity);
 
-    @Mapping(target = "level", constant = "Intermediate")
     @Mapping(target = "topic", source = "type")
     com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse toInstructorCourseDetailResponse(CourseEntity courseEntity);
 }

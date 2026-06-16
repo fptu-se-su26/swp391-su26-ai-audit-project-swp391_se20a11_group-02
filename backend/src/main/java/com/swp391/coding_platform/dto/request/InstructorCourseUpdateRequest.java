@@ -14,6 +14,7 @@ public class InstructorCourseUpdateRequest {
     String title;
     String shortDescription;
     String longDescription;
+    String thumbnailUrl;
     java.util.List<Integer> categoryIds;
     Boolean isFree;
     BigDecimal price;

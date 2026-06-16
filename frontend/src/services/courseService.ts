@@ -832,6 +832,7 @@ export interface LearningCurriculumLessonResponse {
   orderIndex: number;
   type: string;
   isCompleted: boolean;
+  status?: string;
 }
 
 export interface LearningCurriculumChapterResponse {
@@ -847,6 +848,7 @@ export interface LearningLessonResponse {
   videoUrl: string;
   theoryContent: string;
   exercises?: any[];
+  status?: string;
 }
 
 export const fetchCourseLearningDetail = async (id: number | string): Promise<LearningDetailResponse> => {
