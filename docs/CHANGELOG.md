@@ -305,6 +305,10 @@ Commit trên nhánh feature/DE190416-CRUD-Contest
 | 1 | Fix lỗi biên dịch và các import chưa sử dụng | Nguyễn Duy Phương | Layout.tsx | Commit feature/DE190416-CRUD-Contest |
 | 2 | Sửa logic đếm active contest và dynamic status check | Nguyễn Duy Phương | ContestService.java, ContestRepository.java | Commit feature/DE190416-CRUD-Contest |
 | 3 | Test phân quyền user và admin đối với Contest Submissions API | Nguyễn Duy Phương | ContestController.java | Commit feature/DE190416-CRUD-Contest |
+| 4 | Tái cấu trúc database: loại bỏ cột `is_deleted`, thay bằng cột `status` chứa enum `DRAFT`, `PUBLISHED`, `DELETED` | Nguyễn Duy Phương | `init.sql`, `ContestEntity.java`, `ContestStatus.java` | Commit feature/de190416-contest-status-refactoring |
+| 5 | Triển khai logic tính toán trạng thái động (`UPCOMING`, `ONGOING`, `ENDED`) tại runtime | Nguyễn Duy Phương | `ContestService.java`, `ContestRepository.java` | Commit feature/de190416-contest-status-refactoring |
+| 6 | Bổ sung cơ chế soft delete, khôi phục và xóa cứng kỳ thi an toàn (chỉ khi số lượng bài nộp bằng 0) | Nguyễn Duy Phương | `ContestService.java`, `AdminDashboard.tsx` | Commit feature/de190416-contest-status-refactoring |
+| 7 | Đồng bộ đưa bài tập liên quan về scope `PRACTICE` và trạng thái `isPublic = false` (Draft) khi xóa kỳ thi hoặc rút bài khỏi kỳ thi | Nguyễn Duy Phương | `ContestService.java` | Commit feature/de190416-contest-status-refactoring |
 
 ## AI có hỗ trợ không?
 

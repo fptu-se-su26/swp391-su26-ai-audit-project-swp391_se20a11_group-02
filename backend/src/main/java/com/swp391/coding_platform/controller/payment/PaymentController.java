@@ -14,10 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 
@@ -90,7 +87,7 @@ public class PaymentController {
     @PostMapping("/payment/cancel/{transactionCode}")
     public ResponseEntity<ApiResponse<Void>> cancelPayment(
             @AuthenticationPrincipal Jwt jwt,
-            @org.springframework.web.bind.annotation.PathVariable String transactionCode) {
+            @PathVariable String transactionCode) {
 
         Integer userId = null;
         if (jwt != null) {

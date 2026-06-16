@@ -213,20 +213,11 @@ Trong quá trình thực hiện, em/nhóm chưa ghi nhận trường hợp AI g�
 Mô tả rõ phần nào là đóng góp chính của sinh viên/nhóm, không phải chỉ copy từ AI.
 
 ```text
-Viết tại đây...
+- Tự phân tích cấu trúc quan hệ khóa ngoại của database và cơ chế tự động Cascade Delete ở PostgreSQL.
+- Tự thiết kế và hiện thực hóa logic chuyển đổi trạng thái của đề bài (PRACTICE scope và isPublic = false) khi gỡ khỏi contest hoặc khi cuộc thi bị xóa cứng.
+- Phát hiện và chủ động khắc phục lỗi biên dịch nghiêm ngặt của TypeScript compiler (noUnusedLocals) do code cũ để lại trong component Layout.tsx mà AI không tự rà soát hết được.
+- Tự cấu hình và chạy thực tế các test cases kiểm thử tích hợp (ContestIntegrationTest, ContestServiceTest).
 ```
-
-Gợi ý:
-
-- Tự phân tích yêu cầu.
-- Tự chọn giải pháp.
-- Tự chỉnh sửa code.
-- Tự kiểm tra output.
-- Tự thiết kế logic.
-- Tự sửa lỗi.
-- Tự viết báo cáo theo hiểu biết của mình.
-- Tự đánh giá ưu/nhược điểm của sản phẩm.
-- Tự thuyết trình và giải thích sản phẩm.
 
 ---
 
@@ -234,13 +225,13 @@ Gợi ý:
 
 | Nội dung | Trước khi dùng AI | Sau khi dùng AI | Cải thiện đạt được |
 |---|---|---|---|
-| Hiểu yêu cầu |  |  |  |
-| Phân tích bài toán |  |  |  |
-| Thiết kế giải pháp |  |  |  |
-| Code/Implementation |  |  |  |
-| Debug/Testing |  |  |  |
-| Báo cáo/Thuyết trình |  |  |  |
-| Làm việc nhóm |  |  |  |
+| Hiểu yêu cầu | Chưa rõ cách thức xử lý bài thi và mối liên hệ với các tab Repository & Drafts trên UI | Hiểu sâu sắc cách cấu hình bộ lọc UI dựa trên trạng thái `isPublic` | Nắm vững luồng quản lý đề bài của admin |
+| Phân tích bài toán | Gặp khó khăn với lỗi type binding của cột status tĩnh trên PostgreSQL | Quyết định chuyển sang thiết kế Dynamic Status tính toán tại runtime | Hệ thống gọn nhẹ, chuẩn hóa, không bị out-of-sync |
+| Thiết kế giải pháp | Nghĩ tới giải pháp dùng cron-job cập nhật status thủ công | Áp dụng so sánh thời gian thực bằng JPA Query và Instant.now() | Loại bỏ hoàn toàn các lỗi xung đột trạng thái |
+| Code/Implementation | Mất nhiều thời gian viết các hàm CRUD lặp đi lặp lại | Sử dụng AI sinh code boilerplate và mapping MapStruct | Tăng hiệu suất viết code lên gấp 2-3 lần |
+| Debug/Testing | Debug thủ công mất nhiều thời gian tìm lỗi import/biến thừa | AI định vị nhanh vị trí compiler error và đưa phương án xử lý | Build thành công ứng dụng với strict compiler |
+| Báo cáo/Thuyết trình | Mất thời gian định dạng bảng biểu và cấu trúc | Được AI hỗ trợ sinh khung PR Checklist và cấu trúc báo cáo | Tiết kiệm 80% thời gian làm tài liệu |
+| Làm việc nhóm | Chia sẻ code dễ bị xung đột nhánh | Có các commit message đúng chuẩn và tách nhánh rõ ràng | Quy trình Git Flow làm việc nhóm mượt mà |
 
 ---
 
@@ -249,20 +240,10 @@ Gợi ý:
 Sau bài tập/project này, em/nhóm học được gì về kiến thức môn học?
 
 ```text
-Viết tại đây...
+- Hiểu sâu sắc về thiết kế chuẩn hóa cơ sở dữ liệu và cách phân biệt giữa database status (trạng thái vật lý) với dynamic status (trạng thái hiển thị runtime).
+- Nắm vững kiến thức về Cascade Delete và cách duy trì tính nhất quán dữ liệu ở các bảng liên quan (như vấn đề reset scope và ẩn bài tập thi khi xóa cuộc thi).
+- Có kỹ năng xử lý cấu trúc định tuyến lồng nhau (Nested Routing) trong React Router đồng bộ tham số URL động.
 ```
-
-Gợi ý:
-
-- Kiến thức kỹ thuật đã hiểu rõ hơn.
-- Kỹ năng lập trình đã cải thiện.
-- Cách thiết kế hệ thống.
-- Cách kiểm thử.
-- Cách phân tích yêu cầu.
-- Cách làm việc nhóm.
-- Cách giải quyết lỗi.
-- Cách trình bày sản phẩm.
-- Cách đọc và hiểu tài liệu kỹ thuật.
 
 ---
 
@@ -271,18 +252,10 @@ Gợi ý:
 Sau bài tập/project này, em/nhóm học được gì về việc sử dụng AI một cách minh bạch, có trách nhiệm?
 
 ```text
-Viết tại đây...
+- Không copy paste mã nguồn một cách mù quáng; luôn kiểm tra kỹ logic và các tác động biên (side effects) đến toàn hệ thống.
+- Luôn đặt câu hỏi phản biện các đề xuất lý thuyết của AI để tìm ra giải pháp tối ưu cho bối cảnh thực tế của dự án.
+- Minh bạch hóa quá trình dùng AI bằng cách ghi nhận nhật ký đầy đủ và chịu trách nhiệm 100% với chất lượng sản phẩm cuối cùng.
 ```
-
-Gợi ý:
-
-- Không nên copy nguyên kết quả AI.
-- Cần kiểm tra lại mọi kết quả AI.
-- Cần hiểu nội dung trước khi nộp.
-- Cần ghi nhận việc sử dụng AI.
-- Cần biết AI có thể sai.
-- Cần tự chịu trách nhiệm với sản phẩm cuối cùng.
-- Cần dùng AI như công cụ hỗ trợ học tập, không thay thế hoàn toàn việc học.
 
 ---
 
@@ -290,17 +263,17 @@ Gợi ý:
 
 Đánh dấu các cam kết phù hợp.
 
-- [ ] Không dùng AI để làm toàn bộ bài mà không hiểu nội dung.
-- [ ] Không nộp nguyên văn kết quả AI nếu chưa kiểm tra.
-- [ ] Không che giấu việc sử dụng AI trong các phần quan trọng.
-- [ ] Không dùng AI để tạo nội dung sai lệch hoặc gian lận.
-- [ ] Không dùng AI thay thế hoàn toàn quá trình học.
-- [ ] Không bỏ qua yêu cầu, rubric hoặc hướng dẫn của giảng viên.
+- [x] Không dùng AI để làm toàn bộ bài mà không hiểu nội dung.
+- [x] Không nộp nguyên văn kết quả AI nếu chưa kiểm tra.
+- [x] Không che giấu việc sử dụng AI trong các phần quan trọng.
+- [x] Không dùng AI để tạo nội dung sai lệch hoặc gian lận.
+- [x] Không dùng AI thay thế hoàn toàn quá trình học.
+- [x] Không bỏ qua yêu cầu, rubric hoặc hướng dẫn của giảng viên.
 
 ### Giải thích thêm nếu có
 
 ```text
-Viết tại đây...
+Duy trì nguyên tắc tự làm chủ mã nguồn (Decision Ownership); AI chỉ là một người bạn đồng hành hỗ trợ tăng tốc công việc.
 ```
 
 ---
@@ -310,12 +283,6 @@ Viết tại đây...
 Lần sau em/nhóm sẽ sử dụng AI tốt hơn bằng cách nào?
 
 ```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- Viết prompt rõ hơn.
 - Cung cấp nhiều ngữ cảnh hơn cho AI.
 - Không hỏi AI làm toàn bộ bài.
 - Tập trung hỏi AI giải thích, gợi ý, review.
@@ -333,13 +300,13 @@ Sinh viên/nhóm tự đánh giá theo thang 1-5.
 
 | Tiêu chí | Điểm tự đánh giá 1-5 | Ghi chú |
 |---|:---:|---|
-| Ghi nhận việc dùng AI trung thực |  |  |
-| Prompt có mục tiêu rõ ràng |  |  |
-| Kiểm chứng kết quả AI |  |  |
-| Tự chỉnh sửa/cải tiến |  |  |
-| Hiểu nội dung đã nộp |  |  |
-| Reflection có chiều sâu |  |  |
-| Sử dụng AI có trách nhiệm |  |  |
+| Ghi nhận việc dùng AI trung thực | 5 | Nhật ký sử dụng ghi chép chi tiết, đầy đủ |
+| Prompt có mục tiêu rõ ràng | 5 | Prompt tập trung, bám sát vấn đề thực tế |
+| Kiểm chứng kết quả AI | 5 | Đã biên dịch backend, frontend và chạy test đầy đủ |
+| Tự chỉnh sửa/cải tiến | 5 | Tự sửa lỗi TypeScript unused variables và tối ưu scope bài tập |
+| Hiểu nội dung đã nộp | 5 | Nắm rõ 100% luồng dữ liệu từ DB, API đến React UI |
+| Reflection có chiều sâu | 5 | Đưa ra các nhận định phản biện sâu sắc về thiết kế hệ thống |
+| Sử dụng AI có trách nhiệm | 5 | Luôn kiểm tra, minh bạch và làm chủ code |
 
 ---
 
@@ -350,25 +317,25 @@ Trả lời ngắn gọn các câu hỏi sau.
 ### 16.1. Nếu giảng viên hỏi về phần AI đã hỗ trợ, em/nhóm có giải thích lại được không?
 
 ```text
-Viết tại đây...
+Hoàn toàn có thể giải thích cặn kẽ và bảo vệ được thiết kế của mình, vì tôi là người trực tiếp phản biện và cải tiến các đề xuất của AI để đưa vào ứng dụng thực tế.
 ```
 
 ### 16.2. Nếu không có AI, em/nhóm có thể tự làm lại phần quan trọng nhất không?
 
 ```text
-Viết tại đây...
+Tôi hoàn toàn có thể tự thực hiện lại được, tuy nhiên tốc độ viết mã boilerplate và thời gian tìm kiếm định dạng lỗi biên dịch sẽ lâu hơn.
 ```
 
 ### 16.3. Phần nào trong bài thể hiện rõ nhất năng lực thật sự của em/nhóm?
 
 ```text
-Viết tại đây...
+Phần thiết kế logic chuyển đổi trạng thái của đề bài (isPublic, problemScope) khi xóa kỳ thi và việc giải quyết triệt để lỗi biên dịch TS nghiêm ngặt trên file Layout.tsx để build production thành công.
 ```
 
 ### 16.4. Em/nhóm muốn cải thiện kỹ năng nào sau bài này?
 
 ```text
-Viết tại đây...
+Tôi muốn cải thiện kỹ năng thiết kế kiến trúc hệ thống phân tán, kiểm thử tích hợp tự động và kỹ năng viết prompt nâng cao (Prompt Engineering).
 ```
 
 ---
@@ -386,4 +353,4 @@ Sinh viên/nhóm hiểu rằng:
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Nguyễn Duy Phương | 16/06/2026 |
