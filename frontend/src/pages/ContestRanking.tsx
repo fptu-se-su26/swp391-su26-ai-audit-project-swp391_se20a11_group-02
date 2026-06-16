@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ContestOverviewData } from '../components/Layout';
 
@@ -15,22 +15,11 @@ interface Team {
   solved: number;
   totalAttempts: number;
   totalTime: string;
+  totalPenalty: number;
   submissions: Record<string, SubmissionDetail>;
 }
 
-interface Submission {
-  id: number;
-  submittedAt: string;
-  username: string;
-  problemLabel: string;
-  problemId: number;
-  problemTitle: string;
-  status: string;
-  lang: string;
-  runtime: string;
-  memory: string;
-  statusClass: string;
-}
+
 
 interface ContestProblem {
   problemId: number;
@@ -52,28 +41,7 @@ const timeToMinutes = (timeStr?: string): number => {
   return hrs * 60 + mins + secs / 60;
 };
 
-// Helper to calculate total penalty in minutes under ICPC rules
-const calculateTeamPenalty = (team: Team): number => {
-  let penaltySum = 0;
-  Object.values(team.submissions).forEach((sub) => {
-    if (sub.status === 'accepted' || sub.status === 'first_solve') {
-      const minutes = Math.floor(timeToMinutes(sub.time));
-      penaltySum += minutes + sub.penalty * 20;
-    }
-  });
-  return penaltySum;
-};
 
-// Helper to format elapsed time in milliseconds to "H:MM:SS"
-const formatElapsed = (elapsedMs: number): string => {
-  if (elapsedMs < 0) elapsedMs = 0;
-  const totalSecs = Math.floor(elapsedMs / 1000);
-  const hrs = Math.floor(totalSecs / 3600);
-  const mins = Math.floor((totalSecs % 3600) / 60);
-  const secs = totalSecs % 60;
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${hrs}:${pad(mins)}:${pad(secs)}`;
-};
 
 // 10 Distinct Premium Colors for the Top 10 Teams
 const TEAM_COLORS = [
@@ -163,7 +131,7 @@ export const ContestRanking: React.FC = () => {
 
   const [visibleTeams, setVisibleTeams] = useState<Record<string, boolean>>({});
 
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [problems, setProblems] = useState<ContestProblem[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [errorData, setErrorData] = useState<string | null>(null);
@@ -174,28 +142,49 @@ export const ContestRanking: React.FC = () => {
       return;
     }
 
+    let eventSource: EventSource | null = null;
+
     const fetchData = async () => {
       setLoadingData(true);
       setErrorData(null);
       try {
-        const [subsRes, probsRes] = await Promise.all([
-          fetch(`http://localhost:8080/nonstopcoding/contests/${contest.id}/submissions`, { credentials: 'include' }),
+        const [sbRes, probsRes] = await Promise.all([
+          fetch(`http://localhost:8080/nonstopcoding/api/v1/contests/${contest.id}/scoreboard`, { credentials: 'include' }),
           fetch(`http://localhost:8080/nonstopcoding/contests/${contest.id}/problems`, { credentials: 'include' })
         ]);
 
-        if (!subsRes.ok || !probsRes.ok) {
+        if (!sbRes.ok || !probsRes.ok) {
           throw new Error('Failed to fetch contest ranking data');
         }
 
-        const subsData = await subsRes.json();
+        const sbData = await sbRes.json();
         const probsData = await probsRes.json();
 
-        if (subsData && subsData.result && probsData && probsData.result) {
-          setSubmissions(subsData.result);
+        if (sbData && sbData.result && probsData && probsData.result) {
+          setTeams(sbData.result.rows || []);
           setProblems(probsData.result);
         } else {
           throw new Error('Invalid response structure from backend');
         }
+
+        // Đăng ký lắng nghe realtime qua Server-Sent Events (SSE)
+        eventSource = new EventSource(`http://localhost:8080/nonstopcoding/api/v1/contests/${contest.id}/scoreboard/stream`, { withCredentials: true });
+        
+        eventSource.addEventListener('scoreboard-update', (event: any) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed && parsed.rows) {
+              setTeams(parsed.rows);
+            }
+          } catch (err) {
+            console.error('Error parsing SSE scoreboard update:', err);
+          }
+        });
+
+        eventSource.onerror = (err) => {
+          console.error('EventSource error:', err);
+        };
+
       } catch (err: any) {
         console.error('Error fetching ranking data:', err);
         setErrorData(err.message || 'Failed to load rankings');
@@ -205,119 +194,13 @@ export const ContestRanking: React.FC = () => {
     };
 
     void fetchData();
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
   }, [contest]);
-
-  const teams = useMemo(() => {
-    if (!contest) return [];
-
-    const userSubmissionsMap: Record<string, Submission[]> = {};
-    submissions.forEach((sub) => {
-      if (!userSubmissionsMap[sub.username]) {
-        userSubmissionsMap[sub.username] = [];
-      }
-      userSubmissionsMap[sub.username].push(sub);
-    });
-
-    const firstSolveMap: Record<string, { username: string; time: number }> = {};
-    const startEpoch = new Date(contest.startTime).getTime();
-
-    submissions.forEach((sub) => {
-      if (sub.status === 'Accepted') {
-        const subEpoch = new Date(sub.submittedAt.replace(' ', 'T')).getTime();
-        const elapsedMins = (subEpoch - startEpoch) / 60000;
-        
-        if (elapsedMins >= 0 && elapsedMins <= (contest.durations || 240)) {
-          const existing = firstSolveMap[sub.problemLabel];
-          if (!existing || elapsedMins < existing.time) {
-            firstSolveMap[sub.problemLabel] = { username: sub.username, time: elapsedMins };
-          }
-        }
-      }
-    });
-
-    const teamList: Team[] = Object.keys(userSubmissionsMap).map((username) => {
-      const userSubs = userSubmissionsMap[username];
-      
-      userSubs.sort((a, b) => {
-        const timeA = new Date(a.submittedAt.replace(' ', 'T')).getTime();
-        const timeB = new Date(b.submittedAt.replace(' ', 'T')).getTime();
-        return timeA - timeB;
-      });
-
-      const submissionsDetail: Record<string, SubmissionDetail> = {};
-      let solvedCount = 0;
-      let totalAttempts = 0;
-
-      problems.forEach((p) => {
-        const label = String.fromCharCode(65 + p.orderIndex);
-        submissionsDetail[label] = {
-          penalty: 0,
-          status: 'unattempted',
-        };
-      });
-
-      userSubs.forEach((sub) => {
-        const label = sub.problemLabel;
-        const subEpoch = new Date(sub.submittedAt.replace(' ', 'T')).getTime();
-        const elapsedMins = (subEpoch - startEpoch) / 60000;
-
-        if (elapsedMins < 0 || elapsedMins > (contest.durations || 240)) {
-          return;
-        }
-
-        if (!submissionsDetail[label]) {
-          submissionsDetail[label] = { penalty: 0, status: 'unattempted' };
-        }
-
-        const currentDetail = submissionsDetail[label];
-
-        if (currentDetail.status === 'accepted' || currentDetail.status === 'first_solve') {
-          return;
-        }
-
-        totalAttempts++;
-
-        const isAccepted = sub.status === 'Accepted';
-        const isCompileError = sub.status === 'Compilation Error' || sub.status.toLowerCase().includes('compile');
-
-        if (isAccepted) {
-          solvedCount++;
-          const isFirstSolve = firstSolveMap[label] && firstSolveMap[label].username === username && Math.abs(firstSolveMap[label].time - elapsedMins) < 0.01;
-          
-          currentDetail.time = formatElapsed(subEpoch - startEpoch);
-          currentDetail.status = isFirstSolve ? 'first_solve' : 'accepted';
-        } else {
-          if (!isCompileError) {
-            currentDetail.penalty++;
-            currentDetail.status = 'failed';
-          }
-        }
-      });
-
-      return {
-        rank: 0,
-        name: username,
-        affiliation: 'Participant',
-        solved: solvedCount,
-        totalAttempts: totalAttempts,
-        totalTime: '',
-        submissions: submissionsDetail,
-      };
-    });
-
-    teamList.sort((a, b) => {
-      if (b.solved !== a.solved) {
-        return b.solved - a.solved;
-      }
-      return calculateTeamPenalty(a) - calculateTeamPenalty(b);
-    });
-
-    teamList.forEach((team, idx) => {
-      team.rank = idx + 1;
-    });
-
-    return teamList;
-  }, [submissions, problems, contest]);
 
   useEffect(() => {
     if (teams.length > 0) {
@@ -732,8 +615,8 @@ export const ContestRanking: React.FC = () => {
                             {team.solved} / {team.totalAttempts}
                           </td>
                           <td className="p-4 text-center text-text-muted font-mono border-r border-gray-200">
-                            {calculateTeamPenalty(team)}
-                          </td>
+                             {team.totalPenalty}
+                           </td>
                           {problems.map((p) => {
                             const label = String.fromCharCode(65 + p.orderIndex);
                             return renderSubmissionCell(team.submissions[label], label);

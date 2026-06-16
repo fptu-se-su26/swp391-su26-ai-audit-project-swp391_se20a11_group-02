@@ -585,7 +585,7 @@ let mockProblems: AdminProblem[] = [
 ];
 */
 
-let mockContests: AdminContest[] = [];
+// let mockContests: AdminContest[] = [];
 
 let mockActivityLogs: ActivityLog[] = [
   {
