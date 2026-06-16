@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
 
-
 @Slf4j
 @Configuration
 @Profile("dev") // Đã bỏ @RequiredArgsConstructor và @FieldDefaults

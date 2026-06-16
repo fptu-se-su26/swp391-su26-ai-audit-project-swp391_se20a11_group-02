@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+// ==========================================
+// MOCK DATA & MOCKUP PLAYGROUND
+// TODO: This component currently renders a static mock problem (Two Sum Challenge)
+// and handles submission locally without sending requests to the backend / Judge0 compiler.
+// It needs to be refactored similar to SolveProblem.tsx to load actual problem details,
+// submit code via APIs, and listen to testcase evaluation over WebSockets.
+// ==========================================
 
+import React from 'react';
+import { useParams, Link } from 'react-router-dom';
+
+// MOCK TEMPLATE CODES (HARDCODED)
+/*
 const JAVA_TEMPLATE = `class Solution {
     public int[] twoSum(int[] nums, int target) {
         // Write your code here
@@ -23,12 +33,15 @@ public:
         
     }
 };`;
+*/
 
 export const ContestProblemSolve: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
+  // TODO: Use problemId from route params to fetch actual problem data
   const contestId = id || '42';
 
+  /*
   const [selectedLang, setSelectedLang] = useState<string>('Java');
   const [codeText, setCodeText] = useState<string>(JAVA_TEMPLATE);
   const [editorStatus, setEditorStatus] = useState<'Accepted' | 'Running' | 'Success'>('Accepted');
@@ -73,9 +86,11 @@ export const ContestProblemSolve: React.FC = () => {
     }, 4000);
   };
 
+  // MOCK SUBMIT LOGIC (LOCAL TIMEOUT EVALUATION)
   const handleSubmit = () => {
     setEditorStatus('Running');
     showToast('Submitting solution... Evaluating sample cases...');
+    // TODO: Replace with real service API call (e.g. problemService.submitSolution) and WebSocket subscription
     setTimeout(() => {
       setEditorStatus('Success');
       setShowSuccessOverlay(true);
@@ -84,10 +99,18 @@ export const ContestProblemSolve: React.FC = () => {
   };
 
   const lineCount = Math.max(codeText.split('\n').length, 6);
+  */
+
 
   return (
     <>
-      {/* Toast Alert */}
+      {/* 
+        ==========================================
+        MOCK DATA - HIDING MOCK PROBLEM SOLVE UI
+        TODO: Uncomment and refactor with real APIs (similar to SolveProblem.tsx) when backend is integrated.
+        ==========================================
+      */}
+      {/*
       {toastMessage && (
         <div className="fixed bottom-20 right-6 z-50 bg-brand-blue text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-brand-blue-light animate-fade-in">
           <span className="material-symbols-outlined text-[18px] text-primary">info</span>
@@ -95,7 +118,6 @@ export const ContestProblemSolve: React.FC = () => {
         </div>
       )}
 
-      {/* Success Modal overlay */}
       {showSuccessOverlay && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99] flex items-center justify-center p-4">
           <div className="bg-surface rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl border border-slate-200/50 relative z-[100] space-y-4 animate-fade-in">
@@ -130,9 +152,7 @@ export const ContestProblemSolve: React.FC = () => {
         </div>
       )}
 
-      {/* Main Content (Left 85%) */}
       <main className="w-full bg-surface-gray flex flex-col gap-8 pr-0 md:pr-6 pb-8">
-        {/* Left Column: Description */}
         <div className="w-full flex flex-col bg-surface border border-gray-200 rounded-lg">
           <div className="p-6 md:p-8 space-y-8">
             <Link
@@ -217,9 +237,7 @@ export const ContestProblemSolve: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Code Editor */}
         <div className="w-full flex flex-col bg-white border border-gray-200 rounded-lg min-h-[400px] h-auto overflow-hidden">
-          {/* Editor Header */}
           <div className="flex items-center justify-between p-2 bg-surface border-b border-gray-200">
             <div className="flex items-center gap-3">
               <select
@@ -267,15 +285,12 @@ export const ContestProblemSolve: React.FC = () => {
               </button>
             </div>
           </div>
-          {/* Editor Area */}
           <div className="flex-grow flex text-[15px] leading-relaxed font-mono text-gray-800 bg-white min-h-[300px]">
-            {/* Line Numbers */}
             <div className="w-12 flex flex-col items-end py-4 pr-3 text-gray-400 bg-surface-gray border-r border-gray-200 select-none">
               {Array.from({ length: lineCount }).map((_, i) => (
                 <span key={i} className="leading-relaxed h-[22.5px] block">{i + 1}</span>
               ))}
             </div>
-            {/* Code */}
             <textarea
               value={codeText}
               onChange={(e) => setCodeText(e.target.value)}
@@ -283,12 +298,11 @@ export const ContestProblemSolve: React.FC = () => {
               spellCheck="false"
             />
           </div>
-          {/* Action Bar */}
           <div className="p-4 bg-surface border-t border-gray-200 flex justify-end gap-4 sticky bottom-0">
             <button
               onClick={handleSubmit}
               disabled={editorStatus === 'Running'}
-              className={`px-6 py-2 rounded-lg font-bold transition-colors shadow-sm text-white ${
+              className={`px-6 py-2 rounded-lg font-bold transition-colors shadow-sm text-white \${
                 editorStatus === 'Running'
                   ? 'bg-primary/50 cursor-not-allowed'
                   : 'bg-primary hover:bg-primary-hover'
@@ -299,6 +313,28 @@ export const ContestProblemSolve: React.FC = () => {
           </div>
         </div>
       </main>
+      */}
+
+      {/* Feature Construction Page */}
+      <main className="w-full px-4 sm:px-8 py-12 bg-surface-gray flex-grow flex items-center justify-center">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-md rounded-2xl p-8 text-center shadow-xl border border-slate-200/50 space-y-4">
+          <div className="w-16 h-16 rounded-full bg-primary-light/40 text-primary flex items-center justify-center border border-primary/20 mx-auto">
+            <span className="material-symbols-outlined text-4xl">construction</span>
+          </div>
+          <h3 className="font-display font-black text-xl text-brand-blue">Feature In Progress</h3>
+          <p className="font-body text-sm text-text-muted leading-relaxed">
+            Trang làm bài thi Contest hiện đang được nâng cấp để kết nối trực tiếp với API Backend & hệ thống chấm điểm chấm bài tự động.
+          </p>
+          <Link
+            to={`/contests/${contestId}/problems`}
+            className="inline-flex justify-center items-center px-6 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 w-full uppercase"
+          >
+            Quay lại danh sách bài tập
+          </Link>
+        </div>
+      </main>
     </>
   );
 };
+
+

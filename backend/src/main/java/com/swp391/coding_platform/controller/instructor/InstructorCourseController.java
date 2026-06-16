@@ -17,6 +17,9 @@ import java.util.List;
 import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
 import com.swp391.coding_platform.dto.request.TestcaseGeneratorRequest;
 import com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest.TestcaseDto;
+import com.swp391.coding_platform.service.cloudinary.CloudinaryService;
+import com.swp391.coding_platform.dto.response.CloudinaryResponse;
+import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
 
 @RestController
@@ -26,6 +29,7 @@ import jakarta.validation.Valid;
 public class InstructorCourseController {
 
     InstructorCourseService instructorCourseService;
+    CloudinaryService cloudinaryService;
 
     @GetMapping("/courses")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
@@ -81,6 +85,45 @@ public class InstructorCourseController {
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());
+    }
+
+    @PostMapping("/upload")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<CloudinaryResponse>> uploadMedia(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "folderName", defaultValue = "courses") String folderName) {
+
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        try {
+            CloudinaryResponse result = cloudinaryService.uploadFile(file, folderName);
+            return ResponseEntity.ok(ApiResponse.<CloudinaryResponse>builder()
+                    .status(200)
+                    .code(1000)
+                    .message("File uploaded successfully")
+                    .result(result)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.<CloudinaryResponse>builder()
+                    .status(400)
+                    .code(4000)
+                    .message("Failed to upload file: " + e.getMessage())
+                    .result(null)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        }
     }
 
     @GetMapping("/courses/{id}")

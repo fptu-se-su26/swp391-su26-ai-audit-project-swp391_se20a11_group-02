@@ -49,6 +49,7 @@ public class SecurityConfig {
 
                         // 2. Các API xác thực (Auth)
                         .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
 
                         // 3. Các API Public để xem dữ liệu (Giới hạn HTTP GET)
                         .requestMatchers(HttpMethod.GET, "/categories").permitAll()
@@ -91,6 +92,12 @@ public class SecurityConfig {
     BearerTokenResolver bearerTokenResolver(){
         DefaultBearerTokenResolver defaultResolver = new DefaultBearerTokenResolver();
         return request -> {
+            String path = request.getRequestURI();
+            if (path.contains("/auth/login") || path.contains("/auth/register") || 
+                path.contains("/auth/refresh") || path.contains("/auth/google")) {
+                return null;
+            }
+
             String token = defaultResolver.resolve(request);
 
             if (token != null) {

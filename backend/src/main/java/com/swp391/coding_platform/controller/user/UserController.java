@@ -1,5 +1,6 @@
 package com.swp391.coding_platform.controller.user;
 
+import com.swp391.coding_platform.dto.request.AppealRequest;
 import com.swp391.coding_platform.dto.request.ChangePasswordRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.dto.response.UserResponse;
@@ -53,4 +54,19 @@ public class UserController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
- }
+
+    @PostMapping("/appeal")
+    public ResponseEntity<ApiResponse<Void>> submitAppeal(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid AppealRequest appealRequest) {
+        String username = jwt.getSubject();
+        userService.submitAppeal(username, appealRequest);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Appeal submitted successfully")
+                .result(null)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+}

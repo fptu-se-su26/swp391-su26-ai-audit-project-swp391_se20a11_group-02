@@ -100,6 +100,26 @@ export interface CreateCoursePayload {
 }
 
 export const instructorService = {
+  async uploadMedia(file: File, folderName: string = 'courses'): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folderName', folderName);
+
+    const response = await fetch(`${BASE_URL}/instructor/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to upload media');
+    }
+
+    const data = await response.json();
+    return data.result.secureUrl;
+  },
+
   async getCourses(): Promise<InstructorCourse[]> {
     const response = await fetch(`${BASE_URL}/instructor/courses`, {
       method: 'GET',
@@ -110,6 +130,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor courses');
     }
 
@@ -260,6 +281,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor revenue summary');
     }
 
@@ -288,6 +310,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor sales history');
     }
 
@@ -305,6 +328,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor recent registrations');
     }
 
@@ -322,6 +346,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor payout history');
     }
 
@@ -350,6 +375,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor course breakdown');
     }
 
@@ -367,6 +393,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor monthly chart data');
     }
 
@@ -393,6 +420,7 @@ export const instructorService = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor course registrations trend');
     }
 

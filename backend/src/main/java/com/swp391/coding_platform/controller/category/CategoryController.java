@@ -2,7 +2,7 @@ package com.swp391.coding_platform.controller.category;
 
 import com.swp391.coding_platform.dto.response.ApiResponse;
 import com.swp391.coding_platform.entity.category.CategoryEntity;
-import com.swp391.coding_platform.repository.CategoryRepository;
+import com.swp391.coding_platform.repository.category.CategoryRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

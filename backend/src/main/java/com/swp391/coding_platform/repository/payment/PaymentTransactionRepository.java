@@ -14,4 +14,5 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
     Optional<PaymentTransactionEntity> findByTransactionCode(String transactionCode);
     Page<PaymentTransactionEntity> findByWalletUserId(Integer userId, Pageable pageable);
     Page<PaymentTransactionEntity> findByWalletUserIdAndType(Integer userId, PaymentType type, Pageable pageable);
+    java.util.List<PaymentTransactionEntity> findByStatusAndCreatedAtBefore(com.swp391.coding_platform.entity.enums.StatusTransaction status, java.time.Instant timeLimit);
 }

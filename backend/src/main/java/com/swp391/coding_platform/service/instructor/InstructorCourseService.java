@@ -38,7 +38,7 @@ public class InstructorCourseService {
     private final com.swp391.coding_platform.repository.course.LessonProblemRepository lessonProblemRepository;
     private final com.swp391.coding_platform.repository.course.EnrollmentRepository enrollmentRepository;
     private final com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository completedLessonCountRepository;
-    private final com.swp391.coding_platform.repository.CategoryRepository categoryRepository;
+    private final com.swp391.coding_platform.repository.category.CategoryRepository categoryRepository;
     private final Judge0ClientService judge0ClientService;
 
     public InstructorCourseDetailResponse getCourseDetail(Integer userId, Long courseId) {
@@ -519,8 +519,12 @@ public class InstructorCourseService {
     }
 
     private InstructorEntity getInstructorByUserId(Integer userId) {
-        return instructorRepository.findByUserId(userId)
+        InstructorEntity instructor = instructorRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        if (instructor.getStatus() == com.swp391.coding_platform.entity.enums.InstructorStatus.SUSPENDED) {
+            throw new AppException(ErrorCode.ACCESS_DENIED);
+        }
+        return instructor;
     }
 
     public List<TestcaseDto> generateTestcases(TestcaseGeneratorRequest request) {

@@ -616,33 +616,38 @@ export const InstructorDashboard: React.FC = () => {
     });
   };
 
-  // Video uploading simulator representing a separate media upload API
-  const simulateVideoUpload = (fileName: string) => {
+  // Actual video uploading via Media API
+  const simulateVideoUpload = async (file: File) => {
     setIsUploadingVideo(true);
     setUploadProgress(0);
-    setUploadSpeed('4.2 MB/s');
-    setUploadedVideoName(fileName);
+    setUploadSpeed('Uploading...');
+    setUploadedVideoName(file.name);
 
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 15) + 5;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsUploadingVideo(false);
-          setCurriculumData(prev => {
-            const newChapters = [...prev.chapters];
-            if (newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!]) {
-              newChapters[selectedItem.chIdx].lessons[selectedItem.lesIdx!].video = fileName;
-            }
-            return { chapters: newChapters };
-          });
-          alert(`Video "${fileName}" has been successfully uploaded and linked via separate Media API!`);
-        }, 800);
-      }
-      setUploadProgress(progress);
-    }, 250);
+    try {
+      const interval = setInterval(() => {
+        setUploadProgress(prev => (prev >= 90 ? 90 : prev + 10));
+      }, 500);
+
+      const secureUrl = await instructorService.uploadMedia(file, 'lessons');
+
+      clearInterval(interval);
+      setUploadProgress(100);
+
+      setTimeout(() => {
+        setIsUploadingVideo(false);
+        setCurriculumData(prev => {
+          const newChapters = [...prev.chapters];
+          if (newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!]) {
+            newChapters[selectedItem.chIdx].lessons[selectedItem.lesIdx!].video = secureUrl;
+          }
+          return { chapters: newChapters };
+        });
+        alert(`Video "${file.name}" has been successfully uploaded!`);
+      }, 500);
+    } catch (err) {
+       setIsUploadingVideo(false);
+       alert('Upload failed: ' + (err as Error).message);
+    }
   };
 
   // Student QA response state
@@ -692,7 +697,7 @@ export const InstructorDashboard: React.FC = () => {
   const handleReplaceVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      simulateVideoUpload(file.name);
+      simulateVideoUpload(file);
     }
   };
 
@@ -1460,21 +1465,18 @@ export const InstructorDashboard: React.FC = () => {
   const [courseDescInput, setCourseDescInput] = useState('');
   const [courseLongDescInput, setCourseLongDescInput] = useState('');
   
-  // Thumbnail file mock state
-  const [thumbnailFile, setThumbnailFile] = useState<{ name: string; size: string; url: string } | null>(null);
+  // Thumbnail file state
+  const [thumbnailFile, setThumbnailFile] = useState<{ file?: File; name: string; size: string; url: string } | null>(null);
 
   const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setThumbnailFile({
-          name: file.name,
-          size: `${(file.size / 1024).toFixed(1)} KB`,
-          url: event.target?.result as string
-        });
-      };
-      reader.readAsDataURL(file);
+      setThumbnailFile({
+        file: file,
+        name: file.name,
+        size: `${(file.size / 1024).toFixed(1)} KB`,
+        url: URL.createObjectURL(file)
+      });
     }
   };
 
@@ -1482,6 +1484,11 @@ export const InstructorDashboard: React.FC = () => {
     e.preventDefault();
     
     try {
+      let finalThumbnailUrl = undefined;
+      if (thumbnailFile?.file) {
+        finalThumbnailUrl = await instructorService.uploadMedia(thumbnailFile.file, 'courses');
+      }
+
       const createdCourse = await instructorService.createCourse({
         title: courseTitleInput || 'Untitled Course',
         shortDescription: courseDescInput || 'No description provided.',
@@ -1495,7 +1502,7 @@ export const InstructorDashboard: React.FC = () => {
         prerequisites: prereqPoints.filter(p => p.trim()),
         targetAudience: audiencePoints.filter(p => p.trim()),
         completionBenefits: benefitPoints.filter(p => p.trim()),
-        thumbnailUrl: thumbnailFile ? thumbnailFile.url : undefined
+        thumbnailUrl: finalThumbnailUrl
       });
 
       setInstructorCourses(prev => [createdCourse, ...prev]);
@@ -4812,22 +4819,22 @@ export const InstructorDashboard: React.FC = () => {
                           /* Standard/Uploaded Video Panel */
                           <div className="flex flex-col gap-5">
                             {uploadedVideoName ? (
-                              /* Embedded Video Player Mockup */
+                              /* Embedded Video Player */
                               <div className="flex flex-col gap-4">
-                                <div className="w-full bg-[#0a0f1d] rounded-2xl overflow-hidden shadow-lg border border-gray-800 aspect-video relative flex items-center justify-center group" style={{ maxHeight: '420px' }}>
-                                  <div className="absolute inset-0 bg-slate-900/60 z-0"></div>
-                                  
-                                  <div id="editor-video-overlay" className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/45 gap-3 text-white">
-                                    <button className="bg-primary hover:bg-primary-hover hover:scale-105 text-white rounded-full p-5 shadow-2xl transition-all duration-300 flex items-center justify-center">
-                                      <span className="material-symbols-outlined text-[48px] icon-fill">play_arrow</span>
-                                    </button>
-                                    <div className="text-center mt-2">
-                                      <span id="editor-video-name" className="text-xs font-bold block bg-black/60 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/10 mt-1">
-                                        {uploadedVideoName}
-                                      </span>
-                                      <span className="text-[10px] text-slate-300 mt-1 block">Video duration: {lessonDuration} | Format: MP4</span>
+                                <div className="w-full bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-200 aspect-video relative flex items-center justify-center group" style={{ maxHeight: '420px' }}>
+                                  <video 
+                                    src={uploadedVideoName.startsWith('http') ? uploadedVideoName : undefined}
+                                    controls
+                                    className="w-full h-full object-contain"
+                                  >
+                                    Your browser does not support the video tag.
+                                  </video>
+                                  {!uploadedVideoName.startsWith('http') && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-white flex-col gap-3">
+                                      <span className="material-symbols-outlined text-[48px]">videocam_off</span>
+                                      <span className="text-sm font-bold text-center px-4">{uploadedVideoName}<br/><span className="text-xs font-normal text-slate-300">Mock/Simulated Video - Not an actual file</span></span>
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
 
                                 <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200/50">

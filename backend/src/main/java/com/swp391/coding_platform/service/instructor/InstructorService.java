@@ -260,8 +260,12 @@ public class InstructorService {
     }
 
     private InstructorEntity getInstructorByUserId(Integer userId) {
-        return instructorRepository.findByUserId(userId)
+        InstructorEntity instructor = instructorRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+        if (instructor.getStatus() == com.swp391.coding_platform.entity.enums.InstructorStatus.SUSPENDED) {
+            throw new AppException(ErrorCode.ACCESS_DENIED);
+        }
+        return instructor;
     }
 
     private record TimeRange(java.time.Instant start, java.time.Instant end) {}
@@ -333,4 +337,81 @@ public class InstructorService {
         java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY); // formats using dots like 499.000
         return nf.format(price.longValue()) + " ₫";
     }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<AdminInstructorResponse> getAllInstructorsForAdmin() {
+        List<InstructorEntity> instructors = instructorRepository.findAll();
+        List<AdminInstructorResponse> responseList = new ArrayList<>();
+        for (InstructorEntity inst : instructors) {
+            List<CourseEntity> courses = courseRepository.findByInstructorId(inst.getId());
+            int coursesCount = courses.size();
+            double totalRating = 0.0;
+            int studentsCount = 0;
+            for (CourseEntity course : courses) {
+                if (course.getAverageRating() != null) {
+                    totalRating += course.getAverageRating();
+                }
+                if (course.getTotalEnrolled() != null) {
+                    studentsCount += course.getTotalEnrolled();
+                }
+            }
+            double averageRating = coursesCount > 0 ? (double) Math.round((totalRating / coursesCount) * 10) / 10 : 0.0;
+
+            responseList.add(AdminInstructorResponse.builder()
+                    .id(inst.getId())
+                    .userId(inst.getUser() != null ? inst.getUser().getId() : null)
+                    .fullName(inst.getFullName())
+                    .major(inst.getMajor())
+                    .bio(inst.getBio())
+                    .status(inst.getStatus() != null ? inst.getStatus().name() : "ACTIVE")
+                    .coursesCount(coursesCount)
+                    .rating(averageRating)
+                    .studentsCount(studentsCount)
+                    .build());
+        }
+        return responseList;
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public AdminInstructorResponse updateInstructorStatus(Integer id, String statusStr) {
+        InstructorEntity inst = instructorRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        com.swp391.coding_platform.entity.enums.InstructorStatus newStatus;
+        try {
+            newStatus = com.swp391.coding_platform.entity.enums.InstructorStatus.valueOf(statusStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status: " + statusStr);
+        }
+
+        inst.setStatus(newStatus);
+        inst = instructorRepository.save(inst);
+
+        List<CourseEntity> courses = courseRepository.findByInstructorId(inst.getId());
+        int coursesCount = courses.size();
+        double totalRating = 0.0;
+        int studentsCount = 0;
+        for (CourseEntity course : courses) {
+            if (course.getAverageRating() != null) {
+                totalRating += course.getAverageRating();
+            }
+            if (course.getTotalEnrolled() != null) {
+                studentsCount += course.getTotalEnrolled();
+            }
+        }
+        double averageRating = coursesCount > 0 ? (double) Math.round((totalRating / coursesCount) * 10) / 10 : 0.0;
+
+        return AdminInstructorResponse.builder()
+                .id(inst.getId())
+                .userId(inst.getUser() != null ? inst.getUser().getId() : null)
+                .fullName(inst.getFullName())
+                .major(inst.getMajor())
+                .bio(inst.getBio())
+                .status(inst.getStatus() != null ? inst.getStatus().name() : "ACTIVE")
+                .coursesCount(coursesCount)
+                .rating(averageRating)
+                .studentsCount(studentsCount)
+                .build();
+    }
 }
+

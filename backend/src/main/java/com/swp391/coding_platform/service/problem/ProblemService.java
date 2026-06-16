@@ -646,9 +646,7 @@ public class ProblemService {
         // Update problem count and isActive status
         problem.setTotalTestcase(savedEntities.size());
         problem.setIsActive(savedEntities.size() > 0);
-        if (savedEntities.size() > 0) {
-            problem.setIsPublic(true);
-        }
+        // Xóa logic tự động chuyển sang Public theo yêu cầu
         problemRepository.save(problem);
 
         return savedEntities.stream()
