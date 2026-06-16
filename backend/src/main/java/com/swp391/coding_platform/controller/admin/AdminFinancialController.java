@@ -3,7 +3,7 @@ package com.swp391.coding_platform.controller.admin;
 import com.swp391.coding_platform.dto.response.AdminFinancialMonthlyRecordResponse;
 import com.swp391.coding_platform.dto.response.AdminFinancialTopCourseResponse;
 import com.swp391.coding_platform.dto.response.ApiResponse;
-import com.swp391.coding_platform.service.admin.AdminDashboardService;
+import com.swp391.coding_platform.service.admin.AdminFinancialService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,11 +25,11 @@ import java.util.List;
 @PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminFinancialController {
 
-    AdminDashboardService adminDashboardService;
+    AdminFinancialService adminFinancialService;
 
     @GetMapping("/monthly-records")
     public ResponseEntity<ApiResponse<List<AdminFinancialMonthlyRecordResponse>>> getMonthlyRecords() {
-        List<AdminFinancialMonthlyRecordResponse> result = adminDashboardService.getMonthlyFinancialRecords();
+        List<AdminFinancialMonthlyRecordResponse> result = adminFinancialService.getMonthlyFinancialRecords();
         return ResponseEntity.ok(ApiResponse.<List<AdminFinancialMonthlyRecordResponse>>builder()
                 .status(200)
                 .code(1000)
@@ -41,7 +41,7 @@ public class AdminFinancialController {
 
     @GetMapping("/top-courses")
     public ResponseEntity<ApiResponse<List<AdminFinancialTopCourseResponse>>> getTopCourses() {
-        List<AdminFinancialTopCourseResponse> result = adminDashboardService.getTopRevenueCoursesData();
+        List<AdminFinancialTopCourseResponse> result = adminFinancialService.getTopRevenueCoursesData();
         return ResponseEntity.ok(ApiResponse.<List<AdminFinancialTopCourseResponse>>builder()
                 .status(200)
                 .code(1000)
@@ -53,7 +53,7 @@ public class AdminFinancialController {
 
     @GetMapping("/details")
     public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse>> getFinancialDetails() {
-        com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse result = adminDashboardService.getFinancialDetails();
+        com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse result = adminFinancialService.getFinancialDetails();
         return ResponseEntity.ok(ApiResponse.<com.swp391.coding_platform.dto.response.AdminFinancialDetailsResponse>builder()
                 .status(200)
                 .code(1000)

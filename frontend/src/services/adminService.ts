@@ -303,14 +303,6 @@ export interface AdminDepositHistory {
 }
 
 // Mock database to simulate stateful actions locally when backend is unavailable
-let mockStats: AdminDashboardStats = {
-  totalRevenue: 24580000,
-  activeUsers: 342,
-  activeContests: 4,
-  totalCourses: 18,
-  totalInstructors: 8,
-  totalProblems: 45,
-};
 
 let mockCourses: AdminCourse[] = [
   {
@@ -626,13 +618,6 @@ let mockActivityLogs: ActivityLog[] = [
   }
 ];
 
-let mockRecentDeposits: AdminDepositHistory[] = [
-  { id: "dep-1", userName: "Nguyen Van A", amount: 500000, date: "2026-06-07T07:45:00Z" },
-  { id: "dep-2", userName: "Tran Thi B", amount: 1000000, date: "2026-06-07T06:30:00Z" },
-  { id: "dep-3", userName: "Le Van C", amount: 200000, date: "2026-06-06T15:20:00Z" },
-  { id: "dep-4", userName: "Pham Minh D", amount: 1500000, date: "2026-06-05T09:10:00Z" },
-  { id: "dep-5", userName: "Hoang Van E", amount: 50000, date: "2026-06-04T11:00:00Z" }
-];
 
 // Helper to delay response for realism
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -647,10 +632,9 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Dashboard Stats:", err);
+      console.warn("API for Dashboard Stats failed:", err);
     }
-    await delay(300);
-    return mockStats;
+    return null as any;
   },
 
   async getActivityLogs(): Promise<ActivityLog[]> {
@@ -661,10 +645,9 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Activity Logs:", err);
+      console.warn("API for Activity Logs failed:", err);
     }
-    await delay(200);
-    return mockActivityLogs;
+    return [];
   },
 
   async getRecentDeposits(): Promise<AdminDepositHistory[]> {
@@ -675,10 +658,22 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Recent Deposits:", err);
+      console.warn("API for Recent Deposits failed:", err);
     }
-    await delay(200);
-    return mockRecentDeposits;
+    return [];
+  },
+
+  async getAllDeposits(): Promise<AdminDepositHistory[]> {
+    try {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/dashboard/all-deposits`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("API for All Deposits failed:", err);
+    }
+    return [];
   },
 
   // Courses
@@ -734,10 +729,9 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Instructor Applications:", err);
+      console.warn("API for Instructor Applications failed:", err);
     }
-    await delay(300);
-    return mockInstructorApplications;
+    return [];
   },
 
   async approveInstructorApplication(appId: number, status: 'APPROVED' | 'REJECTED', adminNote?: string): Promise<AdminInstructorApplication> {
@@ -773,7 +767,7 @@ export const adminService = {
         rating: 5.0,
         studentsCount: 0
       });
-      mockStats.totalInstructors += 1;
+
     }
     // Add log
     mockActivityLogs.unshift({
@@ -847,10 +841,9 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Users list:", err);
+      console.warn("API for Users list failed:", err);
     }
-    await delay(300);
-    return mockUsers;
+    return [];
   },
 
   async setUserLockStatus(userId: number, status: 'ACTIVE' | 'LOCKED', reason?: string): Promise<AdminUser> {
@@ -1020,7 +1013,7 @@ export const adminService = {
       averageScore: 0.0
     };
     mockContests.push(newContest);
-    mockStats.activeContests += 1;
+
     return newContest;
   },
 

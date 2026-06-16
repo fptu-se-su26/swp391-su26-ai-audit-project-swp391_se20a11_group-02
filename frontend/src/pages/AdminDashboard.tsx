@@ -497,6 +497,9 @@ export const AdminDashboard: React.FC = () => {
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
+  const [allDeposits, setAllDeposits] = useState<AdminDepositHistory[]>([]);
+  const [showAllDepositsModal, setShowAllDepositsModal] = useState<boolean>(false);
+  const [loadingAllDeposits, setLoadingAllDeposits] = useState<boolean>(false);
   const [monthlyRecords, setMonthlyRecords] = useState<MonthlyFinancialRecord[]>([]);
   const [topCourses, setTopCourses] = useState<TopRevenueCourse[]>([]);
   const [financialDetails, setFinancialDetails] = useState<AdminFinancialDetails | null>(null);
@@ -891,20 +894,7 @@ export const AdminDashboard: React.FC = () => {
 
   // SVG Chart Computations
   const financialChartData = useMemo(() => {
-    return stats?.financialChartData || [
-      { label: 'Jul 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Aug 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Sep 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Oct 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Nov 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Dec 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Jan 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Feb 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Mar 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Apr 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'May 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Jun 26', amount: 0, count: 0, usersCount: 0 }
-    ];
+    return stats?.financialChartData || [];
   }, [stats]);
 
   // Financial Page state variables
@@ -913,6 +903,8 @@ export const AdminDashboard: React.FC = () => {
   const [financialEndDate, setFinancialEndDate] = useState<string>('');
   const [hoveredMonthIndex, setHoveredMonthIndex] = useState<number | null>(null);
   const [hoveredCourseSalesIndex, setHoveredCourseSalesIndex] = useState<number | null>(null);
+  const [hoveredOverviewRevIndex, setHoveredOverviewRevIndex] = useState<number | null>(null);
+  const [hoveredOverviewUserIndex, setHoveredOverviewUserIndex] = useState<number | null>(null);
   // 12-month raw financial records (Jul 25 to Jun 26)
   const financialMonthlyRecords = useMemo(() => {
     const rawChartData = monthlyRecords.length > 0 ? monthlyRecords : [
@@ -1077,7 +1069,21 @@ export const AdminDashboard: React.FC = () => {
   const topProblemsTotal = useMemo(() => topProblemsChartData.reduce((sum, c) => sum + c.count, 0), [topProblemsChartData]);
 
   // Action handlers
+  const handleOpenAllDeposits = async () => {
+    setLoadingAllDeposits(true);
+    setShowAllDepositsModal(true);
+    const data = await adminService.getAllDeposits();
+    setAllDeposits(data);
+    setLoadingAllDeposits(false);
+  };
+
+  const handleCloseAllDeposits = () => {
+    setShowAllDepositsModal(false);
+    setAllDeposits([]);
+  };
+
   const handleReviewCourse = (course: AdminCourse) => {
+    setActiveTab('courses');
     setReviewingCourse(course);
     setReviewPlayerTab('overview');
     setReviewLectureTitle('1.1 Course Introduction');
@@ -3472,9 +3478,23 @@ export const AdminDashboard: React.FC = () => {
                         {lineChartPoints.points.length > 0 && (
                           <path d={`M ${lineChartPoints.points.map(p => `${p.x} ${p.y}`).join(' L ')}`} fill="none" stroke="#F36F21" strokeWidth="3" strokeLinecap="round" />
                         )}
-                        {/* Dots */}
+                        {/* Dots and Interactions */}
                         {lineChartPoints.points.map((p, idx) => (
-                          <circle key={idx} cx={p.x} cy={p.y} r="4.5" fill="#fff" stroke="#F36F21" strokeWidth="2.5" />
+                          <g key={idx} 
+                             onMouseEnter={() => setHoveredOverviewRevIndex(idx)}
+                             onMouseLeave={() => setHoveredOverviewRevIndex(null)}
+                             className="cursor-pointer">
+                            <circle cx={p.x} cy={p.y} r={hoveredOverviewRevIndex === idx ? "6" : "4.5"} fill="#fff" stroke="#F36F21" strokeWidth={hoveredOverviewRevIndex === idx ? "3" : "2.5"} className="transition-all duration-200" />
+                            {hoveredOverviewRevIndex === idx && (
+                              <g transform={`translate(${p.x}, ${p.y - 22})`}>
+                                <rect x="-40" y="-14" width="80" height="22" rx="4" fill="#1e293b" />
+                                <polygon points="-5,8 5,8 0,13" fill="#1e293b" />
+                                <text x="0" y="2" fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">
+                                  {p.amount.toLocaleString()} ₫
+                                </text>
+                              </g>
+                            )}
+                          </g>
                         ))}
                         {/* Labels */}
                         {financialChartData.map((m, idx) => (
@@ -3505,10 +3525,23 @@ export const AdminDashboard: React.FC = () => {
                           const barHeight = m.usersCount * 2.8;
                           const y = 190 - barHeight;
                           return (
-                            <g key={idx}>
-                              <rect x={x} y={y} width="22" height={barHeight} fill="#12284C" rx="3" className="transition-all duration-300 hover:fill-primary" />
+                            <g key={idx}
+                               onMouseEnter={() => setHoveredOverviewUserIndex(idx)}
+                               onMouseLeave={() => setHoveredOverviewUserIndex(null)}
+                               className="cursor-pointer">
+                              <rect x={x} y={y} width="22" height={barHeight} fill={hoveredOverviewUserIndex === idx ? "#F36F21" : "#12284C"} rx="3" className="transition-all duration-300" />
                               <text x={x + 11} y="210" fill="#64748b" fontSize="9" fontWeight="700" textAnchor="middle">{m.label}</text>
-                              <text x={x + 11} y={y - 5} fill="#12284C" fontSize="8" fontWeight="800" textAnchor="middle">{m.usersCount}</text>
+                              <text x={x + 11} y={y - 5} fill="#12284C" fontSize="8" fontWeight="800" textAnchor="middle" className={hoveredOverviewUserIndex === idx ? "opacity-0" : ""}>{m.usersCount}</text>
+                              
+                              {hoveredOverviewUserIndex === idx && (
+                                <g transform={`translate(${x + 11}, ${y - 22})`}>
+                                  <rect x="-35" y="-14" width="70" height="22" rx="4" fill="#1e293b" />
+                                  <polygon points="-5,8 5,8 0,13" fill="#1e293b" />
+                                  <text x="0" y="2" fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">
+                                    {m.usersCount} users
+                                  </text>
+                                </g>
+                              )}
                             </g>
                           );
                         })}
@@ -3742,9 +3775,17 @@ export const AdminDashboard: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* User Deposit History Table */}
                   <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col">
-                    <h3 className="font-display font-bold text-lg text-brand-blue mb-4 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary">payments</span> User Deposit History
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">payments</span> User Deposit History
+                      </h3>
+                      <button 
+                        onClick={handleOpenAllDeposits}
+                        className="text-xs font-bold text-primary hover:text-brand-blue transition-colors flex items-center gap-1 bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full"
+                      >
+                        View All <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                      </button>
+                    </div>
                     <div className="overflow-x-auto max-h-[350px]">
                       <table className="w-full text-left border-collapse">
                         <thead>
@@ -5938,6 +5979,102 @@ export const AdminDashboard: React.FC = () => {
                 </button>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: View All Deposits */}
+      {showAllDepositsModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+            onClick={handleCloseAllDeposits}
+          ></div>
+          
+          <div className="bg-surface w-full max-w-4xl max-h-[85vh] rounded-3xl shadow-2xl relative z-[101] animate-scale-in flex flex-col overflow-hidden border border-slate-200/50">
+            {/* Modal Header */}
+            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
+              <div>
+                <h3 className="text-xl font-display font-black text-brand-blue flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-2xl">receipt_long</span> 
+                  All Deposit History
+                </h3>
+                <p className="text-xs text-text-muted mt-1 font-medium">Complete record of all successful user deposits</p>
+              </div>
+              <button 
+                onClick={handleCloseAllDeposits}
+                className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 overflow-y-auto bg-slate-50/50 flex-1">
+              {loadingAllDeposits ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                  <p className="mt-4 text-sm font-bold text-slate-500 animate-pulse">Loading deposit records...</p>
+                </div>
+              ) : allDeposits.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="material-symbols-outlined text-4xl text-slate-400">money_off</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-700">No Deposits Found</h3>
+                  <p className="text-sm text-text-muted mt-2">There are currently no successful deposit records in the system.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/80 text-xs font-black text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                        <th className="py-4 px-6">Transaction ID</th>
+                        <th className="py-4 px-6">User Name</th>
+                        <th className="py-4 px-6">Amount</th>
+                        <th className="py-4 px-6 text-right">Date & Time</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm font-semibold divide-y divide-slate-100">
+                      {allDeposits.map((dep) => (
+                        <tr key={dep.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-4 px-6 text-slate-500 text-xs">#{dep.id}</td>
+                          <td className="py-4 px-6 text-slate-900 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
+                              {dep.userName.charAt(0).toUpperCase()}
+                            </div>
+                            {dep.userName}
+                          </td>
+                          <td className="py-4 px-6 text-emerald-600 font-bold">
+                            +{dep.amount.toLocaleString()} ₫
+                          </td>
+                          <td className="py-4 px-6 text-slate-500 text-xs text-right">
+                            {new Date(dep.date).toLocaleString('en-GB', {
+                              hour: '2-digit', minute: '2-digit', second: '2-digit',
+                              day: '2-digit', month: '2-digit', year: 'numeric'
+                            })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="px-8 py-5 border-t border-slate-100 bg-white flex justify-between items-center rounded-b-3xl">
+              <span className="text-xs font-bold text-slate-500">
+                Total Records: <span className="text-primary">{allDeposits.length}</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleCloseAllDeposits}
+                className="px-6 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

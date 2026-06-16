@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+
 @SpringBootTest
 @ActiveProfiles("dev")
 public class ContestIntegrationTest {
