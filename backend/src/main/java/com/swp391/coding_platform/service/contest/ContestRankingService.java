@@ -49,12 +49,13 @@ public class ContestRankingService {
             return null;
         }
 
-        // Redis Key cho participant state
-        String participantHashKey = "contest:participant:" + contestId + ":" + userId;
+        // Redis Key cho participant state (live vs public)
+        String liveHashKey = "contest:participant:" + contestId + ":" + userId + ":live";
+        String publicHashKey = "contest:participant:" + contestId + ":" + userId + ":public";
         String field = "problem_" + problemId;
 
         // format: is_ac:wrong_attempts_before_ac:first_ac_time_seconds
-        String currentStatus = (String) stringRedisTemplate.opsForHash().get(participantHashKey, field);
+        String currentStatus = (String) stringRedisTemplate.opsForHash().get(liveHashKey, field);
         
         int isAc = 0;
         int wrongAttempts = 0;
@@ -94,12 +95,12 @@ public class ContestRankingService {
             wrongAttempts += 1;
         }
 
-        // Lưu trạng thái mới vào Redis Hash
+        // Lưu trạng thái mới vào Redis Hash (Live)
         String newStatus = isAc + ":" + wrongAttempts + ":" + firstAcTimeSeconds;
-        stringRedisTemplate.opsForHash().put(participantHashKey, field, newStatus);
-        log.info("Updated status for user {} on problem {} to {}", userId, problemId, newStatus);
+        stringRedisTemplate.opsForHash().put(liveHashKey, field, newStatus);
+        log.info("Updated live status for user {} on problem {} to {}", userId, problemId, newStatus);
 
-        // Duyệt qua tất cả các bài toán của user đó trong Contest để tính điểm tổng hợp
+        // Duyệt qua tất cả các bài toán của user đó trong Contest để tính điểm tổng hợp (dựa trên Live Hash)
         List<ContestProblemEntity> contestProblems = contestProblemRepository.findByContestIdWithProblem(contestId);
         
         int problemsSolved = 0;
@@ -107,7 +108,7 @@ public class ContestRankingService {
 
         for (ContestProblemEntity cp : contestProblems) {
             String f = "problem_" + cp.getProblem().getId();
-            String status = (String) stringRedisTemplate.opsForHash().get(participantHashKey, f);
+            String status = (String) stringRedisTemplate.opsForHash().get(liveHashKey, f);
             if (status != null && !status.trim().isEmpty()) {
                 String[] parts = status.split(":");
                 if (parts.length >= 3) {
@@ -143,10 +144,12 @@ public class ContestRankingService {
 
         String publicScoreboardKey = "contest:scoreboard:" + contestId + ":public";
         if (submitTime.isBefore(freezeTime)) {
-            // Nếu nộp trước thời gian đóng băng, cập nhật ZSET Public Scoreboard
+            // Nếu nộp trước thời gian đóng băng, cập nhật ZSET Public Scoreboard và cả Public Hash
             stringRedisTemplate.opsForZSet().add(publicScoreboardKey, String.valueOf(userId), zsetScore);
+            stringRedisTemplate.opsForHash().put(publicHashKey, field, newStatus);
+            log.info("Updated public status and scoreboard for user {} on problem {} (before freeze)", userId, problemId);
         } else {
-            // Nếu nộp trong thời gian đóng băng, KHÔNG cập nhật public, nhưng ZADD người mới vào nếu chưa có
+            // Nếu nộp trong thời gian đóng băng, KHÔNG cập nhật public scoreboard/hash mới, nhưng ZADD người mới vào nếu chưa có
             // để họ hiển thị ở trạng thái ban đầu của lúc trước freeze
             Double existingPublicScore = stringRedisTemplate.opsForZSet().score(publicScoreboardKey, String.valueOf(userId));
             if (existingPublicScore == null) {
@@ -160,7 +163,16 @@ public class ContestRankingService {
     }
 
     public ContestScoreboardResponse getScoreboard(Integer contestId, boolean isLive) {
-        String zsetKey = "contest:scoreboard:" + contestId + (isLive ? ":live" : ":public");
+        // Tự động giải băng nếu contest đã kết thúc
+        boolean finalLive = isLive;
+        if (!finalLive) {
+            ContestEntity contest = contestRepository.findById(contestId).orElse(null);
+            if (contest != null && Instant.now().isAfter(contest.getEndTime())) {
+                finalLive = true;
+            }
+        }
+
+        String zsetKey = "contest:scoreboard:" + contestId + (finalLive ? ":live" : ":public");
 
         Set<ZSetOperations.TypedTuple<String>> rankedMembers = stringRedisTemplate.opsForZSet()
                 .reverseRangeWithScores(zsetKey, 0, -1);
@@ -204,7 +216,7 @@ public class ContestRankingService {
             Map<String, ProblemSummary> submissionsMap = new HashMap<>();
             int totalAttempts = 0;
 
-            String participantHashKey = "contest:participant:" + contestId + ":" + userId;
+            String participantHashKey = "contest:participant:" + contestId + ":" + userId + (finalLive ? ":live" : ":public");
 
             for (ContestProblemEntity cp : contestProblems) {
                 String label = String.valueOf((char) ('A' + cp.getOrderIndex()));

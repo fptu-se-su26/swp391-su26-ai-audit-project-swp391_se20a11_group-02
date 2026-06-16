@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import org.springframework.security.core.Authentication;
 import java.time.Instant;
 
 @Slf4j
@@ -28,9 +29,15 @@ public class ScoreboardStreamController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<ContestScoreboardResponse>> getScoreboard(
             @PathVariable Integer contestId,
-            @RequestParam(value = "live", defaultValue = "false") boolean isLive) {
+            @RequestParam(value = "live", defaultValue = "false") boolean isLive,
+            Authentication authentication) {
 
-        ContestScoreboardResponse scoreboard = contestRankingService.getScoreboard(contestId, isLive);
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
+
+        boolean requestedLive = isLive && isAdmin;
+
+        ContestScoreboardResponse scoreboard = contestRankingService.getScoreboard(contestId, requestedLive);
 
         return ResponseEntity.ok(ApiResponse.<ContestScoreboardResponse>builder()
                 .status(200)
