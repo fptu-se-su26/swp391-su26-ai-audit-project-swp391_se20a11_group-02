@@ -57,7 +57,7 @@ Sinh viên/nhóm cần ghi lại:
 | 3 | 09/06/2026 | Antigravity | Thiết kế Nested Routing | Nhấp vào thanh điều hướng Admin Dashboard chỉ đổi nội dung bên phải mà giữ nguyên layout | Đề xuất giải pháp Hybrid Nested Routes (Dynamic Route lồng vào state) | Có | Commit 6192af56 |
 | 4 | 13/06/2026 | Antigravity | Tái cấu trúc trạng thái Contest động và tích hợp Real Submissions | Đề xuất xóa cột status tĩnh, tính toán động tại runtime và phân quyền xem submissions | Loại bỏ cột status trong DB, sinh API submissions và update Layout/Submissions UI | Có | Commit feature/DE190416-CRUD-Contest |
 | 5 | 16/06/2026 | Antigravity | Rà soát logic xóa cứng kỳ thi | Hỏi xem có cần thiết phải thay đổi cả scope hay chỉ cần ẩn isPublic để đưa về Draft | Phân tích tính nhất quán dữ liệu của scope khi tái xuất bản bài tập | Có | ContestService.java |
-| 6 |  |  |  |  |  | Có / Không |  |
+| 6 | 17/06/2026 | Antigravity | Sửa lỗi nộp bài Contest & Ẩn gợi ý bài thi | Loại bỏ gợi ý bài thi phòng Contest và giải quyết lỗi xoay tròn vô tận khi nộp bài chấm thi | Đề xuất context validation cho `findById` và ẩn hint ở DTO & UI React | Có | Commits de3576f9, 987b9b5 |
 | 7 |  |  |  |  |  | Có / Không |  |
 | 8 |  |  |  |  |  | Có / Không |  |
 | 9 |  |  |  |  |  | Có / Không |  |
@@ -434,6 +434,80 @@ Prompt dạng hỏi phản biện (Socratic/Reflective prompt) giúp dev hiểu 
 
 ---
 
+### Prompt số 6
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 17/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Loại bỏ gợi ý bài thi phòng Contest và giải quyết lỗi xoay tròn vô tận khi chấm bài thi |
+| Phần việc liên quan | Coding / Debug / Security |
+| Mức độ sử dụng | Hỏi sửa lỗi và hướng dẫn tối ưu bảo mật |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+- ContestProblemDetailResponse bỏ luôn trường hint đi
+- Ở phần judge0Service hãy cứ dùng logic cũ là findByIdAndIsPublicTrue đi, tôi sẽ xử lý business logic sau
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+```text
+1. Trong kỳ thi đấu chính thức (Contest), việc cung cấp gợi ý (hint) là không được phép. Do đó, cần loại bỏ triệt để trường hint khỏi giao diện thi và API.
+2. Thí sinh nộp bài thi trong Contest bị lỗi quay vòng (spinner) vô tận mà không trả về kết quả. Nguyên nhân do bài thi trong Contest có thuộc tính `isPublic = false`, khiến hàm truy vấn `findByIdAndIsPublicTrue` trả về rỗng và ném lỗi `OJ_PROBLEM_NOT_FOUND`.
+```
+
+#### 5.3. Kết quả AI trả về
+
+```text
+- AI đề xuất xóa trường `hint` khỏi `ContestProblemDetailResponse` ở Backend và xóa thẻ HTML hiển thị details hint trong file `ContestProblemSolve.tsx` ở Frontend.
+- Đối với `Judge0Service.java`, AI đề xuất chuyển sang truy vấn bằng `findById` để chấp nhận các bài tập riêng tư. Đồng thời, AI hướng dẫn viết thêm logic kiểm tra ngữ cảnh sở hữu để tránh lộ thông tin và ngăn chặn bypass truy cập bài tập riêng tư trái phép.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+```text
+- Đã xóa trường `hint` và khối details hint ở cả frontend/backend.
+- Triển khai logic kiểm tra membership của Problem trong Contest/Lesson tại `Judge0Service` để giải quyết triệt để lỗi xoay tròn mà vẫn đảm bảo an toàn truy cập.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+```text
+- Tiến hành chia nhỏ câu lệnh Java dài, định dạng lại code (line wrapping, clean imports) ở cả `Judge0Service` và `Judge0Controller` để đạt chuẩn Clean Code trước khi gửi Pull Request.
+- Tự tay tạo các request kiểm thử giả lập bypass tham số (nhập ID bài thi ẩn của contest khác) để xác minh hệ thống ném đúng lỗi `OJ_PROBLEM_NOT_FOUND` như thiết kế.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/de3576f9fbdf74549d604824d89468dad5873c33 <br> https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/987b9b5566dbd875c0cf079b72496a38588e767c |
+| File liên quan | backend/src/main/java/com/swp391/coding_platform/service/judge0/Judge0Service.java, frontend/src/pages/ContestProblemSolve.tsx |
+| Screenshot | |
+| Kết quả chạy/test | Đã chạy thử nghiệm chấm bài trong phòng thi Contest thành công, spinner ẩn sau khi nhận callback và hiển thị kết quả chính xác. |
+| Ghi chú khác | |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Cần luôn chú ý đến tính chất riêng tư của dữ liệu (Private/Public) khi xử lý các dịch vụ bên thứ ba như Judge0.
+```
+
+---
+
 ## 6. Prompt quan trọng nhất
 
 Chọn một prompt có ảnh hưởng lớn nhất đến bài tập/project.
@@ -562,10 +636,10 @@ Gợi ý:
 |---|---:|---|
 | Prompt phân tích yêu cầu | 1 | xem file admin and judge use case tôi mới gửi xem nội dung có ổn chưa?... |
 | Prompt giải thích kiến thức | 0 | |
-| Prompt thiết kế giải pháp | 1 | Tốt, hãy thực thi theo Cách 2: Sử dụng Nested Routes đi |
+| Prompt thiết kế giải pháp | 2 | Tốt, hãy thực thi theo Cách 2: Sử dụng Nested Routes đi |
 | Prompt thiết kế database | 1 | Đọc database của tôi rồi tạo cho tôi file sql để insert fake data vào dự án để test |
 | Prompt sinh code mẫu | 0 | |
-| Prompt debug lỗi | 1 | Tìm hiểu nguyên nhân khi tôi bấm switch to Student View thì ko có nút Admin Dashboard... |
+| Prompt debug lỗi | 2 | Tìm hiểu nguyên nhân khi tôi bấm switch to Student View thì ko có nút Admin Dashboard... |
 | Prompt viết test case | 0 | |
 | Prompt review code | 0 | |
 | Prompt tối ưu code | 0 | |
@@ -606,4 +680,4 @@ Sinh viên/nhóm cam kết rằng:
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-| Nguyễn Duy Phương | 09/06/2026 |
+| Nguyễn Duy Phương | 17/06/2026 |

@@ -369,6 +369,67 @@ nếu vậy thì khi xóa cứng contest thì nên update biến isPublished là
 
 ---
 
+### Lần sử dụng AI số 6
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 17/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Khắc phục lỗi xoay tròn vô tận khi chấm bài thi Contest và loại bỏ rủi ro bảo mật phòng thi |
+| Phần việc liên quan | Backend / Frontend / Refactoring / Security / Debug |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+- ContestProblemDetailResponse bỏ luôn trường hint đi
+- Ở phần judge0Service hãy cứ dùng logic cũ là findByIdAndIsPublicTrue đi, tôi sẽ xử lý business logic sau
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+- AI xác nhận việc sử dụng `findByIdAndIsPublicTrue` sẽ ném lỗi `OJ_PROBLEM_NOT_FOUND` đối với các bài thi Contest do bài thi thường được thiết lập ở trạng thái ẩn/riêng tư (`isPublic = false`), dẫn đến luồng chấm bài bị gián đoạn và UI bị xoay tròn vô tận.
+- AI đề xuất thay thế bằng `findById` nhưng cảnh báo rủi ro bảo mật nếu không có cơ chế kiểm tra quyền truy cập. Do đó, AI hướng dẫn cách xây dựng logic kiểm tra ngữ cảnh (Context validation):
+  1. Nếu request không kèm theo `contestId` và `lessonId` (chế độ luyện tập), bắt buộc bài tập phải có `isPublic = true`.
+  2. Nếu có `contestId`, hệ thống kiểm tra sự tồn tại của cặp (Contest, Problem) trong bảng trung gian thông qua `contestProblemRepository.existsByContestIdAndProblemId(...)`.
+  3. Nếu có `lessonId`, kiểm tra tương tự với bảng trung gian `lesson_problem`.
+- AI hướng dẫn xóa trường `hint` khỏi DTO `ContestProblemDetailResponse` và gỡ bỏ hoàn toàn phần render UI hiển thị gợi ý (khối details) ở `ContestProblemSolve.tsx` để bảo mật phòng thi.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+- Tích hợp logic kiểm tra ngữ cảnh kết hợp `findById` trong `Judge0Service.java`.
+- Loại bỏ trường `hint` và khối render gợi ý tương ứng ở cả Frontend và DTO của Backend.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+- Tiến hành tối ưu hóa định dạng code (code formatting, standard line wrapping) cho cả `Judge0Controller.java` và `Judge0Service.java` để giải quyết các cảnh báo linting, giúp mã nguồn trở nên gọn gàng và dễ bảo trì hơn.
+- Thiết lập kịch bản kiểm thử giả lập tấn công vượt quyền (Bypass/Access Control attack): Gửi request submit bài tập thuộc Contest A với `contestId` là Contest B hoặc không gửi `contestId` để kiểm chứng logic ném ngoại lệ `OJ_PROBLEM_NOT_FOUND` hoạt động chuẩn xác, ngăn chặn gian lận thi cử.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/de3576f9fbdf74549d604824d89468dad5873c33 <br> https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/987b9b5566dbd875c0cf079b72496a38588e767c |
+| File liên quan | Judge0Service.java, Judge0Controller.java, ContestProblemSolve.tsx, ContestProblemDetailResponse.java, ContestService.java |
+| Screenshot | |
+| Kết quả chạy/test | Chức năng chấm bài trong Contest hoạt động trơn tru không còn bị xoay tròn, không thể tìm thấy/gửi bài giải cho bài tập ẩn nếu không thuộc phòng thi hợp lệ. |
+| Link video demo | |
+| Ghi chú khác | Core Prompt: Secure Coding, Context-Aware Security, Debugging. |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+(Contextualization): Bối cảnh phòng thi có tính bảo mật cực kỳ cao. Nếu chỉ sửa lỗi xoay tròn vô tận bằng cách dùng `findById` một cách ngây thơ như đề xuất ban đầu của các AI thông thường, hệ thống sẽ mở ra một lỗ hổng nghiêm trọng cho phép thí sinh gian lận hoặc lấy kết quả của các bài tập riêng tư khác. Việc lồng ghép cơ chế kiểm tra mối quan hệ (membership check) ở tầng Service là giải pháp bắt buộc để cân bằng giữa tính khả dụng (chấm được bài riêng tư trong contest) và tính an toàn bảo mật.
+```
+
+---
+
 ## 5. Bảng tổng hợp mức độ sử dụng AI
 
 Đánh dấu mức độ AI hỗ trợ ở từng hạng mục.
@@ -400,6 +461,7 @@ Ghi lại các trường hợp AI trả lời sai, thiếu, chưa phù hợp ho�
 | 1 | Logic Error / Oversimplification: AI đánh đồng hành động "Compile Code" (Biên dịch) và "Compile Error" (Lỗi biên dịch), gộp chung vào Exception Flow của Judge0. | Review lại output của AI và phát hiện | Ép AI nhận diện lại use case Compile Code |
 | 2 | Đề xuất tách nhỏ tệp AdminDashboard.tsx (hơn 4400 dòng) thành các file tab riêng lẻ một cách máy móc, có thể gây lỗi compile do cấu trúc state phức tạp. | Review đề xuất thiết kế và nhận định rủi ro | Bác bỏ việc tách file, chuyển sang giải pháp hybrid sử dụng Dynamic Tab Route đồng bộ với state hiện tại. |
 | 3 | Sinh câu lệnh INSERT SQL có ID cụ thể cho PostgreSQL nhưng không reset sequence tự tăng. | Phát hiện lỗi duplicate key khi tạo contest mới từ giao diện backend/frontend. | Bổ sung thêm các lệnh SELECT setval(...) để cập nhật giá trị sequence khớp với ID cao nhất trong tệp seed. |
+| 4 | Sinh code truy vấn `findById` trong `Judge0Service` mà không kiểm tra membership liên kết (Contest/Lesson) của Problem. | Review mã nguồn dưới góc độ an toàn thông tin và logic phân quyền. | Bổ sung thêm điều kiện validate ngữ cảnh của request, ngăn thí sinh lợi dụng API để chấm điểm bài tập ẩn khác. |
 
 ---
 
@@ -508,4 +570,4 @@ Sinh viên/nhóm cam kết rằng:
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-| Nguyễn Duy Phương | 09/06/2026 |
+| Nguyễn Duy Phương | 17/06/2026 |

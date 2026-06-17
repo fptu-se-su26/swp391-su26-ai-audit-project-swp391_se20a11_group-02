@@ -297,6 +297,8 @@ Commit trên nhánh feature/DE190416-CRUD-Contest
 | 2 | Spotlight Banner hiển thị dữ liệu cứng trống rỗng khi không có contest mới | Component bannerContest ở frontend không kiểm tra null, tự render tiêu đề mẫu | Thêm khối check {bannerContest && ( ... )} bao quanh banner để ẩn hoàn toàn nếu null | Fixed |
 | 3 | Lỗi biên dịch TypeScript ở frontend do code cũ của Layout.tsx | Có các biến unused variables (appealReasonText, authService...) do tính năng cũ để lại | Comment out các biến dư thừa và dọn dẹp import để vượt qua strict check | Fixed |
 | 4 | Lỗi bỏ qua khóa đăng ký khi contest đã kết thúc | Form đăng ký ở sidebar vẫn cho phép click nộp password sau khi kỳ thi đã đóng | Thêm check status === 'ENDED' để render UI thông báo Registration Closed tĩnh | Fixed |
+| 5 | Lỗi chấm bài thi Contest xoay tròn (spinner) vô tận | Do dùng findByIdAndIsPublicTrue tìm problem, trong khi bài thi Contest có isPublic = false nên trả về rỗng, gây đứng tiến trình chấm | Đổi sang dùng findById kết hợp kiểm tra context liên kết giữa Problem và Contest/Lesson | Fixed |
+| 6 | Lộ gợi ý (Hint) của bài thi trong giao diện Contest | Component ContestProblemSolve.tsx vẫn render trường hint khiến thí sinh gian lận | Xóa trường hint trong DTO ContestProblemDetailResponse và xóa thẻ HTML details chứa hint ở frontend | Fixed |
 
 ## Thay đổi chi tiết
 
@@ -309,6 +311,11 @@ Commit trên nhánh feature/DE190416-CRUD-Contest
 | 5 | Triển khai logic tính toán trạng thái động (`UPCOMING`, `ONGOING`, `ENDED`) tại runtime | Nguyễn Duy Phương | `ContestService.java`, `ContestRepository.java` | Commit feature/de190416-contest-status-refactoring |
 | 6 | Bổ sung cơ chế soft delete, khôi phục và xóa cứng kỳ thi an toàn (chỉ khi số lượng bài nộp bằng 0) | Nguyễn Duy Phương | `ContestService.java`, `AdminDashboard.tsx` | Commit feature/de190416-contest-status-refactoring |
 | 7 | Đồng bộ đưa bài tập liên quan về scope `PRACTICE` và trạng thái `isPublic = false` (Draft) khi xóa kỳ thi hoặc rút bài khỏi kỳ thi | Nguyễn Duy Phương | `ContestService.java` | Commit feature/de190416-contest-status-refactoring |
+| 8 | Thiết lập các API lấy chi tiết bài tập phòng thi và lịch sử nộp bài của phòng thi | Nguyễn Duy Phương | problemService.ts | Commit [DE190416] feat: connect contest problem solve UI to backend APIs |
+| 9 | Xây dựng giao diện kéo giãn Contest Problem Solve và kết nối real-time WebSocket chấm bài thi | Nguyễn Duy Phương | ContestProblemSolve.tsx | Commit [DE190416] feat: connect contest problem solve UI to backend APIs |
+| 10 | Loại bỏ trường gợi ý (hint) khỏi API phản hồi chi tiết bài thi Contest để bảo mật phòng thi | Nguyễn Duy Phương | ContestProblemDetailResponse.java, ContestProblemSolve.tsx, ContestService.java | Commit [DE190416] refactor(contest): remove hint field from ContestProblemDetailResponse and fix Judge0Controller/Service code formatting |
+| 11 | Giải quyết lỗi xoay tròn vô tận khi nộp bài chấm thi trong Contest bằng cách refactor logic query problem và kiểm tra context (contestId/lessonId) | Nguyễn Duy Phương | Judge0Service.java | Commit [DE190416] fix: remove problem hint in contest and fix submission error |
+| 12 | Định dạng code chuẩn hóa (Clean Code, Line Wrap) cho Judge0 Controller và Service để chuẩn bị Merge Pull Request | Nguyễn Duy Phương | Judge0Controller.java, Judge0Service.java | Commit [DE190416] refactor(contest): remove hint field from ContestProblemDetailResponse and fix Judge0Controller/Service code formatting |
 
 ## AI có hỗ trợ không?
 
@@ -450,4 +457,4 @@ Sinh viên/nhóm cam kết rằng nội dung changelog phản ánh đúng các t
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Nguyễn Duy Phương | 17/06/2026 |

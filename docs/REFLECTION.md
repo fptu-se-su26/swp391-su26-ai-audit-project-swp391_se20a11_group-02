@@ -12,7 +12,7 @@
 | Tên sinh viên / Nhóm | Nguyễn Duy Phương (DE190416) - Nhóm 2 |
 | MSSV / Danh sách MSSV | DE190416 |
 | Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
-| Ngày hoàn thành reflection | 13/06/2026 |
+| Ngày hoàn thành reflection | 17/06/2026 |
 
 ---
 
@@ -35,7 +35,7 @@ Reflection cần thể hiện:
 Mô tả ngắn gọn quá trình sử dụng AI trong bài tập/project này.
 
 ```text
-Trong quá trình phát triển tính năng CRUD Contest và tái cấu trúc hệ thống, tôi đã sử dụng AI xuyên suốt từ giai đoạn thiết kế Use Case cho tới lập trình frontend/backend và sửa lỗi compile. AI đã hỗ trợ giải quyết xung đột JPQL enum và PostgreSQL bằng thiết kế dynamic status, đồng thời gỡ lỗi các khai báo thừa giúp build production thành công.
+Trong quá trình phát triển tính năng CRUD Contest và tái cấu trúc hệ thống, tôi đã sử dụng AI xuyên suốt từ giai đoạn thiết kế Use Case cho tới lập trình frontend/backend và sửa lỗi compile. AI đã hỗ trợ giải quyết xung đột JPQL enum và PostgreSQL bằng thiết kế dynamic status, gỡ lỗi khai báo thừa ở Layout, giải quyết tình trạng chấm bài Contest bị xoay tròn vô tận, và loại bỏ hoàn toàn rủi ro lộ đề thi thông qua trường hint.
 ```
 
 Gợi ý:
@@ -100,7 +100,7 @@ Antigravity
 ### Mô tả chi tiết
 
 ```text
-AI hỗ trợ viết các câu lệnh truy vấn JPA thời gian thực, thiết kế cấu trúc API submissions phân quyền theo role, ẩn banner spotlight khi không có contest mới, khóa form đăng ký khi kỳ thi kết thúc và dọn dẹp các biến dư thừa ở frontend để vượt qua compiler check.
+AI hỗ trợ viết các câu lệnh truy vấn JPA thời gian thực, thiết kế cấu trúc API submissions phân quyền theo role, ẩn banner spotlight khi không có contest mới, khóa form đăng ký khi kỳ thi kết thúc, dọn dẹp các biến dư thừa ở frontend để vượt qua compiler check, và refactor hàm chấm bài Judge0 của contest (hỗ trợ truy xuất bài tập private đi kèm xác thực ngữ cảnh).
 ```
 
 ---
@@ -194,17 +194,11 @@ Ghi lại ít nhất một ví dụ nếu có.
 
 | Nội dung | Mô tả |
 |---|---|
-| AI đã gợi ý gì? |  |
-| Vì sao gợi ý đó sai/chưa phù hợp? |  |
-| Em/nhóm phát hiện bằng cách nào? |  |
-| Em/nhóm đã sửa như thế nào? |  |
-| Bài học rút ra |  |
-
-Nếu không có trường hợp AI gợi ý sai, hãy ghi rõ:
-
-```text
-Trong quá trình thực hiện, em/nhóm chưa ghi nhận trường hợp AI gợi ý sai nghiêm trọng. Tuy nhiên, em/nhóm vẫn kiểm tra lại kết quả AI trước khi sử dụng.
-```
+| AI đã gợi ý gì? | AI đề xuất chuyển đổi hàm truy vấn từ `findByIdAndIsPublicTrue` sang `findById` để lấy được cả bài thi riêng tư ở Contest, nhưng không cảnh báo hay bổ sung cơ chế kiểm soát truy cập ngữ cảnh. |
+| Vì sao gợi ý đó sai/chưa phù hợp? | Vi phạm nghiêm trọng nguyên lý an toàn thông tin (Bypass Access Control / Broken Object Level Authorization - BOLA). Thí sinh có thể gửi API nộp bài cho các bài tập private của Contest khác mà họ không tham gia, hoặc xem trước kết quả các bài ẩn mà không có quyền. |
+| Em/nhóm phát hiện bằng cách nào? | Đánh giá và kiểm tra an ninh luồng dữ liệu (Data-flow security analysis) khi tích hợp chấm bài thi phòng contest. |
+| Em/nhóm đã sửa như thế nào? | Bổ sung logic kiểm tra membership ở `Judge0Service`. Nếu request nộp bài không đi kèm contestId/lessonId thì bài tập bắt buộc phải public (`isPublic = true`). Nếu đi kèm, bắt buộc phải tồn tại trong bảng trung gian `contest_problem` / `lesson_problem` tương ứng. |
+| Bài học rút ra | Luôn phản biện tính an toàn (Security mindset) của mọi đoạn code do AI sinh ra. Tuyệt đối không tin tưởng hoàn toàn (Zero Trust) vào code AI khi đụng tới các nghiệp vụ nhạy cảm liên quan đến phân quyền và quyền riêng tư dữ liệu. |
 
 ---
 
@@ -216,6 +210,8 @@ Mô tả rõ phần nào là đóng góp chính của sinh viên/nhóm, không p
 - Tự phân tích cấu trúc quan hệ khóa ngoại của database và cơ chế tự động Cascade Delete ở PostgreSQL.
 - Tự thiết kế và hiện thực hóa logic chuyển đổi trạng thái của đề bài (PRACTICE scope và isPublic = false) khi gỡ khỏi contest hoặc khi cuộc thi bị xóa cứng.
 - Phát hiện và chủ động khắc phục lỗi biên dịch nghiêm ngặt của TypeScript compiler (noUnusedLocals) do code cũ để lại trong component Layout.tsx mà AI không tự rà soát hết được.
+- Đóng góp giải pháp bảo mật Context Validation (xác thực ngữ cảnh membership) cho luồng chấm bài Judge0 thay vì chỉ dùng truy vấn findById thô sơ do AI gợi ý.
+- Tối ưu hóa code convention, phân bổ line-wrap cho mã nguồn Java ở các file controller và service.
 - Tự cấu hình và chạy thực tế các test cases kiểm thử tích hợp (ContestIntegrationTest, ContestServiceTest).
 ```
 
@@ -229,7 +225,7 @@ Mô tả rõ phần nào là đóng góp chính của sinh viên/nhóm, không p
 | Phân tích bài toán | Gặp khó khăn với lỗi type binding của cột status tĩnh trên PostgreSQL | Quyết định chuyển sang thiết kế Dynamic Status tính toán tại runtime | Hệ thống gọn nhẹ, chuẩn hóa, không bị out-of-sync |
 | Thiết kế giải pháp | Nghĩ tới giải pháp dùng cron-job cập nhật status thủ công | Áp dụng so sánh thời gian thực bằng JPA Query và Instant.now() | Loại bỏ hoàn toàn các lỗi xung đột trạng thái |
 | Code/Implementation | Mất nhiều thời gian viết các hàm CRUD lặp đi lặp lại | Sử dụng AI sinh code boilerplate và mapping MapStruct | Tăng hiệu suất viết code lên gấp 2-3 lần |
-| Debug/Testing | Debug thủ công mất nhiều thời gian tìm lỗi import/biến thừa | AI định vị nhanh vị trí compiler error và đưa phương án xử lý | Build thành công ứng dụng với strict compiler |
+| Debug/Testing | Debug thủ công mất nhiều thời gian tìm lỗi import/biến thừa | AI định vị nhanh vị trí compiler error và tìm ra lỗi query check isPublic | Khắc phục được lỗi biên dịch TS và lỗi xoay tròn vô tận khi chấm bài thi |
 | Báo cáo/Thuyết trình | Mất thời gian định dạng bảng biểu và cấu trúc | Được AI hỗ trợ sinh khung PR Checklist và cấu trúc báo cáo | Tiết kiệm 80% thời gian làm tài liệu |
 | Làm việc nhóm | Chia sẻ code dễ bị xung đột nhánh | Có các commit message đúng chuẩn và tách nhánh rõ ràng | Quy trình Git Flow làm việc nhóm mượt mà |
 
@@ -353,4 +349,4 @@ Sinh viên/nhóm hiểu rằng:
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-| Nguyễn Duy Phương | 16/06/2026 |
+| Nguyễn Duy Phương | 17/06/2026 |
