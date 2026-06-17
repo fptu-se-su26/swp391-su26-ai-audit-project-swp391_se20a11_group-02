@@ -204,7 +204,7 @@ export const CourseDetail: React.FC = () => {
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl mx-4"
+            className="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl mx-4 flex items-center justify-center"
           >
             <button 
               onClick={() => setPreviewVideoUrl(null)}
@@ -212,7 +212,14 @@ export const CourseDetail: React.FC = () => {
             >
               <span className="material-symbols-outlined">close</span>
             </button>
-            {previewVideoUrl.includes('youtube.com') || previewVideoUrl.includes('youtu.be') ? (
+            
+            {previewVideoUrl === 'NO_VIDEO' ? (
+              <div className="text-center text-white space-y-4 p-8">
+                <span className="material-symbols-outlined text-6xl text-gray-500">videocam_off</span>
+                <h3 className="text-2xl font-bold">No Preview Video Available</h3>
+                <p className="text-gray-400 font-body">This content does not have a video preview, or it is currently under maintenance. Please enroll in the course to access all materials.</p>
+              </div>
+            ) : previewVideoUrl.includes('youtube.com') || previewVideoUrl.includes('youtu.be') ? (
               <iframe 
                 className="w-full h-full"
                 src={previewVideoUrl}
@@ -474,7 +481,7 @@ export const CourseDetail: React.FC = () => {
                                       </div>
                                       {lesson.isTrial && (
                                         <button 
-                                          onClick={() => setPreviewVideoUrl(lesson.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1')}
+                                          onClick={() => setPreviewVideoUrl(lesson.videoUrl || 'NO_VIDEO')}
                                           className="bg-primary text-white text-body-sm font-bold px-3 py-1 rounded hover:bg-primary-hover transition-all"
                                         >
                                           Preview
@@ -669,7 +676,7 @@ export const CourseDetail: React.FC = () => {
               {/* Video Preview */}
               <div 
                 onClick={() => {
-                  let url = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1';
+                  let url = 'NO_VIDEO';
                   if (curriculum) {
                     for (const chap of curriculum) {
                       const trial = chap.lessons.find(l => l.isTrial && l.videoUrl);

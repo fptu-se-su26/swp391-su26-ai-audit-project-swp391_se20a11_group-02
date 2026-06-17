@@ -100,6 +100,15 @@ export interface CreateCoursePayload {
   thumbnailUrl?: string;
 }
 
+function mapBackendStatusToFrontend(status: string): 'published' | 'review' | 'draft' {
+  if (!status) return 'draft';
+  const s = status.toUpperCase();
+  if (s === 'APPROVED') return 'published';
+  if (s === 'PENDING') return 'review';
+  if (s === 'DRAFTS' || s === 'DRAFT') return 'draft';
+  return 'draft';
+}
+
 export const instructorService = {
   async uploadMedia(file: File, folderName: string = 'courses'): Promise<string> {
     const formData = new FormData();
@@ -136,7 +145,10 @@ export const instructorService = {
     }
 
     const data = await response.json();
-    return data.result;
+    return (data.result || []).map((c: any) => ({
+      ...c,
+      status: mapBackendStatusToFrontend(c.status)
+    }));
   },
 
   async getCategories(): Promise<Category[]> {
@@ -182,7 +194,10 @@ export const instructorService = {
     }
 
     const data = await response.json();
-    return data.result;
+    return {
+      ...data.result,
+      status: mapBackendStatusToFrontend(data.result.status)
+    };
   },
 
   async getCourseDetail(courseId: string): Promise<any> {
@@ -199,6 +214,9 @@ export const instructorService = {
     }
 
     const data = await response.json();
+    if (data.result && data.result.status) {
+      data.result.status = mapBackendStatusToFrontend(data.result.status);
+    }
     return data.result;
   },
 
@@ -258,7 +276,10 @@ export const instructorService = {
     }
 
     const data = await response.json();
-    return data.result;
+    return {
+      ...data.result,
+      status: mapBackendStatusToFrontend(data.result.status)
+    };
   },
 
 

@@ -11,9 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
 import com.swp391.coding_platform.dto.request.TestcaseGeneratorRequest;
 import com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest.TestcaseDto;
@@ -34,8 +34,19 @@ public class InstructorCourseController {
     @GetMapping("/courses")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<List<InstructorCourseResponse>>> getCourses(@AuthenticationPrincipal Jwt jwt) {
-        Integer userId = extractUserId(jwt);
-        if (userId == null) return ResponseEntity.status(401).build();
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+
+
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
 
         List<InstructorCourseResponse> result = instructorCourseService.getCourses(userId);
 
@@ -48,36 +59,18 @@ public class InstructorCourseController {
                 .build());
     }
 
-    /**
-     * Instructor nộp lại khóa học bị REJECTED để AI kiểm duyệt lại.
-     * POST /instructor/courses/{courseId}/submit
-     */
-    @PostMapping("/courses/{courseId}/submit")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> submitCourseForReviewPost(
-            @PathVariable Long courseId,
-            @AuthenticationPrincipal Jwt jwt) {
-
-        Integer userId = extractUserId(jwt);
-        if (userId == null) return ResponseEntity.status(401).build();
-
-        instructorCourseService.submitCourseForReview(userId, courseId);
-
-        return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
-                .status(200)
-                .code(1000)
-                .message("Đã nộp khóa học để AI kiểm duyệt thành công!")
-                .result(Map.of("courseId", courseId, "status", "PENDING"))
-                .timestamp(Instant.now().toString())
-                .build());
-    }
-
     @PostMapping("/courses")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<InstructorCourseResponse>> createCourse(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody InstructorCourseCreateRequest request) {
-        Integer userId = extractUserId(jwt);
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
 
         if (userId == null) {
             return ResponseEntity.status(401).build();
@@ -101,7 +94,13 @@ public class InstructorCourseController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "folderName", defaultValue = "courses") String folderName) {
 
-        Integer userId = extractUserId(jwt);
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
 
         if (userId == null) {
             return ResponseEntity.status(401).build();
@@ -131,9 +130,15 @@ public class InstructorCourseController {
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse>> getCourseDetail(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable("id") Long id) {
+            @org.springframework.web.bind.annotation.PathVariable("id") Long id) {
         
-        Integer userId = extractUserId(jwt);
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
 
         if (userId == null) {
             return ResponseEntity.status(401).build();
@@ -150,14 +155,20 @@ public class InstructorCourseController {
                 .build());
     }
 
-    @PutMapping("/courses/{id}")
+    @org.springframework.web.bind.annotation.PutMapping("/courses/{id}")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<InstructorCourseResponse>> updateCourse(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long id,
             @RequestBody com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest request) {
 
-        Integer userId = extractUserId(jwt);
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
 
         if (userId == null) {
             return ResponseEntity.status(401).build();
@@ -173,7 +184,6 @@ public class InstructorCourseController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
-
     @PostMapping("/testcases/generate")
     public ResponseEntity<ApiResponse<java.util.List<TestcaseDto>>> generateTestcases(
             @Valid @RequestBody TestcaseGeneratorRequest request) {
@@ -202,7 +212,13 @@ public class InstructorCourseController {
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<Void>> submitCourseForReview(@AuthenticationPrincipal Jwt jwt,
                                                                    @PathVariable("courseId") Long courseId) {
-        Integer userId = extractUserId(jwt);
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
         if (userId == null) {
             return ResponseEntity.status(401).build();
         }
@@ -223,7 +239,13 @@ public class InstructorCourseController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long id) {
 
-        Integer userId = extractUserId(jwt);
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
 
         if (userId == null) {
             return ResponseEntity.status(401).build();
@@ -240,9 +262,5 @@ public class InstructorCourseController {
                 .build());
     }
 
-    private Integer extractUserId(Jwt jwt) {
-        if (jwt == null) return null;
-        Number idClaim = jwt.getClaim("userId");
-        return idClaim != null ? idClaim.intValue() : null;
-    }
 }
+

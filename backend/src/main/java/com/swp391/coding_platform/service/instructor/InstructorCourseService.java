@@ -196,6 +196,19 @@ public class InstructorCourseService {
 
         // 3. Đổi status sang PENDING và lưu
         course.setStatus(CourseStatus.PENDING);
+        
+        if (course.getChapters() != null) {
+            for (var chapter : course.getChapters()) {
+                if (chapter.getLessons() != null) {
+                    for (var lesson : chapter.getLessons()) {
+                        if (lesson.getStatus() == null) {
+                            lesson.setStatus(com.swp391.coding_platform.entity.enums.LessonStatus.ACTIVE);
+                        }
+                    }
+                }
+            }
+        }
+        
         courseRepository.save(course);
         log.info("Instructor {} đã nộp khóa học {} để kiểm duyệt", userId, courseId);
 
@@ -305,7 +318,8 @@ public class InstructorCourseService {
                         if (lesDto.getId() != null) {
                             lesEntity = existingLessons.stream().filter(l -> l.getId().equals(lesDto.getId())).findFirst().orElse(null);
                             if (lesEntity != null) {
-                                if (lesEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE) {
+                                if (course.getStatus() == com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && 
+                                    lesEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE) {
                                     updatedLessons.add(lesEntity);
                                     continue;
                                 }
@@ -324,7 +338,9 @@ public class InstructorCourseService {
                             lesEntity.setChapter(chEntity);
                         }
 
-                        if (isExistingChanged) {
+                        if (course.getStatus() == com.swp391.coding_platform.entity.enums.CourseStatus.DRAFTS) {
+                            lesEntity.setStatus(null);
+                        } else if (isExistingChanged) {
                             lesEntity.setStatus(com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE);
                         }
 
