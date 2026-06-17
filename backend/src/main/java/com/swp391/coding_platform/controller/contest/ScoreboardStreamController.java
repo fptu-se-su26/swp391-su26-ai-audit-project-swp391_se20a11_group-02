@@ -16,9 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import java.time.Instant;
 
 @Slf4j
@@ -36,14 +34,13 @@ public class ScoreboardStreamController {
     public ResponseEntity<ApiResponse<ContestScoreboardResponse>> getScoreboard(
             @PathVariable Integer contestId,
             @RequestParam(value = "live", defaultValue = "false") boolean isLive,
-            @AuthenticationPrincipal Jwt jwt,
-            Authentication authentication) {
+            JwtAuthenticationToken token) {
 
-        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+        boolean isAdmin = token.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
 
         if (!isAdmin) {
-            Integer userId = Integer.parseInt(jwt.getClaim("userId").toString());
+            Integer userId = Integer.parseInt(token.getToken().getClaim("userId").toString());
             boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
             if (!isRegistered) {
                 throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
@@ -66,14 +63,13 @@ public class ScoreboardStreamController {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter getScoreboardStream(
             @PathVariable Integer contestId,
-            @AuthenticationPrincipal Jwt jwt,
-            Authentication authentication) {
+            JwtAuthenticationToken token) {
 
-        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+        boolean isAdmin = token.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
 
         if (!isAdmin) {
-            Integer userId = Integer.parseInt(jwt.getClaim("userId").toString());
+            Integer userId = Integer.parseInt(token.getToken().getClaim("userId").toString());
             boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
             if (!isRegistered) {
                 throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
