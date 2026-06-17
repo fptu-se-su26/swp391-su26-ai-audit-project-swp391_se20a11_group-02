@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { instructorService } from '../services/instructorService';
+import { instructorService, type InstructorCourse } from '../services/instructorService';
 import { fetchCourseReviews, type CourseReviewStatsResponse } from '../services/courseService';
 import Editor from '@monaco-editor/react';
 
@@ -60,23 +60,6 @@ interface Chapter {
 
 interface CourseSyllabus {
   chapters: Chapter[];
-}
-
-
-
-interface InstructorCourse {
-  id: string;
-  title: string;
-  level: string;
-  topic: string;
-  price: string;
-  studentsCount: number;
-  rating: number;
-  reviewsCount: number;
-  status: 'published' | 'review' | 'draft';
-  icon: string;
-  gradient: string;
-  description: string;
 }
 
 interface CircularProgressProps {
@@ -5613,12 +5596,6 @@ export const InstructorDashboard: React.FC = () => {
 
       {/* ================= MODAL: COURSE STATISTICS ================= */}
       {selectedCourseForStats && (() => {
-        // Calculate estimated revenue
-        const rawPrice = selectedCourseForStats.price || "0";
-        const cleanPriceStr = rawPrice.replace(/[^\d]/g, '');
-        const priceVal = cleanPriceStr ? parseInt(cleanPriceStr, 10) : 0;
-        // Custom metrics for the course based on rating/data
-
         return (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
             <div className="bg-white border border-slate-200 shadow-2xl rounded-3xl max-w-2xl w-full relative overflow-hidden flex flex-col animate-scale-in">

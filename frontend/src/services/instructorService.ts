@@ -19,6 +19,7 @@ export interface InstructorCourse {
   gradient: string;
   description: string;
   thumbnailUrl?: string;
+  level?: string;
 }
 
 export interface SalesHistoryItem {
