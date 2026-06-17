@@ -89,10 +89,13 @@ public enum ErrorCode {
     INVALID_COMMENT_LESSON(8102, "Invalid comment lesson", HttpStatus.BAD_REQUEST),
     INVALID_COMMENT_LEVEL(8103, "Replies can only be added to root comments (1-level nesting maximum)", HttpStatus.BAD_REQUEST),
 
+
     CONTEST_NOT_FOUND(9000, "Contest not found", HttpStatus.NOT_FOUND),
     CONTEST_PASSWORD_INVALID(9003, "Contest password is invalid", HttpStatus.UNAUTHORIZED),
     CONTEST_NOT_JOINED(9202, "User has not joined this contest", HttpStatus.FORBIDDEN),
     CONTEST_ALREADY_ENDED(9004, "Contest has already ended", HttpStatus.BAD_REQUEST),
+    CONTEST_NOT_STARTED(9005, "Contest has not started yet", HttpStatus.FORBIDDEN),
+    CONTEST_SUBMISSION_NOT_ALLOWED(9006, "Submission not allowed: contest is not ongoing", HttpStatus.FORBIDDEN),
 
     INSUFFICIENT_BALANCE(10001, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
     COURSE_ALREADY_IN_CART(10002, "Course already in cart", HttpStatus.CONFLICT),

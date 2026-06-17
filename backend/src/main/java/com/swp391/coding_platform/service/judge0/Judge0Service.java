@@ -42,6 +42,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,10 +86,32 @@ public class Judge0Service {
             }
         }
 
-        // Xác thực bài toán có thuộc cuộc thi hoặc bài học không
+        // Xác thực contest: check tồn tại, status ONGOING, và user đã registered
         if (request.getContestId() != null) {
-            boolean belongsToContest = contestProblemRepository.existsByContestIdAndProblemId(request.getContestId(),
-                    request.getProblemId());
+            var contest = contestRepository.findById(request.getContestId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+            // Tính toán contest status dựa trên thời gian thực
+            Instant now = Instant.now();
+            boolean isOngoing = contest.getStatus() != com.swp391.coding_platform.entity.enums.ContestStatus.DRAFT
+                    && contest.getStatus() != com.swp391.coding_platform.entity.enums.ContestStatus.DELETED
+                    && !now.isBefore(contest.getStartTime())
+                    && !now.isAfter(contest.getEndTime());
+
+            if (!isOngoing) {
+                // Contest chưa bắt đầu hoặc đã kết thúc -> không được submit
+                throw new AppException(ErrorCode.CONTEST_SUBMISSION_NOT_ALLOWED);
+            }
+
+            // Check user đã đăng ký contest chưa
+            boolean isRegistered = contestRepository.isUserRegistered(request.getContestId(), userId);
+            if (!isRegistered) {
+                throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
+            }
+
+            // Check bài toán thuộc contest
+            boolean belongsToContest = contestProblemRepository.existsByContestIdAndProblemId(
+                    request.getContestId(), request.getProblemId());
             if (!belongsToContest) {
                 throw new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND);
             }
