@@ -10,7 +10,8 @@ import type {
   AdminContest,
   AdminDepositHistory,
   AdminProblemTestcase,
-  AdminFinancialStats,
+  MonthlyFinancialRecord,
+  TopRevenueCourse,
   AdminFinancialDetails,
   MonthlyFinancialBreakdown,
   OrderDetails,
@@ -141,125 +142,7 @@ public:
         
     }
 };`;
-
-interface RankingSubmissionDetail {
-  time?: string;
-  penalty: number;
-  status: 'first_solve' | 'accepted' | 'failed' | 'unattempted';
-}
-
-interface RankingTeam {
-  rank: number;
-  name: string;
-  affiliation: string;
-  solved: number;
-  totalAttempts: number;
-  totalTime: string;
-  submissions: Record<string, RankingSubmissionDetail>;
-}
-
-const TEAMS_DATA: RankingTeam[] = [
-  {
-    rank: 1,
-    name: 'mosaic14_2025',
-    affiliation: 'CyberKnights',
-    solved: 8,
-    totalAttempts: 10,
-    totalTime: '11:02:15',
-    submissions: {
-      A: { time: '0:15:22', penalty: 1, status: 'first_solve' },
-      B: { time: '0:45:10', penalty: 2, status: 'accepted' },
-      C: { time: '1:10:33', penalty: 1, status: 'accepted' },
-      D: { time: '1:55:00', penalty: 3, status: 'accepted' },
-      E: { time: '2:30:15', penalty: 1, status: 'accepted' },
-      F: { time: '3:10:45', penalty: 4, status: 'accepted' },
-      G: { time: '3:25:22', penalty: 2, status: 'accepted' },
-      H: { time: '3:50:00', penalty: 5, status: 'accepted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  },
-  {
-    rank: 2,
-    name: 'BinaryBeasts',
-    affiliation: 'Tech Univ',
-    solved: 7,
-    totalAttempts: 10,
-    totalTime: '10:25:15',
-    submissions: {
-      A: { time: '0:10:45', penalty: 0, status: 'accepted' },
-      B: { time: '0:32:10', penalty: 1, status: 'first_solve' },
-      C: { time: '1:05:50', penalty: 2, status: 'accepted' },
-      D: { penalty: 3, status: 'failed' },
-      E: { time: '2:15:30', penalty: 1, status: 'accepted' },
-      F: { time: '3:05:40', penalty: 0, status: 'accepted' },
-      G: { time: '3:35:10', penalty: 4, status: 'accepted' },
-      H: { time: '3:45:22', penalty: 1, status: 'accepted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  },
-  {
-    rank: 3,
-    name: 'CodeMasters',
-    affiliation: 'Polytechnic',
-    solved: 6,
-    totalAttempts: 10,
-    totalTime: '09:20:30',
-    submissions: {
-      A: { time: '0:20:15', penalty: 1, status: 'accepted' },
-      B: { time: '0:55:40', penalty: 0, status: 'accepted' },
-      C: { time: '1:20:10', penalty: 0, status: 'first_solve' },
-      D: { time: '2:10:45', penalty: 2, status: 'accepted' },
-      E: { penalty: 4, status: 'failed' },
-      F: { time: '3:30:15', penalty: 1, status: 'accepted' },
-      G: { time: '3:50:30', penalty: 3, status: 'accepted' },
-      H: { penalty: 0, status: 'unattempted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  },
-  {
-    rank: 4,
-    name: 'ByteBusters',
-    affiliation: 'Alpha Tech',
-    solved: 6,
-    totalAttempts: 10,
-    totalTime: '11:05:00',
-    submissions: {
-      A: { time: '0:25:30', penalty: 2, status: 'accepted' },
-      B: { time: '1:02:15', penalty: 1, status: 'accepted' },
-      C: { time: '1:45:00', penalty: 1, status: 'accepted' },
-      D: { time: '2:25:40', penalty: 3, status: 'accepted' },
-      E: { time: '3:20:10', penalty: 0, status: 'accepted' },
-      F: { time: '3:52:50', penalty: 2, status: 'accepted' },
-      G: { penalty: 0, status: 'unattempted' },
-      H: { penalty: 0, status: 'unattempted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  },
-  {
-    rank: 5,
-    name: 'RecursionRiders',
-    affiliation: 'Beta University',
-    solved: 5,
-    totalAttempts: 10,
-    totalTime: '08:45:40',
-    submissions: {
-      A: { time: '0:18:10', penalty: 0, status: 'accepted' },
-      B: { time: '0:50:30', penalty: 1, status: 'accepted' },
-      C: { time: '1:30:15', penalty: 0, status: 'accepted' },
-      D: { time: '2:40:00', penalty: 2, status: 'accepted' },
-      E: { time: '3:45:20', penalty: 1, status: 'accepted' },
-      F: { penalty: 0, status: 'unattempted' },
-      G: { penalty: 0, status: 'unattempted' },
-      H: { penalty: 0, status: 'unattempted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  }
-];
+// TEAMS_DATA mock removed. Data loaded dynamically via API.
 
 const RANKING_TEAM_COLORS = [
   '#3b82f6', // Rank 1: Blue
@@ -267,6 +150,11 @@ const RANKING_TEAM_COLORS = [
   '#f59e0b', // Rank 3: Amber Orange
   '#8b5cf6', // Rank 4: Purple
   '#ec4899', // Rank 5: Pink
+  '#06b6d4', // Rank 6: Cyan
+  '#ef4444', // Rank 7: Rose Red
+  '#14b8a6', // Rank 8: Teal
+  '#6366f1', // Rank 9: Indigo
+  '#f97316'  // Rank 10: Orange
 ];
 
 const RANKING_W = 720;
@@ -283,17 +171,20 @@ const rankingTimeToMinutes = (timeStr?: string): number => {
   return hrs * 60 + mins + secs / 60;
 };
 
-const getRankingSvgCoords = (minutes: number, solves: number) => {
-  const svgX = RANKING_paddingLeft + (minutes / 240) * RANKING_W;
-  const svgY = (RANKING_paddingTop + RANKING_H) - (solves / 10) * RANKING_H;
+const getRankingSvgCoords = (minutes: number, solves: number, duration: number, problemCount: number) => {
+  const maxMins = duration || 240;
+  const maxProblems = problemCount || 10;
+  const svgX = RANKING_paddingLeft + (minutes / maxMins) * RANKING_W;
+  const svgY = (RANKING_paddingTop + RANKING_H) - (solves / maxProblems) * RANKING_H;
   return { x: svgX, y: svgY };
 };
 
-const getRankingStepPathString = (team: RankingTeam) => {
+const getRankingStepPathString = (team: any, duration: number, problemCount: number) => {
+  const maxMins = duration || 240;
   const solves: { time: number; problem: string }[] = [];
-  Object.keys(team.submissions).forEach((key) => {
+  Object.keys(team.submissions || {}).forEach((key) => {
     const sub = team.submissions[key];
-    if (sub.status === 'accepted' || sub.status === 'first_solve') {
+    if (sub && (sub.status === 'accepted' || sub.status === 'first_solve')) {
       solves.push({
         time: rankingTimeToMinutes(sub.time),
         problem: key
@@ -302,9 +193,9 @@ const getRankingStepPathString = (team: RankingTeam) => {
   });
   solves.sort((a, b) => a.time - b.time);
 
-  const start = getRankingSvgCoords(0, 0);
+  const start = getRankingSvgCoords(0, 0, maxMins, problemCount);
   if (solves.length === 0) {
-    const end = getRankingSvgCoords(240, 0);
+    const end = getRankingSvgCoords(maxMins, 0, maxMins, problemCount);
     return {
       pathStr: `M ${start.x} ${start.y} L ${end.x} ${end.y}`,
       solves: []
@@ -313,12 +204,12 @@ const getRankingStepPathString = (team: RankingTeam) => {
 
   let pathStr = `M ${start.x} ${start.y}`;
   solves.forEach((solve, index) => {
-    const p1 = getRankingSvgCoords(solve.time, index);
-    const p2 = getRankingSvgCoords(solve.time, index + 1);
+    const p1 = getRankingSvgCoords(solve.time, index, maxMins, problemCount);
+    const p2 = getRankingSvgCoords(solve.time, index + 1, maxMins, problemCount);
     pathStr += ` L ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
   });
 
-  const end = getRankingSvgCoords(240, solves.length);
+  const end = getRankingSvgCoords(maxMins, solves.length, maxMins, problemCount);
   pathStr += ` L ${end.x} ${end.y}`;
   return { pathStr, solves };
 };
@@ -496,7 +387,11 @@ export const AdminDashboard: React.FC = () => {
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
-  const [financialStats, setFinancialStats] = useState<AdminFinancialStats | null>(null);
+  const [allDeposits, setAllDeposits] = useState<AdminDepositHistory[]>([]);
+  const [showAllDepositsModal, setShowAllDepositsModal] = useState<boolean>(false);
+  const [loadingAllDeposits, setLoadingAllDeposits] = useState<boolean>(false);
+  const [monthlyRecords, setMonthlyRecords] = useState<MonthlyFinancialRecord[]>([]);
+  const [topCourses, setTopCourses] = useState<TopRevenueCourse[]>([]);
   const [financialDetails, setFinancialDetails] = useState<AdminFinancialDetails | null>(null);
   const [activeFinancialModal, setActiveFinancialModal] = useState<'gross' | 'instructor' | 'platform' | 'awards' | 'profit' | 'sales' | 'courses-sold-all' | null>(null);
 
@@ -520,7 +415,8 @@ export const AdminDashboard: React.FC = () => {
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
-  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'COMPLETED'>('ALL');
+  const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'DELETED'>('ALL');
+  const [contestSubTab, setContestSubTab] = useState<'active' | 'trash'>('active');
 
   // Status change confirm modal state
   const [statusConfirmTarget, setStatusConfirmTarget] = useState<{
@@ -532,10 +428,6 @@ export const AdminDashboard: React.FC = () => {
   const [isProcessingStatusChange, setIsProcessingStatusChange] = useState<boolean>(false);
 
   // Modal / review panel states
-
-
-
-
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
@@ -550,6 +442,9 @@ export const AdminDashboard: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [isSavingTestcases, setIsSavingTestcases] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
+  const [isEditContestMode, setIsEditContestMode] = useState(false);
+  const [editingContestId, setEditingContestId] = useState<number | null>(null);
+  const [editingContestStatus, setEditingContestStatus] = useState<string>('');
 
   // Confirmation Modal state
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -574,9 +469,17 @@ export const AdminDashboard: React.FC = () => {
   const [reviewSolveCode, setReviewSolveCode] = useState('');
 
   // Contest Detail Review Mode states
-  const [reviewingContest, setReviewingContest] = useState<AdminContest | null>(null);
-  const [reviewContestTab, setReviewContestTab] = useState<'overview' | 'problems' | 'submissions' | 'ranking'>('overview');
+  const [reviewingContest, setReviewingContest] = useState<AdminContest | null>(() => {
+    const saved = sessionStorage.getItem('adminReviewingContest');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [reviewContestTab, setReviewContestTab] = useState<'overview' | 'problems' | 'submissions' | 'ranking'>(() => {
+    return (sessionStorage.getItem('adminReviewContestTab') as any) || 'overview';
+  });
   const [reviewContestProblemId, setReviewContestProblemId] = useState<number | null>(null);
+
+  const [contestProblems, setContestProblems] = useState<any[]>([]);
+  const [loadingContestProblems, setLoadingContestProblems] = useState<boolean>(false);
 
   // Contest Countdown Timer states
   const [contestTimeLeft, setContestTimeLeft] = useState<string>('--:--:--');
@@ -599,28 +502,173 @@ export const AdminDashboard: React.FC = () => {
     timeStr: string;
     problem: string;
   } | null>(null);
-  const [rankingVisibleTeams, setRankingVisibleTeams] = useState<Record<string, boolean>>({
-    'mosaic14_2025': true,
-    'BinaryBeasts': true,
-    'CodeMasters': true,
-    'ByteBusters': true,
-    'RecursionRiders': true
-  });
+  const [rankingVisibleTeams, setRankingVisibleTeams] = useState<Record<string, boolean>>({});
+
+  // Real Contest Submissions and Standings states
+  const [contestSubmissions, setContestSubmissions] = useState<any[]>([]);
+  const [loadingContestSubmissions, setLoadingContestSubmissions] = useState<boolean>(false);
+  const [errorContestSubmissions, setErrorContestSubmissions] = useState<string | null>(null);
+
+  const [rankingTeams, setRankingTeams] = useState<any[]>([]);
+  const [loadingContestRanking, setLoadingContestRanking] = useState<boolean>(false);
+  const [errorContestRanking, setErrorContestRanking] = useState<string | null>(null);
 
   // Contest Add Problems states
   const [isAddContestProblemOpen, setIsAddContestProblemOpen] = useState(false);
-  const [contestAddedProblemIds, setContestAddedProblemIds] = useState<Set<number>>(new Set());
 
   // Create Contest Password states
   const [newContestPassword, setNewContestPassword] = useState('');
   const [newContestConfirmPassword, setNewContestConfirmPassword] = useState('');
 
+  // Sync contest states to sessionStorage
+  useEffect(() => {
+    if (reviewingContest) {
+      sessionStorage.setItem('adminReviewingContest', JSON.stringify(reviewingContest));
+    } else {
+      sessionStorage.removeItem('adminReviewingContest');
+    }
+  }, [reviewingContest]);
+
+  useEffect(() => {
+    sessionStorage.setItem('adminReviewContestTab', reviewContestTab);
+  }, [reviewContestTab]);
+
+  // Sync reviewingContest from contests list updates
+  useEffect(() => {
+    if (reviewingContest && contests.length > 0) {
+      const updated = contests.find(c => c.id === reviewingContest.id);
+      if (updated) {
+        setReviewingContest(updated);
+      }
+    }
+  }, [contests]);
+
+  const fetchContestProblems = async (contestId: number) => {
+    setLoadingContestProblems(true);
+    try {
+      const res = await adminService.getContestProblems(contestId);
+      const sorted = [...res].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+      setContestProblems(sorted);
+    } catch (err) {
+      console.error("Failed to load contest problems:", err);
+      showGlobalToast("Failed to load contest problems", "error");
+    } finally {
+      setLoadingContestProblems(false);
+    }
+  };
+
+  const handleAddProblemToContest = async (problemId: number) => {
+    if (!reviewingContest) return;
+    try {
+      const orderIndex = contestProblems.length;
+      await adminService.addProblemToContest(reviewingContest.id, problemId, orderIndex);
+      showGlobalToast("Added problem to contest successfully");
+      await fetchContestProblems(reviewingContest.id);
+    } catch (err: any) {
+      console.error("Failed to add problem:", err);
+      showGlobalToast(err.message || "Failed to add problem", "error");
+    }
+  };
+
+  const handleRemoveProblemFromContest = async (problemId: number) => {
+    if (!reviewingContest) return;
+    try {
+      await adminService.removeProblemFromContest(reviewingContest.id, problemId);
+      showGlobalToast("Removed problem from contest successfully");
+      await fetchContestProblems(reviewingContest.id);
+    } catch (err: any) {
+      console.error("Failed to remove problem:", err);
+      showGlobalToast(err.message || "Failed to remove problem", "error");
+    }
+  };
+
+  useEffect(() => {
+    if (reviewingContest) {
+      fetchContestProblems(reviewingContest.id);
+    } else {
+      setContestProblems([]);
+    }
+  }, [reviewingContest]);
+
+  const fetchContestSubmissions = async (contestId: number) => {
+    setLoadingContestSubmissions(true);
+    setErrorContestSubmissions(null);
+    try {
+      const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contestId}/submissions`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data && data.result) {
+        setContestSubmissions(data.result);
+      } else {
+        setErrorContestSubmissions(data.message || 'Failed to fetch submissions');
+      }
+    } catch (err) {
+      console.error('Error fetching contest submissions:', err);
+      setErrorContestSubmissions('Failed to fetch submissions');
+    } finally {
+      setLoadingContestSubmissions(false);
+    }
+  };
+
+  const fetchContestRanking = async (contestId: number) => {
+    setLoadingContestRanking(true);
+    setErrorContestRanking(null);
+    try {
+      const response = await fetch(`http://localhost:8080/nonstopcoding/api/v1/contests/${contestId}/scoreboard`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data && data.result) {
+        setRankingTeams(data.result.rows || []);
+      } else {
+        setErrorContestRanking(data.message || 'Failed to fetch rankings');
+      }
+    } catch (err) {
+      console.error('Error fetching ranking data:', err);
+      setErrorContestRanking('Failed to load rankings');
+    } finally {
+      setLoadingContestRanking(false);
+    }
+  };
+
+  useEffect(() => {
+    if (reviewingContest) {
+      if (reviewContestTab === 'submissions') {
+        fetchContestSubmissions(reviewingContest.id);
+      } else if (reviewContestTab === 'ranking') {
+        fetchContestRanking(reviewingContest.id);
+      }
+    } else {
+      setContestSubmissions([]);
+      setRankingTeams([]);
+    }
+  }, [reviewingContest, reviewContestTab]);
+
+  useEffect(() => {
+    if (rankingTeams.length > 0) {
+      setRankingVisibleTeams((prev) => {
+        const hasVisible = Object.values(prev).some(v => v);
+        if (hasVisible) return prev;
+        const next: Record<string, boolean> = {};
+        rankingTeams.slice(0, 5).forEach((t) => {
+          next[t.name] = true;
+        });
+        return next;
+      });
+    }
+  }, [rankingTeams]);
+
   // Nested routing synchronization based on React Router path parameter
   useEffect(() => {
     // Close active review player and modals when navigating tabs
     setReviewingCourse(null);
-    setReviewingContest(null);
-    setReviewContestTab('overview');
+    if (tab !== 'contests') {
+      setReviewingContest(null);
+      setReviewContestTab('overview');
+      sessionStorage.removeItem('adminReviewingContest');
+      sessionStorage.removeItem('adminReviewContestTab');
+    }
     setReviewContestProblemId(null);
     setSelectedUserDetail(null);
     setIsCreateProblemOpen(false);
@@ -733,7 +781,8 @@ export const AdminDashboard: React.FC = () => {
         contestsRes,
         recentDepositsRes,
         tagsRes,
-        financialRes,
+        monthlyRecordsRes,
+        topCoursesRes,
         financialDetailsRes
       ] = await Promise.all([
         adminService.getDashboardStats(),
@@ -744,7 +793,8 @@ export const AdminDashboard: React.FC = () => {
         adminService.getContests(),
         adminService.getRecentDeposits(),
         adminService.getTags(),
-        adminService.getFinancialStats(),
+        adminService.getFinancialMonthlyRecords(),
+        adminService.getFinancialTopCourses(),
         adminService.getFinancialDetails()
       ]);
 
@@ -756,7 +806,8 @@ export const AdminDashboard: React.FC = () => {
       setContests(contestsRes);
       setRecentDeposits(recentDepositsRes);
       setAllTags(tagsRes || []);
-      setFinancialStats(financialRes);
+      setMonthlyRecords(monthlyRecordsRes || []);
+      setTopCourses(topCoursesRes || []);
       setFinancialDetails(financialDetailsRes);
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
@@ -785,7 +836,7 @@ export const AdminDashboard: React.FC = () => {
   const [newProbScore, setNewProbScore] = useState(100);
   const [newProbTimeLimit, setNewProbTimeLimit] = useState(2000);
   const [newProbMemoryLimit, setNewProbMemoryLimit] = useState(128000);
-  const [newProbIsPublic, setNewProbIsPublic] = useState(true);
+  const [newProbIsPublic, setNewProbIsPublic] = useState(false);
   const [newProbSolutions, setNewProbSolutions] = useState('');
   const [newProbTags, setNewProbTags] = useState<string[]>([]);
   const [newProbStarterC, setNewProbStarterC] = useState('');
@@ -805,20 +856,7 @@ export const AdminDashboard: React.FC = () => {
 
   // SVG Chart Computations
   const financialChartData = useMemo(() => {
-    return stats?.financialChartData || [
-      { label: 'Jul 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Aug 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Sep 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Oct 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Nov 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Dec 25', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Jan 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Feb 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Mar 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Apr 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'May 26', amount: 0, count: 0, usersCount: 0 },
-      { label: 'Jun 26', amount: 0, count: 0, usersCount: 0 }
-    ];
+    return stats?.financialChartData || [];
   }, [stats]);
 
   // Financial Page state variables
@@ -827,9 +865,11 @@ export const AdminDashboard: React.FC = () => {
   const [financialEndDate, setFinancialEndDate] = useState<string>('');
   const [hoveredMonthIndex, setHoveredMonthIndex] = useState<number | null>(null);
   const [hoveredCourseSalesIndex, setHoveredCourseSalesIndex] = useState<number | null>(null);
+  const [hoveredOverviewRevIndex, setHoveredOverviewRevIndex] = useState<number | null>(null);
+  const [hoveredOverviewUserIndex, setHoveredOverviewUserIndex] = useState<number | null>(null);
   // 12-month raw financial records (Jul 25 to Jun 26)
   const financialMonthlyRecords = useMemo(() => {
-    const rawChartData = financialStats?.financialMonthlyRecords || [
+    const rawChartData = monthlyRecords.length > 0 ? monthlyRecords : [
       { label: 'Jul 25', datePrefix: '2025-07', gross: 14000000, count: 28, rewards: 800000, server: 1200000, marketing: 1000000 },
       { label: 'Aug 25', datePrefix: '2025-08', gross: 16500000, count: 33, rewards: 1000000, server: 1200000, marketing: 1200000 },
       { label: 'Sep 25', datePrefix: '2025-09', gross: 15000000, count: 30, rewards: 1200000, server: 1200000, marketing: 1000000 },
@@ -870,7 +910,7 @@ export const AdminDashboard: React.FC = () => {
         netProfit
       };
     });
-  }, [financialStats]);
+  }, [monthlyRecords]);
 
   // Filtered dataset according to UI state
   const filteredFinancialData = useMemo(() => {
@@ -991,7 +1031,21 @@ export const AdminDashboard: React.FC = () => {
   const topProblemsTotal = useMemo(() => topProblemsChartData.reduce((sum, c) => sum + c.count, 0), [topProblemsChartData]);
 
   // Action handlers
+  const handleOpenAllDeposits = async () => {
+    setLoadingAllDeposits(true);
+    setShowAllDepositsModal(true);
+    const data = await adminService.getAllDeposits();
+    setAllDeposits(data);
+    setLoadingAllDeposits(false);
+  };
+
+  const handleCloseAllDeposits = () => {
+    setShowAllDepositsModal(false);
+    setAllDeposits([]);
+  };
+
   const handleReviewCourse = (course: AdminCourse) => {
+    setActiveTab('courses');
     setReviewingCourse(course);
     setReviewPlayerTab('overview');
     setReviewLectureTitle('1.1 Course Introduction');
@@ -1026,6 +1080,10 @@ export const AdminDashboard: React.FC = () => {
     });
   };
 
+
+
+
+
   const handleInstructorStatusChange = (instructorId: number, newStatus: 'ACTIVE' | 'SUSPENDED') => {
     const inst = instructors.find(ins => ins.id === instructorId);
     const name = inst ? inst.fullName : `Instructor #${instructorId}`;
@@ -1035,6 +1093,7 @@ export const AdminDashboard: React.FC = () => {
       type: 'INSTRUCTOR',
       newStatus
     });
+
   };
 
   const executeStatusChange = async () => {
@@ -1114,7 +1173,7 @@ export const AdminDashboard: React.FC = () => {
       setNewProbScore(100);
       setNewProbTimeLimit(2000);
       setNewProbMemoryLimit(128000);
-      setNewProbIsPublic(true);
+      setNewProbIsPublic(false);
       setNewProbSolutions('');
       setNewProbTags([]);
       setNewProbStarterC('');
@@ -1213,7 +1272,7 @@ export const AdminDashboard: React.FC = () => {
       setNewProbScore(100);
       setNewProbTimeLimit(2000);
       setNewProbMemoryLimit(128000);
-      setNewProbIsPublic(true);
+      setNewProbIsPublic(false);
       setNewProbSolutions('');
       setNewProbTags([]);
       setNewProbStarterC('');
@@ -1312,8 +1371,7 @@ export const AdminDashboard: React.FC = () => {
       setProblems(prev => prev.map(p => p.id === testcaseProblem.id ? {
         ...p,
         totalTestcases: savedTcs.length,
-        isActive: savedTcs.length > 0,
-        isPublic: savedTcs.length > 0 ? true : p.isPublic
+        isActive: savedTcs.length > 0
       } : p));
 
       showGlobalToast(`Successfully saved ${savedTcs.length} test cases for "${testcaseProblem.title}"!`, "success");
@@ -1449,6 +1507,141 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleEditContestClick = (c: AdminContest) => {
+    setNewContestTitle(c.title);
+    setNewContestDesc(c.description || '');
+    setNewContestScoringRule(c.scoringRule);
+    const formatDateForInput = (isoString: string) => {
+      if (!isoString) return '';
+      const date = new Date(isoString);
+      const tzoffset = date.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(date.getTime() - tzoffset)).toISOString().slice(0, 16);
+      return localISOTime;
+    };
+    setNewContestStartTime(formatDateForInput(c.startTime));
+    setNewContestEndTime(formatDateForInput(c.endTime));
+    setNewContestPassword('');
+    setNewContestConfirmPassword('');
+    
+    setEditingContestId(c.id);
+    setEditingContestStatus(c.status);
+    setIsEditContestMode(true);
+    setIsCreateContestOpen(true);
+  };
+
+  const handleEditContestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingContestId === null) return;
+    if (!newContestTitle.trim()) {
+      showGlobalToast("Please fill in the title.", "error");
+      return;
+    }
+
+    let body: any = {
+      title: newContestTitle.trim(),
+      description: newContestDesc.trim()
+    };
+
+    if (editingContestStatus !== 'ONGOING' && editingContestStatus !== 'ENDED') {
+      if (!newContestStartTime || !newContestEndTime) {
+        showGlobalToast("Please fill in duration dates.", "error");
+        return;
+      }
+      const start = new Date(newContestStartTime).getTime();
+      const end = new Date(newContestEndTime).getTime();
+      if (end <= start) {
+        showGlobalToast("End Time must be after Start Time!", "error");
+        return;
+      }
+      const computedDuration = Math.round((end - start) / 60000);
+      body = {
+        ...body,
+        scoringRule: newContestScoringRule,
+        startTime: newContestStartTime,
+        endTime: newContestEndTime,
+        durations: computedDuration,
+        password: newContestPassword.trim() || undefined
+      };
+    }
+
+    try {
+      const updatedContest = await adminService.updateContest(editingContestId, body);
+      setContests(prev => prev.map(c => c.id === editingContestId ? updatedContest : c));
+      setIsCreateContestOpen(false);
+      setIsEditContestMode(false);
+      setEditingContestId(null);
+      setEditingContestStatus('');
+
+      // Reset form
+      setNewContestTitle('');
+      setNewContestDesc('');
+      setNewContestScoringRule('ICPC');
+      setNewContestStartTime('');
+      setNewContestEndTime('');
+      setNewContestPassword('');
+      setNewContestConfirmPassword('');
+
+      showGlobalToast(`Contest "${updatedContest.title}" updated successfully!`, "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to update contest", "error");
+    }
+  };
+
+  const handlePublishContest = async (id: number) => {
+    try {
+      const updated = await adminService.publishContest(id);
+      setContests(prev => prev.map(c => c.id === id ? updated : c));
+      if (reviewingContest && reviewingContest.id === id) {
+        setReviewingContest(updated);
+      }
+      showGlobalToast(`Contest "${updated.title}" published successfully!`, "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to publish contest", "error");
+    }
+  };
+
+  const handleRestoreContest = async (id: number) => {
+    try {
+      const updated = await adminService.restoreContest(id);
+      setContests(prev => prev.map(c => c.id === id ? updated : c));
+      if (reviewingContest && reviewingContest.id === id) {
+        setReviewingContest(updated);
+      }
+      showGlobalToast(`Contest "${updated.title}" restored successfully!`, "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to restore contest", "error");
+    }
+  };
+
+  const handleDeleteContest = async (id: number) => {
+    try {
+      await adminService.deleteContest(id);
+      const updatedContests = await adminService.getContests();
+      setContests(updatedContests);
+      if (reviewingContest && reviewingContest.id === id) {
+        const found = updatedContests.find(c => c.id === id);
+        if (found) setReviewingContest(found);
+      }
+      showGlobalToast("Contest moved to trash successfully!", "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to delete contest", "error");
+    }
+  };
+
+  const handleHardDeleteContest = async (id: number) => {
+    try {
+      await adminService.hardDeleteContest(id);
+      setContests(prev => prev.filter(c => c.id !== id));
+      if (reviewingContest && reviewingContest.id === id) {
+        setReviewingContest(null);
+        setReviewContestProblemId(null);
+      }
+      showGlobalToast("Contest permanently deleted!", "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to permanently delete contest", "error");
+    }
+  };
+
   // Computations for filters
   const filteredCourses = useMemo(() => {
     if (courseFilter === 'ALL') return courses;
@@ -1476,6 +1669,8 @@ export const AdminDashboard: React.FC = () => {
     });
   }, [instructors, instSearch, instStatusFilter]);
 
+
+
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(problemSearch.toLowerCase()) || p.description.toLowerCase().includes(problemSearch.toLowerCase());
@@ -1498,9 +1693,17 @@ export const AdminDashboard: React.FC = () => {
   }, [problems, problemSearch, problemDifficultyFilter, problemScopeFilter, problemSubTab]);
 
   const filteredContests = useMemo(() => {
-    if (contestStatusFilter === 'ALL') return contests;
-    return contests.filter(c => c.status === contestStatusFilter);
-  }, [contests, contestStatusFilter]);
+    let list = contests;
+    if (contestSubTab === 'trash') {
+      list = contests.filter(c => c.status === 'DELETED');
+    } else {
+      list = contests.filter(c => c.status !== 'DELETED');
+      if (contestStatusFilter !== 'ALL') {
+        list = list.filter(c => c.status === contestStatusFilter);
+      }
+    }
+    return list;
+  }, [contests, contestStatusFilter, contestSubTab]);
 
   // Auth checking context (Only allow role == ADMIN, or default username admin, let's keep it safe)
   // const isAdmin = useMemo(() => {
@@ -2194,8 +2397,84 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-xs font-semibold text-amber-900 leading-tight">{reviewingContest.title}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-amber-700 font-semibold hidden md:inline">Status: {reviewingContest.status}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-amber-700 font-semibold bg-amber-100/60 px-3 py-1.5 rounded-lg border border-amber-200">
+                  Status: {reviewingContest.status}
+                </span>
+                
+                {/* Publish Button (Only for DRAFT status) */}
+                {reviewingContest.status === 'DRAFT' && (
+                  <button
+                    onClick={() => handlePublishContest(reviewingContest.id)}
+                    className="flex items-center gap-1.5 text-xs text-white font-bold bg-primary hover:bg-primary-hover border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">publish</span>
+                    Publish
+                  </button>
+                )}
+
+                {/* Edit Button */}
+                {reviewingContest.status !== 'DELETED' && (
+                  <button
+                    onClick={() => handleEditContestClick(reviewingContest)}
+                    className="flex items-center gap-1.5 text-xs text-slate-700 font-bold bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    Edit
+                  </button>
+                )}
+
+                {/* Restore Button (Only for DELETED status) */}
+                {reviewingContest.status === 'DELETED' && (
+                  <button
+                    onClick={() => handleRestoreContest(reviewingContest.id)}
+                    className="flex items-center gap-1.5 text-xs text-white font-bold bg-green-600 hover:bg-green-700 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">restore</span>
+                    Restore
+                  </button>
+                )}
+
+                {/* Delete Button (For DRAFT/UPCOMING status) */}
+                {(reviewingContest.status === 'DRAFT' || reviewingContest.status === 'UPCOMING') && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to move this contest to trash?")) {
+                        handleDeleteContest(reviewingContest.id);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 text-xs text-white font-bold bg-red-500 hover:bg-red-655 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    Delete
+                  </button>
+                )}
+
+                {/* Hard Delete Button (Only for DELETED status that has 0 submissions) */}
+                {reviewingContest.status === 'DELETED' && (
+                  reviewingContest.submissionCount === 0 ? (
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to permanently delete this contest? This cannot be undone.")) {
+                          handleHardDeleteContest(reviewingContest.id);
+                        }
+                      }}
+                      className="flex items-center gap-1.5 text-xs text-white font-bold bg-red-600 hover:bg-red-700 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                      Hard Delete
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      title="Only contests with 0 submissions can be permanently deleted"
+                      className="flex items-center gap-1.5 text-xs text-slate-400 font-bold bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg cursor-not-allowed transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                      Hard Delete
+                    </button>
+                  )
+                )}
               </div>
             </div>
 
@@ -2208,7 +2487,7 @@ export const AdminDashboard: React.FC = () => {
                     <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
                       <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
                         <span className="material-symbols-outlined text-text-muted">info</span> Contest Overview
-                        <span className={`ml-auto text-white text-xs font-bold px-3 py-1 rounded-full ${reviewingContest.status === 'RUNNING' ? 'bg-brand-green' : reviewingContest.status === 'UPCOMING' ? 'bg-primary' : 'bg-gray-400'
+                        <span className={`ml-auto text-white text-xs font-bold px-3 py-1 rounded-full ${reviewingContest.status === 'ONGOING' ? 'bg-brand-green' : reviewingContest.status === 'UPCOMING' ? 'bg-primary' : 'bg-gray-400'
                           }`}>
                           {reviewingContest.status}
                         </span>
@@ -2287,91 +2566,76 @@ export const AdminDashboard: React.FC = () => {
                               </tr>
                             </thead>
                             <tbody className="text-xs font-semibold divide-y divide-gray-200">
-                              {[
-                                { id: 101, title: 'Two Sum', totalAccepted: 1245, totalSubmissions: 1580, isBuiltIn: true },
-                                { id: 102, title: 'Reverse Linked List', totalAccepted: 850, totalSubmissions: 1200, isBuiltIn: true },
-                                { id: 103, title: 'Spring Context Hierarchy Solver', totalAccepted: 420, totalSubmissions: 980, isBuiltIn: true },
-                                ...Array.from(contestAddedProblemIds)
-                                  .map(id => problems.find(p => p.id === id))
-                                  .filter((p): p is AdminProblem => !!p)
-                                  .map(p => ({
-                                    id: p.id,
-                                    title: p.title,
-                                    totalAccepted: p.acceptedSubmissions,
-                                    totalSubmissions: p.totalSubmissions,
-                                    isBuiltIn: false
-                                  }))
-                              ].map((cp, idx) => {
-                                const acPercent = cp.totalSubmissions > 0 ? Math.round((cp.totalAccepted / cp.totalSubmissions) * 100) : 0;
-                                const totalTeams = (reviewingContest?.participantCount && reviewingContest.participantCount > 0) ? reviewingContest.participantCount : 100;
-                                const acTeams = Math.min(Math.round((acPercent / 100) * totalTeams), totalTeams);
-                                const orderLetter = String.fromCharCode(65 + idx);
+                              {loadingContestProblems ? (
+                                <tr>
+                                  <td colSpan={6} className="p-8 text-center text-text-muted">
+                                    <span className="animate-pulse">Loading contest problems...</span>
+                                  </td>
+                                </tr>
+                              ) : contestProblems.length === 0 ? (
+                                <tr>
+                                  <td colSpan={6} className="p-8 text-center text-text-muted">
+                                    No problems added to this contest yet.
+                                  </td>
+                                </tr>
+                              ) : (
+                                contestProblems.map((cp, idx) => {
+                                  const fullProblem = problems.find(p => p.id === cp.problemId);
+                                  const totalSubmissions = fullProblem ? fullProblem.totalSubmissions : 0;
+                                  const totalAccepted = fullProblem ? fullProblem.acceptedSubmissions : 0;
+                                  const acPercent = totalSubmissions > 0 ? Math.round((totalAccepted / totalSubmissions) * 100) : 0;
+                                  const totalTeams = (reviewingContest?.participantCount && reviewingContest.participantCount > 0) ? reviewingContest.participantCount : 0;
+                                  const acTeams = totalTeams > 0 ? Math.min(Math.round((acPercent / 100) * totalTeams), totalTeams) : 0;
+                                  const orderLetter = String.fromCharCode(65 + idx);
 
-                                return (
-                                  <tr key={cp.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="p-4 text-center font-bold text-brand-blue">
-                                      {orderLetter}
-                                    </td>
-                                    <td className="p-4">
-                                      <button
-                                        onClick={() => {
-                                          setReviewContestProblemId(cp.id);
-                                          setContestSolveLang('Java');
-                                          setContestSolveCode(problemData[cp.title]?.code?.['Java'] || JAVA_TEMPLATE);
-                                        }}
-                                        className="text-primary hover:underline font-bold text-left bg-transparent border-none cursor-pointer p-0"
-                                      >
-                                        {cp.title}
-                                      </button>
-                                    </td>
-                                    <td className="p-4 text-center">
-                                      <span className={`font-bold ${acPercent >= 70 ? 'text-brand-green' : acPercent >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
-                                        {acPercent}%
-                                      </span>
-                                    </td>
-                                    <td className="p-4 text-center font-mono text-slate-600">
-                                      {cp.totalSubmissions.toLocaleString()}
-                                    </td>
-                                    <td className="p-4 text-center font-mono text-slate-600">
-                                      {acTeams}/{totalTeams}
-                                    </td>
-                                    <td className="p-4 text-center">
-                                      {cp.isBuiltIn ? (
-                                        <button
-                                          onClick={() => { /* built-in problems can also be removed if needed */ }}
-                                          className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 p-1.5 rounded-lg transition-all cursor-pointer"
-                                          title="Delete problem"
-                                        >
-                                          <span className="material-symbols-outlined text-[16px]">delete</span>
-                                        </button>
-                                      ) : (
+                                  return (
+                                    <tr key={cp.problemId} className="hover:bg-slate-50/50 transition-colors">
+                                      <td className="p-4 text-center font-bold text-brand-blue">
+                                        {orderLetter}
+                                      </td>
+                                      <td className="p-4">
                                         <button
                                           onClick={() => {
-                                            setContestAddedProblemIds(prev => {
-                                              const next = new Set(prev);
-                                              next.delete(cp.id);
-                                              return next;
-                                            });
+                                            setReviewContestProblemId(cp.problemId);
+                                            setContestSolveLang('Java');
+                                            setContestSolveCode(fullProblem?.starterTemplates?.['Java'] || problemData[cp.title]?.code?.['Java'] || JAVA_TEMPLATE);
                                           }}
+                                          className="text-primary hover:underline font-bold text-left bg-transparent border-none cursor-pointer p-0"
+                                        >
+                                          {cp.title}
+                                        </button>
+                                      </td>
+                                      <td className="p-4 text-center">
+                                        <span className={`font-bold ${acPercent >= 70 ? 'text-brand-green' : acPercent >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
+                                          {acPercent}%
+                                        </span>
+                                      </td>
+                                      <td className="p-4 text-center font-mono text-slate-600">
+                                        {totalSubmissions.toLocaleString()}
+                                      </td>
+                                      <td className="p-4 text-center font-mono text-slate-600">
+                                        {acTeams}/{totalTeams}
+                                      </td>
+                                      <td className="p-4 text-center">
+                                        <button
+                                          onClick={() => handleRemoveProblemFromContest(cp.problemId)}
                                           className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 p-1.5 rounded-lg transition-all cursor-pointer"
                                           title="Delete problem"
                                         >
                                           <span className="material-symbols-outlined text-[16px]">delete</span>
                                         </button>
-                                      )}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              )}
                             </tbody>
                           </table>
                         </div>
                         <div className="p-4 border-t border-gray-150 bg-slate-50/50 flex justify-between items-center">
                           <p className="text-xs text-text-muted">
                             Total: <span className="font-bold text-text-main">
-                              {3 + Array.from(contestAddedProblemIds)
-                                .map(id => problems.find(p => p.id === id))
-                                .filter(Boolean).length}
+                              {contestProblems.length}
                             </span> problems
                           </p>
                           <button
@@ -2420,8 +2684,7 @@ export const AdminDashboard: React.FC = () => {
                                 </thead>
                                 <tbody className="text-sm divide-y divide-gray-100">
                                   {problems.filter(p => p.problemScope === 'CONTEST' && p.isActive && p.isPublic).map((p) => {
-                                    const isAdded = contestAddedProblemIds.has(p.id);
-                                    const isBuiltIn = [101, 102, 103].includes(p.id);
+                                    const isAdded = contestProblems.some(cp => cp.problemId === p.id);
                                     return (
                                       <tr key={p.id} className={`transition-colors ${isAdded ? 'bg-green-50/50' : 'hover:bg-slate-50/50'}`}>
                                         <td className="p-3 text-center">
@@ -2441,30 +2704,16 @@ export const AdminDashboard: React.FC = () => {
                                         </td>
                                         <td className="p-3 text-center font-bold text-slate-600">{p.score}</td>
                                         <td className="p-3 text-center">
-                                          {isBuiltIn ? (
-                                            <span className="text-[10px] text-slate-400 font-semibold">Built-in</span>
-                                          ) : isAdded ? (
+                                          {isAdded ? (
                                             <button
-                                              onClick={() => {
-                                                setContestAddedProblemIds(prev => {
-                                                  const next = new Set(prev);
-                                                  next.delete(p.id);
-                                                  return next;
-                                                });
-                                              }}
+                                              onClick={() => handleRemoveProblemFromContest(p.id)}
                                               className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1 rounded-lg font-bold text-[10px] transition-all cursor-pointer"
                                             >
                                               Remove
                                             </button>
                                           ) : (
                                             <button
-                                              onClick={() => {
-                                                setContestAddedProblemIds(prev => {
-                                                  const next = new Set(prev);
-                                                  next.add(p.id);
-                                                  return next;
-                                                });
-                                              }}
+                                              onClick={() => handleAddProblemToContest(p.id)}
                                               className="bg-primary hover:bg-primary-hover text-white border-none px-3 py-1 rounded-lg font-bold text-[10px] transition-all cursor-pointer shadow-sm"
                                             >
                                               Add
@@ -2480,7 +2729,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                           <div className="p-4 border-t border-gray-200 flex items-center justify-between shrink-0 bg-slate-50">
                             <p className="text-xs text-text-muted font-semibold">
-                              <span className="text-brand-blue font-bold">{contestAddedProblemIds.size}</span> problem{contestAddedProblemIds.size !== 1 ? 's' : ''} added
+                              <span className="text-brand-blue font-bold">{contestProblems.length}</span> problem{contestProblems.length !== 1 ? 's' : ''} added
                             </p>
                             <button
                               onClick={() => setIsAddContestProblemOpen(false)}
@@ -2494,8 +2743,19 @@ export const AdminDashboard: React.FC = () => {
                     )}
 
                     </>) : (() => {
-                      const probName = reviewContestProblemId === 101 ? 'Two Sum' : reviewContestProblemId === 102 ? 'Reverse Linked List' : 'Spring Context Hierarchy Solver';
-                      const probDetail = problemData[probName];
+                      const realProb = problems.find(p => p.id === reviewContestProblemId);
+                      const probName = realProb ? realProb.title : (reviewContestProblemId === 101 ? 'Two Sum' : reviewContestProblemId === 102 ? 'Reverse Linked List' : 'Spring Context Hierarchy Solver');
+                      const probDetail = realProb ? {
+                        difficulty: realProb.difficulty,
+                        description: realProb.description,
+                        code: realProb.starterTemplates || {}
+                      } : problemData[probName];
+                      const difficultyText = realProb ? (realProb.difficulty === 'EASY' ? 'Easy' : realProb.difficulty === 'MEDIUM' ? 'Medium' : 'Hard') : (reviewContestProblemId === 103 ? 'Medium' : 'Easy');
+                      const difficultyClass = realProb 
+                        ? (realProb.difficulty === 'EASY' ? 'bg-green-50 text-brand-green border border-green-200' 
+                           : realProb.difficulty === 'MEDIUM' ? 'bg-blue-50 text-blue-600 border border-blue-200' 
+                           : 'bg-red-50 text-red-600 border border-red-200')
+                        : (reviewContestProblemId === 103 ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-green-50 text-brand-green border border-green-200');
                       const contestSolveLineCount = Math.max(contestSolveCode.split('\n').length, 6);
 
                       return (
@@ -2515,9 +2775,8 @@ export const AdminDashboard: React.FC = () => {
                               {/* Title & Difficulty */}
                               <div className="flex items-center gap-3">
                                 <h1 className="text-2xl font-display font-bold text-text-main">{probName}</h1>
-                                <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${reviewContestProblemId === 103 ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-green-50 text-brand-green border border-green-200'
-                                  }`}>
-                                  {reviewContestProblemId === 103 ? 'Medium' : 'Easy'}
+                                <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${difficultyClass}`}>
+                                  {difficultyText}
                                 </span>
                               </div>
 
@@ -2527,30 +2786,63 @@ export const AdminDashboard: React.FC = () => {
                                 dangerouslySetInnerHTML={{ __html: probDetail?.description || '' }}
                               />
 
+                              {realProb && (realProb.inputDescription || realProb.outputDescription) && (
+                                <div className="space-y-4 pt-4 border-t border-gray-100">
+                                  {realProb.inputDescription && (
+                                    <div>
+                                      <h3 className="font-semibold text-base mb-1 text-text-main">Input Description</h3>
+                                      <p className="text-sm text-text-muted leading-relaxed">{realProb.inputDescription}</p>
+                                    </div>
+                                  )}
+                                  {realProb.outputDescription && (
+                                    <div>
+                                      <h3 className="font-semibold text-base mb-1 text-text-main">Output Description</h3>
+                                      <p className="text-sm text-text-muted leading-relaxed">{realProb.outputDescription}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
                               {/* Example */}
-                              <div>
-                                <h3 className="font-semibold text-lg mb-3 text-text-main">Example 1:</h3>
-                                <div className="bg-brand-blue text-white rounded-lg p-5 font-mono text-sm shadow-sm space-y-2">
-                                  <div>
-                                    <span className="text-gray-400 select-none">Input:</span> nums = [2,7,11,15], target = 9
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-400 select-none">Output:</span> [0,1]
-                                  </div>
-                                  <div className="text-gray-300">
-                                    <span className="text-gray-400 select-none">Explanation:</span> Because nums[0] + nums[1] == 9, we return [0, 1].
+                              {(realProb ? (realProb.exampleInput || realProb.exampleOutput) : true) && (
+                                <div>
+                                  <h3 className="font-semibold text-lg mb-3 text-text-main">Example 1:</h3>
+                                  <div className="bg-brand-blue text-white rounded-lg p-5 font-mono text-sm shadow-sm space-y-2">
+                                    <div>
+                                      <span className="text-gray-400 select-none">Input:</span> {realProb ? realProb.exampleInput : 'nums = [2,7,11,15], target = 9'}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400 select-none">Output:</span> {realProb ? realProb.exampleOutput : '[0,1]'}
+                                    </div>
+                                    {!realProb && (
+                                      <div className="text-gray-300">
+                                        <span className="text-gray-400 select-none">Explanation:</span> Because nums[0] + nums[1] == 9, we return [0, 1].
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
-                              </div>
+                              )}
 
                               {/* Constraints */}
                               <div>
                                 <h3 className="font-semibold text-lg mb-3 text-text-main">Constraints:</h3>
                                 <ul className="list-disc list-inside space-y-2 text-text-main bg-surface-gray p-5 rounded-lg border border-gray-200">
-                                  <li><code className="font-mono text-sm">2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
-                                  <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-                                  <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
-                                  <li><strong>Only one valid answer exists.</strong></li>
+                                  {realProb ? (
+                                    realProb.constraints ? (
+                                      realProb.constraints.split('\n').filter(c => c.trim().length > 0).map((c, i) => (
+                                        <li key={i}>{c}</li>
+                                      ))
+                                    ) : (
+                                      <li>No constraints specified.</li>
+                                    )
+                                  ) : (
+                                    <>
+                                      <li><code className="font-mono text-sm">2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
+                                      <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
+                                      <li><code className="font-mono text-sm">-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
+                                      <li><strong>Only one valid answer exists.</strong></li>
+                                    </>
+                                  )}
                                 </ul>
                               </div>
 
@@ -2561,7 +2853,7 @@ export const AdminDashboard: React.FC = () => {
                                   <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
                                 </summary>
                                 <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-white">
-                                  A really brute force way would be to search for all possible pairs of numbers but that would be too slow. Again, it's best to try out brute force solutions for just for completeness. It is from these brute force solutions that you can come up with optimizations.
+                                  {realProb ? (realProb.hint || 'No hints available for this problem.') : 'A really brute force way would be to search for all possible pairs of numbers but that would be too slow. Again, it\'s best to try out brute force solutions for just for completeness. It is from these brute force solutions that you can come up with optimizations.'}
                                 </div>
                               </details>
                             </div>
@@ -2688,37 +2980,57 @@ export const AdminDashboard: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody className="text-xs font-semibold divide-y divide-gray-200">
-                          {[
-                            { when: 'Oct 28, 2026, 10:45:12 AM', user: 'CodeNinja_99', prob: 'A', status: 'Accepted', time: '12ms', mem: '2.4 MB', lang: 'C++', statusClass: 'bg-brand-green/10 text-brand-green border border-green-200', icon: 'check_circle' },
-                            { when: 'Oct 28, 2026, 10:42:05 AM', user: 'AlgorithmAce', prob: 'C', status: 'Wrong Answer', time: '4ms', mem: '1.8 MB', lang: 'Python 3', statusClass: 'bg-red-50 text-red-500 border border-red-200', icon: 'cancel' },
-                            { when: 'Oct 28, 2026, 10:38:50 AM', user: 'ByteMe', prob: 'B', status: 'Time Limit Exceeded', time: '>2000ms', mem: '15.2 MB', lang: 'Java', statusClass: 'bg-amber-50 text-amber-600 border border-amber-200', icon: 'timer' },
-                            { when: 'Oct 28, 2026, 10:35:12 AM', user: 'DataStructura', prob: 'A', status: 'Accepted', time: '45ms', mem: '4.1 MB', lang: 'Python 3', statusClass: 'bg-brand-green/10 text-brand-green border border-green-200', icon: 'check_circle' },
-                            { when: 'Oct 28, 2026, 10:30:01 AM', user: 'GraphMaster', prob: 'D', status: 'Compilation Error', time: '-', mem: '-', lang: 'C++', statusClass: 'bg-slate-100 text-slate-500 border border-slate-200', icon: 'error' }
-                          ].map((sub, sIdx) => (
-                            <tr key={sIdx} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="px-6 py-4 text-slate-500 font-normal">{sub.when}</td>
-                              <td className="px-6 py-4 font-bold text-slate-900">{sub.user}</td>
-                              <td className="px-6 py-4 text-center">
-                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold border border-slate-200">{sub.prob}</span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${sub.statusClass}`}>
-                                  <span className="material-symbols-outlined text-[14px] icon-fill">{sub.icon}</span>
-                                  {sub.status}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.time}</td>
-                              <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.mem}</td>
-                              <td className="px-6 py-4">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">{sub.lang}</span>
+                          {loadingContestSubmissions ? (
+                            <tr>
+                              <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                                <span className="animate-pulse">Loading submissions...</span>
                               </td>
                             </tr>
-                          ))}
+                          ) : errorContestSubmissions ? (
+                            <tr>
+                              <td colSpan={7} className="px-6 py-8 text-center text-red-500">
+                                {errorContestSubmissions}
+                              </td>
+                            </tr>
+                          ) : contestSubmissions.length === 0 ? (
+                            <tr>
+                              <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                                No submissions yet.
+                              </td>
+                            </tr>
+                          ) : (
+                            contestSubmissions.map((sub) => (
+                              <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 text-slate-500 font-normal">{sub.submittedAt}</td>
+                                <td className="px-6 py-4 font-bold text-slate-900">@{sub.username}</td>
+                                <td className="px-6 py-4 text-center">
+                                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold border border-slate-200">{sub.problemLabel}</span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                    sub.status === 'Accepted'
+                                      ? 'bg-brand-green/10 text-brand-green border border-green-250'
+                                      : 'bg-red-50 text-red-500 border border-red-200'
+                                  }`}>
+                                    <span className="material-symbols-outlined text-[14px] icon-fill">
+                                      {sub.status === 'Accepted' ? 'check_circle' : 'cancel'}
+                                    </span>
+                                    {sub.status}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.runtime}</td>
+                                <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.memory}</td>
+                                <td className="px-6 py-4">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">{sub.lang}</span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-white">
-                      <span className="text-xs text-slate-500">Showing 1 to 5 of 245 submissions</span>
+                      <span className="text-xs text-slate-500">Showing {contestSubmissions.length} submissions</span>
                       <div className="flex gap-2">
                         <button className="p-1 rounded text-slate-400 bg-transparent border-none hover:bg-slate-100 disabled:opacity-50" disabled>
                           <span className="material-symbols-outlined">chevron_left</span>
@@ -2733,257 +3045,285 @@ export const AdminDashboard: React.FC = () => {
 
                 {reviewContestTab === 'ranking' && (
                   <div className="flex flex-col gap-6 animate-fade-in w-full">
-                    <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 relative overflow-hidden">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between pb-2 border-b border-gray-150">
-                        <div>
-                          <h2 className="font-display font-bold text-lg text-brand-blue flex items-center gap-2">
-                            <span className="material-symbols-outlined text-primary">monitoring</span> Top 5 Teams Progress
-                          </h2>
-                          <p className="text-xs text-text-muted mt-1">Real-time stepwise progression of problems solved over 4 hours.</p>
-                        </div>
+                    {loadingContestRanking ? (
+                      <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-gray-200">
+                        <span className="material-symbols-outlined text-primary text-4xl animate-spin">sync</span>
+                        <p className="text-sm text-text-muted mt-2 font-semibold">Loading scoreboard...</p>
                       </div>
+                    ) : errorContestRanking ? (
+                      <div className="p-12 text-center text-red-500 font-bold bg-white rounded-xl shadow-sm border border-gray-200">
+                        {errorContestRanking}
+                      </div>
+                    ) : rankingTeams.length === 0 ? (
+                      <div className="p-12 text-center text-text-muted bg-white rounded-xl shadow-sm border border-gray-200">
+                        No submissions recorded for this contest yet.
+                      </div>
+                    ) : (() => {
+                      const contestDuration = reviewingContest?.durations || 240;
+                      const problemCount = contestProblems.length || 10;
 
-                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch mt-2">
-                        {/* Interactive Vector Step Chart (Col-span 3) */}
-                        <div className="lg:col-span-3 bg-white rounded-lg border border-gray-150 p-4 relative flex items-center justify-center">
-                          <svg className="w-full h-auto max-w-[760px]" viewBox={`0 0 ${RANKING_W + 60} ${RANKING_H + 40}`} width="100%">
-                            {/* Vertical Hour Grid Lines */}
-                            {Array.from({ length: 5 }).map((_, i) => {
-                              const minutes = i * 60;
-                              const coordsStart = getRankingSvgCoords(minutes, 0);
-                              const coordsEnd = getRankingSvgCoords(minutes, 10);
-                              return (
-                                <g key={i}>
-                                  <line
-                                    x1={coordsStart.x}
-                                    y1={coordsStart.y}
-                                    x2={coordsEnd.x}
-                                    y2={coordsEnd.y}
-                                    stroke="#e2e8f0"
-                                    strokeWidth={1}
-                                    strokeDasharray="4 4"
-                                  />
-                                  <text
-                                    x={coordsStart.x}
-                                    y={coordsStart.y + 16}
-                                    textAnchor="middle"
-                                    className="font-mono text-[10px] fill-text-muted"
-                                  >
-                                    {i}h
-                                  </text>
-                                </g>
-                              );
-                            })}
+                      return (
+                        <>
+                          <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 relative overflow-hidden">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between pb-2 border-b border-gray-150">
+                              <div>
+                                <h2 className="font-display font-bold text-lg text-brand-blue flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-primary">monitoring</span> Top Teams Progress
+                                </h2>
+                                <p className="text-xs text-text-muted mt-1">Real-time stepwise progression of problems solved over the contest duration.</p>
+                              </div>
+                            </div>
 
-                            {/* Horizontal Solved Grid Lines */}
-                            {[0, 2, 4, 6, 8, 10].map((solved) => {
-                              const coordsStart = getRankingSvgCoords(0, solved);
-                              const coordsEnd = getRankingSvgCoords(240, solved);
-                              return (
-                                <g key={solved}>
-                                  <line
-                                    x1={coordsStart.x}
-                                    y1={coordsStart.y}
-                                    x2={coordsEnd.x}
-                                    y2={coordsEnd.y}
-                                    stroke="#e2e8f0"
-                                    strokeWidth={1}
-                                  />
-                                  <text
-                                    x={coordsStart.x - 8}
-                                    y={coordsStart.y + 4}
-                                    textAnchor="end"
-                                    className="font-mono text-[10px] fill-text-muted"
-                                  >
-                                    {solved}
-                                  </text>
-                                </g>
-                              );
-                            })}
-
-                            {/* Draw team stepwise progression lines */}
-                            {TEAMS_DATA.map((team, idx) => {
-                              if (!rankingVisibleTeams[team.name]) return null;
-                              const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
-                              const isHovered = rankingHoveredTeam === team.name;
-                              const { pathStr, solves } = getRankingStepPathString(team);
-
-                              return (
-                                <g key={team.name}>
-                                  <path
-                                    d={pathStr}
-                                    fill="none"
-                                    stroke={color}
-                                    strokeWidth={isHovered ? 3.5 : 1.5}
-                                    strokeOpacity={rankingHoveredTeam === null ? 0.6 : isHovered ? 1.0 : 0.15}
-                                    className="transition-all duration-300"
-                                  />
-
-                                  {solves.map((solve, sIdx) => {
-                                    const coords = getRankingSvgCoords(solve.time, sIdx + 1);
+                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch mt-2">
+                              {/* Interactive Vector Step Chart (Col-span 3) */}
+                              <div className="lg:col-span-3 bg-white rounded-lg border border-gray-150 p-4 relative flex items-center justify-center">
+                                <svg className="w-full h-auto max-w-[760px]" viewBox={`0 0 ${RANKING_W + 60} ${RANKING_H + 40}`} width="100%">
+                                  {/* Vertical Hour Grid Lines */}
+                                  {Array.from({ length: Math.ceil(contestDuration / 60) + 1 }).map((_, i) => {
+                                    const minutes = i * 60;
+                                    if (minutes > contestDuration) return null;
+                                    const coordsStart = getRankingSvgCoords(minutes, 0, contestDuration, problemCount);
+                                    const coordsEnd = getRankingSvgCoords(minutes, problemCount, contestDuration, problemCount);
                                     return (
-                                      <circle
-                                        key={sIdx}
-                                        cx={coords.x}
-                                        cy={coords.y}
-                                        r={isHovered ? 5.5 : 3.5}
-                                        fill={color}
-                                        stroke="#ffffff"
-                                        strokeWidth={1.5}
-                                        opacity={rankingHoveredTeam === null ? 0.9 : isHovered ? 1.0 : 0.15}
-                                        className="cursor-pointer transition-all duration-300"
-                                        onMouseEnter={() => {
-                                          setRankingHoveredTeam(team.name);
-                                          setRankingActiveTooltip({
-                                            x: coords.x,
-                                            y: coords.y,
-                                            teamName: team.name,
-                                            solvedCount: sIdx + 1,
-                                            timeStr: rankingFormatMinutes(solve.time),
-                                            problem: solve.problem
-                                          });
-                                        }}
-                                        onMouseLeave={() => {
-                                          setRankingHoveredTeam(null);
-                                          setRankingActiveTooltip(null);
-                                        }}
-                                      />
+                                      <g key={i}>
+                                        <line
+                                          x1={coordsStart.x}
+                                          y1={coordsStart.y}
+                                          x2={coordsEnd.x}
+                                          y2={coordsEnd.y}
+                                          stroke="#e2e8f0"
+                                          strokeWidth={1}
+                                          strokeDasharray="4 4"
+                                        />
+                                        <text
+                                          x={coordsStart.x}
+                                          y={coordsStart.y + 16}
+                                          textAnchor="middle"
+                                          className="font-mono text-[10px] fill-text-muted"
+                                        >
+                                          {i}h
+                                        </text>
+                                      </g>
                                     );
                                   })}
-                                </g>
-                              );
-                            })}
 
-                            {/* HTML-styled SVG Tooltip Overlay */}
-                            {rankingActiveTooltip && (
-                              <foreignObject
-                                x={rankingActiveTooltip.x - 100}
-                                y={rankingActiveTooltip.y - 75}
-                                width="200"
-                                height="70"
-                                className="pointer-events-none"
-                              >
-                                <div className="bg-slate-900/95 text-white p-2 rounded-lg text-[10px] shadow-lg border border-slate-700/80 font-sans space-y-0.5">
-                                  <div className="font-bold text-primary">{rankingActiveTooltip.teamName}</div>
-                                  <div className="flex justify-between">
-                                    <span>Problem {rankingActiveTooltip.problem}:</span>
-                                    <span className="text-brand-green font-bold">Solved</span>
-                                  </div>
-                                  <div className="flex justify-between text-slate-400">
-                                    <span>Total Solved:</span>
-                                    <span>{rankingActiveTooltip.solvedCount} tasks</span>
-                                  </div>
-                                  <div className="flex justify-between text-slate-400">
-                                    <span>Time:</span>
-                                    <span>{rankingActiveTooltip.timeStr}</span>
-                                  </div>
+                                  {/* Horizontal Solved Grid Lines */}
+                                  {Array.from({ length: problemCount + 1 }).map((_, solved) => {
+                                    const step = problemCount > 8 ? 2 : 1;
+                                    if (solved % step !== 0 && solved !== problemCount) return null;
+                                    const coordsStart = getRankingSvgCoords(0, solved, contestDuration, problemCount);
+                                    const coordsEnd = getRankingSvgCoords(contestDuration, solved, contestDuration, problemCount);
+                                    return (
+                                      <g key={solved}>
+                                        <line
+                                          x1={coordsStart.x}
+                                          y1={coordsStart.y}
+                                          x2={coordsEnd.x}
+                                          y2={coordsEnd.y}
+                                          stroke="#e2e8f0"
+                                          strokeWidth={1}
+                                        />
+                                        <text
+                                          x={coordsStart.x - 8}
+                                          y={coordsStart.y + 4}
+                                          textAnchor="end"
+                                          className="font-mono text-[10px] fill-text-muted"
+                                        >
+                                          {solved}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+
+                                  {/* Draw team stepwise progression lines */}
+                                  {rankingTeams.slice(0, 10).map((team, idx) => {
+                                    if (!rankingVisibleTeams[team.name]) return null;
+                                    const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
+                                    const isHovered = rankingHoveredTeam === team.name;
+                                    const { pathStr, solves } = getRankingStepPathString(team, contestDuration, problemCount);
+
+                                    return (
+                                      <g key={team.name}>
+                                        <path
+                                          d={pathStr}
+                                          fill="none"
+                                          stroke={color}
+                                          strokeWidth={isHovered ? 3.5 : 1.5}
+                                          strokeOpacity={rankingHoveredTeam === null ? 0.6 : isHovered ? 1.0 : 0.15}
+                                          className="transition-all duration-300"
+                                        />
+
+                                        {solves.map((solve, sIdx) => {
+                                          const coords = getRankingSvgCoords(solve.time, sIdx + 1, contestDuration, problemCount);
+                                          return (
+                                            <circle
+                                              key={sIdx}
+                                              cx={coords.x}
+                                              cy={coords.y}
+                                              r={isHovered ? 5.5 : 3.5}
+                                              fill={color}
+                                              stroke="#ffffff"
+                                              strokeWidth={1.5}
+                                              opacity={rankingHoveredTeam === null ? 0.9 : isHovered ? 1.0 : 0.15}
+                                              className="cursor-pointer transition-all duration-300"
+                                              onMouseEnter={() => {
+                                                setRankingHoveredTeam(team.name);
+                                                setRankingActiveTooltip({
+                                                  x: coords.x,
+                                                  y: coords.y,
+                                                  teamName: team.name,
+                                                  solvedCount: sIdx + 1,
+                                                  timeStr: rankingFormatMinutes(solve.time),
+                                                  problem: solve.problem
+                                                });
+                                              }}
+                                              onMouseLeave={() => {
+                                                setRankingHoveredTeam(null);
+                                                setRankingActiveTooltip(null);
+                                              }}
+                                            />
+                                          );
+                                        })}
+                                      </g>
+                                    );
+                                  })}
+
+                                  {/* HTML-styled SVG Tooltip Overlay */}
+                                  {rankingActiveTooltip && (
+                                    <foreignObject
+                                      x={rankingActiveTooltip.x - 100}
+                                      y={rankingActiveTooltip.y - 75}
+                                      width="200"
+                                      height="70"
+                                      className="pointer-events-none"
+                                    >
+                                      <div className="bg-slate-900/95 text-white p-2 rounded-lg text-[10px] shadow-lg border border-slate-700/80 font-sans space-y-0.5">
+                                        <div className="font-bold text-primary">{rankingActiveTooltip.teamName}</div>
+                                        <div className="flex justify-between">
+                                          <span>Problem {rankingActiveTooltip.problem}:</span>
+                                          <span className="text-brand-green font-bold">Solved</span>
+                                        </div>
+                                        <div className="flex justify-between text-slate-400">
+                                          <span>Total Solved:</span>
+                                          <span>{rankingActiveTooltip.solvedCount} tasks</span>
+                                        </div>
+                                        <div className="flex justify-between text-slate-400">
+                                          <span>Time:</span>
+                                          <span>{rankingActiveTooltip.timeStr}</span>
+                                        </div>
+                                      </div>
+                                    </foreignObject>
+                                  )}
+                                </svg>
+                              </div>
+
+                              {/* Legend Toggles */}
+                              <div className="lg:col-span-1 bg-slate-50 border border-slate-200/50 rounded-xl p-4 flex flex-col gap-2.5">
+                                <h4 className="text-xs font-black text-text-muted uppercase tracking-wider mb-1">Toggle Teams</h4>
+                                <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
+                                  {rankingTeams.slice(0, 10).map((team, idx) => {
+                                    const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
+                                    const isVisible = rankingVisibleTeams[team.name];
+                                    return (
+                                      <button
+                                        key={team.name}
+                                        onClick={() => {
+                                          setRankingVisibleTeams(prev => ({
+                                            ...prev,
+                                            [team.name]: !prev[team.name]
+                                          }));
+                                        }}
+                                        className="flex items-center gap-2 text-left bg-transparent border-none cursor-pointer w-full text-xs font-semibold p-1 hover:bg-slate-100 rounded"
+                                      >
+                                        <span
+                                          className="w-3.5 h-3.5 rounded-md flex items-center justify-center shrink-0 border border-slate-300"
+                                          style={{ backgroundColor: isVisible ? color : '#e2e8f0' }}
+                                        >
+                                          {isVisible && <span className="material-symbols-outlined text-[10px] text-white font-black">check</span>}
+                                        </span>
+                                        <span className="truncate flex-1 text-slate-800">{team.name}</span>
+                                      </button>
+                                    );
+                                  })}
                                 </div>
-                              </foreignObject>
-                            )}
-                          </svg>
-                        </div>
+                              </div>
+                            </div>
+                          </section>
 
-                        {/* Legend Toggles */}
-                        <div className="lg:col-span-1 bg-slate-50 border border-slate-200/50 rounded-xl p-4 flex flex-col gap-2.5">
-                          <h4 className="text-xs font-black text-text-muted uppercase tracking-wider mb-1">Toggle Teams</h4>
-                          <div className="flex flex-col gap-2">
-                            {TEAMS_DATA.map((team, idx) => {
-                              const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
-                              const isVisible = rankingVisibleTeams[team.name];
-                              return (
-                                <button
-                                  key={team.name}
-                                  onClick={() => {
-                                    setRankingVisibleTeams(prev => ({
-                                      ...prev,
-                                      [team.name]: !prev[team.name]
-                                    }));
-                                  }}
-                                  className="flex items-center gap-2 text-left bg-transparent border-none cursor-pointer w-full text-xs font-semibold p-1 hover:bg-slate-100 rounded"
-                                >
-                                  <span
-                                    className="w-3.5 h-3.5 rounded-md flex items-center justify-center shrink-0 border border-slate-300"
-                                    style={{ backgroundColor: isVisible ? color : '#e2e8f0' }}
-                                  >
-                                    {isVisible && <span className="material-symbols-outlined text-[10px] text-white font-black">check</span>}
-                                  </span>
-                                  <span className="truncate flex-1 text-slate-800">{team.name}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </section>
+                          {/* Standings table */}
+                          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
+                            <div className="p-6 border-b border-gray-200 bg-white">
+                              <h2 className="text-lg font-bold text-text-main">Standings Scoreboard</h2>
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider text-center">
+                                    <th className="p-3 w-12 text-center">Rank</th>
+                                    <th className="p-3 text-left">Team</th>
+                                    <th className="p-3 w-16 text-center">Solved</th>
+                                    <th className="p-3 w-24 text-center">Penalty</th>
+                                    {contestProblems.map((prob, idx) => (
+                                      <th key={prob.problemId} className="p-3 w-16 text-center">
+                                        {String.fromCharCode(65 + idx)}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody className="text-xs font-semibold divide-y divide-gray-200">
+                                  {rankingTeams.map((team) => {
+                                    // Calculate penalty
+                                    let penaltyMinutes = 0;
+                                    Object.values(team.submissions || {}).forEach((sub: any) => {
+                                      if (sub.status === 'accepted' || sub.status === 'first_solve') {
+                                        const parts = (sub.time || '0:0:0').split(':').map(Number);
+                                        const mins = (parts[0] || 0) * 60 + (parts[1] || 0);
+                                        penaltyMinutes += mins + sub.penalty * 20;
+                                      }
+                                    });
 
-                    {/* Standings table */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
-                      <div className="p-6 border-b border-gray-200 bg-white">
-                        <h2 className="text-lg font-bold text-text-main">Standings Scoreboard</h2>
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider">
-                              <th className="p-3 w-12 text-center">Rank</th>
-                              <th className="p-3">Team</th>
-                              <th className="p-3 w-16 text-center">Solved</th>
-                              <th className="p-3 w-24 text-center">Penalty</th>
-                              {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map((prob) => (
-                                <th key={prob} className="p-3 w-16 text-center">{prob}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody className="text-xs font-semibold divide-y divide-gray-200">
-                            {TEAMS_DATA.map((team) => {
-                              // Calculate penalty
-                              let penaltyMinutes = 0;
-                              Object.values(team.submissions).forEach((sub) => {
-                                if (sub.status === 'accepted' || sub.status === 'first_solve') {
-                                  const parts = (sub.time || '0:0:0').split(':').map(Number);
-                                  const mins = (parts[0] || 0) * 60 + (parts[1] || 0);
-                                  penaltyMinutes += mins + sub.penalty * 20;
-                                }
-                              });
-
-                              return (
-                                <tr key={team.name} className="hover:bg-slate-50/50 transition-colors">
-                                  <td className="p-3 text-center font-bold text-slate-900">{team.rank}</td>
-                                  <td className="p-3">
-                                    <div className="font-bold text-slate-900">{team.name}</div>
-                                    <div className="text-[10px] text-slate-400 font-normal">{team.affiliation}</div>
-                                  </td>
-                                  <td className="p-3 text-center font-bold text-slate-900 bg-slate-50/60">{team.solved}</td>
-                                  <td className="p-3 text-center font-mono text-slate-500 font-normal">{penaltyMinutes} m</td>
-                                  {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map((probCode) => {
-                                    const sub = team.submissions[probCode];
-                                    if (!sub || sub.status === 'unattempted') {
-                                      return <td key={probCode} className="p-3 border border-white text-center bg-gray-50/50"></td>;
-                                    }
-                                    if (sub.status === 'failed') {
-                                      return (
-                                        <td key={probCode} className="p-3 border border-white text-center bg-primary text-white">
-                                          --
-                                          <div className="text-[9px] font-normal text-white/80 font-mono">(-{sub.penalty})</div>
-                                        </td>
-                                      );
-                                    }
-                                    const penaltyText = sub.penalty > 0 ? `(-${sub.penalty})` : '';
-                                    const bgClass = sub.status === 'first_solve' ? 'bg-brand-blue' : 'bg-brand-green';
                                     return (
-                                      <td key={probCode} className={`p-3 border border-white text-center text-white ${bgClass}`}>
-                                        {sub.time}
-                                        <div className="text-[9px] font-normal text-white/80 font-mono">{penaltyText}</div>
-                                      </td>
+                                      <tr key={team.name} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="p-3 text-center font-bold text-slate-900">{team.rank}</td>
+                                        <td className="p-3 text-left">
+                                          <div className="font-bold text-slate-900">@{team.name}</div>
+                                          <div className="text-[10px] text-slate-400 font-normal">{team.affiliation}</div>
+                                        </td>
+                                        <td className="p-3 text-center font-bold text-slate-900 bg-slate-50/60">{team.solved}</td>
+                                        <td className="p-3 text-center font-mono text-slate-500 font-normal">{team.totalPenalty || penaltyMinutes} m</td>
+                                        {contestProblems.map((p, pIdx) => {
+                                          const probCode = String.fromCharCode(65 + pIdx);
+                                          const sub = team.submissions?.[probCode];
+                                          if (!sub || sub.status === 'unattempted') {
+                                            return <td key={p.problemId} className="p-3 border border-white text-center bg-gray-50/50"></td>;
+                                          }
+                                          if (sub.status === 'failed') {
+                                            return (
+                                              <td key={p.problemId} className="p-3 border border-white text-center bg-primary text-white">
+                                                --
+                                                <div className="text-[9px] font-normal text-white/80 font-mono">(-{sub.penalty})</div>
+                                              </td>
+                                            );
+                                          }
+                                          const penaltyText = sub.penalty > 0 ? `(-${sub.penalty})` : '';
+                                          const bgClass = sub.status === 'first_solve' ? 'bg-brand-blue' : 'bg-brand-green';
+                                          return (
+                                            <td key={p.problemId} className={`p-3 border border-white text-center text-white ${bgClass}`}>
+                                              {sub.time}
+                                              <div className="text-[9px] font-normal text-white/80 font-mono">{penaltyText}</div>
+                                            </td>
+                                          );
+                                        })}
+                                      </tr>
                                     );
                                   })}
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -3148,9 +3488,23 @@ export const AdminDashboard: React.FC = () => {
                         {lineChartPoints.points.length > 0 && (
                           <path d={`M ${lineChartPoints.points.map(p => `${p.x} ${p.y}`).join(' L ')}`} fill="none" stroke="#F36F21" strokeWidth="3" strokeLinecap="round" />
                         )}
-                        {/* Dots */}
+                        {/* Dots and Interactions */}
                         {lineChartPoints.points.map((p, idx) => (
-                          <circle key={idx} cx={p.x} cy={p.y} r="4.5" fill="#fff" stroke="#F36F21" strokeWidth="2.5" />
+                          <g key={idx} 
+                             onMouseEnter={() => setHoveredOverviewRevIndex(idx)}
+                             onMouseLeave={() => setHoveredOverviewRevIndex(null)}
+                             className="cursor-pointer">
+                            <circle cx={p.x} cy={p.y} r={hoveredOverviewRevIndex === idx ? "6" : "4.5"} fill="#fff" stroke="#F36F21" strokeWidth={hoveredOverviewRevIndex === idx ? "3" : "2.5"} className="transition-all duration-200" />
+                            {hoveredOverviewRevIndex === idx && (
+                              <g transform={`translate(${p.x}, ${p.y - 22})`}>
+                                <rect x="-40" y="-14" width="80" height="22" rx="4" fill="#1e293b" />
+                                <polygon points="-5,8 5,8 0,13" fill="#1e293b" />
+                                <text x="0" y="2" fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">
+                                  {p.amount.toLocaleString()} ₫
+                                </text>
+                              </g>
+                            )}
+                          </g>
                         ))}
                         {/* Labels */}
                         {financialChartData.map((m, idx) => (
@@ -3181,10 +3535,23 @@ export const AdminDashboard: React.FC = () => {
                           const barHeight = m.usersCount * 2.8;
                           const y = 190 - barHeight;
                           return (
-                            <g key={idx}>
-                              <rect x={x} y={y} width="22" height={barHeight} fill="#12284C" rx="3" className="transition-all duration-300 hover:fill-primary" />
+                            <g key={idx}
+                               onMouseEnter={() => setHoveredOverviewUserIndex(idx)}
+                               onMouseLeave={() => setHoveredOverviewUserIndex(null)}
+                               className="cursor-pointer">
+                              <rect x={x} y={y} width="22" height={barHeight} fill={hoveredOverviewUserIndex === idx ? "#F36F21" : "#12284C"} rx="3" className="transition-all duration-300" />
                               <text x={x + 11} y="210" fill="#64748b" fontSize="9" fontWeight="700" textAnchor="middle">{m.label}</text>
-                              <text x={x + 11} y={y - 5} fill="#12284C" fontSize="8" fontWeight="800" textAnchor="middle">{m.usersCount}</text>
+                              <text x={x + 11} y={y - 5} fill="#12284C" fontSize="8" fontWeight="800" textAnchor="middle" className={hoveredOverviewUserIndex === idx ? "opacity-0" : ""}>{m.usersCount}</text>
+                              
+                              {hoveredOverviewUserIndex === idx && (
+                                <g transform={`translate(${x + 11}, ${y - 22})`}>
+                                  <rect x="-35" y="-14" width="70" height="22" rx="4" fill="#1e293b" />
+                                  <polygon points="-5,8 5,8 0,13" fill="#1e293b" />
+                                  <text x="0" y="2" fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">
+                                    {m.usersCount} users
+                                  </text>
+                                </g>
+                              )}
                             </g>
                           );
                         })}
@@ -3418,9 +3785,17 @@ export const AdminDashboard: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* User Deposit History Table */}
                   <div className="bg-surface rounded-2xl p-6 border border-slate-200/50 ambient-shadow flex flex-col">
-                    <h3 className="font-display font-bold text-lg text-brand-blue mb-4 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary">payments</span> User Deposit History
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-display font-bold text-lg text-brand-blue flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">payments</span> User Deposit History
+                      </h3>
+                      <button 
+                        onClick={handleOpenAllDeposits}
+                        className="text-xs font-bold text-primary hover:text-brand-blue transition-colors flex items-center gap-1 bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full"
+                      >
+                        View All <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                      </button>
+                    </div>
                     <div className="overflow-x-auto max-h-[350px]">
                       <table className="w-full text-left border-collapse">
                         <thead>
@@ -3678,7 +4053,8 @@ export const AdminDashboard: React.FC = () => {
                         {filteredProblems.map((p, index) => {
                           const totalSubs = p.totalSubmissions || 0;
                           const acceptedSubs = p.acceptedSubmissions || 0;
-                          const acceptedRate = totalSubs > 0 ? (acceptedSubs / totalSubs * 100).toFixed(1) : "0.0";
+                          const calculatedRate = totalSubs > 0 ? (acceptedSubs / totalSubs * 100) : 0;
+                          const acceptedRate = Math.min(calculatedRate, 100).toFixed(1);
 
                           return (
                             <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
@@ -3786,25 +4162,69 @@ export const AdminDashboard: React.FC = () => {
             {activeTab === 'contest' && (
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Contests & Competitions</h2>
-                  <div className="flex gap-3 w-full sm:w-auto">
-                    <select
-                      value={contestStatusFilter}
-                      onChange={(e) => setContestStatusFilter(e.target.value as any)}
-                      className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary"
-                    >
-                      <option value="ALL">All Status</option>
-                      <option value="UPCOMING">Upcoming</option>
-                      <option value="RUNNING">Running</option>
-                      <option value="ENDED">Ended</option>
-                      <option value="CANCELLED">Cancelled</option>
-                    </select>
-                    <button
-                      onClick={() => setIsCreateContestOpen(true)}
-                      className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 ml-auto"
-                    >
-                      <span className="material-symbols-outlined text-xs">add</span> Create Contest
-                    </button>
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-2xl font-display font-black text-brand-blue">Contests & Competitions</h2>
+                    {/* Sub-tab Selection */}
+                    <div className="flex gap-4 border-b border-slate-200 mt-2">
+                      <button
+                        onClick={() => {
+                          setContestSubTab('active');
+                          setContestStatusFilter('ALL');
+                        }}
+                        className={`pb-2 text-xs font-bold transition-all px-2 cursor-pointer border-b-2 ${
+                          contestSubTab === 'active' ? 'border-primary text-primary font-black' : 'border-transparent text-slate-400 hover:text-slate-600'
+                        }`}
+                      >
+                        Active Contests
+                      </button>
+                      <button
+                        onClick={() => {
+                          setContestSubTab('trash');
+                          setContestStatusFilter('ALL');
+                        }}
+                        className={`pb-2 text-xs font-bold transition-all px-2 cursor-pointer border-b-2 ${
+                          contestSubTab === 'trash' ? 'border-primary text-primary font-black' : 'border-transparent text-slate-400 hover:text-slate-600'
+                        }`}
+                      >
+                        Thùng rác (Trash)
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3 w-full sm:w-auto items-center">
+                    {contestSubTab === 'active' && (
+                      <select
+                        value={contestStatusFilter}
+                        onChange={(e) => setContestStatusFilter(e.target.value as any)}
+                        className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary cursor-pointer"
+                      >
+                        <option value="ALL">All Status</option>
+                        <option value="DRAFT">Draft</option>
+                        <option value="UPCOMING">Upcoming</option>
+                        <option value="ONGOING">Ongoing</option>
+                        <option value="ENDED">Ended</option>
+                      </select>
+                    )}
+                    {contestSubTab === 'active' && (
+                      <button
+                        onClick={() => {
+                          setIsEditContestMode(false);
+                          setEditingContestId(null);
+                          setEditingContestStatus('');
+                          setNewContestTitle('');
+                          setNewContestDesc('');
+                          setNewContestScoringRule('ICPC');
+                          setNewContestStartTime('');
+                          setNewContestEndTime('');
+                          setNewContestPassword('');
+                          setNewContestConfirmPassword('');
+                          setIsCreateContestOpen(true);
+                        }}
+                        className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 ml-auto cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-xs">add</span> Create Contest
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -3834,24 +4254,74 @@ export const AdminDashboard: React.FC = () => {
                             <td className="py-4 px-6">{c.durations} mins</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{c.participantCount}</td>
                             <td className="py-4 px-6 text-center">
-                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${c.status === 'RUNNING' ? 'bg-red-50 text-red-500 animate-pulse' :
-                                c.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'
-                                }`}>{c.status}</span>
+                              <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${
+                                c.status === 'ONGOING' ? 'bg-red-50 text-red-500 animate-pulse' :
+                                c.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' :
+                                c.status === 'DRAFT' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
+                              }`}>{c.status}</span>
                             </td>
                             <td className="py-4 px-6 text-center">
-                              <button
-                                onClick={() => {
-                                  setReviewingContest(c);
-                                  setReviewContestTab('overview');
-                                  setReviewContestProblemId(null);
-                                }}
-                                className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
-                              >
-                                Detail
-                              </button>
+                              <div className="flex justify-center gap-2">
+                                {contestSubTab === 'active' ? (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setReviewingContest(c);
+                                        setReviewContestTab('overview');
+                                        setReviewContestProblemId(null);
+                                      }}
+                                      className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                    >
+                                      Detail
+                                    </button>
+                                    {(c.status === 'UPCOMING' || c.status === 'DRAFT') && (
+                                      <button
+                                        onClick={() => handleDeleteContest(c.id)}
+                                        className="bg-red-500 hover:bg-red-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                      >
+                                        Delete
+                                      </button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => handleRestoreContest(c.id)}
+                                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                    >
+                                      Restore
+                                    </button>
+                                    {c.submissionCount === 0 ? (
+                                      <button
+                                        onClick={() => {
+                                          if (window.confirm("Are you sure you want to permanently delete this contest? This cannot be undone.")) {
+                                            handleHardDeleteContest(c.id);
+                                          }
+                                        }}
+                                        className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                      >
+                                        Hard Delete
+                                      </button>
+                                    ) : (
+                                      <button
+                                        disabled
+                                        title="Only contests with 0 submissions can be permanently deleted"
+                                        className="bg-slate-200 text-slate-400 font-bold text-[10px] px-3 py-1.5 rounded-xl border-none cursor-not-allowed"
+                                      >
+                                        Hard Delete
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
+                        {filteredContests.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="py-12 text-center text-text-muted italic">No contests found.</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -3883,6 +4353,11 @@ export const AdminDashboard: React.FC = () => {
                     </select>
                   </div>
                 </div>
+
+
+
+
+                
 
                 {/* Instructors table */}
                 <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
@@ -3949,6 +4424,7 @@ export const AdminDashboard: React.FC = () => {
                         )}
                       </tbody>
                     </table>
+
                   </div>
                 </div>
               </div>
@@ -4503,7 +4979,7 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
-                        {(financialStats?.topRevenueCourses || [
+                        {(topCourses || [
                           { name: 'Mastering Full-Stack React & Node.js', tutor: 'Dr. Jenkins', sold: 340, gross: 169660000, payout: 118762000, plat: 50898000 },
                           { name: 'Java Algorithms & Coding Arena', tutor: 'Alice Miller', sold: 210, gross: 81690000, payout: 57183000, plat: 24507000 },
                           { name: 'Go Microservices & Dockerized Deployments', tutor: 'John Doe', sold: 80, gross: 52000000, payout: 36400000, plat: 15600000 },
@@ -4526,6 +5002,10 @@ export const AdminDashboard: React.FC = () => {
           </main>
         )}
       </div>
+
+
+
+
 
 
       {/* ================= MODAL: USER PURCHASES VIEW ================= */}
@@ -4592,7 +5072,7 @@ export const AdminDashboard: React.FC = () => {
                   setNewProbScore(100);
                   setNewProbTimeLimit(2000);
                   setNewProbMemoryLimit(128000);
-                  setNewProbIsPublic(true);
+                  setNewProbIsPublic(false);
                   setNewProbSolutions('');
                   setNewProbTags([]);
                   setNewProbStarterC('');
@@ -5060,14 +5540,23 @@ export const AdminDashboard: React.FC = () => {
       {/* ================= MODAL: CREATE CONTEST ================= */}
       {isCreateContestOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-2xl w-full p-6 animate-fade-in text-left">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-2xl w-full p-6 animate-fade-in text-left bg-white">
             <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-display font-black text-xl text-brand-blue">Create Contest</h3>
-                <p className="text-xs text-text-muted mt-0.5">Input the basic meta details of the competition.</p>
+                <h3 className="font-display font-black text-xl text-brand-blue">
+                  {isEditContestMode ? "Edit Contest" : "Create Contest"}
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {isEditContestMode
+                    ? "Modify details. Core fields are locked once the contest starts."
+                    : "Input the basic meta details of the competition."}
+                </p>
               </div>
               <button onClick={() => {
                 setIsCreateContestOpen(false);
+                setIsEditContestMode(false);
+                setEditingContestId(null);
+                setEditingContestStatus('');
                 setNewContestTitle('');
                 setNewContestDesc('');
                 setNewContestScoringRule('ICPC');
@@ -5075,18 +5564,23 @@ export const AdminDashboard: React.FC = () => {
                 setNewContestEndTime('');
                 setNewContestPassword('');
                 setNewContestConfirmPassword('');
-              }} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors">close</button>
+              }} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors border-none bg-transparent cursor-pointer">close</button>
             </div>
 
-            <form onSubmit={handleCreateContestSubmit} className="flex flex-col gap-4 text-xs font-semibold">
+            <form onSubmit={isEditContestMode ? handleEditContestSubmit : handleCreateContestSubmit} className="flex flex-col gap-4 text-xs font-semibold">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Contest Title *</label>
-                  <input required type="text" value={newContestTitle} onChange={e => setNewContestTitle(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="e.g. Nonstop Coding Winter Cup" />
+                  <input required type="text" value={newContestTitle} onChange={e => setNewContestTitle(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary" placeholder="e.g. Nonstop Coding Winter Cup" />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Scoring Rule</label>
-                  <select value={newContestScoringRule} onChange={e => setNewContestScoringRule(e.target.value as any)} className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-xs">
+                  <select
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestScoringRule}
+                    onChange={e => setNewContestScoringRule(e.target.value as any)}
+                    className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  >
                     <option value="ICPC">ICPC Rule</option>
                     <option value="IOI">IOI Rule</option>
                     <option value="CUSTOM">Custom Rule</option>
@@ -5096,36 +5590,64 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="flex flex-col gap-1">
                 <label className="text-text-muted">Contest Description</label>
-                <textarea rows={3} value={newContestDesc} onChange={e => setNewContestDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Detail contest guidelines..." />
+                <textarea rows={3} value={newContestDesc} onChange={e => setNewContestDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary" placeholder="Detail contest guidelines..." />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Start Time *</label>
-                  <input required type="datetime-local" value={newContestStartTime} onChange={e => setNewContestStartTime(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800" />
+                  <input
+                    required
+                    type="datetime-local"
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestStartTime}
+                    onChange={e => setNewContestStartTime(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">End Time *</label>
-                  <input required type="datetime-local" value={newContestEndTime} onChange={e => setNewContestEndTime(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800" />
+                  <input
+                    required
+                    type="datetime-local"
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestEndTime}
+                    onChange={e => setNewContestEndTime(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Password (Optional)</label>
-                  <input type="password" value={newContestPassword} onChange={e => setNewContestPassword(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Leave empty for public" />
+                  <input
+                    type="password"
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestPassword}
+                    onChange={e => setNewContestPassword(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    placeholder="Leave empty for public"
+                  />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-text-muted">Confirm Password</label>
-                  <input type="password" value={newContestConfirmPassword} onChange={e => setNewContestConfirmPassword(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Confirm contest password" />
+                  <input
+                    type="password"
+                    disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                    value={newContestConfirmPassword}
+                    onChange={e => setNewContestConfirmPassword(e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    placeholder="Confirm contest password"
+                  />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4"
+                className="bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md mt-4 border-none cursor-pointer"
               >
-                Create Contest Meta
+                {isEditContestMode ? "Save Changes" : "Create Contest Meta"}
               </button>
             </form>
           </div>
@@ -5357,12 +5879,12 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                        {(financialStats?.topRevenueCourses || []).length === 0 ? (
+                        {(topCourses || []).length === 0 ? (
                           <tr>
                             <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu doanh thu khóa học.</td>
                           </tr>
                         ) : (
-                          (financialStats?.topRevenueCourses || []).map((c, idx) => (
+                          (topCourses || []).map((c, idx) => (
                             <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                               <td className="p-3 text-slate-900 font-bold">{c.name}</td>
                               <td className="p-3 text-slate-500 font-extrabold">{c.tutor}</td>
@@ -5467,6 +5989,102 @@ export const AdminDashboard: React.FC = () => {
                 </button>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: View All Deposits */}
+      {showAllDepositsModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+            onClick={handleCloseAllDeposits}
+          ></div>
+          
+          <div className="bg-surface w-full max-w-4xl max-h-[85vh] rounded-3xl shadow-2xl relative z-[101] animate-scale-in flex flex-col overflow-hidden border border-slate-200/50">
+            {/* Modal Header */}
+            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
+              <div>
+                <h3 className="text-xl font-display font-black text-brand-blue flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-2xl">receipt_long</span> 
+                  All Deposit History
+                </h3>
+                <p className="text-xs text-text-muted mt-1 font-medium">Complete record of all successful user deposits</p>
+              </div>
+              <button 
+                onClick={handleCloseAllDeposits}
+                className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 overflow-y-auto bg-slate-50/50 flex-1">
+              {loadingAllDeposits ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                  <p className="mt-4 text-sm font-bold text-slate-500 animate-pulse">Loading deposit records...</p>
+                </div>
+              ) : allDeposits.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="material-symbols-outlined text-4xl text-slate-400">money_off</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-700">No Deposits Found</h3>
+                  <p className="text-sm text-text-muted mt-2">There are currently no successful deposit records in the system.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/80 text-xs font-black text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                        <th className="py-4 px-6">Transaction ID</th>
+                        <th className="py-4 px-6">User Name</th>
+                        <th className="py-4 px-6">Amount</th>
+                        <th className="py-4 px-6 text-right">Date & Time</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm font-semibold divide-y divide-slate-100">
+                      {allDeposits.map((dep) => (
+                        <tr key={dep.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-4 px-6 text-slate-500 text-xs">#{dep.id}</td>
+                          <td className="py-4 px-6 text-slate-900 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
+                              {dep.userName.charAt(0).toUpperCase()}
+                            </div>
+                            {dep.userName}
+                          </td>
+                          <td className="py-4 px-6 text-emerald-600 font-bold">
+                            +{dep.amount.toLocaleString()} ₫
+                          </td>
+                          <td className="py-4 px-6 text-slate-500 text-xs text-right">
+                            {new Date(dep.date).toLocaleString('en-GB', {
+                              hour: '2-digit', minute: '2-digit', second: '2-digit',
+                              day: '2-digit', month: '2-digit', year: 'numeric'
+                            })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="px-8 py-5 border-t border-slate-100 bg-white flex justify-between items-center rounded-b-3xl">
+              <span className="text-xs font-bold text-slate-500">
+                Total Records: <span className="text-primary">{allDeposits.length}</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleCloseAllDeposits}
+                className="px-6 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

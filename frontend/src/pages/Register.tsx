@@ -19,7 +19,7 @@ export const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setError('Mật khẩu và mật khẩu xác nhận không khớp!');
+      setError('Password and confirm password do not match!');
       return;
     }
     setLoading(true);
@@ -40,7 +40,7 @@ export const Register: React.FC = () => {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(err.message || 'Đăng ký không thành công. Vui lòng kiểm tra lại.');
+      setError(err.message || 'Registration failed. Please check your details.');
     } finally {
       setLoading(false);
     }
@@ -252,7 +252,7 @@ export const Register: React.FC = () => {
                           navigate('/dashboard');
                         }
                       } catch (err: any) {
-                        setError(err.message || 'Đăng ký Google thất bại');
+                    setError(err.message || 'Google registration failed');
                       } finally {
                         setLoading(false);
                       }

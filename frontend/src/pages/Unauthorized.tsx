@@ -20,7 +20,7 @@ export const Unauthorized: React.FC = () => {
         
         <h3 className="font-display font-black text-2xl text-brand-blue mb-3">Access Denied</h3>
         <p className="font-body text-sm text-text-muted mb-8 leading-relaxed">
-          Quyền truy cập bị từ chối. Tài khoản hiện tại của bạn không có đủ thẩm quyền để truy cập vào phân vùng này.
+          Access denied. Your current account does not have sufficient permissions to access this area.
         </p>
 
         <div className="flex flex-col gap-3">

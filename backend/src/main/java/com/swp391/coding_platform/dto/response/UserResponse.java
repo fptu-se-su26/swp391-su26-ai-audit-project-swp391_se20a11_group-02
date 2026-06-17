@@ -13,4 +13,7 @@ public class UserResponse {
     String displayName;
     String email;
     String avatarUrl;
+    String status;
+    String lockReason;
+    String lockAppeal;
 }

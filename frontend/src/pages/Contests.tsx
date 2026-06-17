@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
@@ -30,6 +30,7 @@ interface UserStats {
 
 export const Contests: React.FC = () => {
   const { user } = useApp();
+  const timeOffsetRef = useRef<number>(0);
 
   // --- States for Interactivity ---
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,6 +65,9 @@ export const Contests: React.FC = () => {
           setContests(data.result.content);
           setTotalPages(data.result.totalPages);
           setTotalElements(data.result.totalElements);
+          if (data.timestamp) {
+            timeOffsetRef.current = new Date(data.timestamp).getTime() - Date.now();
+          }
         }
       } catch (error) {
         console.error("Lỗi khi fetch data contest:", error);
@@ -79,15 +83,17 @@ export const Contests: React.FC = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, statusFilter, accessFilter, currentPage]);
 
-  // --- Fetch Banner & User Stats ---
   const fetchBannerAndStats = useCallback(async () => {
     try {
       const bannerRes = await fetch('http://localhost:8080/nonstopcoding/contests/banner', {
         credentials: 'include'
       });
       const bannerData = await bannerRes.json();
-      if (bannerData && bannerData.result) {
+      if (bannerData) {
         setBannerContest(bannerData.result);
+        if (bannerData.timestamp) {
+          timeOffsetRef.current = new Date(bannerData.timestamp).getTime() - Date.now();
+        }
       }
 
       if (user) {
@@ -150,7 +156,7 @@ export const Contests: React.FC = () => {
     const startTimeMs = new Date(bannerContest.startTime).getTime();
 
     const updateCountdown = () => {
-      const now = Date.now();
+      const now = Date.now() + timeOffsetRef.current;
       const difference = startTimeMs - now;
 
       if (difference <= 0) {
@@ -253,62 +259,62 @@ export const Contests: React.FC = () => {
       </div>
 
       {/* Hero Promo Banner: Upcoming / Ongoing Hot Contest */}
-      <section className="relative z-10 bg-gradient-to-br from-brand-blue via-[#173059] to-brand-blue rounded-2xl p-8 md:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 text-white shadow-xl overflow-hidden border border-white/10">
-        {/* Tech Graphics Backdrop */}
-        <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none overflow-hidden">
-          <span className="material-symbols-outlined absolute -right-16 -top-16 text-[320px] text-primary/30 font-thin select-none">emoji_events</span>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(243,111,33,0.15),transparent_60%)]"></div>
-        </div>
-
-        {/* Details */}
-        <div className="relative z-10 flex flex-col gap-5 max-w-3xl">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1 bg-primary text-white font-extrabold text-[10px] md:text-xs uppercase tracking-widest px-3 py-1 rounded-full animate-pulse shadow-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-white"></span> Live Spotlight
-            </span>
-            <span className="text-[10px] md:text-xs text-white/70 bg-white/10 px-2.5 py-1 rounded-full font-medium">Spring Season 2026</span>
-          </div>
-          <div>
-            <h2 className="font-display text-3xl md:text-5xl font-black mb-2 leading-tight tracking-tight bg-gradient-to-r from-white via-white to-primary-light bg-clip-text text-transparent">
-              {bannerContest?.title || 'Nonstop Spring Clash 2026'}
-            </h2>
-            <p className="font-body text-sm md:text-base text-white/80 max-w-2xl mt-2 leading-relaxed">
-              {bannerContest?.description || 'Compete with over 10,000+ developers worldwide. Solve 5 algorithmic challenges, win cash prizes, and lock in your legendary gold profile badge.'}
-            </p>
+      {bannerContest && (
+        <section className="relative z-10 bg-gradient-to-br from-brand-blue via-[#173059] to-brand-blue rounded-2xl p-8 md:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 text-white shadow-xl overflow-hidden border border-white/10">
+          {/* Tech Graphics Backdrop */}
+          <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none overflow-hidden">
+            <span className="material-symbols-outlined absolute -right-16 -top-16 text-[320px] text-primary/30 font-thin select-none">emoji_events</span>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(243,111,33,0.15),transparent_60%)]"></div>
           </div>
 
-          {/* Glassmorphism Stats Cards */}
-          <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-lg mt-1">
-            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 flex flex-col items-center justify-center text-center">
-              <span className="material-symbols-outlined text-primary text-2xl mb-1 icon-fill">emoji_events</span>
-              <span className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Scoring Rule</span>
-              <span className="text-xs md:text-base font-bold text-white mt-0.5">{bannerContest?.scoringRule || 'ICPC'}</span>
+          {/* Details */}
+          <div className="relative z-10 flex flex-col gap-5 max-w-3xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1 bg-primary text-white font-extrabold text-[10px] md:text-xs uppercase tracking-widest px-3 py-1 rounded-full animate-pulse shadow-md">
+                <span className="w-1.5 h-1.5 rounded-full bg-white"></span> Live Spotlight
+              </span>
+              <span className="text-[10px] md:text-xs text-white/70 bg-white/10 px-2.5 py-1 rounded-full font-medium">Spring Season 2026</span>
             </div>
-            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 flex flex-col items-center justify-center text-center">
-              <span className="material-symbols-outlined text-brand-green text-2xl mb-1">timer</span>
-              <span className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Duration</span>
-              <span className="text-xs md:text-base font-bold text-white mt-0.5">{bannerContest?.durations || 180} Mins</span>
+            <div>
+              <h2 className="font-display text-3xl md:text-5xl font-black mb-2 leading-tight tracking-tight bg-gradient-to-r from-white via-white to-primary-light bg-clip-text text-transparent">
+                {bannerContest.title}
+              </h2>
+              <p className="font-body text-sm md:text-base text-white/80 max-w-2xl mt-2 leading-relaxed">
+                {bannerContest.description}
+              </p>
             </div>
-            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 flex flex-col items-center justify-center text-center">
-              <span className="material-symbols-outlined text-blue-400 text-2xl mb-1">quiz</span>
-              <span className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Challenges</span>
-              <span className="text-xs md:text-base font-bold text-white mt-0.5">{bannerContest?.problemCount || 5} Tasks</span>
+
+            {/* Glassmorphism Stats Cards */}
+            <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-lg mt-1">
+              <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 flex flex-col items-center justify-center text-center">
+                <span className="material-symbols-outlined text-primary text-2xl mb-1 icon-fill">emoji_events</span>
+                <span className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Scoring Rule</span>
+                <span className="text-xs md:text-base font-bold text-white mt-0.5">{bannerContest.scoringRule || 'ICPC'}</span>
+              </div>
+              <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 flex flex-col items-center justify-center text-center">
+                <span className="material-symbols-outlined text-brand-green text-2xl mb-1">timer</span>
+                <span className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Duration</span>
+                <span className="text-xs md:text-base font-bold text-white mt-0.5">{bannerContest.durations || 180} Mins</span>
+              </div>
+              <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 flex flex-col items-center justify-center text-center">
+                <span className="material-symbols-outlined text-blue-400 text-2xl mb-1">quiz</span>
+                <span className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Challenges</span>
+                <span className="text-xs md:text-base font-bold text-white mt-0.5">{bannerContest.problemCount || 0} Tasks</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Countdown & Action Box */}
-        <div className="relative z-10 w-full lg:w-96 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 flex flex-col gap-5 justify-center items-center text-center shadow-2xl">
-          {/* 1. Registration Competitors Count */}
-          <div className="w-full flex justify-center items-center text-sm font-semibold text-white/70">
-            <span className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[18px]">groups</span>
-              <span>{(bannerContest?.participantCount || 0).toLocaleString()} Competitors Joined</span>
-            </span>
-          </div>
+          {/* Countdown & Action Box */}
+          <div className="relative z-10 w-full lg:w-96 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 flex flex-col gap-5 justify-center items-center text-center shadow-2xl">
+            {/* 1. Registration Competitors Count */}
+            <div className="w-full flex justify-center items-center text-sm font-semibold text-white/70">
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[18px]">groups</span>
+                <span>{(bannerContest.participantCount || 0).toLocaleString()} Competitors Joined</span>
+              </span>
+            </div>
 
-          {/* 2. Countdown Clock or Live Indicator */}
-          {bannerContest && (
+            {/* 2. Countdown Clock or Live Indicator */}
             <div className="w-full flex flex-col items-center gap-3">
               <h4 className="text-xs md:text-sm font-extrabold text-white/80 uppercase tracking-widest">
                 {timeLeft.isLive ? 'Contest is Live' : 'Contest Begin In'}
@@ -348,26 +354,17 @@ export const Contests: React.FC = () => {
                 </div>
               )}
             </div>
-          )}
 
-          {/* 3. Action Button: Enter Arena Now */}
-          {bannerContest ? (
+            {/* 3. Action Button: Enter Arena Now */}
             <Link 
               to={`/contests/${bannerContest.id}`} 
               className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-brand-green to-green-600 hover:from-green-600 hover:to-green-700 text-white font-extrabold text-base transition-all transform hover:-translate-y-0.5 active:translate-y-0 shadow-lg pulse-glow-green flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined font-bold">login</span> Enter Arena Now
             </Link>
-          ) : (
-            <button 
-              disabled
-              className="w-full py-4 px-6 rounded-xl bg-gray-500 text-white font-extrabold text-base"
-            >
-              Loading Spotlight...
-            </button>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* Combat Layout: Main List & Profile Sidebar */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
