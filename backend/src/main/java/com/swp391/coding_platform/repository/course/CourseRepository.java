@@ -57,6 +57,23 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long>, Jpa
            "WHERE q.id = :quizId AND c.instructor_id = :instructorId" +
            ")", nativeQuery = true)
     boolean existsByQuizIdAndInstructorId(@Param("quizId") Long quizId, @Param("instructorId") Integer instructorId);
+
+    @Modifying
+    @Query(value = "INSERT INTO public.course_embeddings (course_id, embedding) " +
+                   "VALUES (:courseId, cast(:embedding as vector)) " +
+                   "ON CONFLICT (course_id) DO UPDATE SET embedding = EXCLUDED.embedding", nativeQuery = true)
+    void saveCourseEmbedding(@Param("courseId") Long courseId, @Param("embedding") String embedding);
+
+    @Query(value = "SELECT course_id, (1 - (embedding <=> cast(:newEmbedding as vector))) AS similarity " +
+                   "FROM public.course_embeddings " +
+                   "WHERE course_id != :currentCourseId " +
+                   "ORDER BY embedding <=> cast(:newEmbedding as vector) " +
+                   "LIMIT :limit", nativeQuery = true)
+    List<Object[]> findDuplicateCourses(
+        @Param("newEmbedding") String newEmbedding, 
+        @Param("currentCourseId") Long currentCourseId, 
+        @Param("limit") int limit
+    );
 }
 
 

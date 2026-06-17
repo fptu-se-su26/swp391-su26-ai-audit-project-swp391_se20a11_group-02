@@ -36,6 +36,8 @@ import com.swp391.coding_platform.dto.response.LessonCommentResponse;
 import com.swp391.coding_platform.entity.course.LessonCommentEntity;
 import com.swp391.coding_platform.repository.course.LessonCommentRepository;
 import com.swp391.coding_platform.repository.course.LessonRepository;
+import com.swp391.coding_platform.repository.course.LessonProblemRepository;
+import com.swp391.coding_platform.repository.course.QuizRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +67,9 @@ public class CourseService {
     UserRepository userRepository;
     LessonCommentRepository lessonCommentRepository;
     LessonRepository lessonRepository;
+    LessonProblemRepository lessonProblemRepository;
+    QuizRepository quizRepository;
+    QuizService quizService;
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
@@ -327,7 +332,44 @@ public class CourseService {
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
 
-        return courseMapper.toLearningLessonResponse(lesson);
+        LearningLessonResponse response = courseMapper.toLearningLessonResponse(lesson);
+        response.setSourceCode(lesson.getSourceCode());
+
+        // Fetch coding problems linked to this lesson
+        List<com.swp391.coding_platform.entity.course.LessonProblemEntity> lessonProblems = 
+                lessonProblemRepository.findByLessonIdOrderByOrderIndexAsc(lessonId);
+        List<com.swp391.coding_platform.dto.response.ProblemListItemResponse> problemResponses = lessonProblems.stream()
+                .map(lp -> {
+                    var problem = lp.getProblem();
+                    String diff = problem.getDifficulty() != null 
+                            ? problem.getDifficulty().name().substring(0, 1).toUpperCase() + problem.getDifficulty().name().substring(1).toLowerCase()
+                            : "Medium";
+                    return com.swp391.coding_platform.dto.response.ProblemListItemResponse.builder()
+                            .id(problem.getId())
+                            .title(problem.getTitle())
+                            .difficulty(diff)
+                            .score(problem.getScore() != null ? problem.getScore().intValue() : 0)
+                            .totalSubmission(problem.getTotalSubmission() != null ? problem.getTotalSubmission() : 0)
+                            .totalAccepted(problem.getTotalAccepted() != null ? problem.getTotalAccepted() : 0)
+                            .isSolved(false)
+                            .status("unsolved")
+                            .build();
+                })
+                .toList();
+        response.setProblems(problemResponses);
+
+        // Fetch quiz details if present
+        try {
+            if (quizRepository.findByLessonId(lessonId).isPresent()) {
+                com.swp391.coding_platform.dto.response.QuizDetailResponse quizDetail = 
+                        quizService.getQuizDetailByLessonId(lessonId, userId != null ? userId.intValue() : 0);
+                response.setQuiz(quizDetail);
+            }
+        } catch (Exception e) {
+            log.warn("[CourseService] Failed to load quiz details for lessonId: {}, error: {}", lessonId, e.getMessage());
+        }
+
+        return response;
     }
 
     public List<LessonCommentResponse> getLessonComments(Integer lessonId) {

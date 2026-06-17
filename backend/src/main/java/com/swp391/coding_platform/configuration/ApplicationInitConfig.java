@@ -31,10 +31,15 @@ public class ApplicationInitConfig {
         log.info("Init application for dev environment...");
 
         return args -> {
-            if (!userRepository.findByUsername("admin").isPresent()) {
-                RoleEntity adminRole = roleRepository.findByName(RoleName.ADMIN)
-                        .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.ADMIN).build()));
+            // Setup role ADMIN first
+            RoleEntity adminRole = roleRepository.findByName(RoleName.ADMIN)
+                    .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.ADMIN).build()));
 
+            // 1. Process "admin" user
+            var adminUserOpt = userRepository.findByUsername("admin");
+            boolean emailExists = userRepository.findByEmail("admin@gmail.com").isPresent();
+
+            if (adminUserOpt.isEmpty() && !emailExists) {
                 UserEntity adminUser = UserEntity.builder()
                         .username("admin")
                         .passwordHash(passwordEncoder.encode("admin"))
@@ -45,8 +50,41 @@ public class ApplicationInitConfig {
                         .build();
 
                 userRepository.save(adminUser);
-
                 log.warn("Dev admin user has been created. Please change the default password if needed.");
+            } else {
+                log.info("Admin user already exists. Forcing reset password to 'admin' and status to ACTIVE for dev profile...");
+                adminUserOpt.ifPresent(adminUser -> {
+                    adminUser.setPasswordHash(passwordEncoder.encode("admin"));
+                    adminUser.setStatus(UserStatus.ACTIVE);
+                    userRepository.save(adminUser);
+                    log.warn("Dev admin user password has been reset to 'admin' and status set to ACTIVE.");
+                });
+            }
+
+            // 2. Process "admin1" user
+            var admin1UserOpt = userRepository.findByUsername("admin1");
+            boolean admin1EmailExists = userRepository.findByEmail("admin1@gmail.com").isPresent();
+
+            if (admin1UserOpt.isEmpty() && !admin1EmailExists) {
+                UserEntity admin1User = UserEntity.builder()
+                        .username("admin1")
+                        .passwordHash(passwordEncoder.encode("admin"))
+                        .displayname("admin1")
+                        .email("admin1@gmail.com")
+                        .status(UserStatus.ACTIVE)
+                        .roles(java.util.Collections.singleton(adminRole))
+                        .build();
+
+                userRepository.save(admin1User);
+                log.warn("Dev admin1 user has been created with password 'admin'.");
+            } else {
+                log.info("Admin1 user already exists. Forcing reset password to 'admin' and status to ACTIVE...");
+                admin1UserOpt.ifPresent(admin1User -> {
+                    admin1User.setPasswordHash(passwordEncoder.encode("admin"));
+                    admin1User.setStatus(UserStatus.ACTIVE);
+                    userRepository.save(admin1User);
+                    log.warn("Dev admin1 user password has been reset to 'admin' and status set to ACTIVE.");
+                });
             }
         };
     }

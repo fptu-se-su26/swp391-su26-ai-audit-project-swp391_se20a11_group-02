@@ -12,4 +12,6 @@ public interface ChapterRepository extends JpaRepository<ChapterEntity, Integer>
 
     @EntityGraph(attributePaths = {"lessons"})
     List<ChapterEntity> findByCourseIdOrderByOrderIndexAsc(Long courseId);
+
+    int countByCourseId(Long courseId);
 }
