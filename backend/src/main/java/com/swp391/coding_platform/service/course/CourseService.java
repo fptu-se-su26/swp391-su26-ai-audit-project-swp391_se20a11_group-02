@@ -156,6 +156,15 @@ public class CourseService {
         CourseEntity courseEntity = courseRepository.findById(courseId)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
+        boolean isOwner = false;
+        if (userId != null) {
+            isOwner = courseEntity.getInstructor().getUser().getId().equals(userId);
+        }
+
+        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
+
         CourseDetailResponse response = courseMapper.toCourseDetailResponse(courseEntity);
 
         if (userId != null) {
@@ -177,8 +186,16 @@ public class CourseService {
         return response;
     }
 
-    public List<CurriculumChapterResponse> getCourseCurriculum(Long courseId) {
-        if (!courseRepository.existsById(courseId)) {
+    public List<CurriculumChapterResponse> getCourseCurriculum(Long userId, Long courseId) {
+        CourseEntity courseEntity = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        boolean isOwner = false;
+        if (userId != null) {
+            isOwner = courseEntity.getInstructor().getUser().getId().equals(userId);
+        }
+
+        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner) {
             throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
 

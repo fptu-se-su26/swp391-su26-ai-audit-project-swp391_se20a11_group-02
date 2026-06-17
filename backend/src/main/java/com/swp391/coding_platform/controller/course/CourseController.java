@@ -92,9 +92,15 @@ public class CourseController {
 
     @GetMapping("/{id}/curriculum")
     public ResponseEntity<ApiResponse<List<CurriculumChapterResponse>>> getCourseCurriculum(
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long id) {
 
-        var result = courseService.getCourseCurriculum(id);
+        Long userId = null;
+        if (jwt != null) {
+            userId = jwt.getClaim("userId");
+        }
+
+        var result = courseService.getCourseCurriculum(userId, id);
 
         return ResponseEntity.ok(ApiResponse.<List<CurriculumChapterResponse>>builder()
                 .status(200)
