@@ -1,6 +1,8 @@
 package com.swp391.coding_platform.configuration;
 
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -50,5 +52,17 @@ public class ModerationQueueConfig {
             @org.springframework.beans.factory.annotation.Qualifier("deadLetterQueue") Queue deadLetterQueue, 
             @org.springframework.beans.factory.annotation.Qualifier("deadLetterExchange") DirectExchange deadLetterExchange) {
         return BindingBuilder.bind(deadLetterQueue).to(deadLetterExchange).with(MODERATION_DLQ_ROUTING_KEY);
+    }
+
+    /**
+     * Listener container factory riêng cho moderation queue.
+     * defaultRequeueRejected=false: message bị reject sẽ vào DLQ thay vì requeue vô hạn.
+     */
+    @Bean("moderationContainerFactory")
+    public SimpleRabbitListenerContainerFactory moderationContainerFactory(ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setDefaultRequeueRejected(false); // Không requeue khi listener fail → vào DLQ
+        return factory;
     }
 }

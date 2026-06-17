@@ -26,7 +26,7 @@ public class WebClientConfig {
     @Value("${judge0.timeout:20s}")
     Duration timeout;
 
-    @Value("${ai.base-url:https://api.openai.com}")
+    @Value("${ai.base-url:https://generativelanguage.googleapis.com}")
     String aiBaseUrl;
 
     @Value("${ai.timeout:120s}")

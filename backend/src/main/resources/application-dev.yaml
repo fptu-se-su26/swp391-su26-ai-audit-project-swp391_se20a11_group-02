@@ -91,7 +91,8 @@ cloudinary:
   api-secret: ${CLOUDINARY_API_SECRET}
 
 ai:
-  base-url: ${AI_BASE_URL:https://api.openai.com}
+  base-url: ${AI_BASE_URL:https://generativelanguage.googleapis.com}
   timeout: ${AI_TIMEOUT:120s}
   gemini-api-key: ${GEMINI_API_KEY}
+  gemini-model: ${GEMINI_MODEL:gemini-2.5-flash}
 

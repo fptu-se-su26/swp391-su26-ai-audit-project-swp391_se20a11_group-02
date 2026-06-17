@@ -743,26 +743,26 @@ export const AdminDashboard: React.FC = () => {
         topCoursesRes,
         financialDetailsRes
       ] = await Promise.all([
-        adminService.getDashboardStats(),
-        adminService.getCourses(),
-        adminService.getInstructors(),
-        adminService.getUsers(),
-        adminService.getProblems(),
-        adminService.getContests(),
-        adminService.getRecentDeposits(),
-        adminService.getTags(),
-        adminService.getFinancialMonthlyRecords(),
-        adminService.getFinancialTopCourses(),
-        adminService.getFinancialDetails()
+        adminService.getDashboardStats().catch(err => { console.error("Failed to load stats:", err); return null; }),
+        adminService.getCourses().catch(err => { console.error("Failed to load courses:", err); return []; }),
+        adminService.getInstructors().catch(err => { console.error("Failed to load instructors:", err); return []; }),
+        adminService.getUsers().catch(err => { console.error("Failed to load users:", err); return []; }),
+        adminService.getProblems().catch(err => { console.error("Failed to load problems:", err); return []; }),
+        adminService.getContests().catch(err => { console.error("Failed to load contests:", err); return []; }),
+        adminService.getRecentDeposits().catch(err => { console.error("Failed to load recent deposits:", err); return []; }),
+        adminService.getTags().catch(err => { console.error("Failed to load tags:", err); return []; }),
+        adminService.getFinancialMonthlyRecords().catch(err => { console.error("Failed to load monthly records:", err); return []; }),
+        adminService.getFinancialTopCourses().catch(err => { console.error("Failed to load top courses:", err); return []; }),
+        adminService.getFinancialDetails().catch(err => { console.error("Failed to load financial details:", err); return null; })
       ]);
 
       setStats(statsRes);
-      setCourses(coursesRes);
-      setInstructors(instsRes);
-      setUsers(usersRes);
-      setProblems(probsRes);
-      setContests(contestsRes);
-      setRecentDeposits(recentDepositsRes);
+      setCourses(coursesRes || []);
+      setInstructors(instsRes || []);
+      setUsers(usersRes || []);
+      setProblems(probsRes || []);
+      setContests(contestsRes || []);
+      setRecentDeposits(recentDepositsRes || []);
       setAllTags(tagsRes || []);
       setMonthlyRecords(monthlyRecordsRes || []);
       setTopCourses(topCoursesRes || []);
@@ -776,7 +776,7 @@ export const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [tab]);
 
 
 
@@ -1091,7 +1091,7 @@ export const AdminDashboard: React.FC = () => {
   const handleApproveCourse = async (courseId: string, status: 'APPROVED' | 'REJECTED') => {
     try {
       const updated = await adminService.approveCourse(courseId, status);
-      setCourses(prev => prev.map(c => c.id === courseId ? updated : c));
+      setCourses(prev => prev.map(c => String(c.id) === String(courseId) ? updated : c));
 
       setReviewingCourse(null);
       // reload stats
@@ -4143,7 +4143,17 @@ export const AdminDashboard: React.FC = () => {
             {activeTab === 'courses' && (
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h2 className="text-2xl font-display font-black text-brand-blue">Platform Courses Management</h2>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-display font-black text-brand-blue">Platform Courses Management</h2>
+                    <button
+                      onClick={loadData}
+                      disabled={loading}
+                      title="Refresh course list"
+                      className="flex items-center justify-center p-1.5 rounded-xl border border-slate-200 bg-surface text-slate-500 hover:text-primary hover:border-primary/50 active:scale-95 transition-all shrink-0 shadow-sm"
+                    >
+                      <span className={`material-symbols-outlined text-[18px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
+                    </button>
+                  </div>
                   {/* Status Filters */}
                   <div className="flex gap-2">
                     {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (

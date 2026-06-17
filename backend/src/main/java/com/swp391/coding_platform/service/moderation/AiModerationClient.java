@@ -29,6 +29,9 @@ public class AiModerationClient {
     @Value("${ai.gemini-api-key:}")
     private String geminiApiKey;
 
+    @Value("${ai.gemini-model:gemini-2.5-flash}")
+    private String geminiModel;
+
     // 1. Chuyển đổi giọng nói thành văn bản (Sử dụng OpenAI Whisper API - dự phòng)
     public String transcribeAudio(File audioFile) {
         try {
@@ -51,6 +54,12 @@ public class AiModerationClient {
             if (geminiApiKey == null || geminiApiKey.trim().isEmpty()) {
                 throw new IllegalStateException("GEMINI_API_KEY chưa được khai báo trong cấu hình hệ thống.");
             }
+
+            String trimmedKey = geminiApiKey.trim();
+            log.info("Gemini API Key loaded: length={}, startsWith={}, endsWith={}", 
+                trimmedKey.length(), 
+                trimmedKey.substring(0, Math.min(trimmedKey.length(), 10)),
+                trimmedKey.substring(Math.max(0, trimmedKey.length() - 5)));
 
             // Định nghĩa System Prompt và cấu trúc dữ liệu cho Gemini
             String systemPrompt = "Bạn là Chuyên gia Kiểm định Chất lượng Giáo dục. Bạn được giao nhiệm vụ duyệt khóa học.\n" +
@@ -88,8 +97,14 @@ public class AiModerationClient {
                             .build())
                     .build();
 
-            // Gọi API Gemini 1.5 Pro để phân tích logic sâu sắc
-            String uri = String.format("/v1beta/models/gemini-1.5-pro:generateContent?key=%s", geminiApiKey);
+            String modelToUse = geminiModel != null ? geminiModel.trim() : "gemini-2.5-flash";
+            if (modelToUse.contains("1.5")) {
+                log.warn("Cảnh báo: Phát hiện cấu hình mô hình Gemini 1.5 cũ: '{}' (không khả dụng). Tự động fallback về 'gemini-2.5-flash'. Vui lòng kiểm tra lại biến môi trường GEMINI_MODEL của bạn.", modelToUse);
+                modelToUse = "gemini-2.5-flash";
+            }
+
+            // Gọi API Gemini để phân tích logic sâu sắc
+            String uri = String.format("/v1beta/models/%s:generateContent?key=%s", modelToUse, trimmedKey);
             
             GeminiResponse response = aiWebClient.post()
                     .uri(uri)

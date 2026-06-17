@@ -31,7 +31,7 @@ public class CourseModerationListener {
     private final AiModerationClient aiClient;
     private final CourseDuplicateDetectorService duplicateDetector;
 
-    @RabbitListener(queues = ModerationQueueConfig.MODERATION_QUEUE)
+    @RabbitListener(queues = ModerationQueueConfig.MODERATION_QUEUE, containerFactory = "moderationContainerFactory")
     @Transactional
     public void processCourseModeration(Long courseId) {
         log.info("Bắt đầu xử lý tin nhắn RabbitMQ kiểm duyệt cho khóa học ID: {}", courseId);
@@ -64,7 +64,7 @@ public class CourseModerationListener {
                 report.setRiskScore(1.00); // Vi phạm bản quyền/trùng lặp
                 report.setConfidenceScore(dupResult.getSimilarityScore());
                 report.setNeedsAdminReview(true);
-                report.setFlaggedCategories(List.of("DUPLICATE_COURSE_DETECTED"));
+                report.setFlaggedCategories(new java.util.ArrayList<>(java.util.Arrays.asList("DUPLICATE_COURSE_DETECTED")));
                 report.setReasons(String.format("Tự động phát hiện trùng lặp/đạo văn với khóa học ID: %d (Độ tương đồng %.2f%%).", 
                         dupResult.getMatchedCourseId(), dupResult.getSimilarityScore() * 100));
                 reportRepository.save(report);
@@ -99,6 +99,9 @@ public class CourseModerationListener {
                             log.error("Gặp lỗi khi dịch âm thanh bài học: {}", lesson.getTitle(), videoEx);
                             report.setErrorLog((report.getErrorLog() != null ? report.getErrorLog() + "\n" : "") + 
                                                "Lỗi video bài " + lesson.getTitle() + ": " + videoEx.getMessage());
+                            // Fallback cho phép AI nhận biết khóa học có video nhưng chưa dịch được
+                            transcriptCollector.append("Lesson ").append(lesson.getTitle()).append(" Video Transcript:\n")
+                                               .append("[VIDEO_PRESENT_BUT_TRANSCRIPT_UNAVAILABLE]\n\n");
                         } finally {
                             // Dọn dẹp tệp âm thanh tạm ở local
                             if (audioFile != null && audioFile.exists()) {
@@ -146,7 +149,7 @@ public class CourseModerationListener {
             report.setRiskScore(aiResult.getRiskScore());
             report.setConfidenceScore(aiResult.getConfidenceScore());
             report.setNeedsAdminReview(needsAdminReview);
-            report.setFlaggedCategories(aiResult.getFlaggedCategories() != null ? aiResult.getFlaggedCategories() : new ArrayList<>());
+            report.setFlaggedCategories(new java.util.ArrayList<>(aiResult.getFlaggedCategories() != null ? aiResult.getFlaggedCategories() : java.util.Collections.emptyList()));
             report.setReasons(aiResult.getReasons());
             reportRepository.save(report);
 
@@ -167,6 +170,7 @@ public class CourseModerationListener {
             report.setRiskScore(0.50);
             report.setConfidenceScore(0.00);
             report.setNeedsAdminReview(true);
+            report.setFlaggedCategories(new java.util.ArrayList<>(java.util.Arrays.asList("SYSTEM_ERROR")));
             report.setReasons("Hệ thống kiểm duyệt gặp lỗi bất ngờ: " + e.getMessage());
             report.setErrorLog((report.getErrorLog() != null ? report.getErrorLog() + "\n" : "") + e.getMessage());
             reportRepository.save(report);

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -42,7 +43,7 @@ public class CourseDuplicateDetectorService {
         }
 
         GeminiEmbeddingRequest requestBody = GeminiEmbeddingRequest.of(text);
-        String uri = String.format("/v1beta/models/text-embedding-004:embedContent?key=%s", geminiApiKey);
+        String uri = String.format("/v1beta/models/gemini-embedding-001:embedContent?key=%s", geminiApiKey.trim());
 
         GeminiEmbeddingResponse response = aiWebClient.post()
                 .uri(uri)
@@ -58,8 +59,8 @@ public class CourseDuplicateDetectorService {
         throw new RuntimeException("Gemini Embeddings API trả về kết quả rỗng.");
     }
 
-    // 2. Lưu trữ vector vào database
-    @Transactional
+    // 2. Lưu trữ vector vào database (REQUIRES_NEW: transaction độc lập, không ảnh hưởng transaction cha)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveCourseEmbedding(Long courseId, String courseText) {
         try {
             List<Double> vector = getEmbedding(courseText);
@@ -67,7 +68,8 @@ public class CourseDuplicateDetectorService {
             courseRepository.saveCourseEmbedding(courseId, vectorString);
             log.info("Đã lưu trữ thành công vector embedding cho khóa học ID: {}", courseId);
         } catch (Exception e) {
-            log.error("Lỗi khi tạo/lưu vector embedding cho khóa học ID: {}", courseId, e);
+            log.error("Lỗi khi tạo/lưu vector embedding cho khóa học ID: {} - {}", courseId, e.getMessage());
+            // Không re-throw: lỗi embedding không nên chặn toàn bộ moderation pipeline
         }
     }
 

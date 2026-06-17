@@ -11,6 +11,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
@@ -26,11 +27,39 @@ public class ApplicationInitConfig {
     ApplicationRunner applicationRunner(
             UserRepository userRepository,
             RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder // <-- Inject trực tiếp thẳng vào parameter của Bean
+            PasswordEncoder passwordEncoder, // <-- Inject trực tiếp thẳng vào parameter của Bean
+            JdbcTemplate jdbcTemplate
     ) {
         log.info("Init application for dev environment...");
 
         return args -> {
+            // Đảm bảo extension vector, bảng course_embeddings và kiểu vector(768) đã được thiết lập đúng đắn
+            try {
+                jdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS vector");
+                jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS public.course_embeddings (" +
+                    "    course_id BIGINT PRIMARY KEY," +
+                    "    embedding vector(768) NOT NULL," +
+                    "    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP," +
+                    "    CONSTRAINT fk_embedding_course FOREIGN KEY (course_id) REFERENCES public.courses(id) ON DELETE CASCADE" +
+                    ")"
+                );
+                try {
+                    jdbcTemplate.execute(
+                        "ALTER TABLE public.course_embeddings ALTER COLUMN embedding TYPE vector(768)"
+                    );
+                } catch (Exception alterEx) {
+                    log.info("Phát hiện chiều vector cũ không tương thích, tiến hành truncate dữ liệu và đưa về vector(768)...");
+                    jdbcTemplate.execute("TRUNCATE TABLE public.course_embeddings");
+                    jdbcTemplate.execute(
+                        "ALTER TABLE public.course_embeddings ALTER COLUMN embedding TYPE vector(768)"
+                    );
+                }
+                log.info("Auto-initialized or verified course_embeddings table with vector(768) successfully.");
+            } catch (Exception e) {
+                log.warn("Không thể hoàn tất khởi tạo hoặc đồng bộ bảng course_embeddings: {}", e.getMessage());
+            }
+
             // Setup role ADMIN first
             RoleEntity adminRole = roleRepository.findByName(RoleName.ADMIN)
                     .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.ADMIN).build()));

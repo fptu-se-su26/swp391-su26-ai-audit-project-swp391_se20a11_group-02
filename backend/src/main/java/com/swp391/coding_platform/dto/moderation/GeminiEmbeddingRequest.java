@@ -1,5 +1,6 @@
 package com.swp391.coding_platform.dto.moderation;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import java.util.Collections;
 import java.util.List;
@@ -9,9 +10,11 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class GeminiEmbeddingRequest {
     private String model;
     private Content content;
+    private Integer outputDimensionality; // Enforce matching vector size for pgvector
 
     @Getter
     @Setter
@@ -33,12 +36,13 @@ public class GeminiEmbeddingRequest {
 
     public static GeminiEmbeddingRequest of(String text) {
         return GeminiEmbeddingRequest.builder()
-                .model("models/text-embedding-004")
+                .model("models/gemini-embedding-001")
                 .content(Content.builder()
                         .parts(Collections.singletonList(
                             Part.builder().text(text).build()
                         ))
                         .build())
+                .outputDimensionality(768) // Truncate output to 768 dimensions
                 .build();
     }
 }
