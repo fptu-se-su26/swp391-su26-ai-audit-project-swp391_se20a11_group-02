@@ -103,4 +103,6 @@ public interface CourseMapper {
 
     @Mapping(target = "topic", source = "type")
     com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse toInstructorCourseDetailResponse(CourseEntity courseEntity);
+
+    com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse.CategoryDto toCategoryDto(com.swp391.coding_platform.entity.category.CategoryEntity categoryEntity);
 }
