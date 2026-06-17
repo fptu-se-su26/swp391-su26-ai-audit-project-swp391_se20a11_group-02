@@ -197,6 +197,12 @@ export const ContestProblemSolve: React.FC = () => {
           setSubmissions(data);
           setLoadedTabs(prev => ({ ...prev, submissions: true }));
         }).catch(console.error);
+
+        if (problemId) {
+          problemService.fetchContestProblemDetail(contestId, problemId).then(data => {
+            setProblem(prev => prev ? { ...prev, acceptance: data.acceptance, status: data.status } : data);
+          }).catch(console.error);
+        }
       }
     }, 1000);
   };

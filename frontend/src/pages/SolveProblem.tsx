@@ -83,6 +83,7 @@ export const SolveProblem: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [codeHtml, setCodeHtml] = useState<string>('');
+  const [codeByLang, setCodeByLang] = useState<Record<number, string>>({});
 
   // Track which tabs have already been loaded to avoid duplicate API calls
   const [loadedTabs, setLoadedTabs] = useState<{[key: string]: boolean}>({});
@@ -95,10 +96,13 @@ export const SolveProblem: React.FC = () => {
     problemService.fetchProblemDetail(id)
       .then(data => {
         setProblem(data);
-        if (data.templates) {
+        const actualTemplates = data.templates || data.starterTemplates;
+        if (actualTemplates) {
           const defaultLangId = 62; 
           setSelectedLangId(defaultLangId);
-          setCodeHtml(data.source_code || getTemplateForLang(defaultLangId, data.templates) || '');
+          const initialCode = data.source_code || getTemplateForLang(defaultLangId, actualTemplates) || '';
+          setCodeHtml(initialCode);
+          setCodeByLang({ [defaultLangId]: initialCode });
         }
         setLoading(false);
       })
@@ -124,13 +128,33 @@ export const SolveProblem: React.FC = () => {
   // Handle changing language
   const handleLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLangId = Number(e.target.value);
+    
+    const editor = document.getElementById('code-editor');
+    const currentCode = editor ? editor.innerText : codeHtml;
+    
+    setCodeByLang(prev => {
+      const updated = { ...prev, [selectedLangId]: currentCode };
+      
+      const actualTemplates = problem?.templates || problem?.starterTemplates;
+      const newCode = updated[newLangId] !== undefined 
+        ? updated[newLangId] 
+        : (actualTemplates ? getTemplateForLang(newLangId, actualTemplates) : '');
+        
+      setCodeHtml(newCode || '');
+      if (editor) {
+        editor.innerText = newCode || '';
+      }
+      return updated;
+    });
+
     setSelectedLangId(newLangId);
   };
 
   // Handle Reset Code
   const handleResetCode = () => {
-    if (problem && problem.templates) {
-      const defaultCode = getTemplateForLang(selectedLangId, problem.templates);
+    const actualTemplates = problem?.templates || problem?.starterTemplates;
+    if (problem && actualTemplates) {
+      const defaultCode = getTemplateForLang(selectedLangId, actualTemplates);
       setCodeHtml(defaultCode);
       const editor = document.getElementById('code-editor');
       if (editor) {
@@ -268,6 +292,10 @@ export const SolveProblem: React.FC = () => {
         problemService.fetchProblemSubmissions(id).then(data => {
           setSubmissions(data);
           setLoadedTabs(prev => ({ ...prev, submissions: true }));
+        }).catch(console.error);
+
+        problemService.fetchProblemDetail(id).then(data => {
+          setProblem(prev => prev ? { ...prev, acceptance: data.acceptance, status: data.status } : data);
         }).catch(console.error);
       }
     }, 1000);
@@ -535,15 +563,27 @@ export const SolveProblem: React.FC = () => {
                   </div>
                 )}
 
-                {problem.hint && (
-                  <details className="group bg-surface-gray rounded-lg border border-gray-200">
-                    <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-brand-blue">
-                      Show Hint
-                      <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
-                    </summary>
-                    <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-surface" dangerouslySetInnerHTML={{ __html: problem.hint }} />
-                  </details>
-                )}
+                {(() => {
+                  if (!problem.hint) return null;
+                  let parsedHints: string[] = [];
+                  try {
+                    const parsed = JSON.parse(problem.hint);
+                    if (Array.isArray(parsed)) parsedHints = parsed;
+                    else parsedHints = [problem.hint];
+                  } catch {
+                    parsedHints = [problem.hint];
+                  }
+                  
+                  return parsedHints.map((h, idx) => (
+                    <details key={idx} className="group bg-surface-gray rounded-lg border border-gray-200 mb-2">
+                      <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-brand-blue">
+                        {parsedHints.length > 1 ? `Show Hint ${idx + 1}` : 'Show Hint'}
+                        <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                      </summary>
+                      <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-surface" dangerouslySetInnerHTML={{ __html: h }} />
+                    </details>
+                  ));
+                })()}
               </div>
             )}
 
