@@ -381,6 +381,7 @@ export const Layout: React.FC = () => {
               timeLeft={timeLeft}
               timerLabel={timerLabel}
               isRegistered={!!contest?.isUserRegistered}
+              contestStatus={contest?.status}
             >
               {!loading && contest && (
                 <div className="mt-8 border-t border-gray-100 pt-6">
