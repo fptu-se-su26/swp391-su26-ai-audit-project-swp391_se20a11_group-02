@@ -39,12 +39,16 @@ public class ModerationQueueConfig {
     }
 
     @Bean
-    public Binding bindingModeration(Queue moderationQueue, DirectExchange moderationExchange) {
+    public Binding bindingModeration(
+            @org.springframework.beans.factory.annotation.Qualifier("moderationQueue") Queue moderationQueue, 
+            @org.springframework.beans.factory.annotation.Qualifier("moderationExchange") DirectExchange moderationExchange) {
         return BindingBuilder.bind(moderationQueue).to(moderationExchange).with(MODERATION_ROUTING_KEY);
     }
 
     @Bean
-    public Binding bindingDLQ(Queue deadLetterQueue, DirectExchange deadLetterExchange) {
+    public Binding bindingDLQ(
+            @org.springframework.beans.factory.annotation.Qualifier("deadLetterQueue") Queue deadLetterQueue, 
+            @org.springframework.beans.factory.annotation.Qualifier("deadLetterExchange") DirectExchange deadLetterExchange) {
         return BindingBuilder.bind(deadLetterQueue).to(deadLetterExchange).with(MODERATION_DLQ_ROUTING_KEY);
     }
 }

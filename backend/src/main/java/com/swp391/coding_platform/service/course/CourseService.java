@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CourseService {
     CourseRepository courseRepository;
@@ -70,6 +69,36 @@ public class CourseService {
     LessonProblemRepository lessonProblemRepository;
     QuizRepository quizRepository;
     QuizService quizService;
+
+    public CourseService(
+            CourseRepository courseRepository,
+            CourseMapper courseMapper,
+            CompletedLessonCountRepository completedLessonCountRepository,
+            LessonProgressRepository lessonProgressRepository,
+            EnrollmentRepository enrollmentRepository,
+            ChapterRepository chapterRepository,
+            CourseReviewRepository courseReviewRepository,
+            UserRepository userRepository,
+            LessonCommentRepository lessonCommentRepository,
+            LessonRepository lessonRepository,
+            LessonProblemRepository lessonProblemRepository,
+            QuizRepository quizRepository,
+            QuizService quizService
+    ) {
+        this.courseRepository = courseRepository;
+        this.courseMapper = courseMapper;
+        this.completedLessonCountRepository = completedLessonCountRepository;
+        this.lessonProgressRepository = lessonProgressRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.chapterRepository = chapterRepository;
+        this.courseReviewRepository = courseReviewRepository;
+        this.userRepository = userRepository;
+        this.lessonCommentRepository = lessonCommentRepository;
+        this.lessonRepository = lessonRepository;
+        this.lessonProblemRepository = lessonProblemRepository;
+        this.quizRepository = quizRepository;
+        this.quizService = quizService;
+    }
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
