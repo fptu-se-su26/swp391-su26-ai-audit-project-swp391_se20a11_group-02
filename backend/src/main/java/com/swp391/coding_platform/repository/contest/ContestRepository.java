@@ -36,8 +36,8 @@ public interface ContestRepository extends JpaRepository<ContestEntity, Integer>
             @Param("access") String access,
             Pageable pageable);
 
-    @Query("SELECT COUNT(p) > 0 FROM ContestParticipantEntity p WHERE p.contest.id = :contestId AND p.user.username = :username")
-    boolean isUserRegistered(@Param("contestId") Integer contestId, @Param("username") String username);
+    @Query("SELECT COUNT(p) > 0 FROM ContestParticipantEntity p WHERE p.contest.id = :contestId AND p.user.id = :userId")
+    boolean isUserRegistered(@Param("contestId") Integer contestId, @Param("userId") Integer userId);
 
     @Query("SELECT COUNT(p) FROM ContestParticipantEntity p WHERE p.contest.id = :contestId")
     long countParticipants(@Param("contestId") Integer contestId);

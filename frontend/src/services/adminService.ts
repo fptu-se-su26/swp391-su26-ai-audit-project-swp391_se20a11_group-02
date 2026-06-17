@@ -585,7 +585,7 @@ let mockProblems: AdminProblem[] = [
 ];
 */
 
-let mockContests: AdminContest[] = [];
+// let mockContests: AdminContest[] = [];
 
 let mockActivityLogs: ActivityLog[] = [
   {
@@ -989,32 +989,23 @@ export const adminService = {
   },
 
   async createContest(contest: Omit<AdminContest, 'id' | 'status' | 'participantCount' | 'submissionCount' | 'averageScore'>): Promise<AdminContest> {
-    try {
-      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contest),
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data.result;
-      }
-    } catch (err) {
-      console.warn("Mocking create contest:", err);
-    }
-    await delay(400);
-    const newContest: AdminContest = {
+    const body = {
       ...contest,
-      id: mockContests.length + 1,
-      status: 'UPCOMING',
-      participantCount: 0,
-      submissionCount: 0,
-      averageScore: 0.0
+      startTime: contest.startTime ? new Date(contest.startTime).toISOString() : undefined,
+      endTime: contest.endTime ? new Date(contest.endTime).toISOString() : undefined,
     };
-    mockContests.push(newContest);
-
-    return newContest;
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to create contest');
+    }
+    const data = await response.json();
+    return data.result;
   },
 
   async getContestProblems(contestId: number): Promise<any[]> {
@@ -1051,10 +1042,15 @@ export const adminService = {
   },
 
   async updateContest(contestId: number, contest: Partial<AdminContest>): Promise<AdminContest> {
+    const body = {
+      ...contest,
+      startTime: contest.startTime ? new Date(contest.startTime).toISOString() : undefined,
+      endTime: contest.endTime ? new Date(contest.endTime).toISOString() : undefined,
+    };
     const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(contest),
+      body: JSON.stringify(body),
       credentials: 'include'
     });
     if (!response.ok) {

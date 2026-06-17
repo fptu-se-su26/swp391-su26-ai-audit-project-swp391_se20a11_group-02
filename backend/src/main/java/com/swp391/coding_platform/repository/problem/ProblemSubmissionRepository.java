@@ -50,7 +50,7 @@ public interface ProblemSubmissionRepository extends JpaRepository<ProblemSubmis
     @Query("SELECT ps FROM ProblemSubmissionEntity ps " +
            "JOIN FETCH ps.user " +
            "JOIN FETCH ps.problem " +
-           "WHERE ps.contest.id = :contestId AND ps.user.username = :username " +
+           "WHERE ps.contest.id = :contestId AND ps.user.id = :userId " +
            "ORDER BY ps.submittedAt DESC")
-    List<ProblemSubmissionEntity> findByContestIdAndUsername(@Param("contestId") Integer contestId, @Param("username") String username);
+    List<ProblemSubmissionEntity> findByContestIdAndUserId(@Param("contestId") Integer contestId, @Param("userId") Integer userId);
 }
