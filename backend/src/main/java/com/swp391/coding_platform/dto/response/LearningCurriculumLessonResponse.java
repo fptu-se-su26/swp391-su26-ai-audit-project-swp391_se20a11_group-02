@@ -16,4 +16,5 @@ public class LearningCurriculumLessonResponse {
     Integer orderIndex;
     String type;
     Boolean isCompleted;
+    String status;
 }

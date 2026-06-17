@@ -111,4 +111,8 @@ public class CourseEntity {
         inverseJoinColumns = @JoinColumn(name = "category_id")
     )
     Set<CategoryEntity> categories;
+
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy("orderIndex ASC")
+    java.util.List<ChapterEntity> chapters;
 }
