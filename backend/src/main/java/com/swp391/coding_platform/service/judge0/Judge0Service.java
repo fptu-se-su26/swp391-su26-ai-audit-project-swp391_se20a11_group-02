@@ -76,7 +76,7 @@ public class Judge0Service {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         user.validateStatus();
 
-        ProblemEntity ojProblem = problemRepository.findById(request.getProblemId())
+        ProblemEntity ojProblem = problemRepository.findByIdAndIsPublicTrue(request.getProblemId())
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         if (request.getContestId() == null && request.getLessonId() == null) {
@@ -87,14 +87,16 @@ public class Judge0Service {
 
         // Xác thực bài toán có thuộc cuộc thi hoặc bài học không
         if (request.getContestId() != null) {
-            boolean belongsToContest = contestProblemRepository.existsByContestIdAndProblemId(request.getContestId(), request.getProblemId());
+            boolean belongsToContest = contestProblemRepository.existsByContestIdAndProblemId(request.getContestId(),
+                    request.getProblemId());
             if (!belongsToContest) {
                 throw new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND);
             }
         }
 
         if (request.getLessonId() != null) {
-            boolean belongsToLesson = lessonProblemRepository.existsByLessonIdAndProblemId(request.getLessonId(), request.getProblemId());
+            boolean belongsToLesson = lessonProblemRepository.existsByLessonIdAndProblemId(request.getLessonId(),
+                    request.getProblemId());
             if (!belongsToLesson) {
                 throw new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND);
             }
@@ -130,7 +132,9 @@ public class Judge0Service {
         for (ProblemTestcaseEntity testcase : problemTestcaseEntityList) {
             // Chuẩn hóa lại chuỗi \n bị gõ nhầm thành ký tự literal trong DB
             String cleanStdin = testcase.getInputData() != null ? testcase.getInputData().replace("\\n", "\n") : "";
-            String cleanExpected = testcase.getExpectedOutput() != null ? testcase.getExpectedOutput().replace("\\n", "\n") : "";
+            String cleanExpected = testcase.getExpectedOutput() != null
+                    ? testcase.getExpectedOutput().replace("\\n", "\n")
+                    : "";
 
             Judge0SubmissionItem item = Judge0SubmissionItem.builder()
                     .languageId(request.getLanguageId())
@@ -183,7 +187,8 @@ public class Judge0Service {
 
     public void processJudge0Callback(Judge0CallbackPayload judge0CallbackPayload) {
 
-        // Lấy thông tin SubmissionDetail (bao gồm luôn Submission cha và Problem nhờ JOIN FETCH)
+        // Lấy thông tin SubmissionDetail (bao gồm luôn Submission cha và Problem nhờ
+        // JOIN FETCH)
         ProblemSubmissionDetailEntity submissionDetail = problemSubmissionDetailRepository
                 .findByTokenWithSubmissionAndProblem(judge0CallbackPayload.getToken())
                 .orElseThrow(() -> new AppException(ErrorCode.JUDGE0_SUBMISSION_FAILED));
@@ -219,7 +224,8 @@ public class Judge0Service {
 
         boolean isEarlyFinish = false;
 
-        // SHORT-CIRCUIT (CONTEST MODE): Chốt sổ ngay lập tức nếu gặp testcase sai đầu tiên!
+        // SHORT-CIRCUIT (CONTEST MODE): Chốt sổ ngay lập tức nếu gặp testcase sai đầu
+        // tiên!
         if (isContestMode && testcaseVerdict != OjVerdict.ACCEPTED) {
             // setIfAbsent đảm bảo chỉ có 1 luồng duy nhất (lỗi đầu tiên) được quyền chốt sổ
             Boolean isFirstFail = stringRedisTemplate.opsForValue().setIfAbsent(failedKey, "1", Duration.ofHours(1));
@@ -231,11 +237,12 @@ public class Judge0Service {
         Long processedCount = stringRedisTemplate.opsForValue().increment(redisKey);
 
         // Đặt TTL 1 tiếng cho lần đếm đầu tiên đề phòng Judge0 chết giữa chừng
-        if(processedCount != null && processedCount == 1L) {
+        if (processedCount != null && processedCount == 1L) {
             stringRedisTemplate.expire(redisKey, Duration.ofHours(1));
         }
 
-        // Chấm xong bình thường: Đủ testcase VÀ chưa từng bị chốt sổ sớm (short-circuit)
+        // Chấm xong bình thường: Đủ testcase VÀ chưa từng bị chốt sổ sớm
+        // (short-circuit)
         boolean isNormalFinish = processedCount != null && processedCount == totalTestcases
                 && Boolean.FALSE.equals(stringRedisTemplate.hasKey(failedKey));
 
@@ -248,7 +255,8 @@ public class Judge0Service {
             } else {
                 // Đã chấm xong tất cả Testcase bình thường -> Tìm lỗi đầu tiên (nếu có)
                 overallVerdict = problemSubmissionDetailRepository
-                        .findFirstBySubmissionIdAndVerdictNotOrderByTestcaseOrderIndexAsc(submissionId, OjVerdict.ACCEPTED)
+                        .findFirstBySubmissionIdAndVerdictNotOrderByTestcaseOrderIndexAsc(submissionId,
+                                OjVerdict.ACCEPTED)
                         .map(ProblemSubmissionDetailEntity::getVerdict)
                         .orElse(OjVerdict.ACCEPTED);
             }
@@ -292,9 +300,12 @@ public class Judge0Service {
                 .testcaseId(submissionDetail.getTestcase().getId())
                 .testcaseVerdict(testcaseVerdict)
                 .overallVerdict(overallVerdict)
-                // Nếu đã chốt sổ (Early hoặc Normal), gửi MAX time/memory. Nếu chưa, gửi time/memory hiện tại
-                .executionTimeMs((isEarlyFinish || isNormalFinish) ? submissionEntity.getExecutionTime() : submissionDetail.getExecutionTime())
-                .memoryUsedKb((isEarlyFinish || isNormalFinish) ? submissionEntity.getMemoryUsed() : submissionDetail.getMemoryUsed())
+                // Nếu đã chốt sổ (Early hoặc Normal), gửi MAX time/memory. Nếu chưa, gửi
+                // time/memory hiện tại
+                .executionTimeMs((isEarlyFinish || isNormalFinish) ? submissionEntity.getExecutionTime()
+                        : submissionDetail.getExecutionTime())
+                .memoryUsedKb((isEarlyFinish || isNormalFinish) ? submissionEntity.getMemoryUsed()
+                        : submissionDetail.getMemoryUsed())
                 .totalTestcases((int) totalTestcases)
                 .processedTestcases(processedCount.intValue())
                 .build();
@@ -305,9 +316,11 @@ public class Judge0Service {
             wsMessage.setExpectedOutput(submissionDetail.getTestcase().getExpectedOutput());
             wsMessage.setCompileOutput(submissionDetail.getCompileOutput());
 
-            // Ưu tiên hiển thị stderr vào actualOutput nếu stdout trống (giúp user dễ debug Runtime Error)
+            // Ưu tiên hiển thị stderr vào actualOutput nếu stdout trống (giúp user dễ debug
+            // Runtime Error)
             String actual = submissionDetail.getStdout();
-            if ((actual == null || actual.trim().isEmpty()) && submissionDetail.getStderr() != null && !submissionDetail.getStderr().trim().isEmpty()) {
+            if ((actual == null || actual.trim().isEmpty()) && submissionDetail.getStderr() != null
+                    && !submissionDetail.getStderr().trim().isEmpty()) {
                 actual = submissionDetail.getStderr();
             }
             wsMessage.setActualOutput(actual);
@@ -315,7 +328,8 @@ public class Judge0Service {
 
         // RẼ NHÁNH GỬI WEBSOCKET
         if (!isContestMode) {
-            // CHẾ ĐỘ LUYỆN TẬP (PRACTICE): Chấm xong testcase nào, bắn ngay testcase đó để chạy Progress Bar
+            // CHẾ ĐỘ LUYỆN TẬP (PRACTICE): Chấm xong testcase nào, bắn ngay testcase đó để
+            // chạy Progress Bar
             simpMessagingTemplate.convertAndSend("/topic/submissions/" + submissionEntity.getUser().getId(), wsMessage);
             simpMessagingTemplate.convertAndSend("/topic/submissions/admin", wsMessage);
             log.info("PRACTICE MODE: Bắn WebSocket tiến trình {}/{} cho Submission {}",
@@ -387,9 +401,11 @@ public class Judge0Service {
     }
 
     private String decodeBase64Safe(String base64Str) {
-        if (base64Str == null || base64Str.trim().isEmpty()) return base64Str;
+        if (base64Str == null || base64Str.trim().isEmpty())
+            return base64Str;
         try {
-            // Loại bỏ khoảng trắng/xuống dòng thừa vì Judge0 có thể có \n trong chuỗi Base64
+            // Loại bỏ khoảng trắng/xuống dòng thừa vì Judge0 có thể có \n trong chuỗi
+            // Base64
             String cleanBase64 = base64Str.replaceAll("\\s+", "");
             byte[] decodedBytes = java.util.Base64.getDecoder().decode(cleanBase64);
             return new String(decodedBytes, java.nio.charset.StandardCharsets.UTF_8);

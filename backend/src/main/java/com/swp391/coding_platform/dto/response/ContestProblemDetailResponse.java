@@ -20,7 +20,6 @@ public class ContestProblemDetailResponse {
     String constraints;
     String exampleInput;
     String exampleOutput;
-    String hint;
     List<String> tags;
     Map<String, String> templates;
     String status;

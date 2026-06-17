@@ -684,7 +684,6 @@ public class ContestService {
                 .constraints(problem.getConstraints())
                 .exampleInput(problem.getExampleInput())
                 .exampleOutput(problem.getExampleOutput())
-                .hint(problem.getHint())
                 .tags(tags)
                 .templates(templates)
                 .status(attemptStatus)
