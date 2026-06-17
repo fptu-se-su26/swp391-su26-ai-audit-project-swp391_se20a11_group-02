@@ -142,125 +142,7 @@ public:
         
     }
 };`;
-
-interface RankingSubmissionDetail {
-  time?: string;
-  penalty: number;
-  status: 'first_solve' | 'accepted' | 'failed' | 'unattempted';
-}
-
-interface RankingTeam {
-  rank: number;
-  name: string;
-  affiliation: string;
-  solved: number;
-  totalAttempts: number;
-  totalTime: string;
-  submissions: Record<string, RankingSubmissionDetail>;
-}
-
-const TEAMS_DATA: RankingTeam[] = [
-  {
-    rank: 1,
-    name: 'mosaic14_2025',
-    affiliation: 'CyberKnights',
-    solved: 8,
-    totalAttempts: 10,
-    totalTime: '11:02:15',
-    submissions: {
-      A: { time: '0:15:22', penalty: 1, status: 'first_solve' },
-      B: { time: '0:45:10', penalty: 2, status: 'accepted' },
-      C: { time: '1:10:33', penalty: 1, status: 'accepted' },
-      D: { time: '1:55:00', penalty: 3, status: 'accepted' },
-      E: { time: '2:30:15', penalty: 1, status: 'accepted' },
-      F: { time: '3:10:45', penalty: 4, status: 'accepted' },
-      G: { time: '3:25:22', penalty: 2, status: 'accepted' },
-      H: { time: '3:50:00', penalty: 5, status: 'accepted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  },
-  {
-    rank: 2,
-    name: 'BinaryBeasts',
-    affiliation: 'Tech Univ',
-    solved: 7,
-    totalAttempts: 10,
-    totalTime: '10:25:15',
-    submissions: {
-      A: { time: '0:10:45', penalty: 0, status: 'accepted' },
-      B: { time: '0:32:10', penalty: 1, status: 'first_solve' },
-      C: { time: '1:05:50', penalty: 2, status: 'accepted' },
-      D: { penalty: 3, status: 'failed' },
-      E: { time: '2:15:30', penalty: 1, status: 'accepted' },
-      F: { time: '3:05:40', penalty: 0, status: 'accepted' },
-      G: { time: '3:35:10', penalty: 4, status: 'accepted' },
-      H: { time: '3:45:22', penalty: 1, status: 'accepted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  },
-  {
-    rank: 3,
-    name: 'CodeMasters',
-    affiliation: 'Polytechnic',
-    solved: 6,
-    totalAttempts: 10,
-    totalTime: '09:20:30',
-    submissions: {
-      A: { time: '0:20:15', penalty: 1, status: 'accepted' },
-      B: { time: '0:55:40', penalty: 0, status: 'accepted' },
-      C: { time: '1:20:10', penalty: 0, status: 'first_solve' },
-      D: { time: '2:10:45', penalty: 2, status: 'accepted' },
-      E: { penalty: 4, status: 'failed' },
-      F: { time: '3:30:15', penalty: 1, status: 'accepted' },
-      G: { time: '3:50:30', penalty: 3, status: 'accepted' },
-      H: { penalty: 0, status: 'unattempted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  },
-  {
-    rank: 4,
-    name: 'ByteBusters',
-    affiliation: 'Alpha Tech',
-    solved: 6,
-    totalAttempts: 10,
-    totalTime: '11:05:00',
-    submissions: {
-      A: { time: '0:25:30', penalty: 2, status: 'accepted' },
-      B: { time: '1:02:15', penalty: 1, status: 'accepted' },
-      C: { time: '1:45:00', penalty: 1, status: 'accepted' },
-      D: { time: '2:25:40', penalty: 3, status: 'accepted' },
-      E: { time: '3:20:10', penalty: 0, status: 'accepted' },
-      F: { time: '3:52:50', penalty: 2, status: 'accepted' },
-      G: { penalty: 0, status: 'unattempted' },
-      H: { penalty: 0, status: 'unattempted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  },
-  {
-    rank: 5,
-    name: 'RecursionRiders',
-    affiliation: 'Beta University',
-    solved: 5,
-    totalAttempts: 10,
-    totalTime: '08:45:40',
-    submissions: {
-      A: { time: '0:18:10', penalty: 0, status: 'accepted' },
-      B: { time: '0:50:30', penalty: 1, status: 'accepted' },
-      C: { time: '1:30:15', penalty: 0, status: 'accepted' },
-      D: { time: '2:40:00', penalty: 2, status: 'accepted' },
-      E: { time: '3:45:20', penalty: 1, status: 'accepted' },
-      F: { penalty: 0, status: 'unattempted' },
-      G: { penalty: 0, status: 'unattempted' },
-      H: { penalty: 0, status: 'unattempted' },
-      I: { penalty: 0, status: 'unattempted' },
-      J: { penalty: 0, status: 'unattempted' }
-    }
-  }
-];
+// TEAMS_DATA mock removed. Data loaded dynamically via API.
 
 const RANKING_TEAM_COLORS = [
   '#3b82f6', // Rank 1: Blue
@@ -268,6 +150,11 @@ const RANKING_TEAM_COLORS = [
   '#f59e0b', // Rank 3: Amber Orange
   '#8b5cf6', // Rank 4: Purple
   '#ec4899', // Rank 5: Pink
+  '#06b6d4', // Rank 6: Cyan
+  '#ef4444', // Rank 7: Rose Red
+  '#14b8a6', // Rank 8: Teal
+  '#6366f1', // Rank 9: Indigo
+  '#f97316'  // Rank 10: Orange
 ];
 
 const RANKING_W = 720;
@@ -284,17 +171,20 @@ const rankingTimeToMinutes = (timeStr?: string): number => {
   return hrs * 60 + mins + secs / 60;
 };
 
-const getRankingSvgCoords = (minutes: number, solves: number) => {
-  const svgX = RANKING_paddingLeft + (minutes / 240) * RANKING_W;
-  const svgY = (RANKING_paddingTop + RANKING_H) - (solves / 10) * RANKING_H;
+const getRankingSvgCoords = (minutes: number, solves: number, duration: number, problemCount: number) => {
+  const maxMins = duration || 240;
+  const maxProblems = problemCount || 10;
+  const svgX = RANKING_paddingLeft + (minutes / maxMins) * RANKING_W;
+  const svgY = (RANKING_paddingTop + RANKING_H) - (solves / maxProblems) * RANKING_H;
   return { x: svgX, y: svgY };
 };
 
-const getRankingStepPathString = (team: RankingTeam) => {
+const getRankingStepPathString = (team: any, duration: number, problemCount: number) => {
+  const maxMins = duration || 240;
   const solves: { time: number; problem: string }[] = [];
-  Object.keys(team.submissions).forEach((key) => {
+  Object.keys(team.submissions || {}).forEach((key) => {
     const sub = team.submissions[key];
-    if (sub.status === 'accepted' || sub.status === 'first_solve') {
+    if (sub && (sub.status === 'accepted' || sub.status === 'first_solve')) {
       solves.push({
         time: rankingTimeToMinutes(sub.time),
         problem: key
@@ -303,9 +193,9 @@ const getRankingStepPathString = (team: RankingTeam) => {
   });
   solves.sort((a, b) => a.time - b.time);
 
-  const start = getRankingSvgCoords(0, 0);
+  const start = getRankingSvgCoords(0, 0, maxMins, problemCount);
   if (solves.length === 0) {
-    const end = getRankingSvgCoords(240, 0);
+    const end = getRankingSvgCoords(maxMins, 0, maxMins, problemCount);
     return {
       pathStr: `M ${start.x} ${start.y} L ${end.x} ${end.y}`,
       solves: []
@@ -314,12 +204,12 @@ const getRankingStepPathString = (team: RankingTeam) => {
 
   let pathStr = `M ${start.x} ${start.y}`;
   solves.forEach((solve, index) => {
-    const p1 = getRankingSvgCoords(solve.time, index);
-    const p2 = getRankingSvgCoords(solve.time, index + 1);
+    const p1 = getRankingSvgCoords(solve.time, index, maxMins, problemCount);
+    const p2 = getRankingSvgCoords(solve.time, index + 1, maxMins, problemCount);
     pathStr += ` L ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
   });
 
-  const end = getRankingSvgCoords(240, solves.length);
+  const end = getRankingSvgCoords(maxMins, solves.length, maxMins, problemCount);
   pathStr += ` L ${end.x} ${end.y}`;
   return { pathStr, solves };
 };
@@ -612,13 +502,16 @@ export const AdminDashboard: React.FC = () => {
     timeStr: string;
     problem: string;
   } | null>(null);
-  const [rankingVisibleTeams, setRankingVisibleTeams] = useState<Record<string, boolean>>({
-    'mosaic14_2025': true,
-    'BinaryBeasts': true,
-    'CodeMasters': true,
-    'ByteBusters': true,
-    'RecursionRiders': true
-  });
+  const [rankingVisibleTeams, setRankingVisibleTeams] = useState<Record<string, boolean>>({});
+
+  // Real Contest Submissions and Standings states
+  const [contestSubmissions, setContestSubmissions] = useState<any[]>([]);
+  const [loadingContestSubmissions, setLoadingContestSubmissions] = useState<boolean>(false);
+  const [errorContestSubmissions, setErrorContestSubmissions] = useState<string | null>(null);
+
+  const [rankingTeams, setRankingTeams] = useState<any[]>([]);
+  const [loadingContestRanking, setLoadingContestRanking] = useState<boolean>(false);
+  const [errorContestRanking, setErrorContestRanking] = useState<string | null>(null);
 
   // Contest Add Problems states
   const [isAddContestProblemOpen, setIsAddContestProblemOpen] = useState(false);
@@ -696,6 +589,75 @@ export const AdminDashboard: React.FC = () => {
       setContestProblems([]);
     }
   }, [reviewingContest]);
+
+  const fetchContestSubmissions = async (contestId: number) => {
+    setLoadingContestSubmissions(true);
+    setErrorContestSubmissions(null);
+    try {
+      const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contestId}/submissions`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data && data.result) {
+        setContestSubmissions(data.result);
+      } else {
+        setErrorContestSubmissions(data.message || 'Failed to fetch submissions');
+      }
+    } catch (err) {
+      console.error('Error fetching contest submissions:', err);
+      setErrorContestSubmissions('Failed to fetch submissions');
+    } finally {
+      setLoadingContestSubmissions(false);
+    }
+  };
+
+  const fetchContestRanking = async (contestId: number) => {
+    setLoadingContestRanking(true);
+    setErrorContestRanking(null);
+    try {
+      const response = await fetch(`http://localhost:8080/nonstopcoding/api/v1/contests/${contestId}/scoreboard`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data && data.result) {
+        setRankingTeams(data.result.rows || []);
+      } else {
+        setErrorContestRanking(data.message || 'Failed to fetch rankings');
+      }
+    } catch (err) {
+      console.error('Error fetching ranking data:', err);
+      setErrorContestRanking('Failed to load rankings');
+    } finally {
+      setLoadingContestRanking(false);
+    }
+  };
+
+  useEffect(() => {
+    if (reviewingContest) {
+      if (reviewContestTab === 'submissions') {
+        fetchContestSubmissions(reviewingContest.id);
+      } else if (reviewContestTab === 'ranking') {
+        fetchContestRanking(reviewingContest.id);
+      }
+    } else {
+      setContestSubmissions([]);
+      setRankingTeams([]);
+    }
+  }, [reviewingContest, reviewContestTab]);
+
+  useEffect(() => {
+    if (rankingTeams.length > 0) {
+      setRankingVisibleTeams((prev) => {
+        const hasVisible = Object.values(prev).some(v => v);
+        if (hasVisible) return prev;
+        const next: Record<string, boolean> = {};
+        rankingTeams.slice(0, 5).forEach((t) => {
+          next[t.name] = true;
+        });
+        return next;
+      });
+    }
+  }, [rankingTeams]);
 
   // Nested routing synchronization based on React Router path parameter
   useEffect(() => {
@@ -3018,37 +2980,57 @@ export const AdminDashboard: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody className="text-xs font-semibold divide-y divide-gray-200">
-                          {[
-                            { when: 'Oct 28, 2026, 10:45:12 AM', user: 'CodeNinja_99', prob: 'A', status: 'Accepted', time: '12ms', mem: '2.4 MB', lang: 'C++', statusClass: 'bg-brand-green/10 text-brand-green border border-green-200', icon: 'check_circle' },
-                            { when: 'Oct 28, 2026, 10:42:05 AM', user: 'AlgorithmAce', prob: 'C', status: 'Wrong Answer', time: '4ms', mem: '1.8 MB', lang: 'Python 3', statusClass: 'bg-red-50 text-red-500 border border-red-200', icon: 'cancel' },
-                            { when: 'Oct 28, 2026, 10:38:50 AM', user: 'ByteMe', prob: 'B', status: 'Time Limit Exceeded', time: '>2000ms', mem: '15.2 MB', lang: 'Java', statusClass: 'bg-amber-50 text-amber-600 border border-amber-200', icon: 'timer' },
-                            { when: 'Oct 28, 2026, 10:35:12 AM', user: 'DataStructura', prob: 'A', status: 'Accepted', time: '45ms', mem: '4.1 MB', lang: 'Python 3', statusClass: 'bg-brand-green/10 text-brand-green border border-green-200', icon: 'check_circle' },
-                            { when: 'Oct 28, 2026, 10:30:01 AM', user: 'GraphMaster', prob: 'D', status: 'Compilation Error', time: '-', mem: '-', lang: 'C++', statusClass: 'bg-slate-100 text-slate-500 border border-slate-200', icon: 'error' }
-                          ].map((sub, sIdx) => (
-                            <tr key={sIdx} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="px-6 py-4 text-slate-500 font-normal">{sub.when}</td>
-                              <td className="px-6 py-4 font-bold text-slate-900">{sub.user}</td>
-                              <td className="px-6 py-4 text-center">
-                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold border border-slate-200">{sub.prob}</span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${sub.statusClass}`}>
-                                  <span className="material-symbols-outlined text-[14px] icon-fill">{sub.icon}</span>
-                                  {sub.status}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.time}</td>
-                              <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.mem}</td>
-                              <td className="px-6 py-4">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">{sub.lang}</span>
+                          {loadingContestSubmissions ? (
+                            <tr>
+                              <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                                <span className="animate-pulse">Loading submissions...</span>
                               </td>
                             </tr>
-                          ))}
+                          ) : errorContestSubmissions ? (
+                            <tr>
+                              <td colSpan={7} className="px-6 py-8 text-center text-red-500">
+                                {errorContestSubmissions}
+                              </td>
+                            </tr>
+                          ) : contestSubmissions.length === 0 ? (
+                            <tr>
+                              <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                                No submissions yet.
+                              </td>
+                            </tr>
+                          ) : (
+                            contestSubmissions.map((sub) => (
+                              <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 text-slate-500 font-normal">{sub.submittedAt}</td>
+                                <td className="px-6 py-4 font-bold text-slate-900">@{sub.username}</td>
+                                <td className="px-6 py-4 text-center">
+                                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold border border-slate-200">{sub.problemLabel}</span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                    sub.status === 'Accepted'
+                                      ? 'bg-brand-green/10 text-brand-green border border-green-250'
+                                      : 'bg-red-50 text-red-500 border border-red-200'
+                                  }`}>
+                                    <span className="material-symbols-outlined text-[14px] icon-fill">
+                                      {sub.status === 'Accepted' ? 'check_circle' : 'cancel'}
+                                    </span>
+                                    {sub.status}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.runtime}</td>
+                                <td className="px-6 py-4 text-right font-mono font-bold text-slate-600">{sub.memory}</td>
+                                <td className="px-6 py-4">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">{sub.lang}</span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-white">
-                      <span className="text-xs text-slate-500">Showing 1 to 5 of 245 submissions</span>
+                      <span className="text-xs text-slate-500">Showing {contestSubmissions.length} submissions</span>
                       <div className="flex gap-2">
                         <button className="p-1 rounded text-slate-400 bg-transparent border-none hover:bg-slate-100 disabled:opacity-50" disabled>
                           <span className="material-symbols-outlined">chevron_left</span>
@@ -3063,257 +3045,285 @@ export const AdminDashboard: React.FC = () => {
 
                 {reviewContestTab === 'ranking' && (
                   <div className="flex flex-col gap-6 animate-fade-in w-full">
-                    <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 relative overflow-hidden">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between pb-2 border-b border-gray-150">
-                        <div>
-                          <h2 className="font-display font-bold text-lg text-brand-blue flex items-center gap-2">
-                            <span className="material-symbols-outlined text-primary">monitoring</span> Top 5 Teams Progress
-                          </h2>
-                          <p className="text-xs text-text-muted mt-1">Real-time stepwise progression of problems solved over 4 hours.</p>
-                        </div>
+                    {loadingContestRanking ? (
+                      <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-gray-200">
+                        <span className="material-symbols-outlined text-primary text-4xl animate-spin">sync</span>
+                        <p className="text-sm text-text-muted mt-2 font-semibold">Loading scoreboard...</p>
                       </div>
+                    ) : errorContestRanking ? (
+                      <div className="p-12 text-center text-red-500 font-bold bg-white rounded-xl shadow-sm border border-gray-200">
+                        {errorContestRanking}
+                      </div>
+                    ) : rankingTeams.length === 0 ? (
+                      <div className="p-12 text-center text-text-muted bg-white rounded-xl shadow-sm border border-gray-200">
+                        No submissions recorded for this contest yet.
+                      </div>
+                    ) : (() => {
+                      const contestDuration = reviewingContest?.durations || 240;
+                      const problemCount = contestProblems.length || 10;
 
-                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch mt-2">
-                        {/* Interactive Vector Step Chart (Col-span 3) */}
-                        <div className="lg:col-span-3 bg-white rounded-lg border border-gray-150 p-4 relative flex items-center justify-center">
-                          <svg className="w-full h-auto max-w-[760px]" viewBox={`0 0 ${RANKING_W + 60} ${RANKING_H + 40}`} width="100%">
-                            {/* Vertical Hour Grid Lines */}
-                            {Array.from({ length: 5 }).map((_, i) => {
-                              const minutes = i * 60;
-                              const coordsStart = getRankingSvgCoords(minutes, 0);
-                              const coordsEnd = getRankingSvgCoords(minutes, 10);
-                              return (
-                                <g key={i}>
-                                  <line
-                                    x1={coordsStart.x}
-                                    y1={coordsStart.y}
-                                    x2={coordsEnd.x}
-                                    y2={coordsEnd.y}
-                                    stroke="#e2e8f0"
-                                    strokeWidth={1}
-                                    strokeDasharray="4 4"
-                                  />
-                                  <text
-                                    x={coordsStart.x}
-                                    y={coordsStart.y + 16}
-                                    textAnchor="middle"
-                                    className="font-mono text-[10px] fill-text-muted"
-                                  >
-                                    {i}h
-                                  </text>
-                                </g>
-                              );
-                            })}
+                      return (
+                        <>
+                          <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 relative overflow-hidden">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between pb-2 border-b border-gray-150">
+                              <div>
+                                <h2 className="font-display font-bold text-lg text-brand-blue flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-primary">monitoring</span> Top Teams Progress
+                                </h2>
+                                <p className="text-xs text-text-muted mt-1">Real-time stepwise progression of problems solved over the contest duration.</p>
+                              </div>
+                            </div>
 
-                            {/* Horizontal Solved Grid Lines */}
-                            {[0, 2, 4, 6, 8, 10].map((solved) => {
-                              const coordsStart = getRankingSvgCoords(0, solved);
-                              const coordsEnd = getRankingSvgCoords(240, solved);
-                              return (
-                                <g key={solved}>
-                                  <line
-                                    x1={coordsStart.x}
-                                    y1={coordsStart.y}
-                                    x2={coordsEnd.x}
-                                    y2={coordsEnd.y}
-                                    stroke="#e2e8f0"
-                                    strokeWidth={1}
-                                  />
-                                  <text
-                                    x={coordsStart.x - 8}
-                                    y={coordsStart.y + 4}
-                                    textAnchor="end"
-                                    className="font-mono text-[10px] fill-text-muted"
-                                  >
-                                    {solved}
-                                  </text>
-                                </g>
-                              );
-                            })}
-
-                            {/* Draw team stepwise progression lines */}
-                            {TEAMS_DATA.map((team, idx) => {
-                              if (!rankingVisibleTeams[team.name]) return null;
-                              const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
-                              const isHovered = rankingHoveredTeam === team.name;
-                              const { pathStr, solves } = getRankingStepPathString(team);
-
-                              return (
-                                <g key={team.name}>
-                                  <path
-                                    d={pathStr}
-                                    fill="none"
-                                    stroke={color}
-                                    strokeWidth={isHovered ? 3.5 : 1.5}
-                                    strokeOpacity={rankingHoveredTeam === null ? 0.6 : isHovered ? 1.0 : 0.15}
-                                    className="transition-all duration-300"
-                                  />
-
-                                  {solves.map((solve, sIdx) => {
-                                    const coords = getRankingSvgCoords(solve.time, sIdx + 1);
+                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch mt-2">
+                              {/* Interactive Vector Step Chart (Col-span 3) */}
+                              <div className="lg:col-span-3 bg-white rounded-lg border border-gray-150 p-4 relative flex items-center justify-center">
+                                <svg className="w-full h-auto max-w-[760px]" viewBox={`0 0 ${RANKING_W + 60} ${RANKING_H + 40}`} width="100%">
+                                  {/* Vertical Hour Grid Lines */}
+                                  {Array.from({ length: Math.ceil(contestDuration / 60) + 1 }).map((_, i) => {
+                                    const minutes = i * 60;
+                                    if (minutes > contestDuration) return null;
+                                    const coordsStart = getRankingSvgCoords(minutes, 0, contestDuration, problemCount);
+                                    const coordsEnd = getRankingSvgCoords(minutes, problemCount, contestDuration, problemCount);
                                     return (
-                                      <circle
-                                        key={sIdx}
-                                        cx={coords.x}
-                                        cy={coords.y}
-                                        r={isHovered ? 5.5 : 3.5}
-                                        fill={color}
-                                        stroke="#ffffff"
-                                        strokeWidth={1.5}
-                                        opacity={rankingHoveredTeam === null ? 0.9 : isHovered ? 1.0 : 0.15}
-                                        className="cursor-pointer transition-all duration-300"
-                                        onMouseEnter={() => {
-                                          setRankingHoveredTeam(team.name);
-                                          setRankingActiveTooltip({
-                                            x: coords.x,
-                                            y: coords.y,
-                                            teamName: team.name,
-                                            solvedCount: sIdx + 1,
-                                            timeStr: rankingFormatMinutes(solve.time),
-                                            problem: solve.problem
-                                          });
-                                        }}
-                                        onMouseLeave={() => {
-                                          setRankingHoveredTeam(null);
-                                          setRankingActiveTooltip(null);
-                                        }}
-                                      />
+                                      <g key={i}>
+                                        <line
+                                          x1={coordsStart.x}
+                                          y1={coordsStart.y}
+                                          x2={coordsEnd.x}
+                                          y2={coordsEnd.y}
+                                          stroke="#e2e8f0"
+                                          strokeWidth={1}
+                                          strokeDasharray="4 4"
+                                        />
+                                        <text
+                                          x={coordsStart.x}
+                                          y={coordsStart.y + 16}
+                                          textAnchor="middle"
+                                          className="font-mono text-[10px] fill-text-muted"
+                                        >
+                                          {i}h
+                                        </text>
+                                      </g>
                                     );
                                   })}
-                                </g>
-                              );
-                            })}
 
-                            {/* HTML-styled SVG Tooltip Overlay */}
-                            {rankingActiveTooltip && (
-                              <foreignObject
-                                x={rankingActiveTooltip.x - 100}
-                                y={rankingActiveTooltip.y - 75}
-                                width="200"
-                                height="70"
-                                className="pointer-events-none"
-                              >
-                                <div className="bg-slate-900/95 text-white p-2 rounded-lg text-[10px] shadow-lg border border-slate-700/80 font-sans space-y-0.5">
-                                  <div className="font-bold text-primary">{rankingActiveTooltip.teamName}</div>
-                                  <div className="flex justify-between">
-                                    <span>Problem {rankingActiveTooltip.problem}:</span>
-                                    <span className="text-brand-green font-bold">Solved</span>
-                                  </div>
-                                  <div className="flex justify-between text-slate-400">
-                                    <span>Total Solved:</span>
-                                    <span>{rankingActiveTooltip.solvedCount} tasks</span>
-                                  </div>
-                                  <div className="flex justify-between text-slate-400">
-                                    <span>Time:</span>
-                                    <span>{rankingActiveTooltip.timeStr}</span>
-                                  </div>
+                                  {/* Horizontal Solved Grid Lines */}
+                                  {Array.from({ length: problemCount + 1 }).map((_, solved) => {
+                                    const step = problemCount > 8 ? 2 : 1;
+                                    if (solved % step !== 0 && solved !== problemCount) return null;
+                                    const coordsStart = getRankingSvgCoords(0, solved, contestDuration, problemCount);
+                                    const coordsEnd = getRankingSvgCoords(contestDuration, solved, contestDuration, problemCount);
+                                    return (
+                                      <g key={solved}>
+                                        <line
+                                          x1={coordsStart.x}
+                                          y1={coordsStart.y}
+                                          x2={coordsEnd.x}
+                                          y2={coordsEnd.y}
+                                          stroke="#e2e8f0"
+                                          strokeWidth={1}
+                                        />
+                                        <text
+                                          x={coordsStart.x - 8}
+                                          y={coordsStart.y + 4}
+                                          textAnchor="end"
+                                          className="font-mono text-[10px] fill-text-muted"
+                                        >
+                                          {solved}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+
+                                  {/* Draw team stepwise progression lines */}
+                                  {rankingTeams.slice(0, 10).map((team, idx) => {
+                                    if (!rankingVisibleTeams[team.name]) return null;
+                                    const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
+                                    const isHovered = rankingHoveredTeam === team.name;
+                                    const { pathStr, solves } = getRankingStepPathString(team, contestDuration, problemCount);
+
+                                    return (
+                                      <g key={team.name}>
+                                        <path
+                                          d={pathStr}
+                                          fill="none"
+                                          stroke={color}
+                                          strokeWidth={isHovered ? 3.5 : 1.5}
+                                          strokeOpacity={rankingHoveredTeam === null ? 0.6 : isHovered ? 1.0 : 0.15}
+                                          className="transition-all duration-300"
+                                        />
+
+                                        {solves.map((solve, sIdx) => {
+                                          const coords = getRankingSvgCoords(solve.time, sIdx + 1, contestDuration, problemCount);
+                                          return (
+                                            <circle
+                                              key={sIdx}
+                                              cx={coords.x}
+                                              cy={coords.y}
+                                              r={isHovered ? 5.5 : 3.5}
+                                              fill={color}
+                                              stroke="#ffffff"
+                                              strokeWidth={1.5}
+                                              opacity={rankingHoveredTeam === null ? 0.9 : isHovered ? 1.0 : 0.15}
+                                              className="cursor-pointer transition-all duration-300"
+                                              onMouseEnter={() => {
+                                                setRankingHoveredTeam(team.name);
+                                                setRankingActiveTooltip({
+                                                  x: coords.x,
+                                                  y: coords.y,
+                                                  teamName: team.name,
+                                                  solvedCount: sIdx + 1,
+                                                  timeStr: rankingFormatMinutes(solve.time),
+                                                  problem: solve.problem
+                                                });
+                                              }}
+                                              onMouseLeave={() => {
+                                                setRankingHoveredTeam(null);
+                                                setRankingActiveTooltip(null);
+                                              }}
+                                            />
+                                          );
+                                        })}
+                                      </g>
+                                    );
+                                  })}
+
+                                  {/* HTML-styled SVG Tooltip Overlay */}
+                                  {rankingActiveTooltip && (
+                                    <foreignObject
+                                      x={rankingActiveTooltip.x - 100}
+                                      y={rankingActiveTooltip.y - 75}
+                                      width="200"
+                                      height="70"
+                                      className="pointer-events-none"
+                                    >
+                                      <div className="bg-slate-900/95 text-white p-2 rounded-lg text-[10px] shadow-lg border border-slate-700/80 font-sans space-y-0.5">
+                                        <div className="font-bold text-primary">{rankingActiveTooltip.teamName}</div>
+                                        <div className="flex justify-between">
+                                          <span>Problem {rankingActiveTooltip.problem}:</span>
+                                          <span className="text-brand-green font-bold">Solved</span>
+                                        </div>
+                                        <div className="flex justify-between text-slate-400">
+                                          <span>Total Solved:</span>
+                                          <span>{rankingActiveTooltip.solvedCount} tasks</span>
+                                        </div>
+                                        <div className="flex justify-between text-slate-400">
+                                          <span>Time:</span>
+                                          <span>{rankingActiveTooltip.timeStr}</span>
+                                        </div>
+                                      </div>
+                                    </foreignObject>
+                                  )}
+                                </svg>
+                              </div>
+
+                              {/* Legend Toggles */}
+                              <div className="lg:col-span-1 bg-slate-50 border border-slate-200/50 rounded-xl p-4 flex flex-col gap-2.5">
+                                <h4 className="text-xs font-black text-text-muted uppercase tracking-wider mb-1">Toggle Teams</h4>
+                                <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
+                                  {rankingTeams.slice(0, 10).map((team, idx) => {
+                                    const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
+                                    const isVisible = rankingVisibleTeams[team.name];
+                                    return (
+                                      <button
+                                        key={team.name}
+                                        onClick={() => {
+                                          setRankingVisibleTeams(prev => ({
+                                            ...prev,
+                                            [team.name]: !prev[team.name]
+                                          }));
+                                        }}
+                                        className="flex items-center gap-2 text-left bg-transparent border-none cursor-pointer w-full text-xs font-semibold p-1 hover:bg-slate-100 rounded"
+                                      >
+                                        <span
+                                          className="w-3.5 h-3.5 rounded-md flex items-center justify-center shrink-0 border border-slate-300"
+                                          style={{ backgroundColor: isVisible ? color : '#e2e8f0' }}
+                                        >
+                                          {isVisible && <span className="material-symbols-outlined text-[10px] text-white font-black">check</span>}
+                                        </span>
+                                        <span className="truncate flex-1 text-slate-800">{team.name}</span>
+                                      </button>
+                                    );
+                                  })}
                                 </div>
-                              </foreignObject>
-                            )}
-                          </svg>
-                        </div>
+                              </div>
+                            </div>
+                          </section>
 
-                        {/* Legend Toggles */}
-                        <div className="lg:col-span-1 bg-slate-50 border border-slate-200/50 rounded-xl p-4 flex flex-col gap-2.5">
-                          <h4 className="text-xs font-black text-text-muted uppercase tracking-wider mb-1">Toggle Teams</h4>
-                          <div className="flex flex-col gap-2">
-                            {TEAMS_DATA.map((team, idx) => {
-                              const color = RANKING_TEAM_COLORS[idx % RANKING_TEAM_COLORS.length];
-                              const isVisible = rankingVisibleTeams[team.name];
-                              return (
-                                <button
-                                  key={team.name}
-                                  onClick={() => {
-                                    setRankingVisibleTeams(prev => ({
-                                      ...prev,
-                                      [team.name]: !prev[team.name]
-                                    }));
-                                  }}
-                                  className="flex items-center gap-2 text-left bg-transparent border-none cursor-pointer w-full text-xs font-semibold p-1 hover:bg-slate-100 rounded"
-                                >
-                                  <span
-                                    className="w-3.5 h-3.5 rounded-md flex items-center justify-center shrink-0 border border-slate-300"
-                                    style={{ backgroundColor: isVisible ? color : '#e2e8f0' }}
-                                  >
-                                    {isVisible && <span className="material-symbols-outlined text-[10px] text-white font-black">check</span>}
-                                  </span>
-                                  <span className="truncate flex-1 text-slate-800">{team.name}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </section>
+                          {/* Standings table */}
+                          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
+                            <div className="p-6 border-b border-gray-200 bg-white">
+                              <h2 className="text-lg font-bold text-text-main">Standings Scoreboard</h2>
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider text-center">
+                                    <th className="p-3 w-12 text-center">Rank</th>
+                                    <th className="p-3 text-left">Team</th>
+                                    <th className="p-3 w-16 text-center">Solved</th>
+                                    <th className="p-3 w-24 text-center">Penalty</th>
+                                    {contestProblems.map((prob, idx) => (
+                                      <th key={prob.problemId} className="p-3 w-16 text-center">
+                                        {String.fromCharCode(65 + idx)}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody className="text-xs font-semibold divide-y divide-gray-200">
+                                  {rankingTeams.map((team) => {
+                                    // Calculate penalty
+                                    let penaltyMinutes = 0;
+                                    Object.values(team.submissions || {}).forEach((sub: any) => {
+                                      if (sub.status === 'accepted' || sub.status === 'first_solve') {
+                                        const parts = (sub.time || '0:0:0').split(':').map(Number);
+                                        const mins = (parts[0] || 0) * 60 + (parts[1] || 0);
+                                        penaltyMinutes += mins + sub.penalty * 20;
+                                      }
+                                    });
 
-                    {/* Standings table */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
-                      <div className="p-6 border-b border-gray-200 bg-white">
-                        <h2 className="text-lg font-bold text-text-main">Standings Scoreboard</h2>
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider">
-                              <th className="p-3 w-12 text-center">Rank</th>
-                              <th className="p-3">Team</th>
-                              <th className="p-3 w-16 text-center">Solved</th>
-                              <th className="p-3 w-24 text-center">Penalty</th>
-                              {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map((prob) => (
-                                <th key={prob} className="p-3 w-16 text-center">{prob}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody className="text-xs font-semibold divide-y divide-gray-200">
-                            {TEAMS_DATA.map((team) => {
-                              // Calculate penalty
-                              let penaltyMinutes = 0;
-                              Object.values(team.submissions).forEach((sub) => {
-                                if (sub.status === 'accepted' || sub.status === 'first_solve') {
-                                  const parts = (sub.time || '0:0:0').split(':').map(Number);
-                                  const mins = (parts[0] || 0) * 60 + (parts[1] || 0);
-                                  penaltyMinutes += mins + sub.penalty * 20;
-                                }
-                              });
-
-                              return (
-                                <tr key={team.name} className="hover:bg-slate-50/50 transition-colors">
-                                  <td className="p-3 text-center font-bold text-slate-900">{team.rank}</td>
-                                  <td className="p-3">
-                                    <div className="font-bold text-slate-900">{team.name}</div>
-                                    <div className="text-[10px] text-slate-400 font-normal">{team.affiliation}</div>
-                                  </td>
-                                  <td className="p-3 text-center font-bold text-slate-900 bg-slate-50/60">{team.solved}</td>
-                                  <td className="p-3 text-center font-mono text-slate-500 font-normal">{penaltyMinutes} m</td>
-                                  {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map((probCode) => {
-                                    const sub = team.submissions[probCode];
-                                    if (!sub || sub.status === 'unattempted') {
-                                      return <td key={probCode} className="p-3 border border-white text-center bg-gray-50/50"></td>;
-                                    }
-                                    if (sub.status === 'failed') {
-                                      return (
-                                        <td key={probCode} className="p-3 border border-white text-center bg-primary text-white">
-                                          --
-                                          <div className="text-[9px] font-normal text-white/80 font-mono">(-{sub.penalty})</div>
-                                        </td>
-                                      );
-                                    }
-                                    const penaltyText = sub.penalty > 0 ? `(-${sub.penalty})` : '';
-                                    const bgClass = sub.status === 'first_solve' ? 'bg-brand-blue' : 'bg-brand-green';
                                     return (
-                                      <td key={probCode} className={`p-3 border border-white text-center text-white ${bgClass}`}>
-                                        {sub.time}
-                                        <div className="text-[9px] font-normal text-white/80 font-mono">{penaltyText}</div>
-                                      </td>
+                                      <tr key={team.name} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="p-3 text-center font-bold text-slate-900">{team.rank}</td>
+                                        <td className="p-3 text-left">
+                                          <div className="font-bold text-slate-900">@{team.name}</div>
+                                          <div className="text-[10px] text-slate-400 font-normal">{team.affiliation}</div>
+                                        </td>
+                                        <td className="p-3 text-center font-bold text-slate-900 bg-slate-50/60">{team.solved}</td>
+                                        <td className="p-3 text-center font-mono text-slate-500 font-normal">{team.totalPenalty || penaltyMinutes} m</td>
+                                        {contestProblems.map((p, pIdx) => {
+                                          const probCode = String.fromCharCode(65 + pIdx);
+                                          const sub = team.submissions?.[probCode];
+                                          if (!sub || sub.status === 'unattempted') {
+                                            return <td key={p.problemId} className="p-3 border border-white text-center bg-gray-50/50"></td>;
+                                          }
+                                          if (sub.status === 'failed') {
+                                            return (
+                                              <td key={p.problemId} className="p-3 border border-white text-center bg-primary text-white">
+                                                --
+                                                <div className="text-[9px] font-normal text-white/80 font-mono">(-{sub.penalty})</div>
+                                              </td>
+                                            );
+                                          }
+                                          const penaltyText = sub.penalty > 0 ? `(-${sub.penalty})` : '';
+                                          const bgClass = sub.status === 'first_solve' ? 'bg-brand-blue' : 'bg-brand-green';
+                                          return (
+                                            <td key={p.problemId} className={`p-3 border border-white text-center text-white ${bgClass}`}>
+                                              {sub.time}
+                                              <div className="text-[9px] font-normal text-white/80 font-mono">{penaltyText}</div>
+                                            </td>
+                                          );
+                                        })}
+                                      </tr>
                                     );
                                   })}
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
