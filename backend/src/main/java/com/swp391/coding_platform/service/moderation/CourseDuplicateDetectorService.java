@@ -16,12 +16,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class CourseDuplicateDetectorService {
 
     private final WebClient aiWebClient;
     private final CourseRepository courseRepository;
+
+    public CourseDuplicateDetectorService(
+            @org.springframework.beans.factory.annotation.Qualifier("aiWebClient") WebClient aiWebClient,
+            CourseRepository courseRepository
+    ) {
+        this.aiWebClient = aiWebClient;
+        this.courseRepository = courseRepository;
+    }
 
     @Value("${ai.gemini-api-key:}")
     private String geminiApiKey;

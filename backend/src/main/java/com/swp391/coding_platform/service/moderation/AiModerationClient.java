@@ -12,12 +12,19 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AiModerationClient {
 
     private final WebClient aiWebClient;
     private final ObjectMapper objectMapper;
+
+    public AiModerationClient(
+            @org.springframework.beans.factory.annotation.Qualifier("aiWebClient") WebClient aiWebClient,
+            ObjectMapper objectMapper
+    ) {
+        this.aiWebClient = aiWebClient;
+        this.objectMapper = objectMapper;
+    }
 
     @Value("${ai.gemini-api-key:}")
     private String geminiApiKey;
