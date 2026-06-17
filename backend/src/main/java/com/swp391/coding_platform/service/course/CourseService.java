@@ -379,7 +379,7 @@ public class CourseService {
                 .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
 
         LearningLessonResponse response = courseMapper.toLearningLessonResponse(lesson);
-        response.setSourceCode(lesson.getSourceCode());
+        response.setSourceCode(null);
 
         // Fetch coding problems linked to this lesson
         List<com.swp391.coding_platform.entity.course.LessonProblemEntity> lessonProblems = 
