@@ -28,4 +28,16 @@ public class InstructorCourseDetailResponse {
     String topic;
     String status;
     List<InstructorChapterResponse> chapters;
+    List<CategoryDto> categories;
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CategoryDto {
+        Integer id;
+        String name;
+    }
 }

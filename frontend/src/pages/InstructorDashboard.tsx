@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { instructorService, type InstructorCourse } from '../services/instructorService';
@@ -152,6 +152,18 @@ const padMonthlyChartData = (data: any[]): any[] => {
 
 export const InstructorDashboard: React.FC = () => {
   const { user } = useApp();
+  
+  // Custom Toast State
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; id: number } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    const id = Date.now();
+    setToast({ message, type, id });
+    setTimeout(() => {
+      setToast((prev) => (prev?.id === id ? null : prev));
+    }, 3000);
+  };
+
   // Helper to scroll the browser window to the bottom when chapters/lessons are added
   const scrollToCurriculumBottom = () => {
     setTimeout(() => {
@@ -166,10 +178,49 @@ export const InstructorDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'my-courses' | 'revenue' | 'edit-course'>('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
-  // Synchronize Tab State with Location Hash (just like in the HTML template)
+  // Unsaved Changes Tracking
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigationHash, setPendingNavigationHash] = useState<string | null>(null);
+  const [hasUnsavedChangesState, setHasUnsavedChangesState] = useState(false);
+  const hasUnsavedChangesRef = useRef(false);
+
+  const setHasUnsavedChanges = (val: boolean | ((prev: boolean) => boolean)) => {
+    if (typeof val === 'function') {
+      const nextVal = val(hasUnsavedChangesRef.current);
+      hasUnsavedChangesRef.current = nextVal;
+      setHasUnsavedChangesState(nextVal);
+    } else {
+      hasUnsavedChangesRef.current = val;
+      setHasUnsavedChangesState(val);
+    }
+  };
+  
+  const hasUnsavedChanges = hasUnsavedChangesState;
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; 
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Synchronize Tab State with Location Hash
   useEffect(() => {
     const handleRouting = () => {
       let currentHash = window.location.hash || '#dashboard';
+
+      if (activeTabRef.current === 'edit-course' && hasUnsavedChangesRef.current && currentHash !== '#edit-course') {
+        setPendingNavigationHash(currentHash);
+        setShowUnsavedModal(true);
+        window.history.replaceState(null, '', '#edit-course');
+        return;
+      }
+
       if (currentHash === '#edit-course') {
         setActiveTab('edit-course');
       } else if (currentHash === '#my-courses') {
@@ -194,6 +245,8 @@ export const InstructorDashboard: React.FC = () => {
 
     return () => window.removeEventListener('hashchange', handleRouting);
   }, []);
+
+
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(prev => {
@@ -281,27 +334,29 @@ export const InstructorDashboard: React.FC = () => {
   }, [selectedItem.chIdx, selectedItem.lesIdx, selectedItem.type, activeChapter, activeLesson]);
 
   const handleSaveOverviewDraft = () => {
-    alert('Draft saved temporarily in your browser. Click "Save Course" above to permanently save all changes to the backend.');
+    showToast('Unsaved Changes: Your draft is saved locally. Please click "Save Course" to apply your changes.', 'info');
   };
 
   const handleSaveChapter = () => {
     if (!chapterTitle.trim()) {
-      alert('Chapter title cannot be empty!');
+      showToast('Chapter title cannot be empty!', 'error');
       return;
     }
+    setHasUnsavedChanges(true);
     setCurriculumData(prev => {
       const newChapters = [...prev.chapters];
       newChapters[selectedItem.chIdx].title = chapterTitle.trim();
       return { chapters: newChapters };
     });
-    alert('Draft saved temporarily in your browser. Click "Save Course" above to permanently save all changes to the backend.');
+    showToast('Unsaved Changes: Your draft is saved locally. Please click "Save Course" to apply your changes.', 'info');
   };
 
   const handleSaveLessonOverview = () => {
     if (!lessonTitle.trim()) {
-      alert('Lesson title cannot be empty!');
+      showToast('Lesson title cannot be empty!', 'error');
       return;
     }
+    setHasUnsavedChanges(true);
     setCurriculumData(prev => {
       const newChapters = prev.chapters.map((ch, cIdx) => {
         if (cIdx !== selectedItem.chIdx) return ch;
@@ -318,10 +373,11 @@ export const InstructorDashboard: React.FC = () => {
       });
       return { chapters: newChapters };
     });
-    alert('Draft saved temporarily in your browser. Click "Save Course" above to permanently save all changes to the backend.');
+    showToast('Unsaved Changes: Your draft is saved locally. Please click "Save Course" to apply your changes.', 'info');
   };
 
   const handleSaveLessonTheory = () => {
+    setHasUnsavedChanges(true);
     setCurriculumData(prev => {
       const newChapters = prev.chapters.map((ch, cIdx) => {
         if (cIdx !== selectedItem.chIdx) return ch;
@@ -333,7 +389,7 @@ export const InstructorDashboard: React.FC = () => {
       });
       return { chapters: newChapters };
     });
-    alert('Draft saved temporarily in your browser. Click "Save Course" above to permanently save all changes to the backend.');
+    showToast('Unsaved Changes: Your draft is saved locally. Please click "Save Course" to apply your changes.', 'info');
   };
   // --- Exercise Handlers ---
   const handleOpenExerciseModal = (exercise?: any) => {
@@ -435,8 +491,9 @@ export const InstructorDashboard: React.FC = () => {
   };
 
   const handleSaveExercise = () => {
+    setHasUnsavedChanges(true);
     if (!exerciseTitle.trim()) {
-      alert('Exercise title cannot be empty.');
+      showToast('Exercise title cannot be empty.', 'error');
       return;
     }
     setCurriculumData(prev => {
@@ -465,6 +522,7 @@ export const InstructorDashboard: React.FC = () => {
   };
 
   const handleDeleteExercise = (id: number) => {
+    setHasUnsavedChanges(true);
     setCurriculumData(prev => {
       const newChapters = prev.chapters.map((ch, cIdx) => {
         if (cIdx !== selectedItem.chIdx) return ch;
@@ -557,8 +615,9 @@ export const InstructorDashboard: React.FC = () => {
   };
 
   const handleSaveQuiz = () => {
+    setHasUnsavedChanges(true);
     if (!quizTitle.trim()) {
-      alert('Quiz title cannot be empty.');
+      showToast('Quiz title cannot be empty.', 'error');
       return;
     }
     setCurriculumData(prev => {
@@ -587,6 +646,7 @@ export const InstructorDashboard: React.FC = () => {
   };
 
   const handleDeleteQuiz = (id: number) => {
+    setHasUnsavedChanges(true);
     setCurriculumData(prev => {
       const newChapters = prev.chapters.map((ch, cIdx) => {
         if (cIdx !== selectedItem.chIdx) return ch;
@@ -619,6 +679,8 @@ export const InstructorDashboard: React.FC = () => {
 
       setTimeout(() => {
         setIsUploadingVideo(false);
+        setUploadedVideoName(secureUrl);
+        setHasUnsavedChanges(true);
         setCurriculumData(prev => {
           const newChapters = [...prev.chapters];
           if (newChapters[selectedItem.chIdx]?.lessons[selectedItem.lesIdx!]) {
@@ -626,11 +688,11 @@ export const InstructorDashboard: React.FC = () => {
           }
           return { chapters: newChapters };
         });
-        alert(`Video "${file.name}" has been successfully uploaded!`);
+        showToast(`Video "${file.name}" has been successfully uploaded!`, 'success');
       }, 500);
     } catch (err) {
        setIsUploadingVideo(false);
-       alert('Upload failed: ' + (err as Error).message);
+       showToast('Upload failed: ' + (err as Error).message, 'error');
     }
   };
 
@@ -646,10 +708,11 @@ export const InstructorDashboard: React.FC = () => {
   const submitQaReply = (qId: number) => {
     const text = qaReplyTextState[qId]?.trim();
     if (!text) {
-      alert('Please write a reply before submitting!');
+      showToast('Please write a reply before submitting!', 'error');
       return;
     }
 
+    setHasUnsavedChanges(true);
     setCurriculumData(prev => {
       const newChapters = [...prev.chapters];
       const chapter = newChapters[selectedItem.chIdx];
@@ -673,7 +736,7 @@ export const InstructorDashboard: React.FC = () => {
 
     setQaReplyTextState(prev => ({ ...prev, [qId]: '' }));
     setActiveQaReplyInputs(prev => ({ ...prev, [qId]: false }));
-    alert('Your reply has been posted successfully!');
+    showToast('Your reply has been posted successfully!', 'success');
   };
 
 
@@ -681,12 +744,14 @@ export const InstructorDashboard: React.FC = () => {
   const handleReplaceVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setHasUnsavedChanges(true);
       simulateVideoUpload(file);
     }
   };
 
   // Chapter & Lesson addition / deletion
   const handleAddChapterWorkspace = () => {
+    setHasUnsavedChanges(true);
     setCurriculumData(prev => {
       const newChapters = [
         ...prev.chapters,
@@ -705,6 +770,7 @@ export const InstructorDashboard: React.FC = () => {
   };
 
   const handleDeleteChapterWorkspace = (chIdx: number) => {
+    setHasUnsavedChanges(true);
     if (curriculumData.chapters.length > 1) {
       setCurriculumData(prev => {
         const newChapters = prev.chapters.filter((_, i) => i !== chIdx);
@@ -712,11 +778,12 @@ export const InstructorDashboard: React.FC = () => {
       });
       setSelectedItem({ type: 'chapter', chIdx: 0, lesIdx: null });
     } else {
-      alert('Course syllabus must have at least one chapter!');
+      showToast('Course syllabus must have at least one chapter!', 'error');
     }
   };
 
   const handleAddLessonWorkspace = (chIdx: number) => {
+    setHasUnsavedChanges(true);
     setCurriculumData(prev => {
       const newChapters = prev.chapters.map((ch, idx) => {
         if (idx !== chIdx) return ch;
@@ -741,6 +808,7 @@ export const InstructorDashboard: React.FC = () => {
   };
 
   const handleDeleteLessonWorkspace = (chIdx: number, lesIdx: number) => {
+    setHasUnsavedChanges(true);
     if (curriculumData.chapters[chIdx].lessons.length > 1) {
       setCurriculumData(prev => {
         const newChapters = [...prev.chapters];
@@ -749,13 +817,22 @@ export const InstructorDashboard: React.FC = () => {
       });
       setSelectedItem({ type: 'chapter', chIdx, lesIdx: null });
     } else {
-      alert('A chapter must have at least one lesson!');
+      showToast('A chapter must have at least one lesson!', 'error');
     }
   };
 
   const [workspaceCourseId, setWorkspaceCourseId] = useState<string | null>(null);
 
+  // Prevent empty state when reloading the page while editing a course
+  useEffect(() => {
+    if (activeTab === 'edit-course' && !workspaceCourseId) {
+      window.location.hash = 'my-courses';
+      showToast('Workspace refreshed. Please select a course from your list to resume editing.', 'info');
+    }
+  }, [activeTab, workspaceCourseId]);
+
   const openSyllabusEditor = async (course: InstructorCourse) => {
+    initialLoadDone.current = false;
     setWorkspaceCourseId(course.id);
     setWorkspaceCourseTitle(course.title);
     
@@ -774,6 +851,7 @@ export const InstructorDashboard: React.FC = () => {
       
       const numericPrice = detail.price ? detail.price.toString() : (course.price ? course.price.toString().replace(/[^\d]/g, '') : '0');
       setCoursePriceInput(numericPrice);
+      setCourseIsFreeInput(numericPrice === '0' || detail.topic === 'FREE');
       
       setCourseLongDescInput(detail.longDescription || '');
       
@@ -816,31 +894,56 @@ export const InstructorDashboard: React.FC = () => {
       
       setSelectedItem({ type: null, chIdx: 0, lesIdx: null });
       window.location.hash = '#edit-course';
+      setTimeout(() => {
+        initialLoadDone.current = true;
+        setHasUnsavedChanges(false);
+      }, 500);
     } catch (err) {
       console.error('Failed to load course details', err);
-      alert('Could not load course details from server. Fallback to basic details.');
+      showToast('Could not load course details from server. Fallback to basic details.', 'error');
       setCourseTitleInput(course.title);
       setCourseDescInput(course.description);
       setCurriculumData({ chapters: [] });
       window.location.hash = '#edit-course';
+      setTimeout(() => {
+        initialLoadDone.current = true;
+        setHasUnsavedChanges(false);
+      }, 500);
     }
   };
 
   const closeSyllabusEditor = () => {
+    initialLoadDone.current = false;
     setWorkspaceCourseId(null);
     window.location.hash = '#my-courses';
   };
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveAllCourseChanges = async () => {
+  const handleSaveAllCourseChanges = async (targetHash: string = '#my-courses') => {
     if (!workspaceCourseId) {
-      alert('Không tìm thấy ID khóa học để lưu!');
-      return;
+      showToast('Course ID not found for saving!', 'error');
+      return false;
     }
     if (!courseTitleInput.trim()) {
-      alert('Tiêu đề khóa học không được để trống!');
-      return;
+      showToast('Course title cannot be empty!', 'error');
+      return false;
+    }
+    if (courseCategoryIdsInput.length === 0) {
+      showToast('Please select at least one course category!', 'error');
+      return false;
+    }
+    if (!courseIsFreeInput && Number(coursePriceInput) <= 0) {
+      showToast('Paid courses must have a price greater than 0!', 'error');
+      return false;
+    }
+    if (!thumbnailFile?.file && !thumbnailFile?.url) {
+      showToast('Please upload a thumbnail image for the course!', 'error');
+      return false;
+    }
+    if (!courseDescInput.trim()) {
+      showToast('Short description cannot be empty!', 'error');
+      return false;
     }
 
     setIsSaving(true);
@@ -852,12 +955,20 @@ export const InstructorDashboard: React.FC = () => {
         finalThumbnailUrl = thumbnailFile.url;
       }
 
+      const sanitizeId = (id: any) => {
+        if (!id) return undefined;
+        if (typeof id === 'number' && id > 1000000000) return undefined;
+        if (typeof id === 'string') return undefined;
+        return id;
+      };
+
       const updatePayload = {
         title: courseTitleInput.trim(),
         shortDescription: courseDescInput.trim(),
         longDescription: courseLongDescInput.trim(),
         categoryIds: courseCategoryIdsInput,
         thumbnailUrl: finalThumbnailUrl,
+        isFree: courseIsFreeInput,
         price: Number(coursePriceInput) || 0,
         whatYouLearn: learnPoints.filter(p => p.trim()).join('#'),
         courseHighlight: highlightPoints.filter(p => p.trim()).join('#'),
@@ -866,18 +977,37 @@ export const InstructorDashboard: React.FC = () => {
         targetAudience: audiencePoints.filter(p => p.trim()).join('#'),
         completionBenefits: benefitPoints.filter(p => p.trim()).join('#'),
         chapters: curriculumData.chapters.map((ch, cIdx) => ({
-          id: ch.id,
+          id: sanitizeId(ch.id),
           title: ch.title,
           lessons: ch.lessons.map((les, lIdx) => {
             const isActive = selectedItem.type === 'lesson' && selectedItem.chIdx === cIdx && selectedItem.lesIdx === lIdx;
             return {
-              id: les.id,
+              id: sanitizeId(les.id),
               title: isActive && lessonTitle.trim() ? lessonTitle.trim() : les.title,
               video: les.video || '',
               theory: isActive && lessonTheory !== undefined ? lessonTheory : (les.theory || ''),
               isTrial: isActive ? lessonIsTrial : !!les.isTrial,
-              quizzes: les.quizzes || [],
-              exercises: les.exercises || []
+              quizzes: (les.quizzes || []).map((q: any) => ({
+                id: sanitizeId(q.id),
+                title: q.title,
+                questions: (q.questions || []).map((qt: any) => ({
+                  id: sanitizeId(qt.id),
+                  content: qt.content,
+                  options: (qt.options || []).map((qo: any) => ({
+                    id: sanitizeId(qo.id),
+                    content: qo.content,
+                    isCorrect: qo.isCorrect
+                  }))
+                }))
+              })),
+              exercises: (les.exercises || []).map((e: any) => ({
+                ...e,
+                id: sanitizeId(e.id),
+                testCases: (e.testCases || []).map((tc: any) => ({
+                  ...tc,
+                  id: sanitizeId(tc.id)
+                }))
+              }))
             };
           })
         }))
@@ -897,6 +1027,7 @@ export const InstructorDashboard: React.FC = () => {
               topic: updatedCourse.topic,
               price: updatedCourse.price,
               status: updatedCourse.status,
+              thumbnailUrl: finalThumbnailUrl || updatedCourse.thumbnailUrl || c.thumbnailUrl
             };
           }
           return c;
@@ -904,15 +1035,22 @@ export const InstructorDashboard: React.FC = () => {
       );
       setWorkspaceCourseTitle(updatedCourse.title);
       if (updatedCourse.status === 'review') {
-        alert('✅ Course changes saved successfully! It is now pending admin review.');
+        showToast('✅ Course changes saved successfully! It is now pending admin review.', 'success');
       } else {
-        alert('✅ Course draft saved successfully!');
+        showToast('✅ Course draft saved successfully!', 'success');
       }
-      setWorkspaceCourseId(null);
-      window.location.hash = '#my-courses';
+      
+      if (targetHash !== '#edit-course') {
+        setWorkspaceCourseId(null);
+      }
+      
+      setHasUnsavedChanges(false);
+      window.location.hash = targetHash;
+      return true;
     } catch (error) {
       console.error('Failed to save course:', error);
-      alert('❌ Failed to save course! Please check your connection and try again.');
+      showToast('❌ Failed to save course! Please check your connection and try again.', 'error');
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -1227,7 +1365,7 @@ export const InstructorDashboard: React.FC = () => {
     };
   }, [dashboardEnrollmentData]);
 
-  // Top Performing Courses (e.g. published, sorted by studentsCount desc, take top 2)
+  // Top Performing Courses (e.g. published, sorted by studentsCount desc, top 2)
   const topPerformingCourses = useMemo(() => {
     return [...instructorCourses]
       .filter(c => c.status === 'published')
@@ -1464,9 +1602,62 @@ export const InstructorDashboard: React.FC = () => {
   // Thumbnail file state
   const [thumbnailFile, setThumbnailFile] = useState<{ file?: File; name: string; size: string; url: string } | null>(null);
 
+  useEffect(() => {
+    if (isCreateCourseOpen) {
+      setCourseTitleInput('');
+      setCourseDescInput('');
+      setCourseLongDescInput('');
+      setCoursePriceInput('');
+      setCourseCategoryIdsInput([]);
+      setCourseIsFreeInput(false);
+      setThumbnailFile(null);
+      setLearnPoints(['']);
+      setHighlightPoints(['']);
+      setTechPoints(['']);
+      setPrereqPoints(['']);
+      setAudiencePoints(['']);
+      setBenefitPoints(['']);
+      setCourseFormError(null);
+    }
+  }, [isCreateCourseOpen]);
+
+  const initialLoadDone = useRef(false);
+
+  useEffect(() => {
+    if (initialLoadDone.current) {
+      setHasUnsavedChanges(true);
+    }
+  }, [
+    curriculumData,
+    courseTitleInput,
+    courseDescInput,
+    courseLongDescInput,
+    courseCategoryIdsInput,
+    coursePriceInput,
+    thumbnailFile,
+    learnPoints,
+    highlightPoints,
+    techPoints,
+    prereqPoints,
+    audiencePoints,
+    benefitPoints
+  ]);
+
+  // Validation and Submission State
+  const [courseFormError, setCourseFormError] = useState<string | null>(null);
+  const [isSubmittingCourse, setIsSubmittingCourse] = useState(false);
+
+  // Refs for auto-scrolling to errors
+  const titleRef = useRef<HTMLDivElement>(null);
+  const categoryRef = useRef<HTMLDivElement>(null);
+  const priceRef = useRef<HTMLDivElement>(null);
+  const thumbnailRef = useRef<HTMLDivElement>(null);
+  const shortDescRef = useRef<HTMLDivElement>(null);
+
   const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setHasUnsavedChanges(true);
       setThumbnailFile({
         file: file,
         name: file.name,
@@ -1479,6 +1670,36 @@ export const InstructorDashboard: React.FC = () => {
   const handleCreateCourseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation
+    if (!courseTitleInput.trim()) {
+      setCourseFormError("Course Title is required.");
+      titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (courseCategoryIdsInput.length === 0) {
+      setCourseFormError("Please select at least one Course Topic.");
+      categoryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (!courseIsFreeInput && Number(coursePriceInput) <= 0) {
+      setCourseFormError("Paid courses must have a price greater than 0.");
+      priceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (!thumbnailFile?.file) {
+      setCourseFormError("Course Thumbnail is required.");
+      thumbnailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (!courseDescInput.trim()) {
+      setCourseFormError("Short Description is required.");
+      shortDescRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    setCourseFormError(null);
+    setIsSubmittingCourse(true);
+    
     try {
       let finalThumbnailUrl = undefined;
       if (thumbnailFile?.file) {
@@ -1486,8 +1707,8 @@ export const InstructorDashboard: React.FC = () => {
       }
 
       const createdCourse = await instructorService.createCourse({
-        title: courseTitleInput || 'Untitled Course',
-        shortDescription: courseDescInput || 'No description provided.',
+        title: courseTitleInput.trim(),
+        shortDescription: courseDescInput.trim(),
         longDescription: courseLongDescInput,
         categoryIds: courseCategoryIdsInput,
         isFree: courseIsFreeInput,
@@ -1502,7 +1723,7 @@ export const InstructorDashboard: React.FC = () => {
       });
 
       setInstructorCourses(prev => [createdCourse, ...prev]);
-      alert(`Course "${courseTitleInput}" has been successfully created and saved to drafts!`);
+      showToast(`Course "${courseTitleInput}" has been successfully created and saved to drafts!`, 'success');
       setIsCreateCourseOpen(false);
 
       // Fetch the updated list from server to ensure sync
@@ -1533,10 +1754,11 @@ export const InstructorDashboard: React.FC = () => {
       setPrereqPoints(['']);
       setAudiencePoints(['']);
       setBenefitPoints(['']);
-
     } catch (err) {
-      console.error("Failed to create course", err);
-      alert("There was an error creating your course. Please try again.");
+      console.error('Failed to create course:', err);
+      setCourseFormError('An error occurred while creating the course. Please try again.');
+    } finally {
+      setIsSubmittingCourse(false);
     }
   };
 
@@ -1670,11 +1892,11 @@ export const InstructorDashboard: React.FC = () => {
 
   const handleApplyCustomDate = () => {
     if (!customStartDate || !customEndDate) {
-      alert("Please select both a start date and an end date.");
+      showToast("Please select both a start date and an end date.", 'error');
       return;
     }
     if (new Date(customStartDate) > new Date(customEndDate)) {
-      alert("The start date cannot be later than the end date.");
+      showToast("The start date cannot be later than the end date.", 'error');
       return;
     }
     setAppliedStartDate(customStartDate);
@@ -1835,7 +2057,6 @@ export const InstructorDashboard: React.FC = () => {
         <nav className="flex-1 flex flex-col gap-1.5 py-6 px-2.5 overflow-y-auto">
           <a
             href="#dashboard"
-            onClick={() => setActiveTab('dashboard')}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
               activeTab === 'dashboard'
                 ? 'bg-white/10 text-white font-bold border-l-4 border-primary'
@@ -1850,7 +2071,6 @@ export const InstructorDashboard: React.FC = () => {
 
           <a
             href="#my-courses"
-            onClick={() => setActiveTab('my-courses')}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
               activeTab === 'my-courses' || activeTab === 'edit-course'
                 ? 'bg-white/10 text-white font-bold border-l-4 border-primary'
@@ -1867,7 +2087,6 @@ export const InstructorDashboard: React.FC = () => {
 
           <a
             href="#revenue"
-            onClick={() => setActiveTab('revenue')}
             className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
               activeTab === 'revenue'
                 ? 'bg-white/10 text-white font-bold border-l-4 border-primary'
@@ -1964,14 +2183,12 @@ export const InstructorDashboard: React.FC = () => {
                     </button>
                     <a
                       href="#my-courses"
-                      onClick={() => setActiveTab('my-courses')}
                       className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-bold transition-all duration-200 border border-white/10 hover:scale-[1.02]"
                     >
                       <span className="material-symbols-outlined text-sm">library_books</span> Courses
                     </a>
                     <a
                       href="#revenue"
-                      onClick={() => setActiveTab('revenue')}
                       className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-bold transition-all duration-200 border border-white/10 hover:scale-[1.02]"
                     >
                       <span className="material-symbols-outlined text-sm">insights</span> Analytics
@@ -2990,7 +3207,7 @@ export const InstructorDashboard: React.FC = () => {
                           {course.status === 'review' && (
                             <button
                               onClick={() =>
-                                alert(`Course "${course.title}" is pending admin review and activation.`)
+                                showToast(`Course "${course.title}" is pending admin review and activation.`, 'info')
                               }
                               className="col-span-2 flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 font-bold transition-all border border-slate-200/50"
                             >
@@ -3016,10 +3233,10 @@ export const InstructorDashboard: React.FC = () => {
                                         c.id === course.id ? { ...c, status: 'review' } : c
                                       )
                                     );
-                                    alert(`Submitted successfully! Course "${course.title}" has been sent for admin review.`);
+                                    showToast(`Submitted successfully! Course "${course.title}" has been sent for admin review.`, 'success');
                                   } catch (error) {
                                     console.error('Failed to submit course', error);
-                                    alert('Failed to submit course for review. Please try again.');
+                                    showToast('Failed to submit course for review. Please try again.', 'error');
                                   }
                                 }}
                                 className="flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-sm"
@@ -3975,7 +4192,7 @@ export const InstructorDashboard: React.FC = () => {
 
         {/* ================= WORKSPACE PANEL: COURSE CURRICULUM & DETAILS (FLUSH-RIGHT) ================= */}
         {activeTab === 'edit-course' && (
-          <div id="course-editor-workspace" className="flex-grow flex flex-col gap-6 w-full p-6 md:p-8 bg-[#f0f4f9] min-h-screen select-none">
+          <div id="course-editor-workspace" onChange={() => setHasUnsavedChanges(true)} className="flex-grow flex flex-col gap-6 w-full p-6 md:p-8 bg-[#f0f4f9] min-h-screen select-none">
             {/* Workspace Header */}
             <div className="bg-brand-blue text-white px-6 py-4 flex items-center justify-between shadow-md border-b border-brand-blue-light/35 rounded-2xl shrink-0">
               <div className="flex items-center gap-3">
@@ -3994,7 +4211,7 @@ export const InstructorDashboard: React.FC = () => {
                 })()}
                 <button
                   type="button"
-                  onClick={handleSaveAllCourseChanges}
+                  onClick={() => handleSaveAllCourseChanges()}
                   disabled={isSaving}
                   className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white transition-all text-xs font-bold shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -4010,7 +4227,14 @@ export const InstructorDashboard: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={closeSyllabusEditor}
+                  onClick={() => {
+                    if (hasUnsavedChanges) {
+                      setPendingNavigationHash('#my-courses');
+                      setShowUnsavedModal(true);
+                    } else {
+                      closeSyllabusEditor();
+                    }
+                  }}
                   className="flex items-center gap-1 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-red-600 text-white hover:text-white transition-all text-xs font-bold shadow-md hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <span className="material-symbols-outlined text-sm">close</span> Cancel
@@ -4128,17 +4352,47 @@ export const InstructorDashboard: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Purchase Price */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Purchase Price (₫)</label>
-                        <input
-                          type="number"
-                          value={coursePriceInput}
-                          onChange={(e) => setCoursePriceInput(e.target.value)}
-                          className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
-                          placeholder="e.g. 499000"
-                        />
+                      {/* Pricing */}
+                      <div className="flex flex-col gap-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Pricing</label>
+                        <div className="flex items-center gap-4 mt-1">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="editIsFree" 
+                              checked={courseIsFreeInput === true}
+                              onChange={() => setCourseIsFreeInput(true)}
+                              className="text-primary focus:ring-primary"
+                            />
+                            <span className="text-sm font-medium text-slate-700">Free Course</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="editIsFree" 
+                              checked={courseIsFreeInput === false}
+                              onChange={() => setCourseIsFreeInput(false)}
+                              className="text-primary focus:ring-primary"
+                            />
+                            <span className="text-sm font-medium text-slate-700">Paid Course</span>
+                          </label>
+                        </div>
                       </div>
+
+                      {/* Purchase Price */}
+                      {!courseIsFreeInput && (
+                        <div className="flex flex-col gap-1.5 md:col-span-2 mt-2">
+                          <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Purchase Price (₫) <span className="text-red-500">*</span></label>
+                          <input
+                            type="number"
+                            value={coursePriceInput}
+                            onWheel={(e) => e.currentTarget.blur()}
+                            onChange={(e) => setCoursePriceInput(e.target.value)}
+                            className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue w-full"
+                            placeholder="e.g. 499000"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -4658,7 +4912,7 @@ export const InstructorDashboard: React.FC = () => {
 
                   {/* Tabs Content Card */}
                   <div className="relative bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px] shadow-sm">
-                    {selectedItem.type === 'lesson' && activeLesson?.status === 'INACTIVE' && (
+                    {instructorCourses.find(c => c.id === workspaceCourseId)?.status === 'published' && selectedItem.type === 'lesson' && activeLesson?.status === 'INACTIVE' && (
                       <div className="mb-6 z-20 rounded-2xl flex items-start justify-center pointer-events-auto">
                         <div className="bg-orange-50/90 backdrop-blur-xl border border-orange-200/60 p-4 rounded-2xl shadow-sm flex items-start gap-4 w-full">
                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0 text-white">
@@ -4672,7 +4926,7 @@ export const InstructorDashboard: React.FC = () => {
                       </div>
                     )}
                     
-                    <div className={selectedItem.type === 'lesson' && activeLesson?.status === 'INACTIVE' ? 'pointer-events-none opacity-80 grayscale-[10%] select-none' : ''}>
+                    <div className={instructorCourses.find(c => c.id === workspaceCourseId)?.status === 'published' && selectedItem.type === 'lesson' && activeLesson?.status === 'INACTIVE' ? 'pointer-events-none opacity-80 grayscale-[10%] select-none' : ''}>
                       {/* TAB 1: Overview */}
                       {editorTab === 'overview' && (
                         <div className="flex flex-col gap-5">
@@ -4891,8 +5145,11 @@ export const InstructorDashboard: React.FC = () => {
                               <div className="flex flex-col gap-4">
                                 <div className="w-full bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-200 aspect-video relative flex items-center justify-center group pointer-events-auto" style={{ maxHeight: '420px' }}>
                                   <video 
+                                    key={uploadedVideoName}
                                     src={uploadedVideoName.startsWith('http') ? uploadedVideoName : undefined}
                                     controls
+                                    preload="auto"
+                                    playsInline
                                     className="w-full h-full object-contain"
                                   >
                                     Your browser does not support the video tag.
@@ -5145,6 +5402,16 @@ export const InstructorDashboard: React.FC = () => {
             <form onSubmit={handleCreateCourseSubmit} className="flex flex-col">
               <div className="p-6 md:p-8 flex flex-col gap-6 max-h-[72vh] overflow-y-auto bg-slate-50/30">
                 
+                {courseFormError && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-start gap-3 animate-fade-in shrink-0">
+                    <span className="material-symbols-outlined text-red-500 shrink-0">error</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold">Validation Error</span>
+                      <span className="text-sm">{courseFormError}</span>
+                    </div>
+                  </div>
+                )}
+                
                 {/* PANEL 1: COURSE BASICS */}
                 <div className="bg-surface rounded-2xl border border-slate-200/60 p-6 flex flex-col gap-5 shadow-sm">
                   <h4 className="font-display font-black text-sm text-brand-blue border-b border-slate-100 pb-2.5 flex items-center gap-2 uppercase tracking-wider">
@@ -5153,8 +5420,8 @@ export const InstructorDashboard: React.FC = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Course Title */}
-                    <div className="flex flex-col gap-1.5 md:col-span-2">
-                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Title</label>
+                    <div ref={titleRef} className="flex flex-col gap-1.5 md:col-span-2 scroll-mt-6">
+                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Title <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         value={courseTitleInput}
@@ -5166,8 +5433,8 @@ export const InstructorDashboard: React.FC = () => {
                     
                     {/* Course Topic */}
                     {/* Course Topic */}
-                    <div className="flex flex-col gap-1.5 md:col-span-2 relative">
-                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Topic</label>
+                    <div ref={categoryRef} className="flex flex-col gap-1.5 md:col-span-2 relative scroll-mt-6">
+                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Topic <span className="text-red-500">*</span></label>
                       
                       {/* Trigger Button */}
                       <div 
@@ -5262,11 +5529,12 @@ export const InstructorDashboard: React.FC = () => {
 
                     {/* Course Price */}
                     {!courseIsFreeInput && (
-                      <div className="flex flex-col gap-1.5 md:col-span-2">
-                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Price (₫)</label>
+                      <div ref={priceRef} className="flex flex-col gap-1.5 md:col-span-2 scroll-mt-6">
+                        <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Price (₫) <span className="text-red-500">*</span></label>
                         <input
                           type="number"
                           value={coursePriceInput}
+                          onWheel={(e) => e.currentTarget.blur()}
                           onChange={(e) => setCoursePriceInput(e.target.value)}
                           placeholder="e.g. 499000"
                           className="text-sm border-slate-200 focus:border-primary focus:ring-primary focus:ring-1 rounded-xl p-2.5 font-medium text-brand-blue"
@@ -5284,8 +5552,8 @@ export const InstructorDashboard: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Drag & Drop Thumbnail Upload */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Thumbnail</label>
+                    <div ref={thumbnailRef} className="flex flex-col gap-1.5 scroll-mt-6">
+                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Course Thumbnail <span className="text-red-500">*</span></label>
                       <div className="relative border-2 border-dashed border-slate-200 hover:border-primary rounded-2xl p-5 flex flex-col items-center justify-center gap-2 bg-slate-50/50 hover:bg-primary-light/5 transition-all group cursor-pointer h-[155px]">
                         <input type="file" id="course-thumbnail" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleThumbnailUpload} />
                         <span className="material-symbols-outlined text-4xl text-slate-400 group-hover:text-primary transition-colors">image</span>
@@ -5321,8 +5589,8 @@ export const InstructorDashboard: React.FC = () => {
                     </div>
 
                     {/* Short Description */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Short Description</label>
+                    <div ref={shortDescRef} className="flex flex-col gap-1.5 scroll-mt-6">
+                      <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Short Description <span className="text-red-500">*</span></label>
                       <textarea
                         value={courseDescInput}
                         onChange={(e) => setCourseDescInput(e.target.value)}
@@ -5587,7 +5855,20 @@ export const InstructorDashboard: React.FC = () => {
               <div className="flex items-center justify-end gap-3.5 p-6 border-t border-slate-100 bg-slate-50 shrink-0">
                 <button type="button" onClick={() => setIsCreateCourseOpen(false)} className="px-8 py-3.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-extrabold hover:bg-slate-50 transition-colors">Cancel</button>
                 <button type="button" onClick={resetSimpleCourseForm} className="px-5 py-3.5 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-700 text-sm font-bold transition-colors">Reset Form</button>
-                <button type="submit" className="px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-extrabold transition-all shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]">Submit Course</button>
+                <button 
+                  type="submit" 
+                  disabled={isSubmittingCourse}
+                  className={`px-8 py-3.5 rounded-xl text-white text-sm font-extrabold transition-all shadow-md flex items-center justify-center gap-2 ${isSubmittingCourse ? 'bg-primary/70 cursor-not-allowed shadow-none' : 'bg-primary hover:bg-primary-hover shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]'}`}
+                >
+                  {isSubmittingCourse ? (
+                    <>
+                      <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                      Creating Course...
+                    </>
+                  ) : (
+                    "Submit Course"
+                  )}
+                </button>
               </div>
             </form>
           </div>
@@ -6256,6 +6537,70 @@ export const InstructorDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* Custom Toast Notification */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-[99999] px-5 py-4 rounded-xl shadow-2xl border flex items-center gap-3 backdrop-blur-md animate-fade-in min-w-[300px] ${
+          toast.type === 'success' 
+            ? 'bg-emerald-50/95 border-emerald-200 text-emerald-800' 
+            : 'bg-red-50/95 border-red-200 text-red-800'
+        }`}>
+          <span className={`material-symbols-outlined text-[24px] ${toast.type === 'success' ? 'text-emerald-500' : 'text-red-500'}`}>
+            {toast.type === 'success' ? 'check_circle' : 'error'}
+          </span>
+          <p className="text-sm font-bold flex-1">{toast.message}</p>
+          <button 
+            onClick={() => setToast(null)}
+            className="p-1 rounded-md hover:bg-black/5 transition-colors flex items-center justify-center"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      )}
+
+      {/* Unsaved Changes Modal */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowUnsavedModal(false)}></div>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative z-10 animate-fade-in border border-slate-200">
+            <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-600">
+              <span className="material-symbols-outlined text-[24px]">warning</span>
+            </div>
+            <h3 className="text-xl font-black text-slate-800 mb-2 tracking-tight">You have unsaved changes</h3>
+            <p className="text-sm text-slate-600 mb-6 font-medium">Do you want to save all changes to your course before leaving this page?</p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={async () => {
+                  const target = pendingNavigationHash || '#my-courses';
+                  const success = await handleSaveAllCourseChanges(target);
+                  if (success) {
+                    setShowUnsavedModal(false);
+                  }
+                }}
+                className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[18px]">save</span> Save & Leave
+              </button>
+              <button
+                onClick={() => {
+                  setHasUnsavedChanges(false);
+                  setShowUnsavedModal(false);
+                  setWorkspaceCourseId(null);
+                  if (pendingNavigationHash) window.location.hash = pendingNavigationHash;
+                }}
+                className="w-full py-3 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-xl font-bold transition-all"
+              >
+                Discard & Leave
+              </button>
+              <button
+                onClick={() => setShowUnsavedModal(false)}
+                className="w-full py-3 text-slate-500 hover:text-slate-800 font-bold transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
