@@ -285,6 +285,12 @@ public class ContestService {
         if (!isRegistered) {
             throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
         }
+        // Block access if contest has not started yet (UPCOMING)
+        // ENDED is allowed: users can review problems after contest ends
+        String currentStatus = calculateStatus(contest, java.time.Instant.now());
+        if (currentStatus.equals("UPCOMING")) {
+            throw new AppException(ErrorCode.CONTEST_NOT_STARTED);
+        }
 
         List<ContestProblemEntity> contestProblems = contestProblemRepository.findByContestIdWithProblem(contestId);
         List<ContestProblemAttemptEntity> attempts = contestProblemAttemptRepository.findByContestIdAndUserId(contestId, userId);
@@ -563,6 +569,11 @@ public class ContestService {
             if (!isRegistered) {
                 throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
             }
+            // Block access if contest has not started yet
+            String currentStatus = calculateStatus(contest, java.time.Instant.now());
+            if (currentStatus.equals("UPCOMING")) {
+                throw new AppException(ErrorCode.CONTEST_NOT_STARTED);
+            }
             submissions = problemSubmissionRepository.findByContestIdAndUserId(contestId, userId);
         }
 
@@ -633,11 +644,11 @@ public class ContestService {
             throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
         }
 
-        // Verify contest has started (throw 403 / ACCESS_DENIED if upcoming)
+        // Verify contest has started (throw 403 / CONTEST_NOT_STARTED if upcoming)
         Instant now = Instant.now();
         String currentStatus = calculateStatus(contest, now);
         if (currentStatus.equals("UPCOMING")) {
-            throw new AppException(ErrorCode.ACCESS_DENIED);
+            throw new AppException(ErrorCode.CONTEST_NOT_STARTED);
         }
 
         // Check if the problem belongs to the contest

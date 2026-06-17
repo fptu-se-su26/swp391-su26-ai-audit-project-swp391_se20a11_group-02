@@ -12,15 +12,17 @@ import java.util.Set;
 
 @Repository
 public interface CompletedLessonCountRepository extends JpaRepository<CompletedLessonsCountEntity, Long> {
-    Optional<CompletedLessonsCountEntity> getByUserIdAndCourseId(Long userId, Long courseId);
+    Optional<CompletedLessonsCountEntity> getByUserIdAndCourseId(Integer userId, Long courseId);
 
-    List<CompletedLessonsCountEntity> findByUserIdAndCourseIdIn(Long userId, Set<Long> courseIds);
+    List<CompletedLessonsCountEntity> findByUserIdAndCourseIdIn(Integer userId, Set<Long> courseIds);
+
+    List<CompletedLessonsCountEntity> findByCourseId(Long courseId);
 
     @Query(value = "UPDATE completed_lessons_count " +
                    "SET completed_lessons_count = completed_lessons_count + 1, updated_at = CURRENT_TIMESTAMP " +
                    "WHERE user_id = :userId AND course_id = :courseId " +
                    "RETURNING completed_lessons_count",
            nativeQuery = true)
-    Integer incrementAndGetCount(@Param("userId") Long userId, @Param("courseId") Long courseId);
+    Integer incrementAndGetCount(@Param("userId") Integer userId, @Param("courseId") Long courseId);
 }
 

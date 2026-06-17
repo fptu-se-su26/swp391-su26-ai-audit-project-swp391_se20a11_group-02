@@ -246,6 +246,8 @@ export interface AdminProblemTestcase {
   expectedOutput: string;
   orderIndex: number;
   token?: string;
+  scoreWeight?: number;
+  isHidden?: boolean;
 }
 
 /*

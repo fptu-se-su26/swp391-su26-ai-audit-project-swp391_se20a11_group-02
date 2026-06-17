@@ -19,7 +19,7 @@ export const CourseDetail: React.FC = () => {
 
   // Cart & Video Modal Interactive States
   const [successMessage, setSuccessMessage] = useState('');
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
 
   // Review State
   const [reviewFormStar, setReviewFormStar] = useState<number>(0);
@@ -197,9 +197,9 @@ export const CourseDetail: React.FC = () => {
         </div>
       )}
 
-      {isVideoModalOpen && (
+      {previewVideoUrl && (
         <div 
-          onClick={() => setIsVideoModalOpen(false)}
+          onClick={() => setPreviewVideoUrl(null)}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in"
         >
           <div 
@@ -207,19 +207,30 @@ export const CourseDetail: React.FC = () => {
             className="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl mx-4"
           >
             <button 
-              onClick={() => setIsVideoModalOpen(false)}
+              onClick={() => setPreviewVideoUrl(null)}
               className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition-all z-10 flex items-center justify-center"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
-            <iframe 
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-              title="Course Preview Video"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            {previewVideoUrl.includes('youtube.com') || previewVideoUrl.includes('youtu.be') ? (
+              <iframe 
+                className="w-full h-full"
+                src={previewVideoUrl}
+                title="Course Preview Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            ) : (
+              <video 
+                className="w-full h-full object-contain bg-black"
+                src={previewVideoUrl}
+                controls
+                autoPlay
+              >
+                Your browser does not support the video tag.
+              </video>
+            )}
           </div>
         </div>
       )}
@@ -463,7 +474,7 @@ export const CourseDetail: React.FC = () => {
                                       </div>
                                       {lesson.isTrial && (
                                         <button 
-                                          onClick={() => setIsVideoModalOpen(true)}
+                                          onClick={() => setPreviewVideoUrl(lesson.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1')}
                                           className="bg-primary text-white text-body-sm font-bold px-3 py-1 rounded hover:bg-primary-hover transition-all"
                                         >
                                           Preview
@@ -657,7 +668,19 @@ export const CourseDetail: React.FC = () => {
             <div className="sticky top-24 bg-surface rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
               {/* Video Preview */}
               <div 
-                onClick={() => setIsVideoModalOpen(true)}
+                onClick={() => {
+                  let url = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1';
+                  if (curriculum) {
+                    for (const chap of curriculum) {
+                      const trial = chap.lessons.find(l => l.isTrial && l.videoUrl);
+                      if (trial && trial.videoUrl) {
+                        url = trial.videoUrl;
+                        break;
+                      }
+                    }
+                  }
+                  setPreviewVideoUrl(url);
+                }}
                 className="relative w-full aspect-video group cursor-pointer"
               >
                 <img

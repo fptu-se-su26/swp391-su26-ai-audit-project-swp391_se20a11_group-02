@@ -2,19 +2,16 @@ package com.swp391.coding_platform.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import java.util.List;
 
-@Getter
-@Setter
-@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CurriculumLessonResponse {
+public class InstructorQuizQuestionResponse {
     Integer id;
-    String title;
-    Boolean isTrial;
+    String content;
     Integer orderIndex;
-    String videoUrl;
-    String type; // 'video' | 'coding' | 'reading'
-    String status;
+    List<InstructorQuizOptionResponse> options;
 }

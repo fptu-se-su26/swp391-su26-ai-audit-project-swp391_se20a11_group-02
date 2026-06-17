@@ -5,9 +5,11 @@ import com.swp391.coding_platform.dto.response.ContestScoreboardResponse.Problem
 import com.swp391.coding_platform.dto.response.ContestScoreboardResponse.TeamRow;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.contest.ContestProblemEntity;
+import com.swp391.coding_platform.entity.contest.ContestRankingEntity;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.event.SubmissionJudgedEvent;
 import com.swp391.coding_platform.repository.contest.ContestProblemRepository;
+import com.swp391.coding_platform.repository.contest.ContestRankingRepository;
 import com.swp391.coding_platform.repository.contest.ContestRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
 import lombok.AccessLevel;
@@ -34,6 +36,7 @@ public class ContestRankingService {
     ContestRepository contestRepository;
     ContestProblemRepository contestProblemRepository;
     UserRepository userRepository;
+    ContestRankingRepository contestRankingRepository;
 
     @Transactional
     public ContestScoreboardResponse updateContestRanking(SubmissionJudgedEvent event) {
@@ -157,6 +160,11 @@ public class ContestRankingService {
                 stringRedisTemplate.opsForZSet().add(publicScoreboardKey, String.valueOf(userId), defaultScore);
             }
         }
+
+        // ==========================================
+        // PERSIST RANKING TO DATABASE (Lưu xuống DB để không mất khi Redis restart)
+        // ==========================================
+        persistRankingToDatabase(contestId, userId, problemsSolved, (int)(totalPenaltySeconds / 60));
 
         // Trả về scoreboard để stream (mặc định stream bảng public cho đại chúng)
         return getScoreboard(contestId, false);
@@ -285,5 +293,47 @@ public class ContestRankingService {
         long mins = (totalSecs % 3600) / 60;
         long secs = totalSecs % 60;
         return String.format("%d:%02d:%02d", hrs, mins, secs);
+    }
+
+    /**
+     * Upsert ranking vào DB — luôn ghi state mới nhất từ Redis.
+     * Redis là source of truth (đã tính tích lũy đúng từ updateContestRanking).
+     * DB chỉ là bản sao bền vững để không mất dữ liệu khi Redis restart.
+     *
+     * Không dùng "chỉ update nếu tốt hơn" vì:
+     * - Người dùng nộp sai nhiều lần (chưa có AC) vẫn cần lưu số lần sai
+     * - Redis đã tính đúng tổng penalty và solved count rồi, chỉ cần mirror xuống DB
+     */
+    @Transactional
+    public void persistRankingToDatabase(Integer contestId, Integer userId, int problemsSolved, int totalPenaltyMinutes) {
+        try {
+            var existingOpt = contestRankingRepository.findByContestIdAndUserId(contestId, userId);
+            if (existingOpt.isPresent()) {
+                // Luôn cập nhật với state mới nhất
+                ContestRankingEntity existing = existingOpt.get();
+                existing.setProblemsSolved(problemsSolved);
+                existing.setTotalPenalty(totalPenaltyMinutes);
+                existing.setUpdatedAt(Instant.now());
+                contestRankingRepository.save(existing);
+                log.debug("Updated DB ranking for user {} in contest {}: solved={}, penalty={}min",
+                        userId, contestId, problemsSolved, totalPenaltyMinutes);
+            } else {
+                // Lần đầu tiên user có kết quả → INSERT
+                ContestRankingEntity newRanking = ContestRankingEntity.builder()
+                        .contest(contestRepository.getReferenceById(contestId))
+                        .user(userRepository.getReferenceById(userId))
+                        .problemsSolved(problemsSolved)
+                        .totalPenalty(totalPenaltyMinutes)
+                        .updatedAt(Instant.now())
+                        .build();
+                contestRankingRepository.save(newRanking);
+                log.debug("Inserted DB ranking for user {} in contest {}: solved={}, penalty={}min",
+                        userId, contestId, problemsSolved, totalPenaltyMinutes);
+            }
+        } catch (Exception e) {
+            // Không để lỗi DB ảnh hưởng đến luồng chính (Redis vẫn là source of truth)
+            log.error("Failed to persist ranking to DB for user {} in contest {}: {}",
+                    userId, contestId, e.getMessage());
+        }
     }
 }

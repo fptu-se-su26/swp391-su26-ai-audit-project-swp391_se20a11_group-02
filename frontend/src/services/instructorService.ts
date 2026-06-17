@@ -1,9 +1,14 @@
 const BASE_URL = 'http://localhost:8080/nonstopcoding';
 
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+}
+
 export interface InstructorCourse {
   id: string;
   title: string;
-  level: string;
   topic: string;
   price: string;
   studentsCount: number;
@@ -13,6 +18,8 @@ export interface InstructorCourse {
   icon: string;
   gradient: string;
   description: string;
+  thumbnailUrl?: string;
+  level?: string;
 }
 
 export interface SalesHistoryItem {
@@ -75,7 +82,45 @@ export interface InstructorCourseRegistrationsResponse {
   totalTrendRegistrations: number;
 }
 
+export interface CreateCoursePayload {
+  title: string;
+  shortDescription: string;
+  longDescription?: string;
+  level?: string;
+  topic?: string;
+  categoryIds?: number[];
+  isFree?: boolean;
+  price?: number;
+  whatYouLearn?: string[];
+  courseHighlight?: string[];
+  technologyTool?: string[];
+  prerequisites?: string[];
+  targetAudience?: string[];
+  completionBenefits?: string[];
+  thumbnailUrl?: string;
+}
+
 export const instructorService = {
+  async uploadMedia(file: File, folderName: string = 'courses'): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folderName', folderName);
+
+    const response = await fetch(`${BASE_URL}/instructor/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to upload media');
+    }
+
+    const data = await response.json();
+    return data.result.secureUrl;
+  },
+
   async getCourses(): Promise<InstructorCourse[]> {
     const response = await fetch(`${BASE_URL}/instructor/courses`, {
       method: 'GET',
@@ -93,6 +138,130 @@ export const instructorService = {
     const data = await response.json();
     return data.result;
   },
+
+  async getCategories(): Promise<Category[]> {
+    const response = await fetch(`${BASE_URL}/categories`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch categories');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async submitCourseForReview(courseId: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}/submit-review`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to submit course for review');
+    }
+  },
+
+  async createCourse(courseData: CreateCoursePayload): Promise<InstructorCourse> {
+    const response = await fetch(`${BASE_URL}/instructor/courses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(courseData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create course');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getCourseDetail(courseId: string): Promise<any> {
+    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch course details');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async updateCourse(courseId: string, courseData: {
+    title?: string;
+    shortDescription?: string;
+    longDescription?: string;
+    level?: string;
+    topic?: string;
+    categoryIds?: number[];
+    isFree?: boolean;
+    price?: number;
+    thumbnailUrl?: string;
+    whatYouLearn?: string;
+    courseHighlight?: string;
+    technologyTool?: string;
+    prerequisites?: string;
+    targetAudience?: string;
+    completionBenefits?: string;
+    chapters?: {
+      id?: number;
+      title: string;
+      lessons: {
+        id?: number;
+        title: string;
+        video: string;
+        theory: string;
+        isTrial: boolean;
+        status?: string;
+        quizzes?: {
+          id?: number;
+          title: string;
+          questions: {
+            id?: number;
+            content: string;
+            options: {
+              id?: number;
+              content: string;
+              isCorrect: boolean;
+            }[];
+          }[];
+        }[];
+      }[];
+    }[];
+  }): Promise<InstructorCourse> {
+    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(courseData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update course');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+
 
   async getRevenueSummary(filter?: string, startDate?: string, endDate?: string): Promise<InstructorRevenueSummary> {
     let url = `${BASE_URL}/instructor/revenue/summary`;
@@ -256,6 +425,23 @@ export const instructorService = {
     if (!response.ok) {
       if (response.status === 403) throw new Error('SUSPENDED');
       throw new Error('Failed to fetch instructor course registrations trend');
+    }
+
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getCourseStatistics(courseId: string): Promise<any> {
+    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}/statistics`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch course statistics');
     }
 
     const data = await response.json();

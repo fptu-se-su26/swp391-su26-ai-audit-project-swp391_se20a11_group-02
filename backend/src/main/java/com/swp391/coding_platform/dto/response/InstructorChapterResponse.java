@@ -10,14 +10,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LearningLessonResponse {
+public class InstructorChapterResponse {
     Integer id;
     String title;
-    String videoUrl;
-    String theoryContent;
-    String sourceCode;
-    List<ProblemListItemResponse> problems;
-    QuizDetailResponse quiz;
-    java.util.List<LearningExerciseResponse> exercises;
-    String status;
+    Integer orderIndex;
+    List<InstructorLessonResponse> lessons;
 }

@@ -17,6 +17,7 @@ import java.util.Optional;
 @Repository
 public interface ProblemRepository extends JpaRepository<ProblemEntity, Integer>, JpaSpecificationExecutor<ProblemEntity> {
     List<ProblemEntity> findByProblemScopeInAndIsActiveTrueAndIsPublicTrue(Collection<ProblemScope> scopes);
+    List<ProblemEntity> findByProblemScopeIn(Collection<ProblemScope> scopes);
     Optional<ProblemEntity> findByIdAndIsPublicTrue(Integer id);
 
     @Modifying

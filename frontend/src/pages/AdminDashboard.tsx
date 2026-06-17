@@ -20,6 +20,15 @@ import type {
   AwardDetails,
   SaleDetails
 } from '../services/adminService';
+import Editor from '@monaco-editor/react';
+
+const GENERATOR_TEMPLATES: Record<string, string> = {
+  java: `import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        // Number of test cases\n        int numberOfTests = 3;\n        \n        for (int i = 0; i < numberOfTests; i++) {\n            // Write your logic here\n            \n            // DO NOT REMOVE\n            System.out.println("---TESTCASE---");\n            System.out.println("INPUT:");\n            \n            // Print your input here\n            \n            // DO NOT REMOVE\n            System.out.println("OUTPUT:");\n            \n            // Print your output here\n        }\n    }\n}`,
+  python: `# Number of test cases\nnumberOfTests = 3\n\nfor _ in range(numberOfTests):\n    # Write your logic here\n    \n    # DO NOT REMOVE\n    print("---TESTCASE---")\n    print("INPUT:")\n    \n    # Print your input here\n    \n    # DO NOT REMOVE\n    print("OUTPUT:")\n    \n    # Print your output here\n`,
+  cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Number of test cases\n    int numberOfTests = 3;\n    \n    for (int i = 0; i < numberOfTests; i++) {\n        // Write your logic here\n        \n        // DO NOT REMOVE\n        cout << "---TESTCASE---\\n";\n        cout << "INPUT:\\n";\n        \n        // Print your input here\n        \n        // DO NOT REMOVE\n        cout << "OUTPUT:\\n";\n        \n        // Print your output here\n    }\n    return 0;\n}`,
+  c: `#include <stdio.h>\n\nint main() {\n    // Number of test cases\n    int numberOfTests = 3;\n    \n    for (int i = 0; i < numberOfTests; i++) {\n        // Write your logic here\n        \n        // DO NOT REMOVE\n        printf("---TESTCASE---\\n");\n        printf("INPUT:\\n");\n        \n        // Print your input here\n        \n        // DO NOT REMOVE\n        printf("OUTPUT:\\n");\n        \n        // Print your output here\n    }\n    return 0;\n}`,
+  csharp: `using System;\n\npublic class Solution {\n    public static void Main() {\n        // Number of test cases\n        int numberOfTests = 3;\n        \n        for (int i = 0; i < numberOfTests; i++) {\n            // Write your logic here\n            \n            // DO NOT REMOVE\n            Console.WriteLine("---TESTCASE---");\n            Console.WriteLine("INPUT:");\n            \n            // Print your input here\n            \n            // DO NOT REMOVE\n            Console.WriteLine("OUTPUT:");\n            \n            // Print your output here\n        }\n    }\n}`
+};
 
 
 const tabHeaderDetails: Record<string, { badge: string; icon: string; title: string; desc: string }> = {
@@ -388,6 +397,11 @@ export const AdminDashboard: React.FC = () => {
   const [zipFile, setZipFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [isSavingTestcases, setIsSavingTestcases] = useState(false);
+  const [testCaseGenerationMode, setTestCaseGenerationMode] = useState<'manual' | 'generate'>('manual');
+  const [generatorLanguage, setGeneratorLanguage] = useState('java');
+  const [generatorCode, setGeneratorCode] = useState(GENERATOR_TEMPLATES['java']);
+  const [generateLoading, setGenerateLoading] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
   const [isEditContestMode, setIsEditContestMode] = useState(false);
   const [editingContestId, setEditingContestId] = useState<number | null>(null);
@@ -1176,6 +1190,25 @@ export const AdminDashboard: React.FC = () => {
       });
 
       setProblems(prev => [...prev, newProb]);
+
+      // If there are testcases generated/added manually during creation, save them
+      if (testcasesList.length > 0) {
+        try {
+          const tcsToSave = testcasesList.map((tc, idx) => ({
+            ...tc,
+            problemId: newProb.id,
+            orderIndex: idx + 1
+          }));
+          const savedTcs = await adminService.saveProblemTestcases(newProb.id, tcsToSave);
+          // Update totalTestcases on the newly created problem
+          setProblems(prev => prev.map(p => 
+            p.id === newProb.id ? { ...p, totalTestcases: savedTcs.length } : p
+          ));
+        } catch (tcError) {
+          showGlobalToast("Problem created, but failed to save testcases.", "error");
+        }
+      }
+
       setIsCreateProblemOpen(false);
 
       // Reset form
@@ -1208,6 +1241,37 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleCreateProblemClick = () => {
+    setEditingProblemId(null);
+    setNewProbTitle('');
+    setNewProbDesc('');
+    setNewProbInputDesc('');
+    setNewProbOutputDesc('');
+    setNewProbConstraints('');
+    setNewProbExampleInput('');
+    setNewProbExampleOutput('');
+    setNewProbHint('');
+    setNewProbScope('PRACTICE');
+    setNewProbDifficulty('MEDIUM');
+    setNewProbScore(100);
+    setNewProbTimeLimit(2000);
+    setNewProbMemoryLimit(128000);
+    setNewProbIsPublic(true);
+    setNewProbSolutions('');
+    setNewProbTags([]);
+    setNewProbStarterC('');
+    setNewProbStarterCpp('');
+    setNewProbStarterJava('');
+    setNewProbStarterPython('');
+    setNewProbStarterCsharp('');
+    setStarterActiveTab('C');
+    setTestcasesList([{ problemId: 0, inputData: '', expectedOutput: '', orderIndex: 1 }]);
+    setGeneratorCode(GENERATOR_TEMPLATES['cpp']);
+    setGeneratorLanguage('cpp');
+    setTestCaseGenerationMode('manual');
+    setIsCreateProblemOpen(true);
+  };
+
   const handleEditProblemClick = (p: AdminProblem) => {
     setEditingProblemId(p.id);
     setNewProbTitle(p.title);
@@ -1231,7 +1295,27 @@ export const AdminDashboard: React.FC = () => {
     setNewProbStarterJava(p.starterTemplates?.['Java'] || '');
     setNewProbStarterPython(p.starterTemplates?.['Python 3'] || '');
     setNewProbStarterCsharp(p.starterTemplates?.['C#'] || '');
+    setNewProbStarterCsharp(p.starterTemplates?.['C#'] || '');
     setStarterActiveTab('C');
+    
+    // Fetch testcases automatically for this problem
+    adminService.getProblemTestcases(p.id).then(existing => {
+      if (existing && existing.length > 0) {
+        setTestcasesList(existing.map(tc => ({
+          problemId: p.id,
+          inputData: tc.inputData,
+          expectedOutput: tc.expectedOutput,
+          orderIndex: tc.orderIndex,
+          scoreWeight: tc.scoreWeight,
+          isHidden: tc.isHidden
+        })));
+      } else {
+        setTestcasesList([]);
+      }
+    }).catch(() => {
+      setTestcasesList([]);
+    });
+
     setIsEditProblemOpen(true);
   };
 
@@ -1272,6 +1356,19 @@ export const AdminDashboard: React.FC = () => {
         tags: newProbTags,
         starterTemplates
       });
+
+      // Save testcases
+      try {
+        const tcsToSave = testcasesList.map((tc, idx) => ({
+          ...tc,
+          problemId: editingProblemId,
+          orderIndex: idx + 1
+        }));
+        const savedTcs = await adminService.saveProblemTestcases(editingProblemId, tcsToSave);
+        updatedProb.totalTestcases = savedTcs.length;
+      } catch (tcError) {
+        showGlobalToast("Problem metadata updated, but failed to save testcases.", "error");
+      }
 
       setProblems(prev => prev.map(p => p.id === editingProblemId ? updatedProb : p));
       setIsEditProblemOpen(false);
@@ -1340,6 +1437,52 @@ export const AdminDashboard: React.FC = () => {
         }
       }
     );
+  };
+
+  const handleRunAndGenerateTestcases = async () => {
+    setGenerateError(null);
+    setGenerateLoading(true);
+    try {
+      const response = await fetch('http://localhost:8080/nonstopcoding/instructor/testcases/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          language: generatorLanguage,
+          code: generatorCode
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'An error occurred while generating testcases.');
+      }
+      
+      const generatedTestcases = data.result;
+      if (generatedTestcases && generatedTestcases.length > 0) {
+        setTestcasesList(prev => [
+          ...prev, 
+          ...generatedTestcases.map((tc: any, index: number) => ({
+             problemId: editingProblemId || 0,
+             inputData: tc.input,
+             expectedOutput: tc.output,
+             orderIndex: prev.length + index + 1,
+             isHidden: false
+          }))
+        ]);
+        setTestCaseGenerationMode('manual'); // Switch back to view them
+        showGlobalToast(`Generated ${generatedTestcases.length} testcases successfully!`, "success");
+      } else {
+        setGenerateError("Code executed successfully but no test cases were found. Please check your output format.");
+      }
+    } catch (err: any) {
+      setGenerateError(err.message || "An error occurred while generating testcases.");
+    } finally {
+      setGenerateLoading(false);
+    }
   };
 
   const handleOpenTestcaseModal = async (p: AdminProblem) => {
@@ -1698,13 +1841,13 @@ export const AdminDashboard: React.FC = () => {
 
       let matchesSubTab = false;
       if (problemSubTab === 'repository') {
-        matchesSubTab = !p.isActive || !p.isPublic; // Repository shows inactive or private (draft) problems
+        matchesSubTab = true; // All problems
       } else if (problemSubTab === 'practice') {
-        matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'PRACTICE';
+        matchesSubTab = p.problemScope === 'PRACTICE';
       } else if (problemSubTab === 'contest') {
-        matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'CONTEST';
+        matchesSubTab = p.problemScope === 'CONTEST';
       } else if (problemSubTab === 'shared') {
-        matchesSubTab = p.isActive && p.isPublic && p.problemScope === 'SHARED';
+        matchesSubTab = p.problemScope === 'SHARED';
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -2009,7 +2152,6 @@ export const AdminDashboard: React.FC = () => {
                         { key: 'overview', icon: 'info', label: 'Theory Content' },
                         { key: 'qa', icon: 'forum', label: 'Q&A' },
                         { key: 'exercises', icon: 'terminal', label: 'Exercises' },
-                        { key: 'source-code', icon: 'code', label: 'Source Code' },
                         { key: 'quiz', icon: 'quiz', label: 'Quiz' },
                         { key: 'ai-moderation', icon: 'smart_toy', label: 'AI Moderation Report' },
                       ] as const).map((tab) => (
@@ -4115,7 +4257,7 @@ export const AdminDashboard: React.FC = () => {
                       <option value="SHARED">Share</option>
                     </select>
                     <button
-                      onClick={() => setIsCreateProblemOpen(true)}
+                      onClick={handleCreateProblemClick}
                       className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5"
                     >
                       <span className="material-symbols-outlined text-xs">add</span> Create Problem
@@ -4133,7 +4275,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">folder_open</span>
-                    Repository & Drafts ({problems.filter(p => !p.isActive || !p.isPublic).length})
+                    All Problems ({problems.length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('practice')}
@@ -4143,7 +4285,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">terminal</span>
-                    Practice Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'PRACTICE').length})
+                    Practice Problems ({problems.filter(p => p.problemScope === 'PRACTICE').length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('contest')}
@@ -4153,7 +4295,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
-                    Contest Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'CONTEST').length})
+                    Contest Problems ({problems.filter(p => p.problemScope === 'CONTEST').length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('shared')}
@@ -4163,7 +4305,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">share</span>
-                    Shared Problems ({problems.filter(p => p.isActive && p.isPublic && p.problemScope === 'SHARED').length})
+                    Shared Problems ({problems.filter(p => p.problemScope === 'SHARED').length})
                   </button>
                 </div>
 
@@ -5177,18 +5319,15 @@ export const AdminDashboard: React.FC = () => {
 
       {/* ================= MODAL: CREATE OR EDIT PROBLEM ================= */}
       {(isCreateProblemOpen || isEditProblemOpen) && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 animate-fade-in text-left">
-            <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="font-display font-black text-xl text-brand-blue">
-                  {isEditProblemOpen ? "Edit Programming Problem" : "Create Programming Problem"}
-                </h3>
-                <p className="text-xs text-text-muted mt-0.5">
-                  {isEditProblemOpen ? "Modify the specifications of the problem." : "Fill in the specifications based on the platform db/entity schema."}
-                </p>
-              </div>
-              <button
+        <div className="fixed inset-0 bg-brand-blue/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="bg-brand-blue px-6 py-4 flex items-center justify-between shrink-0">
+              <h2 className="text-white font-display font-black text-xl flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">code</span>
+                {isEditProblemOpen ? "Edit Programming Problem" : "Create Programming Problem"}
+              </h2>
+              <button 
+                type="button" 
                 onClick={() => {
                   setIsCreateProblemOpen(false);
                   setIsEditProblemOpen(false);
@@ -5215,44 +5354,62 @@ export const AdminDashboard: React.FC = () => {
                   setNewProbStarterPython('');
                   setNewProbStarterCsharp('');
                   setStarterActiveTab('C');
-                }}
-                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors"
+                  setTestcasesList([]);
+                }} 
+                className="text-white/60 hover:text-white transition-colors"
               >
-                close
+                <span className="material-symbols-outlined text-2xl">close</span>
               </button>
             </div>
 
-            <form onSubmit={isEditProblemOpen ? handleEditProblemSubmit : handleCreateProblemSubmit} className="flex flex-col gap-4 text-xs font-semibold">
+            <form onSubmit={isEditProblemOpen ? handleEditProblemSubmit : handleCreateProblemSubmit} className="p-6 overflow-y-auto flex flex-col gap-6">
+              
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Problem Title *</label>
+                <input required type="text" value={newProbTitle} onChange={e => setNewProbTitle(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="e.g. Two Sum" />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Problem Title *</label>
-                  <input required type="text" value={newProbTitle} onChange={e => setNewProbTitle(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="e.g. Fizz Buzz" />
-                </div>
-                <div className="flex grid grid-cols-2 gap-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-text-muted">Difficulty</label>
-                    <select value={newProbDifficulty} onChange={e => setNewProbDifficulty(e.target.value as any)} className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-xs">
-                      <option value="EASY">Easy</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="HARD">Hard</option>
-                    </select>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Difficulty Level</label>
+                  <div className="flex p-1 bg-slate-100/80 rounded-xl border border-slate-200/50 shadow-inner">
+                    {['EASY', 'MEDIUM', 'HARD'].map(diff => {
+                      const isSelected = newProbDifficulty === diff;
+                      let textColor = 'text-brand-blue';
+                      if (isSelected) {
+                        if (diff === 'EASY') textColor = 'text-emerald-600';
+                        if (diff === 'MEDIUM') textColor = 'text-amber-500';
+                        if (diff === 'HARD') textColor = 'text-rose-600';
+                      }
+                      return (
+                        <label key={diff} className={`flex-1 flex items-center justify-center py-2 rounded-lg cursor-pointer transition-all duration-300 text-[13px] font-bold tracking-wide ${isSelected ? `bg-white ${textColor} shadow-sm ring-1 ring-black/5` : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                          <input type="radio" name="probDifficulty" value={diff} checked={isSelected} onChange={() => setNewProbDifficulty(diff as any)} className="hidden" />
+                          {diff}
+                        </label>
+                      );
+                    })}
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-text-muted">Scope</label>
-                    <select value={newProbScope} onChange={e => setNewProbScope(e.target.value as any)} className="border border-slate-200 rounded-xl pl-3 pr-8 py-2 text-xs">
-                      <option value="PRACTICE">Practice</option>
-                      <option value="CONTEST">Contest</option>
-                      <option value="SHARED">Share</option>
-                    </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Scope</label>
+                  <div className="flex p-1 bg-slate-100/80 rounded-xl border border-slate-200/50 shadow-inner">
+                    {['PRACTICE', 'CONTEST', 'SHARED'].map(sc => {
+                      const isSelected = newProbScope === sc;
+                      return (
+                        <label key={sc} className={`flex-1 flex items-center justify-center py-2 rounded-lg cursor-pointer transition-all duration-300 text-[13px] font-bold tracking-wide ${isSelected ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                          <input type="radio" name="probScope" value={sc} checked={isSelected} onChange={() => setNewProbScope(sc as any)} className="hidden" />
+                          {sc}
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
-              {/* Tags Section */}
               {allTags.length > 0 && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Problem Tags</label>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Problem Tags</label>
+                  <div className="flex flex-wrap gap-2 mt-1">
                     {allTags.map(tag => {
                       const isSelected = newProbTags.includes(tag.name);
                       return (
@@ -5266,11 +5423,7 @@ export const AdminDashboard: React.FC = () => {
                               setNewProbTags([...newProbTags, tag.name]);
                             }
                           }}
-                          className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all border ${
-                            isSelected 
-                              ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-extrabold' 
-                              : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-                          }`}
+                          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${isSelected ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-extrabold shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:shadow-sm'}`}
                         >
                           {tag.name}
                         </button>
@@ -5280,393 +5433,240 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex flex-col gap-1">
-                <label className="text-text-muted">Problem Description *</label>
-                <textarea required rows={3} value={newProbDesc} onChange={e => setNewProbDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Describe the challenge..." />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Problem Description (Markdown) *</label>
+                <textarea required value={newProbDesc} onChange={e => setNewProbDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue resize-y h-32" placeholder="Explain the problem here..." />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Input Description</label>
-                  <textarea rows={2} value={newProbInputDesc} onChange={e => setNewProbInputDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Describe input structure..." />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Input Description</label>
+                  <textarea rows={2} value={newProbInputDesc} onChange={e => setNewProbInputDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Describe input structure..." />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Output Description</label>
-                  <textarea rows={2} value={newProbOutputDesc} onChange={e => setNewProbOutputDesc(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Describe output structure..." />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Output Description</label>
+                  <textarea rows={2} value={newProbOutputDesc} onChange={e => setNewProbOutputDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Describe output structure..." />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-text-muted">Constraints</label>
-                <textarea rows={2} value={newProbConstraints} onChange={e => setNewProbConstraints(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="e.g. 1 <= nums.length <= 10^5" />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Constraints</label>
+                <textarea rows={2} value={newProbConstraints} onChange={e => setNewProbConstraints(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="e.g. 1 <= nums.length <= 10^5" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Example Input</label>
-                  <textarea rows={2} value={newProbExampleInput} onChange={e => setNewProbExampleInput(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono" placeholder="Input sample..." />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Example Input</label>
+                  <textarea rows={2} value={newProbExampleInput} onChange={e => setNewProbExampleInput(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue" placeholder="Input sample..." />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Example Output</label>
-                  <textarea rows={2} value={newProbExampleOutput} onChange={e => setNewProbExampleOutput(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono" placeholder="Output sample..." />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Max Score</label>
-                  <input type="number" value={newProbScore} onChange={e => setNewProbScore(Number(e.target.value))} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Time Limit (ms)</label>
-                  <input type="number" value={newProbTimeLimit} onChange={e => setNewProbTimeLimit(Number(e.target.value))} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted">Memory Limit (KB)</label>
-                  <input type="number" value={newProbMemoryLimit} onChange={e => setNewProbMemoryLimit(Number(e.target.value))} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Example Output</label>
+                  <textarea rows={2} value={newProbExampleOutput} onChange={e => setNewProbExampleOutput(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue" placeholder="Output sample..." />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-text-muted">Hint</label>
-                <input type="text" value={newProbHint} onChange={e => setNewProbHint(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="Tip or pointer..." />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Max Score</label>
+                  <input type="number" value={newProbScore} onChange={e => setNewProbScore(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Time Limit (ms)</label>
+                  <input type="number" value={newProbTimeLimit} onChange={e => setNewProbTimeLimit(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Memory Limit (KB)</label>
+                  <input type="number" value={newProbMemoryLimit} onChange={e => setNewProbMemoryLimit(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" />
+                </div>
               </div>
 
-              {/* Starter Templates Tabbed Editor */}
-              <div className="flex flex-col gap-1 border border-slate-200/60 rounded-2xl p-4 bg-slate-50/50">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Hint</label>
+                <input type="text" value={newProbHint} onChange={e => setNewProbHint(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Tip or pointer..." />
+              </div>
+
+              {/* TESTCASES SECTION */}
+              <div className="flex flex-col gap-4 mt-4 border-t border-slate-200 pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <h4 className="font-display font-black text-lg text-brand-blue uppercase tracking-wider">Test Cases</h4>
+                    <div className="flex bg-slate-100 rounded-lg p-1 shadow-inner">
+                      <button 
+                        type="button" 
+                        onClick={() => setTestCaseGenerationMode('manual')}
+                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all duration-300 ${testCaseGenerationMode === 'manual' ? 'bg-white text-primary shadow-sm transform scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                      >
+                        Manual Input
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setTestCaseGenerationMode('generate')}
+                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all duration-300 flex items-center gap-1 ${testCaseGenerationMode === 'generate' ? 'bg-gradient-to-r from-orange-100 to-orange-50 text-primary border border-orange-200 shadow-sm transform scale-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">auto_awesome</span> Auto Generate
+                      </button>
+                    </div>
+                  </div>
+                  {testCaseGenerationMode === 'manual' && (
+                    <button type="button" onClick={() => setTestcasesList(prev => [...prev, { problemId: editingProblemId || 0, inputData: '', expectedOutput: '', orderIndex: prev.length + 1 }])} className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">add</span> Add Test Case
+                    </button>
+                  )}
+                </div>
+                
+                {testCaseGenerationMode === 'generate' ? (
+                  <div className="flex flex-col gap-4 bg-gradient-to-b from-slate-50 to-white border border-slate-200 rounded-xl p-5 shadow-sm animate-fade-in relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                    <div className="flex items-center justify-between relative z-10">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                          <span className="material-symbols-outlined text-sm">code_blocks</span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-600">Write code to generate test cases. This code will run on the server.</p>
+                      </div>
+                      <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+                        <label className="text-xs font-black text-brand-blue uppercase tracking-wider">Language:</label>
+                        <select 
+                          value={generatorLanguage}
+                          onChange={(e) => {
+                            setGeneratorLanguage(e.target.value);
+                            setGeneratorCode(GENERATOR_TEMPLATES[e.target.value] || '');
+                          }}
+                          className="bg-transparent text-sm font-bold text-primary focus:outline-none cursor-pointer"
+                        >
+                          <option value="c">C</option>
+                          <option value="cpp">C++</option>
+                          <option value="java">Java</option>
+                          <option value="python">Python</option>
+                          <option value="csharp">C#</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="w-full h-[320px] border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-white relative group">
+                      <Editor
+                        height="100%"
+                        defaultLanguage={generatorLanguage === 'c' || generatorLanguage === 'cpp' ? 'cpp' : generatorLanguage === 'csharp' ? 'csharp' : generatorLanguage}
+                        language={generatorLanguage === 'c' || generatorLanguage === 'cpp' ? 'cpp' : generatorLanguage === 'csharp' ? 'csharp' : generatorLanguage}
+                        theme="vs-light"
+                        value={generatorCode}
+                        onChange={(value) => setGeneratorCode(value || '')}
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 13,
+                          lineHeight: 24,
+                          padding: { top: 16, bottom: 16 },
+                          fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                          scrollBeyondLastLine: false,
+                          smoothScrolling: true,
+                          cursorBlinking: "smooth",
+                          stickyScroll: { enabled: false },
+                          automaticLayout: true
+                        }}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-3 relative z-10">
+                      <div className="flex justify-end items-center">
+                        <button 
+                          type="button" 
+                          onClick={handleRunAndGenerateTestcases} 
+                          disabled={generateLoading}
+                          className={`px-5 py-2.5 ${generateLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-primary hover:from-orange-600 hover:to-primary-dark hover:scale-[1.02] hover:-translate-y-0.5 shadow-md hover:shadow-lg'} text-white text-sm font-black rounded-xl transition-all duration-300 flex items-center gap-2`}
+                        >
+                          {generateLoading ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-base">play_arrow</span>
+                              Run & Generate Testcases
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      {generateError && (
+                        <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-600 rounded-xl p-4 animate-fade-in shadow-sm relative overflow-hidden">
+                          <p className="text-xs font-black mb-1 flex items-center gap-1.5 uppercase tracking-wider">
+                            <span className="material-symbols-outlined text-[16px]">error</span> Generation Error
+                          </p>
+                          <pre className="text-[12px] whitespace-pre-wrap font-mono overflow-x-auto text-red-800 bg-white/50 p-3 rounded-lg mt-2 border border-red-100">{generateError}</pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : testcasesList.length === 0 ? (
+                  <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
+                    <p className="text-xs text-text-muted font-bold">No test cases added yet.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {testcasesList.map((tc, idx) => (
+                      <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+                        <div className="flex items-start justify-between">
+                          <span className="font-display font-black text-brand-blue text-xs uppercase">Test Case {idx + 1}</span>
+                          <div className="flex items-center gap-3">
+                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
+                              <input type="checkbox" checked={tc.isHidden} onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === idx ? { ...item, isHidden: e.target.checked } : item))} className="rounded text-primary focus:ring-primary" />
+                              Hidden
+                            </label>
+                            <button type="button" onClick={() => setTestcasesList(prev => prev.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-red-500 transition-colors">
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Input</label>
+                            <textarea value={tc.inputData} onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === idx ? { ...item, inputData: e.target.value } : item))} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16" placeholder="e.g. [1, 2, 3]" />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Expected Output</label>
+                            <textarea value={tc.expectedOutput || ''} onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === idx ? { ...item, expectedOutput: e.target.value } : item))} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16" placeholder="e.g. [3, 2, 1]" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Starter Templates */}
+              <div className="flex flex-col gap-1 border border-slate-200/60 rounded-2xl p-4 bg-slate-50/50 mt-4">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-text-muted font-black uppercase tracking-wider text-[10px]">Starter Code Templates (Optional)</label>
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Starter Code Templates (Optional)</label>
                   <div className="flex gap-1.5">
                     {(['C', 'C++', 'Java', 'Python 3', 'C#'] as const).map(lang => (
-                      <button
-                        key={lang}
-                        type="button"
-                        onClick={() => setStarterActiveTab(lang)}
-                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
-                          starterActiveTab === lang 
-                            ? 'bg-indigo-600 text-white shadow-sm' 
-                            : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-100'
-                        }`}
-                      >
+                      <button key={lang} type="button" onClick={() => setStarterActiveTab(lang)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${starterActiveTab === lang ? 'bg-primary text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-100'}`}>
                         {lang}
                       </button>
                     ))}
                   </div>
                 </div>
-                {starterActiveTab === 'C' && (
-                  <textarea
-                    rows={4}
-                    value={newProbStarterC}
-                    onChange={e => setNewProbStarterC(e.target.value)}
-                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
-                    placeholder="void solve() {&#10;}"
-                  />
-                )}
-                {starterActiveTab === 'C++' && (
-                  <textarea
-                    rows={4}
-                    value={newProbStarterCpp}
-                    onChange={e => setNewProbStarterCpp(e.target.value)}
-                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
-                    placeholder="class Solution {&#10;public:&#10;    void solve() {&#10;    }&#10;};"
-                  />
-                )}
-                {starterActiveTab === 'Java' && (
-                  <textarea
-                    rows={4}
-                    value={newProbStarterJava}
-                    onChange={e => setNewProbStarterJava(e.target.value)}
-                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
-                    placeholder="class Solution {&#10;    public void solve() {&#10;    }&#10;}"
-                  />
-                )}
-                {starterActiveTab === 'Python 3' && (
-                  <textarea
-                    rows={4}
-                    value={newProbStarterPython}
-                    onChange={e => setNewProbStarterPython(e.target.value)}
-                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
-                    placeholder="class Solution:&#10;    def solve(self):&#10;        pass"
-                  />
-                )}
-                {starterActiveTab === 'C#' && (
-                  <textarea
-                    rows={4}
-                    value={newProbStarterCsharp}
-                    onChange={e => setNewProbStarterCsharp(e.target.value)}
-                    className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-indigo-500"
-                    placeholder="public class Solution {&#10;    public void Solve() {&#10;    }&#10;}"
-                  />
-                )}
+                {starterActiveTab === 'C' && <textarea rows={8} value={newProbStarterC} onChange={e => setNewProbStarterC(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue resize-y" placeholder="void solve() {\n}" />}
+                {starterActiveTab === 'C++' && <textarea rows={8} value={newProbStarterCpp} onChange={e => setNewProbStarterCpp(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue resize-y" placeholder="class Solution {\npublic:\n    void solve() {\n    }\n};" />}
+                {starterActiveTab === 'Java' && <textarea rows={8} value={newProbStarterJava} onChange={e => setNewProbStarterJava(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue resize-y" placeholder="class Solution {\n    public void solve() {\n    }\n}" />}
+                {starterActiveTab === 'Python 3' && <textarea rows={8} value={newProbStarterPython} onChange={e => setNewProbStarterPython(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue resize-y" placeholder="class Solution:\n    def solve(self):\n        pass" />}
+                {starterActiveTab === 'C#' && <textarea rows={8} value={newProbStarterCsharp} onChange={e => setNewProbStarterCsharp(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue resize-y" placeholder="public class Solution {\n    public void Solve() {\n    }\n}" />}
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-text-muted">Solution Code</label>
-                <textarea rows={2} value={newProbSolutions} onChange={e => setNewProbSolutions(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono" placeholder="Sample solution code..." />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Solution Code</label>
+                <textarea rows={12} value={newProbSolutions} onChange={e => setNewProbSolutions(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue resize-y" placeholder="Sample solution code..." />
               </div>
 
-              <div className="flex items-center gap-2 mt-2">
-                <input type="checkbox" checked={newProbIsPublic} onChange={e => setNewProbIsPublic(e.target.checked)} className="rounded text-primary border-slate-250" />
-                <label className="text-slate-700">Make this problem public immediately</label>
+              <div className="flex items-center gap-3 mt-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <input type="checkbox" checked={newProbIsPublic} onChange={e => setNewProbIsPublic(e.target.checked)} className="rounded text-primary border-slate-300 w-5 h-5" />
+                <label className="text-sm font-bold text-brand-blue">Make this problem public immediately</label>
               </div>
 
-              <div className="flex gap-4 mt-4 w-full">
-                {isEditProblemOpen && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const currentProb = problems.find(p => p.id === editingProblemId);
-                      if (currentProb) {
-                        handleOpenTestcaseModal(currentProb);
-                      }
-                    }}
-                    className="flex-1 bg-white hover:bg-slate-50 text-indigo-600 border border-indigo-200 hover:border-indigo-300 font-bold text-sm py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-base font-black">tune</span>
-                    Edit Test Cases
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  className={`${isEditProblemOpen ? 'flex-1' : 'w-full'} bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 rounded-xl transition-all shadow-md cursor-pointer`}
-                >
-                  {isEditProblemOpen ? "Save Changes" : "Create Problem Metadata"}
+              <div className="flex gap-4 mt-6">
+                <button type="submit" className="flex-1 bg-gradient-to-r from-primary to-primary-hover text-white font-black text-sm py-4 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                  {isEditProblemOpen ? "Save Problem & Testcases" : "Create Problem & Testcases"}
                 </button>
               </div>
+
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: TESTCASE BUILDER ================= */}
-      {isTestcaseModalOpen && testcaseProblem && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200/50 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col animate-fade-in text-left overflow-hidden">
-            
-            {/* Header */}
-            <div className="flex justify-between items-start p-6 border-b border-slate-150/70">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-orange-50 px-2 py-0.5 rounded-md">
-                  Problem testcases
-                </span>
-                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
-                  Manage Test Cases
-                </h3>
-                <p className="text-xs text-text-muted mt-0.5">
-                  Define inputs and outputs for <span className="font-bold text-slate-800">"{testcaseProblem.title}"</span>.
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setIsTestcaseModalOpen(false);
-                  setTestcaseProblem(null);
-                  setTestcasesList([]);
-                  setZipFile(null);
-                }}
-                className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors cursor-pointer border-none bg-transparent"
-              >
-                close
-              </button>
-            </div>
-
-            {/* Tab Selector */}
-            <div className="flex border-b border-slate-150/50 px-6 bg-slate-50/50">
-              <button
-                type="button"
-                onClick={() => setTestcaseTab('manual')}
-                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
-                  testcaseTab === 'manual'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <span className="material-symbols-outlined text-sm font-black">edit_note</span>
-                Manual test cases ({testcasesList.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setTestcaseTab('upload')}
-                className={`flex items-center gap-2 py-3.5 px-4 font-bold text-xs border-b-2 transition-all cursor-pointer bg-transparent ${
-                  testcaseTab === 'upload'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <span className="material-symbols-outlined text-sm font-black">folder_zip</span>
-                Upload ZIP Archive
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-6 text-xs font-semibold">
-              
-              {/* TAB 1: MANUAL BUILDER */}
-              {testcaseTab === 'manual' && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center bg-slate-50/80 p-3 rounded-xl border border-slate-100 mb-2">
-                    <div>
-                      <p className="font-bold text-slate-700">Manual Entry</p>
-                      <p className="text-[10px] text-text-muted mt-0.5">Provide plain text inputs and correct outputs. Evaluation uses exact match or whitespace normalization.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleAddManualRow}
-                      className="bg-white hover:bg-slate-50 text-primary border border-primary/20 hover:border-primary/40 font-black px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-base font-black">add</span> Add Row
-                    </button>
-                  </div>
-
-                  <div className="flex flex-col gap-3 max-h-[40vh] overflow-y-auto pr-1">
-                    {testcasesList.map((tc, idx) => (
-                      <div key={idx} className="flex gap-3 bg-slate-50/40 p-4 rounded-xl border border-slate-200/50 hover:border-slate-350 transition-all items-start relative group">
-                        
-                        {/* TC Index Badge */}
-                        <div className="flex flex-col items-center justify-center bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-[10px] w-9 h-9 rounded-lg mt-1 shrink-0">
-                          <span>TC</span>
-                          <span>#{idx + 1}</span>
-                        </div>
-
-                        {/* Textareas Side-by-Side */}
-                        <div className="grid grid-cols-2 gap-3 flex-1">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Input Data</label>
-                            <textarea
-                              rows={3}
-                              value={tc.inputData}
-                              onChange={(e) => handleManualRowChange(idx, 'inputData', e.target.value)}
-                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
-                              placeholder="e.g. 5\n1 2 3"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Expected Output</label>
-                            <textarea
-                              rows={3}
-                              value={tc.expectedOutput}
-                              onChange={(e) => handleManualRowChange(idx, 'expectedOutput', e.target.value)}
-                              className="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-normal outline-none focus:border-primary transition-all bg-white"
-                              placeholder="e.g. 15"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Remove Action */}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveManualRow(idx)}
-                          disabled={testcasesList.length === 1}
-                          className={`material-symbols-outlined text-red-500 hover:text-red-750 transition-colors cursor-pointer border-none bg-transparent self-center p-1.5 rounded-lg hover:bg-red-50 ${
-                            testcasesList.length === 1 ? 'opacity-30 cursor-not-allowed' : ''
-                          }`}
-                        >
-                          delete
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 2: ZIP ARCHIVE UPLOAD */}
-              {testcaseTab === 'upload' && (
-                <div className="flex flex-col gap-4">
-                  <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 leading-relaxed text-slate-600">
-                    <p className="font-bold text-slate-800">ZIP File Requirements:</p>
-                    <ul className="list-disc pl-4 mt-1 text-[11px] text-text-muted flex flex-col gap-0.5">
-                      <li>The archive must contain test case files matching patterns: <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.in</code> and <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.out</code> or <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono text-[10px]">*.ans</code>.</li>
-                      <li>File base names must match to pair input/output (e.g. <code className="font-semibold text-slate-800">input_01.in</code> pairs with <code className="font-semibold text-slate-800">input_01.out</code>).</li>
-                      <li>Maximum upload size is <strong>20 MB</strong>.</li>
-                    </ul>
-                  </div>
-
-                  {/* Drag and Drop Zone */}
-                  <div
-                    onDragEnter={handleDrag}
-                    onDragOver={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-3 transition-all ${
-                      dragActive
-                        ? 'border-primary bg-orange-50/30'
-                        : zipFile
-                        ? 'border-emerald-400 bg-emerald-50/10'
-                        : 'border-slate-250 hover:border-slate-400'
-                    }`}
-                  >
-                    <span className={`material-symbols-outlined text-4xl ${zipFile ? 'text-emerald-500' : 'text-slate-400'}`}>
-                      {zipFile ? 'task' : 'cloud_upload'}
-                    </span>
-                    <div className="text-center">
-                      {zipFile ? (
-                        <p className="text-sm font-bold text-slate-800">"{zipFile.name}"</p>
-                      ) : (
-                        <p className="text-sm text-slate-600 font-bold">
-                          Drag and drop your testcase ZIP here, or <label className="text-primary hover:underline cursor-pointer">browse files<input type="file" onChange={handleFileChange} className="hidden" accept=".zip" /></label>
-                        </p>
-                      )}
-                      <p className="text-[10px] text-text-muted mt-1">Supports standard compressed .zip archives.</p>
-                    </div>
-                  </div>
-
-                  {/* Selected File Card Details */}
-                  {zipFile && (
-                    <div className="flex justify-between items-center bg-emerald-50/40 border border-emerald-150 p-3.5 rounded-xl animate-fade-in">
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-emerald-600 bg-white p-2 rounded-lg border border-emerald-100">folder_zip</span>
-                        <div>
-                          <p className="font-bold text-slate-800">{zipFile.name}</p>
-                          <p className="text-[10px] text-slate-500">{(zipFile.size / 1024).toFixed(1)} KB • Ready for upload</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setZipFile(null)}
-                        className="text-[10px] text-red-500 hover:text-red-750 bg-white border border-red-100 hover:border-red-200 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer"
-                      >
-                        Remove File
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-            </div>
-
-            {/* Footer */}
-            <div className="border-t border-slate-150/70 p-4 bg-slate-50/50 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsTestcaseModalOpen(false);
-                  setTestcaseProblem(null);
-                  setTestcasesList([]);
-                  setZipFile(null);
-                }}
-                className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 hover:border-slate-300 font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveTestcases}
-                disabled={isSavingTestcases}
-                className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSavingTestcases ? (
-                  <>
-                    <span className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-sm font-black">save</span>
-                    Save Test Cases
-                  </>
-                )}
-              </button>
-            </div>
-
           </div>
         </div>
       )}

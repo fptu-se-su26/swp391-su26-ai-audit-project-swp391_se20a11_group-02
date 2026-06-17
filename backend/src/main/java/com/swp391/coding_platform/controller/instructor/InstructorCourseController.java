@@ -10,14 +10,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
+import com.swp391.coding_platform.dto.request.TestcaseGeneratorRequest;
+import com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest.TestcaseDto;
+import com.swp391.coding_platform.service.cloudinary.CloudinaryService;
+import com.swp391.coding_platform.dto.response.CloudinaryResponse;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/instructor")
@@ -26,6 +29,7 @@ import java.util.Map;
 public class InstructorCourseController {
 
     InstructorCourseService instructorCourseService;
+    CloudinaryService cloudinaryService;
 
     @GetMapping("/courses")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
@@ -50,7 +54,7 @@ public class InstructorCourseController {
      */
     @PostMapping("/courses/{courseId}/submit")
     @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> submitCourseForReview(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> submitCourseForReviewPost(
             @PathVariable Long courseId,
             @AuthenticationPrincipal Jwt jwt) {
 
@@ -64,6 +68,174 @@ public class InstructorCourseController {
                 .code(1000)
                 .message("Đã nộp khóa học để AI kiểm duyệt thành công!")
                 .result(Map.of("courseId", courseId, "status", "PENDING"))
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/courses")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<InstructorCourseResponse>> createCourse(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody InstructorCourseCreateRequest request) {
+        Integer userId = extractUserId(jwt);
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        InstructorCourseResponse result = instructorCourseService.createCourse(userId, request);
+
+        return ResponseEntity.ok(ApiResponse.<InstructorCourseResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Course created successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/upload")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<CloudinaryResponse>> uploadMedia(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "folderName", defaultValue = "courses") String folderName) {
+
+        Integer userId = extractUserId(jwt);
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        try {
+            CloudinaryResponse result = cloudinaryService.uploadFile(file, folderName);
+            return ResponseEntity.ok(ApiResponse.<CloudinaryResponse>builder()
+                    .status(200)
+                    .code(1000)
+                    .message("File uploaded successfully")
+                    .result(result)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.<CloudinaryResponse>builder()
+                    .status(400)
+                    .code(4000)
+                    .message("Failed to upload file: " + e.getMessage())
+                    .result(null)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        }
+    }
+
+    @GetMapping("/courses/{id}")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse>> getCourseDetail(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id) {
+        
+        Integer userId = extractUserId(jwt);
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        var result = instructorCourseService.getCourseDetail(userId, id);
+
+        return ResponseEntity.ok(ApiResponse.<com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Fetched instructor course detail successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PutMapping("/courses/{id}")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<InstructorCourseResponse>> updateCourse(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id,
+            @RequestBody com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest request) {
+
+        Integer userId = extractUserId(jwt);
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        InstructorCourseResponse result = instructorCourseService.updateCourse(userId, id, request);
+
+        return ResponseEntity.ok(ApiResponse.<InstructorCourseResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Course draft saved successfully.")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/testcases/generate")
+    public ResponseEntity<ApiResponse<java.util.List<TestcaseDto>>> generateTestcases(
+            @Valid @RequestBody TestcaseGeneratorRequest request) {
+        
+        try {
+            var result = instructorCourseService.generateTestcases(request);
+            return ResponseEntity.ok(ApiResponse.<java.util.List<TestcaseDto>>builder()
+                    .status(200)
+                    .code(1000)
+                    .message("Testcases generated successfully.")
+                    .result(result)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.<java.util.List<TestcaseDto>>builder()
+                    .status(400)
+                    .code(4000)
+                    .message(e.getMessage())
+                    .result(null)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        }
+    }
+
+    @PutMapping("/courses/{courseId}/submit-review")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<Void>> submitCourseForReview(@AuthenticationPrincipal Jwt jwt,
+                                                                   @PathVariable("courseId") Long courseId) {
+        Integer userId = extractUserId(jwt);
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        instructorCourseService.submitCourseForReview(userId, courseId);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Course submitted for review successfully")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/courses/{id}/statistics")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.CourseStatisticResponse>> getCourseStatistics(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id) {
+
+        Integer userId = extractUserId(jwt);
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        var result = instructorCourseService.getCourseStatistics(userId, id);
+
+        return ResponseEntity.ok(ApiResponse.<com.swp391.coding_platform.dto.response.CourseStatisticResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Fetched course statistics successfully")
+                .result(result)
                 .timestamp(Instant.now().toString())
                 .build());
     }
