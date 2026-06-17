@@ -9,11 +9,11 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LearningLessonResponse {
+public class LearningExerciseResponse {
     Integer id;
-    String title;
-    String videoUrl;
-    String theoryContent;
-    java.util.List<LearningExerciseResponse> exercises;
-    String status;
+    String name;
+    String difficulty;
+    String difficultyClass;
+    Integer submissions;
+    Boolean completed;
 }

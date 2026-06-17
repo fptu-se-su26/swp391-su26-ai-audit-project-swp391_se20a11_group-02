@@ -33,9 +33,6 @@ public class LessonEntity {
     @Column(name = "video_url", length = 255)
     String videoUrl;
 
-    @Column(name = "source_code", columnDefinition = "TEXT")
-    String sourceCode;
-
     @Column(name = "is_trial", nullable = false)
     Boolean isTrial;
 
@@ -49,4 +46,17 @@ public class LessonEntity {
     @Builder.Default
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(name = "status")
+    com.swp391.coding_platform.entity.enums.LessonStatus status = com.swp391.coding_platform.entity.enums.LessonStatus.ACTIVE;
+
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
+    java.util.List<LessonProblemEntity> lessonProblems;
+
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    java.util.List<com.swp391.coding_platform.entity.course.QuizEntity> quizzes;
 }

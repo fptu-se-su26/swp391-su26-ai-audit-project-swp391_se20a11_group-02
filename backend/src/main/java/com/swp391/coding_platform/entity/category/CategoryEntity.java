@@ -36,6 +36,7 @@ public class CategoryEntity {
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
     Set<CourseEntity> courses;
 }

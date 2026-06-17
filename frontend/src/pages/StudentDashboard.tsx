@@ -130,6 +130,7 @@ export const StudentDashboard: React.FC = () => {
   const [playerTheoryContent, setPlayerTheoryContent] = useState<string>('');
   const [learningChapters, setLearningChapters] = useState<LearningCurriculumChapterResponse[]>([]);
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
+  const [playerLessonStatus, setPlayerLessonStatus] = useState<string>('ACTIVE');
   const [isPlayerLoading, setIsPlayerLoading] = useState<boolean>(false);
   
   const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'quiz'>('overview');
@@ -561,6 +562,8 @@ export const StudentDashboard: React.FC = () => {
                   setPlayerLectureTitle(lesson.title);
                   setPlayerVideoUrl(lesson.videoUrl || '');
                   setPlayerTheoryContent(lesson.theoryContent || '');
+                  setPlayerExercises(lesson.exercises || []);
+                  setPlayerLessonStatus(lesson.status || 'ACTIVE');
                 } else {
                   setPlayerLectureTitle('No lessons available');
                   setPlayerVideoUrl('');
@@ -871,10 +874,13 @@ export const StudentDashboard: React.FC = () => {
         setPlayerLectureTitle(lesson.title);
         setPlayerVideoUrl(lesson.videoUrl || '');
         setPlayerTheoryContent(lesson.theoryContent || '');
+        setPlayerExercises(lesson.exercises || []);
+        setPlayerLessonStatus(lesson.status || 'ACTIVE');
       } else {
         setPlayerLectureTitle('No lessons available');
         setPlayerVideoUrl('');
         setPlayerTheoryContent('');
+        setPlayerExercises([]);
       }
     } catch (err) {
       console.error('Failed to load learning data:', err);
@@ -899,6 +905,8 @@ export const StudentDashboard: React.FC = () => {
       setPlayerLectureTitle(lesson.title);
       setPlayerVideoUrl(lesson.videoUrl || '');
       setPlayerTheoryContent(lesson.theoryContent || '');
+      setPlayerExercises(lesson.exercises || []);
+      setPlayerLessonStatus(lesson.status || 'ACTIVE');
 
       // Optional: Refresh progress and curriculum status on selecting/learning
       const detail = await fetchCourseLearningDetail(playerCourseId);
@@ -1808,6 +1816,19 @@ export const StudentDashboard: React.FC = () => {
                       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                       <p className="text-white/80 text-xs font-semibold">Loading lesson content...</p>
                     </div>
+                  ) : playerLessonStatus === 'INACTIVE' ? (
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-5 text-center px-6 h-full bg-[#0a0f1d]/90 backdrop-blur-md w-full border border-gray-800/50">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center shadow-lg shadow-amber-500/20 border border-white/10 relative z-10">
+                          <span className="material-symbols-outlined text-white text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>construction</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1.5 mt-2">
+                        <h3 className="text-white text-2xl font-black tracking-tight drop-shadow-md">Under Maintenance</h3>
+                        <p className="text-white/60 text-sm max-w-md font-medium leading-relaxed">This lesson is currently undergoing updates and is pending admin approval. Please check back later.</p>
+                      </div>
+                    </div>
                   ) : playerVideoUrl ? (
                     <iframe
                       className="w-full h-full border-none rounded-2xl aspect-video"
@@ -1880,7 +1901,18 @@ export const StudentDashboard: React.FC = () => {
                 </div>
 
                 {/* Sub-tab Panels */}
-                <div className="bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px]">
+                <div className="relative bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px]">
+                  {playerLessonStatus === 'INACTIVE' && (
+                    <div className="absolute inset-0 z-30 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center pointer-events-auto border border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.8)]">
+                      <div className="bg-white/80 backdrop-blur-xl border border-white p-8 rounded-2xl text-center max-w-md flex flex-col items-center shadow-2xl shadow-slate-200/50 ambient-shadow">
+                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 mb-5 text-white">
+                           <span className="material-symbols-outlined text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>engineering</span>
+                         </div>
+                         <h4 className="text-xl font-black text-brand-blue tracking-tight">Content Unavailable</h4>
+                         <p className="text-sm text-slate-600 font-medium mt-3 leading-relaxed">Lesson materials, exercises, and discussions are temporarily locked while this lesson is being updated.</p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Overview */}
                   {playerActiveTab === 'overview' && (
@@ -2500,12 +2532,18 @@ export const StudentDashboard: React.FC = () => {
                                       radio_button_unchecked
                                     </span>
                                   )}
-                                  <span className={`text-xs flex-1 truncate ${
+                                  <span className={`text-xs flex-1 truncate flex items-center gap-2 ${
                                     isSelected 
                                       ? 'text-primary font-bold' 
                                       : 'text-text-main group-hover:text-primary'
                                   }`}>
-                                    {lesson.title}
+                                    <span className="truncate">{lesson.title}</span>
+                                    {lesson.status === 'INACTIVE' && (
+                                      <span className="shrink-0 flex items-center gap-1 pl-1.5 pr-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] uppercase tracking-wider rounded-md shadow-md shadow-orange-500/20 border border-orange-400/50">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                        Updating
+                                      </span>
+                                    )}
                                   </span>
                                 </div>
                               );

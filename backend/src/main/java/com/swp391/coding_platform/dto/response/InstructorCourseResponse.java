@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class InstructorCourseResponse {
     private String id;
     private String title;
-    private String level;
     private String topic;
     private String price;
     private Integer studentsCount;
@@ -22,4 +21,5 @@ public class InstructorCourseResponse {
     private String icon;
     private String gradient;
     private String description;
+    private String thumbnailUrl;
 }

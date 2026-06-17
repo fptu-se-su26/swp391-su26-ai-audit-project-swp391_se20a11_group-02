@@ -98,7 +98,7 @@ public class CourseService {
             // 5. Nếu user có mua ít nhất 1 khóa, tiến hành lấy tiến độ (QUERY 3)
             if (!enrolledCourseIds.isEmpty()) {
                 List<CompletedLessonsCountEntity> completedLessonsCountEntities =
-                        completedLessonCountRepository.findByUserIdAndCourseIdIn(userId, enrolledCourseIds);
+                        completedLessonCountRepository.findByUserIdAndCourseIdIn(userId.intValue(), enrolledCourseIds);
 
                 courseProgressMap = getCourseProgressMap(completedLessonsCountEntities);
             }
@@ -146,7 +146,7 @@ public class CourseService {
     }
 
     private Integer getCompleteLessons(Long courseId, Long userId) {
-        CompletedLessonsCountEntity completedLessonsCountEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId, courseId)
+        CompletedLessonsCountEntity completedLessonsCountEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId.intValue(), courseId)
                 .orElse(null);
 
         return completedLessonsCountEntity != null ? completedLessonsCountEntity.getCompletedLessonsCount() : 0;
@@ -287,7 +287,7 @@ public class CourseService {
         }
 
         // 2. Tải danh sách ID bài học hoàn thành trong 1 query
-        Set<Long> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId, courseId);
+        Set<Integer> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId.intValue(), courseId);
 
         // 3. Tính toán tiến độ bài học hoàn thành
         int completeLessons = completedLessonIds.size();
@@ -313,7 +313,7 @@ public class CourseService {
         List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
 
         // 2. Lấy toàn bộ bài học đã hoàn thiện trong 1 query duy nhất
-        Set<Long> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId, courseId);
+        Set<Integer> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId.intValue(), courseId);
 
         // 3. Sử dụng MapStruct map kèm ngữ cảnh completedLessonIds để tự động phân phối map trạng thái hoàn thành
         return courseMapper.toLearningCurriculumChapterResponses(chapters, completedLessonIds);
@@ -400,11 +400,11 @@ public class CourseService {
         }
 
         // 3. Lấy Pessimistic Lock trên Enrollment của User để đồng bộ hóa, tránh race condition
-        enrollmentRepository.findEnrollmentWithLock(userId, courseId)
+        enrollmentRepository.findEnrollmentWithLock(userId.intValue(), courseId)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_ENROLLED));
 
         // 4. Kiểm tra xem bài học đã hoàn thành chưa
-        boolean isAlreadyCompleted = lessonProgressRepository.existsByLessonIdAndUserId(lessonId, userId);
+        boolean isAlreadyCompleted = lessonProgressRepository.existsByLessonIdAndUserId(lessonId, userId.intValue());
         if (isAlreadyCompleted) {
             log.info("[completeLesson] Lesson {} already completed by user {}", lessonId, userId);
             return; // Idempotent
@@ -423,7 +423,7 @@ public class CourseService {
         lessonProgressRepository.save(progress);
 
         // 6. Cập nhật hoặc khởi tạo tổng số bài học đã hoàn thành (completed_lessons_count)
-        CompletedLessonsCountEntity countEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId, courseId)
+        CompletedLessonsCountEntity countEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId.intValue(), courseId)
                 .orElseGet(() -> CompletedLessonsCountEntity.builder()
                         .user(user)
                         .course(course)

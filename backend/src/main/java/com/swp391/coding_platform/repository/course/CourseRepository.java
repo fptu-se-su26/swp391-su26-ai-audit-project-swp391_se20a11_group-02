@@ -39,6 +39,8 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long>, Jpa
 
     List<CourseEntity> findByInstructorId(Integer instructorId);
 
+    Optional<CourseEntity> findByIdAndInstructorId(Long id, Integer instructorId);
+
     boolean existsByIdAndInstructorId(Long id, Integer instructorId);
 
     @Query(value = "SELECT EXISTS (" +
