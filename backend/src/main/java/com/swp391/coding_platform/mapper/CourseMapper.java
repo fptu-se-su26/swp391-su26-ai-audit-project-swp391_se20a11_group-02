@@ -31,7 +31,7 @@ public interface CourseMapper {
 
     CurriculumChapterResponse toCurriculumChapterResponse(ChapterEntity chapterEntity);
 
-    @Mapping(target = "videoUrl", expression = "java(lessonEntity.getIsTrial() != null && lessonEntity.getIsTrial() ? lessonEntity.getVideoUrl() : null)")
+    @Mapping(target = "videoUrl", expression = "java(lessonEntity.getIsTrial() != null && lessonEntity.getIsTrial() && lessonEntity.getStatus() != com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? lessonEntity.getVideoUrl() : null)")
     @Mapping(target = "type", expression = "java(lessonEntity.getVideoUrl() != null && !lessonEntity.getVideoUrl().isEmpty() ? \"video\" : (lessonEntity.getTheoryContent() != null && !lessonEntity.getTheoryContent().isEmpty() ? \"reading\" : \"coding\"))")
     CurriculumLessonResponse toCurriculumLessonResponse(LessonEntity lessonEntity);
 

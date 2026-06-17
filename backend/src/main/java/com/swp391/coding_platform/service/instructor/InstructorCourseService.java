@@ -497,6 +497,10 @@ public class InstructorCourseService {
             int totalQuizzes = updatedChapters.stream()
                 .mapToInt(c -> c.getLessons() != null ? c.getLessons().stream().mapToInt(l -> l.getQuizzes() != null ? l.getQuizzes().size() : 0).sum() : 0).sum();
             course.setTotalQuizzes(totalQuizzes);
+
+            int totalVideos = updatedChapters.stream()
+                .mapToInt(c -> c.getLessons() != null ? (int) c.getLessons().stream().filter(l -> l.getVideoUrl() != null && !l.getVideoUrl().isEmpty()).count() : 0).sum();
+            course.setTotalVideos(totalVideos);
         }
 
         course.setUpdatedAt(Instant.now());
