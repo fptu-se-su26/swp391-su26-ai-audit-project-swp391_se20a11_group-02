@@ -9,15 +9,16 @@ interface ContestSidebarProps {
   isRegistered: boolean;
   contestStatus?: string; // 'UPCOMING' | 'ONGOING' | 'ENDED'
   children?: React.ReactNode;
+  className?: string;
 }
 
 
-export const ContestSidebar: React.FC<ContestSidebarProps> = ({ contestId, activeTab, timeLeft, timerLabel, isRegistered, contestStatus, children }) => {
+export const ContestSidebar: React.FC<ContestSidebarProps> = ({ contestId, activeTab, timeLeft, timerLabel, isRegistered, contestStatus, children, className }) => {
   // Chỉ hiển thị Problems/Submissions/Ranking khi contest đã bắt đầu (ONGOING hoặc ENDED)
   const canAccessContestContent = isRegistered && contestStatus !== 'UPCOMING';
 
   return (
-    <aside className="w-full md:w-[15%] min-w-[280px] bg-white border-l border-gray-200 flex flex-col relative sticky top-16 h-[calc(100vh-64px)] z-20 shrink-0">
+    <aside className={className || "w-full md:w-[15%] min-w-[280px] bg-white border-l border-gray-200 flex flex-col relative sticky top-16 h-[calc(100vh-64px)] z-20 shrink-0"}>
       <div className="flex-grow overflow-y-auto py-8 px-6">
         {/* Contest Header / Timer */}
         <div className="mb-10 text-center">

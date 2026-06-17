@@ -140,6 +140,7 @@ public class ProblemService {
 
         String status = "unsolved";
         String sourceCode = null;
+        Integer languageId = null;
         if (userId != null) {
             List<ProblemSubmissionEntity> subs = problemSubmissionRepository.findByUserIdAndProblemId(userId.intValue(), id);
             if (!subs.isEmpty()) {
@@ -148,9 +149,11 @@ public class ProblemService {
                 if (acceptedOpt.isPresent()) {
                     status = "solved";
                     sourceCode = acceptedOpt.get().getSourceCode();
+                    languageId = acceptedOpt.get().getLanguageId();
                 } else {
                     status = "attempted";
                     sourceCode = subs.get(0).getSourceCode();
+                    languageId = subs.get(0).getLanguageId();
                 }
             }
         }
@@ -185,6 +188,7 @@ public class ProblemService {
                 .acceptance(acceptance)
                 .totalSolved(totalSolved)
                 .sourceCode(sourceCode)
+                .languageId(languageId)
                 .build();
     }
 
