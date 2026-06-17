@@ -464,15 +464,7 @@ export const ContestProblemSolve: React.FC = () => {
                   </div>
                 )}
 
-                {problem.hint && (
-                  <details className="group bg-surface-gray rounded-lg border border-gray-200">
-                    <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-brand-blue">
-                      Show Hint
-                      <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
-                    </summary>
-                    <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-surface" dangerouslySetInnerHTML={{ __html: problem.hint }} />
-                  </details>
-                )}
+
               </div>
             )}
 

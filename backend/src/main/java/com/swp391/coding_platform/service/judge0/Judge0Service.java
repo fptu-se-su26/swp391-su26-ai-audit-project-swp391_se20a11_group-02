@@ -76,8 +76,14 @@ public class Judge0Service {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         user.validateStatus();
 
-        ProblemEntity ojProblem = problemRepository.findByIdAndIsPublicTrue(request.getProblemId())
+        ProblemEntity ojProblem = problemRepository.findById(request.getProblemId())
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        if (request.getContestId() == null && request.getLessonId() == null) {
+            if (ojProblem.getIsPublic() == null || !ojProblem.getIsPublic()) {
+                throw new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND);
+            }
+        }
 
         // Xác thực bài toán có thuộc cuộc thi hoặc bài học không
         if (request.getContestId() != null) {
