@@ -30,6 +30,7 @@ export interface ProblemDetail {
   acceptance: string;
   totalSolved: number;
   source_code?: string;
+  language_id?: number;
 }
 
 export interface ProblemSolution {

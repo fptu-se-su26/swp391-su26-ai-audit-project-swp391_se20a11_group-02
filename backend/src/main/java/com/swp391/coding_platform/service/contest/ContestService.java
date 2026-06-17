@@ -270,22 +270,22 @@ public class ContestService {
         }
 
         List<ContestProblemEntity> contestProblems = contestProblemRepository.findByContestIdWithProblem(contestId);
-        List<ContestProblemAttemptEntity> attempts = contestProblemAttemptRepository.findByContestIdAndUserId(contestId, userId);
+        List<ProblemSubmissionEntity> submissions = problemSubmissionRepository.findByContestIdAndUserId(contestId, userId);
 
         return contestProblems.stream().map(cp -> {
             var problem = cp.getProblem();
 
-            // Find user's attempt for this specific problem
-            var attemptOpt = attempts.stream()
-                    .filter(a -> a.getProblem().getId().equals(problem.getId()))
-                    .findFirst();
+            // Find user's submissions for this specific problem
+            List<ProblemSubmissionEntity> problemSubs = submissions.stream()
+                    .filter(s -> s.getProblem().getId().equals(problem.getId()))
+                    .toList();
 
             String status = "UNATTEMPTED";
-            if (attemptOpt.isPresent()) {
-                var attempt = attemptOpt.get();
-                if (attempt.getIsSolved()) {
+            if (!problemSubs.isEmpty()) {
+                boolean isSolved = problemSubs.stream().anyMatch(s -> s.getVerdict() == com.swp391.coding_platform.entity.enums.OjVerdict.ACCEPTED);
+                if (isSolved) {
                     status = "SOLVED";
-                } else if (attempt.getFailedAttemptsCount() > 0) {
+                } else {
                     status = "FAILED";
                 }
             }
@@ -574,13 +574,16 @@ public class ContestService {
                     .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
                     .collect(Collectors.joining(" "));
 
-            String langStr = "Java";
-            if (s.getLanguageId() == 2)
-                langStr = "Python 3";
-            else if (s.getLanguageId() == 3)
-                langStr = "C++";
-            else if (s.getLanguageId() == 4)
-                langStr = "JavaScript";
+            String langStr;
+            switch (s.getLanguageId()) {
+                case 50: langStr = "C"; break;
+                case 54: langStr = "C++"; break;
+                case 62: langStr = "Java"; break;
+                case 71: langStr = "Python 3"; break;
+                case 51: langStr = "C#"; break;
+                case 63: langStr = "JavaScript"; break;
+                default: langStr = "Java"; break;
+            }
 
             String runtimeStr = s.getExecutionTime() != null ? String.format(Locale.US, "%.1f ms", (double) s.getExecutionTime())
                     : "N/A";
@@ -641,19 +644,9 @@ public class ContestService {
 
         String attemptStatus = "unsolved";
         String sourceCode = null;
+        Integer languageId = null;
 
-        // Fetch user's attempts in this contest for this problem
-        Optional<ContestProblemAttemptEntity> attemptOpt = contestProblemAttemptRepository.findByContestIdAndUserIdAndProblemId(contestId, userId, problemId);
-        if (attemptOpt.isPresent()) {
-            ContestProblemAttemptEntity attempt = attemptOpt.get();
-            if (attempt.getIsSolved()) {
-                attemptStatus = "solved";
-            } else if (attempt.getFailedAttemptsCount() > 0) {
-                attemptStatus = "attempted";
-            }
-        }
-
-        // Fetch user's submissions in this contest for this problem to get the last source code
+        // Fetch user's submissions in this contest for this problem
         List<ProblemSubmissionEntity> subs = problemSubmissionRepository.findByContestIdAndUserId(contestId, userId);
         if (subs != null && !subs.isEmpty()) {
             List<ProblemSubmissionEntity> problemSubs = subs.stream()
@@ -661,11 +654,20 @@ public class ContestService {
                     .sorted(Comparator.comparing(ProblemSubmissionEntity::getSubmittedAt).reversed())
                     .toList();
             if (!problemSubs.isEmpty()) {
-                Optional<ProblemSubmissionEntity> acceptedOpt = problemSubs.stream().filter(s -> s.getVerdict() == OjVerdict.ACCEPTED).findFirst();
+                boolean isSolved = problemSubs.stream().anyMatch(s -> s.getVerdict() == com.swp391.coding_platform.entity.enums.OjVerdict.ACCEPTED);
+                if (isSolved) {
+                    attemptStatus = "solved";
+                } else {
+                    attemptStatus = "attempted";
+                }
+
+                Optional<ProblemSubmissionEntity> acceptedOpt = problemSubs.stream().filter(s -> s.getVerdict() == com.swp391.coding_platform.entity.enums.OjVerdict.ACCEPTED).findFirst();
                 if (acceptedOpt.isPresent()) {
                     sourceCode = acceptedOpt.get().getSourceCode();
+                    languageId = acceptedOpt.get().getLanguageId();
                 } else {
                     sourceCode = problemSubs.get(0).getSourceCode();
+                    languageId = problemSubs.get(0).getLanguageId();
                 }
             }
         }
@@ -701,6 +703,7 @@ public class ContestService {
                 .acceptance(acceptance)
                 .totalSolved(totalSolved)
                 .sourceCode(sourceCode)
+                .languageId(languageId)
                 .problemLabel(String.valueOf(labelChar))
                 .timeLimitMs(problem.getTimeLimitMs())
                 .memoryLimitKb(problem.getMemoryLimitKb())
