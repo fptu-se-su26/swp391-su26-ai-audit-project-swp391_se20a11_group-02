@@ -615,15 +615,9 @@ export const Courses: React.FC = () => {
               <div className={`h-[160px] relative overflow-hidden flex items-center justify-center ${getCardBg(course.id)}`}>
                 <img
                   alt={course.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   src={course.thumbnailUrl}
                 />
-                <span
-                  className={`material-symbols-outlined text-5xl z-10 ${getIconColor(course.id)}`}
-                  style={{ fontVariationSettings: '"FILL" 1' }}
-                >
-                  {getIconName(course.categoryName, course.title)}
-                </span>
               </div>
               <div className="p-5 flex-1 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
