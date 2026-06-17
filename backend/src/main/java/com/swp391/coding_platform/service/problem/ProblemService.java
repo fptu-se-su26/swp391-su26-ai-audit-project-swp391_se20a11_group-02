@@ -126,7 +126,17 @@ public class ProblemService {
         List<ProblemTagMappingEntity> mappings = problemTagMappingRepository.findByProblemId(id);
         List<String> tags = mappings.stream().map(m -> m.getTag().getName()).toList();
 
-        Map<String, String> templates = generateTemplates(problem.getTitle());
+        Map<String, String> templates = new HashMap<>();
+        if (problem.getStarterTemplates() != null && !problem.getStarterTemplates().isBlank()) {
+            try {
+                templates = objectMapper.readValue(problem.getStarterTemplates(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {});
+            } catch (Exception e) {
+                log.warn("Failed to parse starter templates for problem {}: {}", id, e.getMessage());
+            }
+        }
+        if (templates.isEmpty()) {
+            templates = generateTemplates(problem.getTitle());
+        }
 
         String status = "unsolved";
         String sourceCode = null;

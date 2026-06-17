@@ -144,6 +144,9 @@ public class Judge0Service {
                 .contest(request.getContestId() != null ? contestRepository.getReferenceById(request.getContestId())
                         : null)
                 .build();
+                
+        // Tăng tổng số lượt nộp của Problem
+        problemRepository.incrementTotalSubmission(request.getProblemId());
 
         // Đóng gói dữ liệu (Code + Testcases) để gửi sang Judge0
         List<Judge0SubmissionItem> judge0SubmissionItemList = new ArrayList<>();
@@ -293,6 +296,11 @@ public class Judge0Service {
             submissionEntity.setExecutionTime(maxStats.getMaxTime());
             submissionEntity.setMemoryUsed(maxStats.getMaxMemory());
             problemSubmissionRepository.save(submissionEntity);
+
+            // Tăng tổng số lượt AC của Problem nếu kết quả là ACCEPTED
+            if (overallVerdict == OjVerdict.ACCEPTED) {
+                problemRepository.incrementTotalAccepted(submissionEntity.getProblem().getId());
+            }
 
             // Bắn sự kiện SubmissionJudgedEvent qua Redis Pub/Sub
             SubmissionJudgedEvent event = SubmissionJudgedEvent.builder()
