@@ -55,38 +55,6 @@ export const ContestProblems: React.FC = () => {
     fetchProblems();
   }, [contest, contestId]);
 
-  const renderStatusIcon = (status: 'SOLVED' | 'FAILED' | 'UNATTEMPTED') => {
-    if (status === 'SOLVED') {
-      return (
-        <span 
-          className="material-symbols-outlined text-brand-green icon-fill cursor-default select-none" 
-          data-icon="check_circle" 
-          data-weight="fill"
-        >
-          check_circle
-        </span>
-      );
-    } else if (status === 'FAILED') {
-      return (
-        <span 
-          className="material-symbols-outlined text-red-650 icon-fill cursor-default select-none" 
-          data-icon="cancel" 
-          data-weight="fill"
-        >
-          cancel
-        </span>
-      );
-    } else {
-      return (
-        <span 
-          className="material-symbols-outlined text-gray-400 cursor-default select-none" 
-          data-icon="radio_button_unchecked"
-        >
-          radio_button_unchecked
-        </span>
-      );
-    }
-  };
 
   const getProblemCode = (orderIndex: number) => {
     return String.fromCharCode(65 + orderIndex);
@@ -153,7 +121,16 @@ export const ContestProblems: React.FC = () => {
                   {problems.map((cp) => (
                     <tr key={cp.problemId} className="hover:bg-surface-gray/50 transition-colors">
                       <td className="p-4 text-center">
-                        {renderStatusIcon(cp.status)}
+                        {cp.status === 'SOLVED' && (
+                          <span className="material-symbols-outlined text-brand-green icon-fill text-[20px] cursor-default select-none" title="Solved">
+                            check_circle
+                          </span>
+                        )}
+                        {cp.status === 'FAILED' && (
+                          <span className="material-symbols-outlined text-red-500 icon-fill text-[20px] cursor-default select-none" title="Failed">
+                            cancel
+                          </span>
+                        )}
                       </td>
                       <td className="p-4 font-semibold text-text-main">
                         {getProblemCode(cp.orderIndex)}

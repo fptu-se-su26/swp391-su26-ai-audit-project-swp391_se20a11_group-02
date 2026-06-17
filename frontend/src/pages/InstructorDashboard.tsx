@@ -154,9 +154,9 @@ export const InstructorDashboard: React.FC = () => {
   const { user } = useApp();
   
   // Custom Toast State
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; id: number } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; id: number } | null>(null);
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Date.now();
     setToast({ message, type, id });
     setTimeout(() => {
@@ -6542,10 +6542,18 @@ export const InstructorDashboard: React.FC = () => {
         <div className={`fixed top-6 right-6 z-[99999] px-5 py-4 rounded-xl shadow-2xl border flex items-center gap-3 backdrop-blur-md animate-fade-in min-w-[300px] ${
           toast.type === 'success' 
             ? 'bg-emerald-50/95 border-emerald-200 text-emerald-800' 
+            : toast.type === 'info'
+            ? 'bg-blue-50/95 border-blue-200 text-blue-800'
             : 'bg-red-50/95 border-red-200 text-red-800'
         }`}>
-          <span className={`material-symbols-outlined text-[24px] ${toast.type === 'success' ? 'text-emerald-500' : 'text-red-500'}`}>
-            {toast.type === 'success' ? 'check_circle' : 'error'}
+          <span className={`material-symbols-outlined text-[24px] ${
+            toast.type === 'success' 
+              ? 'text-emerald-500' 
+              : toast.type === 'info'
+              ? 'text-blue-500'
+              : 'text-red-500'
+          }`}>
+            {toast.type === 'success' ? 'check_circle' : toast.type === 'info' ? 'info' : 'error'}
           </span>
           <p className="text-sm font-bold flex-1">{toast.message}</p>
           <button 

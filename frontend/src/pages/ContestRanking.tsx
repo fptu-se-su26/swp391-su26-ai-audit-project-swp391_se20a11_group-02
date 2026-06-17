@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ContestOverviewData } from '../components/Layout';
+import { ContestSidebar } from '../components/ContestSidebar';
 
 interface SubmissionDetail {
   time?: string;
@@ -115,9 +116,11 @@ const formatMinutes = (m: number): string => {
 };
 
 export const ContestRanking: React.FC = () => {
-  const { contest, loading } = useOutletContext<{
+  const { contest, loading, timeLeft, timerLabel } = useOutletContext<{
     contest: ContestOverviewData | null;
     loading: boolean;
+    timeLeft: string;
+    timerLabel: string;
   }>();
   const [hoveredTeam, setHoveredTeam] = useState<string | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<{
@@ -297,11 +300,13 @@ export const ContestRanking: React.FC = () => {
 
   return (
     <>
-      <main className="w-full px-4 sm:px-8 py-8 md:py-12 bg-surface-gray flex-grow min-w-0">
+      <main className="w-full pl-4 sm:pl-8 py-8 md:py-12 pr-0 bg-surface-gray flex-grow min-w-0">
         <div className="w-full flex flex-col gap-4">
           
-          {/* Top Section: Interactive Custom SVG Chart & Legends */}
-          <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 relative overflow-hidden group">
+          <div className="flex flex-col md:flex-row w-full gap-0 items-stretch">
+            {/* Top Section: Interactive Custom SVG Chart & Legends */}
+            <div className="flex-grow min-w-0 pr-4 sm:pr-8">
+              <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 relative overflow-hidden group">
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
             
             <div className="flex flex-col md:flex-row md:items-center justify-between pb-2 border-b border-gray-150">
@@ -549,9 +554,23 @@ export const ContestRanking: React.FC = () => {
               </div>
             )}
           </section>
+        </div>
 
-          {/* Bottom Section: Detailed Scoreboard */}
-          <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(18,40,76,0.05)] border border-gray-200 overflow-hidden flex flex-col w-full">
+        {/* Shorter Contest Sidebar on the right of the chart */}
+        <ContestSidebar
+          contestId={String(contest?.id || '')}
+          activeTab="ranking"
+          timeLeft={timeLeft}
+          timerLabel={timerLabel}
+          isRegistered={!!contest?.isUserRegistered}
+          contestStatus={contest?.status}
+          className="w-full md:w-[15%] min-w-[280px] bg-white border-l border-gray-200 flex flex-col relative sticky top-16 h-fit z-20 shrink-0"
+        />
+      </div>
+
+      {/* Bottom Section: Detailed Scoreboard */}
+      <div className="w-full pr-4 sm:pr-8">
+        <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(18,40,76,0.05)] border border-gray-200 overflow-hidden flex flex-col w-full">
             <div className="p-4 border-b border-gray-200 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h3 className="font-headline text-headline-md text-text-main font-bold text-lg">Detailed Scoreboard</h3>
@@ -629,6 +648,7 @@ export const ContestRanking: React.FC = () => {
               )}
             </div>
           </section>
+        </div>
         </div>
       </main>
     </>

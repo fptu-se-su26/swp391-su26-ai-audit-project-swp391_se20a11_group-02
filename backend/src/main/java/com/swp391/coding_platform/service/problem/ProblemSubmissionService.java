@@ -67,13 +67,15 @@ public class ProblemSubmissionService {
                     .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
                     .collect(Collectors.joining(" "));
 
-            String langStr = "Java";
-            if (s.getLanguageId() == 2)
-                langStr = "Python 3";
-            else if (s.getLanguageId() == 3)
-                langStr = "C++";
-            else if (s.getLanguageId() == 4)
-                langStr = "JavaScript";
+            String langStr;
+            switch (s.getLanguageId()) {
+                case 50: langStr = "C"; break;
+                case 54: langStr = "C++"; break;
+                case 62: langStr = "Java"; break;
+                case 71: langStr = "Python 3"; break;
+                case 51: langStr = "C#"; break;
+                default: langStr = "Java"; break;
+            }
 
             String runtimeStr = s.getExecutionTime() != null ? String.format(Locale.US, "%.1f ms", (double) s.getExecutionTime())
                     : "N/A";
