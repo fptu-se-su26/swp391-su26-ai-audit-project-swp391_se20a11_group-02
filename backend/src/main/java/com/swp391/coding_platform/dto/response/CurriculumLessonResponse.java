@@ -16,4 +16,5 @@ public class CurriculumLessonResponse {
     Integer orderIndex;
     String videoUrl;
     String type; // 'video' | 'coding' | 'reading'
+    String status;
 }

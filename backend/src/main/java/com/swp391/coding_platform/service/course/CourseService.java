@@ -9,6 +9,8 @@ import com.swp391.coding_platform.dto.response.LearningDetailResponse;
 import com.swp391.coding_platform.dto.response.LearningLessonResponse;
 import com.swp391.coding_platform.dto.response.LearningCurriculumChapterResponse;
 import com.swp391.coding_platform.entity.course.LessonEntity;
+import com.swp391.coding_platform.entity.course.EnrollmentEntity;
+import com.swp391.coding_platform.entity.course.ChapterEntity;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
@@ -98,7 +100,7 @@ public class CourseService {
             // 5. Nếu user có mua ít nhất 1 khóa, tiến hành lấy tiến độ (QUERY 3)
             if (!enrolledCourseIds.isEmpty()) {
                 List<CompletedLessonsCountEntity> completedLessonsCountEntities =
-                        completedLessonCountRepository.findByUserIdAndCourseIdIn(userId, enrolledCourseIds);
+                        completedLessonCountRepository.findByUserIdAndCourseIdIn(userId.intValue(), enrolledCourseIds);
 
                 courseProgressMap = getCourseProgressMap(completedLessonsCountEntities);
             }
@@ -146,7 +148,7 @@ public class CourseService {
     }
 
     private Integer getCompleteLessons(Long courseId, Long userId) {
-        CompletedLessonsCountEntity completedLessonsCountEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId, courseId)
+        CompletedLessonsCountEntity completedLessonsCountEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId.intValue(), courseId)
                 .orElse(null);
 
         return completedLessonsCountEntity != null ? completedLessonsCountEntity.getCompletedLessonsCount() : 0;
@@ -155,6 +157,15 @@ public class CourseService {
     public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
         CourseEntity courseEntity = courseRepository.findById(courseId)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        boolean isOwner = false;
+        if (userId != null) {
+            isOwner = courseEntity.getInstructor().getUser().getId().equals(userId);
+        }
+
+        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner) {
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+        }
 
         CourseDetailResponse response = courseMapper.toCourseDetailResponse(courseEntity);
 
@@ -177,8 +188,16 @@ public class CourseService {
         return response;
     }
 
-    public List<CurriculumChapterResponse> getCourseCurriculum(Long courseId) {
-        if (!courseRepository.existsById(courseId)) {
+    public List<CurriculumChapterResponse> getCourseCurriculum(Long userId, Long courseId) {
+        CourseEntity courseEntity = courseRepository.findById(courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        boolean isOwner = false;
+        if (userId != null) {
+            isOwner = courseEntity.getInstructor().getUser().getId().equals(userId);
+        }
+
+        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner) {
             throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
 
@@ -287,7 +306,7 @@ public class CourseService {
         }
 
         // 2. Tải danh sách ID bài học hoàn thành trong 1 query
-        Set<Long> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId, courseId);
+        Set<Integer> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId.intValue(), courseId);
 
         // 3. Tính toán tiến độ bài học hoàn thành
         int completeLessons = completedLessonIds.size();
@@ -313,7 +332,7 @@ public class CourseService {
         List<ChapterEntity> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
 
         // 2. Lấy toàn bộ bài học đã hoàn thiện trong 1 query duy nhất
-        Set<Long> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId, courseId);
+        Set<Integer> completedLessonIds = lessonProgressRepository.findCompletedLessonIds(userId.intValue(), courseId);
 
         // 3. Sử dụng MapStruct map kèm ngữ cảnh completedLessonIds để tự động phân phối map trạng thái hoàn thành
         return courseMapper.toLearningCurriculumChapterResponses(chapters, completedLessonIds);
@@ -400,11 +419,11 @@ public class CourseService {
         }
 
         // 3. Lấy Pessimistic Lock trên Enrollment của User để đồng bộ hóa, tránh race condition
-        enrollmentRepository.findEnrollmentWithLock(userId, courseId)
+        EnrollmentEntity enrollment = enrollmentRepository.findEnrollmentWithLock(userId.intValue(), courseId)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_ENROLLED));
 
         // 4. Kiểm tra xem bài học đã hoàn thành chưa
-        boolean isAlreadyCompleted = lessonProgressRepository.existsByLessonIdAndUserId(lessonId, userId);
+        boolean isAlreadyCompleted = lessonProgressRepository.existsByLessonIdAndUserId(lessonId, userId.intValue());
         if (isAlreadyCompleted) {
             log.info("[completeLesson] Lesson {} already completed by user {}", lessonId, userId);
             return; // Idempotent
@@ -423,7 +442,7 @@ public class CourseService {
         lessonProgressRepository.save(progress);
 
         // 6. Cập nhật hoặc khởi tạo tổng số bài học đã hoàn thành (completed_lessons_count)
-        CompletedLessonsCountEntity countEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId, courseId)
+        CompletedLessonsCountEntity countEntity = completedLessonCountRepository.getByUserIdAndCourseId(userId.intValue(), courseId)
                 .orElseGet(() -> CompletedLessonsCountEntity.builder()
                         .user(user)
                         .course(course)
@@ -434,6 +453,24 @@ public class CourseService {
         completedLessonCountRepository.save(countEntity);
         log.info("[completeLesson] User {} completed lesson {} in course {}. Completed count: {}", 
                 userId, lessonId, courseId, countEntity.getCompletedLessonsCount());
+
+        // 7. Kiểm tra bài học cuối cùng và cập nhật EnrollmentStatus thành COMPLETED
+        if (enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
+            int totalLessons = course.getTotalLessons() != null ? course.getTotalLessons() : 0;
+            if (totalLessons == 0 && course.getChapters() != null) {
+                for (ChapterEntity chapter : course.getChapters()) {
+                    if (chapter.getLessons() != null) {
+                        totalLessons += chapter.getLessons().size();
+                    }
+                }
+            }
+            if (totalLessons > 0 && countEntity.getCompletedLessonsCount() >= totalLessons) {
+                enrollment.setStatus(EnrollmentStatus.COMPLETED);
+                enrollmentRepository.save(enrollment);
+                log.info("[completeLesson] User {} completed all {} lessons of course {}. Enrollment status updated to COMPLETED.", 
+                        userId, totalLessons, courseId);
+            }
+        }
     }
 }
 

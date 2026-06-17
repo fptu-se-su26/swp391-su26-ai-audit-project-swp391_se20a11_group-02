@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
@@ -30,6 +30,7 @@ interface UserStats {
 
 export const Contests: React.FC = () => {
   const { user } = useApp();
+  const timeOffsetRef = useRef<number>(0);
 
   // --- States for Interactivity ---
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,6 +65,9 @@ export const Contests: React.FC = () => {
           setContests(data.result.content);
           setTotalPages(data.result.totalPages);
           setTotalElements(data.result.totalElements);
+          if (data.timestamp) {
+            timeOffsetRef.current = new Date(data.timestamp).getTime() - Date.now();
+          }
         }
       } catch (error) {
         console.error("Lỗi khi fetch data contest:", error);
@@ -87,6 +91,9 @@ export const Contests: React.FC = () => {
       const bannerData = await bannerRes.json();
       if (bannerData) {
         setBannerContest(bannerData.result);
+        if (bannerData.timestamp) {
+          timeOffsetRef.current = new Date(bannerData.timestamp).getTime() - Date.now();
+        }
       }
 
       if (user) {
@@ -149,7 +156,7 @@ export const Contests: React.FC = () => {
     const startTimeMs = new Date(bannerContest.startTime).getTime();
 
     const updateCountdown = () => {
-      const now = Date.now();
+      const now = Date.now() + timeOffsetRef.current;
       const difference = startTimeMs - now;
 
       if (difference <= 0) {

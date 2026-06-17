@@ -8,8 +8,10 @@ import java.util.List;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<CategoryEntity, Integer> {
-    @Query("SELECT c.name, COALESCE(SUM(co.totalEnrolled), 0) FROM CategoryEntity c " +
+    @Query("SELECT c.name, COUNT(e) FROM CategoryEntity c " +
            "LEFT JOIN c.courses co " +
-           "GROUP BY c.name")
+           "LEFT JOIN EnrollmentEntity e ON e.course = co " +
+           "GROUP BY c.name " +
+           "ORDER BY COUNT(e) DESC")
     List<Object[]> findCategoryEnrollmentCounts();
 }

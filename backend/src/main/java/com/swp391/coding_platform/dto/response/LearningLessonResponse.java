@@ -14,4 +14,6 @@ public class LearningLessonResponse {
     String title;
     String videoUrl;
     String theoryContent;
+    java.util.List<LearningExerciseResponse> exercises;
+    String status;
 }

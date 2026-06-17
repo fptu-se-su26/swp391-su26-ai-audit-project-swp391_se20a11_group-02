@@ -44,8 +44,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.swp391.coding_platform.dto.response.ContestSubmissionResponse;
+import com.swp391.coding_platform.dto.response.ContestProblemDetailResponse;
 import com.swp391.coding_platform.entity.problem.ProblemSubmissionEntity;
+import com.swp391.coding_platform.repository.problem.ProblemTagMappingRepository;
+import com.swp391.coding_platform.entity.problem.ProblemTagMappingEntity;
+import com.swp391.coding_platform.entity.enums.OjVerdict;
 
+@lombok.extern.slf4j.Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -59,11 +64,17 @@ public class ContestService {
     ContestProblemRepository contestProblemRepository;
     ContestProblemAttemptRepository contestProblemAttemptRepository;
     ProblemRepository problemRepository;
+    ProblemTagMappingRepository problemTagMappingRepository;
     PasswordEncoder passwordEncoder;
+    com.swp391.coding_platform.repository.contest.ContestRankingRepository contestRankingRepository;
+    org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
     private String calculateStatus(ContestEntity contest, Instant now) {
-        if (Boolean.TRUE.equals(contest.getIsCancelled())) {
-            return "CANCELLED";
+        if (contest.getStatus() == ContestStatus.DELETED) {
+            return "DELETED";
+        }
+        if (contest.getStatus() == ContestStatus.DRAFT) {
+            return "DRAFT";
         }
         if (now.isBefore(contest.getStartTime())) {
             return "UPCOMING";
@@ -75,7 +86,7 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<ContestResponse> getContests(ContestSearchRequest request, String username) {
+    public PageResponse<ContestResponse> getContests(ContestSearchRequest request, Integer userId) {
         String statusFilter = request.getStatus();
         String accessFilter = request.getAccess();
 
@@ -114,8 +125,8 @@ public class ContestService {
             response.setParticipantCount(partCount != null ? partCount.intValue() : 0);
             response.setProblemCount(probCount != null ? probCount.intValue() : 0);
 
-            if (username != null) {
-                response.setIsUserRegistered(contestRepository.isUserRegistered(entity.getId(), username));
+            if (userId != null) {
+                response.setIsUserRegistered(contestRepository.isUserRegistered(entity.getId(), userId));
             } else {
                 response.setIsUserRegistered(false);
             }
@@ -126,7 +137,7 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    public ContestResponse getBannerContest(String username) {
+    public ContestResponse getBannerContest(Integer userId) {
         Pageable limitOne = PageRequest.of(0, 1);
         Instant now = Instant.now();
         Page<ContestEntity> upcomingPage = contestRepository.findUpcomingContests(now, limitOne);
@@ -140,8 +151,8 @@ public class ContestService {
         long partCount = contestRepository.countParticipants(bannerEntity.getId());
         long probCount = contestRepository.countProblems(bannerEntity.getId());
         boolean isReg = false;
-        if (username != null) {
-            isReg = contestRepository.isUserRegistered(bannerEntity.getId(), username);
+        if (userId != null) {
+            isReg = contestRepository.isUserRegistered(bannerEntity.getId(), userId);
         }
 
         ContestResponse response = contestMapper.toContestResponse(bannerEntity);
@@ -154,11 +165,11 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    public ContestUserStatsResponse getUserStats(String username) {
-        if (username == null) {
+    public ContestUserStatsResponse getUserStats(Integer userId) {
+        if (userId == null) {
             return null;
         }
-        var userOpt = userRepository.findByUsername(username);
+        var userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
             return null;
         }
@@ -186,15 +197,15 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    public ContestResponse getContestById(Integer contestId, String username) {
+    public ContestResponse getContestById(Integer contestId, Integer userId) {
         ContestEntity entity = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
         long partCount = contestRepository.countParticipants(contestId);
         long probCount = contestRepository.countProblems(contestId);
         boolean isReg = false;
-        if (username != null) {
-            isReg = contestRepository.isUserRegistered(contestId, username);
+        if (userId != null) {
+            isReg = contestRepository.isUserRegistered(contestId, userId);
         }
 
         ContestResponse response = contestMapper.toContestResponse(entity);
@@ -207,8 +218,11 @@ public class ContestService {
     }
 
     @Transactional
-    public void registerForContest(Integer contestId, String username, ContestRegisterRequest request) {
-        var user = userRepository.findByUsername(username)
+    public void registerForContest(Integer contestId, Integer userId, ContestRegisterRequest request) {
+        if (userId == null) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        var user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
@@ -217,7 +231,7 @@ public class ContestService {
             throw new AppException(ErrorCode.CONTEST_ALREADY_ENDED);
         }
 
-        boolean alreadyRegistered = contestRepository.isUserRegistered(contestId, username);
+        boolean alreadyRegistered = contestRepository.isUserRegistered(contestId, userId);
         if (alreadyRegistered) {
             return;
         }
@@ -240,35 +254,41 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    public List<ContestProblemResponse> getContestProblems(Integer contestId, String username) {
-        if (username == null) {
+    public List<ContestProblemResponse> getContestProblems(Integer contestId, Integer userId) {
+        if (userId == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-        boolean isRegistered = contestRepository.isUserRegistered(contestId, username);
+        boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
         if (!isRegistered) {
             throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
         }
+        // Block access if contest has not started yet (UPCOMING)
+        // ENDED is allowed: users can review problems after contest ends
+        String currentStatus = calculateStatus(contest, java.time.Instant.now());
+        if (currentStatus.equals("UPCOMING")) {
+            throw new AppException(ErrorCode.CONTEST_NOT_STARTED);
+        }
 
         List<ContestProblemEntity> contestProblems = contestProblemRepository.findByContestIdWithProblem(contestId);
-        List<ContestProblemAttemptEntity> attempts = contestProblemAttemptRepository.findByContestIdAndUsername(contestId, username);
+        List<ProblemSubmissionEntity> submissions = problemSubmissionRepository.findByContestIdAndUserId(contestId, userId);
 
         return contestProblems.stream().map(cp -> {
             var problem = cp.getProblem();
 
-            // Find user's attempt for this specific problem
-            var attemptOpt = attempts.stream()
-                    .filter(a -> a.getProblem().getId().equals(problem.getId()))
-                    .findFirst();
+            // Find user's submissions for this specific problem
+            List<ProblemSubmissionEntity> problemSubs = submissions.stream()
+                    .filter(s -> s.getProblem().getId().equals(problem.getId()))
+                    .toList();
 
             String status = "UNATTEMPTED";
-            if (attemptOpt.isPresent()) {
-                var attempt = attemptOpt.get();
-                if (attempt.getIsSolved()) {
+            if (!problemSubs.isEmpty()) {
+                boolean isSolved = problemSubs.stream().anyMatch(s -> s.getVerdict() == com.swp391.coding_platform.entity.enums.OjVerdict.ACCEPTED);
+                if (isSolved) {
                     status = "SOLVED";
-                } else if (attempt.getFailedAttemptsCount() > 0) {
+                } else {
                     status = "FAILED";
                 }
             }
@@ -345,7 +365,7 @@ public class ContestService {
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .durations((int) durationMinutes)
-                .isCancelled(false)
+                .status(ContestStatus.DRAFT)
                 .createdBy(creator)
                 .build();
 
@@ -358,20 +378,38 @@ public class ContestService {
         ContestEntity contest = contestRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-        contest.setTitle(request.getTitle());
-        contest.setDescription(request.getDescription());
-        contest.setScoringRule(ScoringRule.valueOf(request.getScoringRule()));
-        contest.setStartTime(request.getStartTime());
-        contest.setEndTime(request.getEndTime());
+        Instant now = Instant.now();
+        String currentStatus = calculateStatus(contest, now);
 
-        long durationMinutes = java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
-        contest.setDurations((int) durationMinutes);
+        if (currentStatus.equals("DELETED")) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
 
-        if (request.getPassword() != null) {
-            if (request.getPassword().trim().isEmpty()) {
-                contest.setPasswordHash(null);
-            } else {
-                contest.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED")) {
+            boolean timesChanged = !contest.getStartTime().equals(request.getStartTime()) ||
+                                   !contest.getEndTime().equals(request.getEndTime());
+            boolean scoringRuleChanged = contest.getScoringRule() != ScoringRule.valueOf(request.getScoringRule());
+            if (timesChanged || scoringRuleChanged) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
+            contest.setTitle(request.getTitle());
+            contest.setDescription(request.getDescription());
+        } else {
+            contest.setTitle(request.getTitle());
+            contest.setDescription(request.getDescription());
+            contest.setScoringRule(ScoringRule.valueOf(request.getScoringRule()));
+            contest.setStartTime(request.getStartTime());
+            contest.setEndTime(request.getEndTime());
+
+            long durationMinutes = java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
+            contest.setDurations((int) durationMinutes);
+
+            if (request.getPassword() != null) {
+                if (request.getPassword().trim().isEmpty()) {
+                    contest.setPasswordHash(null);
+                } else {
+                    contest.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+                }
             }
         }
 
@@ -386,12 +424,59 @@ public class ContestService {
 
         Instant now = Instant.now();
         String currentStatus = calculateStatus(contest, now);
-        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED")) {
+        if (!currentStatus.equals("DRAFT") && !currentStatus.equals("UPCOMING")) {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        contest.setIsCancelled(true);
+        contest.setStatus(ContestStatus.DELETED);
         contestRepository.save(contest);
+    }
+
+    @Transactional
+    public AdminContestResponse publishAdminContest(Integer id) {
+        ContestEntity contest = contestRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        if (contest.getStatus() != ContestStatus.DRAFT) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        contest.setStatus(ContestStatus.PUBLISHED);
+        contestRepository.save(contest);
+        return getAdminContestById(id);
+    }
+
+    @Transactional
+    public AdminContestResponse restoreAdminContest(Integer id) {
+        ContestEntity contest = contestRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        if (contest.getStatus() != ContestStatus.DELETED) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        contest.setStatus(ContestStatus.DRAFT);
+        contestRepository.save(contest);
+        return getAdminContestById(id);
+    }
+
+    @Transactional
+    public void hardDeleteAdminContest(Integer id) {
+        ContestEntity contest = contestRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        if (contest.getStatus() != ContestStatus.DELETED) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        long subCount = problemSubmissionRepository.countByContestId(id);
+        if (subCount > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        contestParticipantRepository.deleteByContestId(id);
+        contestProblemRepository.deleteByContestId(id);
+        contestRepository.delete(contest);
     }
 
     @Transactional(readOnly = true)
@@ -406,6 +491,13 @@ public class ContestService {
     public void addProblemToContest(Integer contestId, AdminContestProblemRequest request) {
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        Instant now = Instant.now();
+        String currentStatus = calculateStatus(contest, now);
+        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED") || currentStatus.equals("DELETED")) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
         var problem = problemRepository.findById(request.getProblemId())
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
@@ -413,9 +505,6 @@ public class ContestService {
         if (exists) {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
-
-        problem.setProblemScope(ProblemScope.CONTEST);
-        problemRepository.save(problem);
 
         ContestProblemEntity cp = ContestProblemEntity.builder()
                 .contest(contest)
@@ -428,19 +517,24 @@ public class ContestService {
 
     @Transactional
     public void removeProblemFromContest(Integer contestId, Integer problemId) {
+        var contest = contestRepository.findById(contestId)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        Instant now = Instant.now();
+        String currentStatus = calculateStatus(contest, now);
+        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED") || currentStatus.equals("DELETED")) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
         ContestProblemEntity cp = contestProblemRepository.findByContestIdAndProblemId(contestId, problemId)
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
         contestProblemRepository.delete(cp);
-
-        ProblemEntity problem = cp.getProblem();
-        problem.setProblemScope(ProblemScope.PRACTICE);
-        problemRepository.save(problem);
     }
 
     @Transactional(readOnly = true)
-    public List<ContestSubmissionResponse> getContestSubmissions(Integer contestId, String username, boolean isAdmin) {
-        if (username == null) {
+    public List<ContestSubmissionResponse> getContestSubmissions(Integer contestId, Integer userId, boolean isAdmin) {
+        if (userId == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
@@ -451,11 +545,16 @@ public class ContestService {
         if (isAdmin) {
             submissions = problemSubmissionRepository.findByContestId(contestId);
         } else {
-            boolean isRegistered = contestRepository.isUserRegistered(contestId, username);
+            boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
             if (!isRegistered) {
                 throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
             }
-            submissions = problemSubmissionRepository.findByContestIdAndUsername(contestId, username);
+            // Block access if contest has not started yet
+            String currentStatus = calculateStatus(contest, java.time.Instant.now());
+            if (currentStatus.equals("UPCOMING")) {
+                throw new AppException(ErrorCode.CONTEST_NOT_STARTED);
+            }
+            submissions = problemSubmissionRepository.findByContestIdAndUserId(contestId, userId);
         }
 
         List<ContestProblemEntity> cpList = contestProblemRepository.findByContestIdWithProblem(contestId);
@@ -478,13 +577,16 @@ public class ContestService {
                     .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
                     .collect(Collectors.joining(" "));
 
-            String langStr = "Java";
-            if (s.getLanguageId() == 2)
-                langStr = "Python 3";
-            else if (s.getLanguageId() == 3)
-                langStr = "C++";
-            else if (s.getLanguageId() == 4)
-                langStr = "JavaScript";
+            String langStr;
+            switch (s.getLanguageId()) {
+                case 50: langStr = "C"; break;
+                case 54: langStr = "C++"; break;
+                case 62: langStr = "Java"; break;
+                case 71: langStr = "Python 3"; break;
+                case 51: langStr = "C#"; break;
+                case 63: langStr = "JavaScript"; break;
+                default: langStr = "Java"; break;
+            }
 
             String runtimeStr = s.getExecutionTime() != null ? String.format(Locale.US, "%.1f ms", (double) s.getExecutionTime())
                     : "N/A";
@@ -508,5 +610,282 @@ public class ContestService {
                     .statusClass(statusClass)
                     .build();
         }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ContestProblemDetailResponse getContestProblemDetail(Integer contestId, Integer problemId, Integer userId) {
+        if (userId == null) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        ContestEntity contest = contestRepository.findById(contestId)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        // Verify user registration
+        boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
+        if (!isRegistered) {
+            throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
+        }
+
+        // Verify contest has started (throw 403 / CONTEST_NOT_STARTED if upcoming)
+        Instant now = Instant.now();
+        String currentStatus = calculateStatus(contest, now);
+        if (currentStatus.equals("UPCOMING")) {
+            throw new AppException(ErrorCode.CONTEST_NOT_STARTED);
+        }
+
+        // Check if the problem belongs to the contest
+        ContestProblemEntity cp = contestProblemRepository.findByContestIdAndProblemId(contestId, problemId)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        ProblemEntity problem = cp.getProblem();
+
+        List<ProblemTagMappingEntity> mappings = problemTagMappingRepository.findByProblemId(problemId);
+        List<String> tags = mappings.stream().map(m -> m.getTag().getName()).toList();
+
+        Map<String, String> templates = generateTemplates(problem.getTitle());
+
+        String attemptStatus = "unsolved";
+        String sourceCode = null;
+        Integer languageId = null;
+
+        // Fetch user's submissions in this contest for this problem
+        List<ProblemSubmissionEntity> subs = problemSubmissionRepository.findByContestIdAndUserId(contestId, userId);
+        if (subs != null && !subs.isEmpty()) {
+            List<ProblemSubmissionEntity> problemSubs = subs.stream()
+                    .filter(s -> s.getProblem().getId().equals(problemId))
+                    .sorted(Comparator.comparing(ProblemSubmissionEntity::getSubmittedAt).reversed())
+                    .toList();
+            if (!problemSubs.isEmpty()) {
+                boolean isSolved = problemSubs.stream().anyMatch(s -> s.getVerdict() == com.swp391.coding_platform.entity.enums.OjVerdict.ACCEPTED);
+                if (isSolved) {
+                    attemptStatus = "solved";
+                } else {
+                    attemptStatus = "attempted";
+                }
+
+                Optional<ProblemSubmissionEntity> acceptedOpt = problemSubs.stream().filter(s -> s.getVerdict() == com.swp391.coding_platform.entity.enums.OjVerdict.ACCEPTED).findFirst();
+                if (acceptedOpt.isPresent()) {
+                    sourceCode = acceptedOpt.get().getSourceCode();
+                    languageId = acceptedOpt.get().getLanguageId();
+                } else {
+                    sourceCode = problemSubs.get(0).getSourceCode();
+                    languageId = problemSubs.get(0).getLanguageId();
+                }
+            }
+        }
+
+        String difficultyStr = "Medium";
+        if (problem.getDifficulty() != null) {
+            String name = problem.getDifficulty().name();
+            difficultyStr = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+        }
+
+        String acceptance = "0.0%";
+        if (problem.getTotalSubmission() != null && problem.getTotalSubmission() > 0) {
+            double rate = (problem.getTotalAccepted() * 100.0) / problem.getTotalSubmission();
+            acceptance = String.format(Locale.US, "%.1f%%", rate);
+        }
+        Integer totalSolved = problem.getTotalAccepted() != null ? problem.getTotalAccepted() : 0;
+
+        char labelChar = (char) ('A' + cp.getOrderIndex());
+
+        return ContestProblemDetailResponse.builder()
+                .id(problem.getId())
+                .title(problem.getTitle())
+                .difficulty(difficultyStr)
+                .description(problem.getDescription())
+                .inputDescription(problem.getInputDescription())
+                .outputDescription(problem.getOutputDescription())
+                .constraints(problem.getConstraints())
+                .exampleInput(problem.getExampleInput())
+                .exampleOutput(problem.getExampleOutput())
+                .tags(tags)
+                .templates(templates)
+                .status(attemptStatus)
+                .acceptance(acceptance)
+                .totalSolved(totalSolved)
+                .sourceCode(sourceCode)
+                .languageId(languageId)
+                .problemLabel(String.valueOf(labelChar))
+                .timeLimitMs(problem.getTimeLimitMs())
+                .memoryLimitKb(problem.getMemoryLimitKb())
+                .build();
+    }
+
+    private Map<String, String> generateTemplates(String title) {
+        Map<String, String> templates = new HashMap<>();
+        String cleanTitle = title != null ? title.trim().toLowerCase() : "";
+
+        if (cleanTitle.contains("two sum")) {
+            templates.put("Java", "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Write your code here\n        return new int[0];\n    }\n}");
+            templates.put("Python 3", "class Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n        # Write your code here\n        return []");
+            templates.put("C++", "class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        // Write your code here\n        return {};\n    }\n};");
+            templates.put("JavaScript", "var twoSum = function(nums, target) {\n    // Write your code here\n    return [];\n};");
+        } else if (cleanTitle.contains("add two numbers")) {
+            templates.put("Java", "class Solution {\n    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {\n        // Write your code here\n        return null;\n    }\n}");
+            templates.put("Python 3", "class Solution:\n    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:\n        # Write your code here\n        return None");
+            templates.put("C++", "class Solution {\npublic:\n    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {\n        // Write your code here\n        return nullptr;\n    }\n};");
+            templates.put("JavaScript", "var addTwoNumbers = function(l1, l2) {\n    // Write your code here\n    return null;\n};");
+        } else if (cleanTitle.contains("longest substring")) {
+            templates.put("Java", "class Solution {\n    public int lengthOfLongestSubstring(String s) {\n        // Write your code here\n        return 0;\n    }\n}");
+            templates.put("Python 3", "class Solution:\n    def lengthOfLongestSubstring(self, s: str) -> int:\n        # Write your code here\n        return 0");
+            templates.put("C++", "class Solution {\npublic:\n    int lengthOfLongestSubstring(string s) {\n        // Write your code here\n        return 0;\n    }\n};");
+            templates.put("JavaScript", "var lengthOfLongestSubstring = function(s) {\n    // Write your code here\n    return 0;\n};");
+        } else {
+            templates.put("Java", "class Solution {\n    public void solve() {\n        // Write your code here\n    }\n}");
+            templates.put("Python 3", "class Solution:\n    def solve(self):\n        # Write your code here\n        pass");
+            templates.put("C++", "class Solution {\npublic:\n    void solve() {\n        // Write your code here\n    }\n};");
+            templates.put("JavaScript", "var solve = function() {\n    // Write your code here\n};");
+        }
+        return templates;
+    }
+
+    @Transactional(readOnly = true)
+    public com.swp391.coding_platform.dto.response.MyContestStatsResponse getMyContestStats(Integer userId) {
+        if (userId == null) {
+            return null;
+        }
+
+        List<com.swp391.coding_platform.entity.contest.ContestParticipantEntity> registrations =
+                contestParticipantRepository.findByUserIdWithContest(userId);
+
+        long totalContests = registrations.size();
+        int top1 = 0;
+        int top2 = 0;
+        int top3 = 0;
+
+        if (totalContests > 0) {
+            List<Integer> contestIds = registrations.stream()
+                    .map(r -> r.getContest().getId())
+                    .collect(Collectors.toList());
+
+            List<Object[]> partCounts = contestParticipantRepository.countParticipantsByContestIds(contestIds);
+            Map<Integer, Long> partCountMap = partCounts.stream()
+                    .collect(Collectors.toMap(
+                            row -> (Integer) row[0],
+                            row -> (Long) row[1]
+                    ));
+
+            List<com.swp391.coding_platform.entity.contest.ContestRankingEntity> userRankings =
+                    contestRankingRepository.findByUserIdAndContestIds(userId, contestIds);
+            Map<Integer, com.swp391.coding_platform.entity.contest.ContestRankingEntity> rankingMap = userRankings.stream()
+                    .collect(Collectors.toMap(
+                            r -> r.getContest().getId(),
+                            r -> r
+                    ));
+
+            for (Integer contestId : contestIds) {
+                int rank = calculateUserRank(contestId, userId, rankingMap.get(contestId), partCountMap.getOrDefault(contestId, 0L));
+                if (rank == 1) {
+                    top1++;
+                } else if (rank == 2) {
+                    top2++;
+                } else if (rank == 3) {
+                    top3++;
+                }
+            }
+        }
+
+        return com.swp391.coding_platform.dto.response.MyContestStatsResponse.builder()
+                .totalContests(totalContests)
+                .top1Count(top1)
+                .top2Count(top2)
+                .top3Count(top3)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.swp391.coding_platform.dto.response.MyContestHistoryResponse> getMyContestHistory(Integer userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+
+        List<com.swp391.coding_platform.entity.contest.ContestParticipantEntity> registrations =
+                contestParticipantRepository.findByUserIdWithContest(userId);
+
+        if (registrations.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> contestIds = registrations.stream()
+                .map(r -> r.getContest().getId())
+                .collect(Collectors.toList());
+
+        List<Object[]> partCounts = contestParticipantRepository.countParticipantsByContestIds(contestIds);
+        Map<Integer, Long> partCountMap = partCounts.stream()
+                .collect(Collectors.toMap(
+                        row -> (Integer) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        List<com.swp391.coding_platform.entity.contest.ContestRankingEntity> userRankings =
+                    contestRankingRepository.findByUserIdAndContestIds(userId, contestIds);
+        Map<Integer, com.swp391.coding_platform.entity.contest.ContestRankingEntity> rankingMap = userRankings.stream()
+                .collect(Collectors.toMap(
+                        r -> r.getContest().getId(),
+                        r -> r
+                ));
+
+        Instant now = Instant.now();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
+                .ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(java.time.ZoneId.systemDefault());
+
+        List<com.swp391.coding_platform.dto.response.MyContestHistoryResponse> historyList = new ArrayList<>();
+
+        for (com.swp391.coding_platform.entity.contest.ContestParticipantEntity reg : registrations) {
+            com.swp391.coding_platform.entity.contest.ContestEntity contest = reg.getContest();
+            Integer contestId = contest.getId();
+
+            com.swp391.coding_platform.entity.contest.ContestRankingEntity rankingEntity = rankingMap.get(contestId);
+            long totalParticipants = partCountMap.getOrDefault(contestId, 0L);
+
+            int rank = calculateUserRank(contestId, userId, rankingEntity, totalParticipants);
+            int solved = rankingEntity != null ? rankingEntity.getProblemsSolved() : 0;
+            int penalty = rankingEntity != null ? rankingEntity.getTotalPenalty() : 0;
+
+            String status = calculateStatus(contest, now);
+
+            historyList.add(com.swp391.coding_platform.dto.response.MyContestHistoryResponse.builder()
+                    .id(contestId)
+                    .title(contest.getTitle())
+                    .startDate(formatter.format(contest.getStartTime()))
+                    .endDate(formatter.format(contest.getEndTime()))
+                    .status(status)
+                    .rank(rank)
+                    .totalParticipants(totalParticipants)
+                    .problemsSolved(solved)
+                    .score(penalty)
+                    .build());
+        }
+
+        return historyList;
+    }
+
+    private int calculateUserRank(Integer contestId, Integer userId, com.swp391.coding_platform.entity.contest.ContestRankingEntity rankingEntity, long totalParticipants) {
+        try {
+            String zsetKey = "contest:scoreboard:" + contestId + ":live";
+            Double score = stringRedisTemplate.opsForZSet().score(zsetKey, String.valueOf(userId));
+            if (score != null) {
+                Long revRank = stringRedisTemplate.opsForZSet().reverseRank(zsetKey, String.valueOf(userId));
+                if (revRank != null) {
+                    return revRank.intValue() + 1;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch live rank from Redis for user {} in contest {}: {}", userId, contestId, e.getMessage());
+        }
+
+        if (rankingEntity == null) {
+            return (int) totalParticipants;
+        }
+
+        long betterCount = contestRankingRepository.countBetterRankings(
+                contestId,
+                rankingEntity.getProblemsSolved(),
+                rankingEntity.getTotalPenalty()
+        );
+        return (int) (betterCount + 1);
     }
 }

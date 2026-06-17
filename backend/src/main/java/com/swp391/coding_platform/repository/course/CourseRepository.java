@@ -11,12 +11,16 @@ import java.util.Optional;
 
 @Repository
 public interface CourseRepository extends JpaRepository<CourseEntity, Long>, JpaSpecificationExecutor<CourseEntity> {
-    @Query("SELECT c FROM CourseEntity c ORDER BY c.totalEnrolled DESC")
-    List<CourseEntity> findTopCourses(Pageable pageable);
+    @Query("SELECT c.title, c.instructor.fullName, COUNT(e) FROM CourseEntity c " +
+           "LEFT JOIN EnrollmentEntity e ON e.course = c " +
+           "GROUP BY c.title, c.instructor.fullName " +
+           "ORDER BY COUNT(e) DESC")
+    List<Object[]> findTopCoursesDynamic(Pageable pageable);
 
-    @Query("SELECT c.instructor.fullName, SUM(c.totalEnrolled) FROM CourseEntity c " +
+    @Query("SELECT c.instructor.fullName, COUNT(e) FROM CourseEntity c " +
+           "JOIN EnrollmentEntity e ON e.course = c " +
            "GROUP BY c.instructor.fullName " +
-           "ORDER BY SUM(c.totalEnrolled) DESC")
+           "ORDER BY COUNT(e) DESC")
     List<Object[]> findTopInstructors(Pageable pageable);
     @EntityGraph(attributePaths = {"categories", "teacherAssignments", "teacherAssignments.teacher"})
     @Query( "SELECT c " +
@@ -34,6 +38,8 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long>, Jpa
     void incrementTotalEnrolledForCourses(@Param("courseIds") List<Long> courseIds);
 
     List<CourseEntity> findByInstructorId(Integer instructorId);
+
+    Optional<CourseEntity> findByIdAndInstructorId(Long id, Integer instructorId);
 
     boolean existsByIdAndInstructorId(Long id, Integer instructorId);
 

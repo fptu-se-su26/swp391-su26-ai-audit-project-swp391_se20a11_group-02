@@ -1,6 +1,5 @@
 package com.swp391.coding_platform.controller.judge0;
 
-
 import com.swp391.coding_platform.dto.judge0.Judge0CallbackPayload;
 import com.swp391.coding_platform.dto.request.OjSubmissionRequest;
 import com.swp391.coding_platform.dto.response.ApiResponse;
@@ -17,7 +16,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 
-
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -25,41 +23,40 @@ import java.time.Instant;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class Judge0Controller {
 
-    Judge0Service judge0Service;
+        Judge0Service judge0Service;
 
+        @PostMapping("/submissions")
+        public ResponseEntity<ApiResponse<OjSubmissionInitialResponse>> submitCode(
+                        @Valid @RequestBody OjSubmissionRequest request,
+                        @AuthenticationPrincipal Jwt jwt) {
 
-    @PostMapping("/submissions")
-    public ResponseEntity<ApiResponse<OjSubmissionInitialResponse>> submitCode(
-            @Valid @RequestBody OjSubmissionRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+                Number claimValue = jwt.getClaim("userId");
+                Integer mockUserId = claimValue != null ? claimValue.intValue() : null;
+                var result = judge0Service.submitCode(request, mockUserId);
 
-        Number claimValue = jwt.getClaim("userId");
-        Integer mockUserId = claimValue != null ? claimValue.intValue() : null;
-        var result = judge0Service.submitCode(request, mockUserId);
+                return ResponseEntity.ok(ApiResponse.<OjSubmissionInitialResponse>builder()
+                                .status(200)
+                                .code(1000)
+                                .message("Submit problem successfully")
+                                .result(result)
+                                .timestamp(Instant.now().toString())
+                                .build());
+        }
 
-        return ResponseEntity.ok(ApiResponse.<OjSubmissionInitialResponse>builder()
-                .status(200)
-                .code(1000)
-                .message("Submit problem successfully")
-                .result(result)
-                .timestamp(Instant.now().toString())
-                .build());
-    }
+        @PutMapping("/submissions")
+        public ResponseEntity<ApiResponse<Void>> processJudge0Callback(@RequestBody Judge0CallbackPayload payload) {
+                log.info("➔ Nhận Webhook từ Judge0 cho token: {}, Trạng thái: {}",
+                                payload.getToken(),
+                                payload.getStatus() != null ? payload.getStatus().getDescription() : "UNKNOWN");
 
-    @PutMapping("/submissions")
-    public ResponseEntity<ApiResponse<Void>> processJudge0Callback(@RequestBody Judge0CallbackPayload payload) {
-        log.info("➔ Nhận Webhook từ Judge0 cho token: {}, Trạng thái: {}",
-                payload.getToken(),
-                payload.getStatus() != null ? payload.getStatus().getDescription() : "UNKNOWN");
+                judge0Service.processJudge0Callback(payload);
 
-        judge0Service.processJudge0Callback(payload);
-
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .status(204)
-                .code(1000)
-                .message("Judge0 callback processed successfully")
-                .result(null)
-                .timestamp(Instant.now().toString())
-                .build());
-    }
+                return ResponseEntity.ok(ApiResponse.<Void>builder()
+                                .status(204)
+                                .code(1000)
+                                .message("Judge0 callback processed successfully")
+                                .result(null)
+                                .timestamp(Instant.now().toString())
+                                .build());
+        }
 }

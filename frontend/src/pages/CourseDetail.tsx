@@ -19,7 +19,7 @@ export const CourseDetail: React.FC = () => {
 
   // Cart & Video Modal Interactive States
   const [successMessage, setSuccessMessage] = useState('');
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
 
   // Review State
   const [reviewFormStar, setReviewFormStar] = useState<number>(0);
@@ -197,29 +197,47 @@ export const CourseDetail: React.FC = () => {
         </div>
       )}
 
-      {isVideoModalOpen && (
+      {previewVideoUrl && (
         <div 
-          onClick={() => setIsVideoModalOpen(false)}
+          onClick={() => setPreviewVideoUrl(null)}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl mx-4"
+            className="relative w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl mx-4 flex items-center justify-center"
           >
             <button 
-              onClick={() => setIsVideoModalOpen(false)}
+              onClick={() => setPreviewVideoUrl(null)}
               className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition-all z-10 flex items-center justify-center"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
-            <iframe 
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-              title="Course Preview Video"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            
+            {previewVideoUrl === 'NO_VIDEO' ? (
+              <div className="text-center text-white space-y-4 p-8">
+                <span className="material-symbols-outlined text-6xl text-gray-500">videocam_off</span>
+                <h3 className="text-2xl font-bold">No Preview Video Available</h3>
+                <p className="text-gray-400 font-body">This content does not have a video preview, or it is currently under maintenance. Please enroll in the course to access all materials.</p>
+              </div>
+            ) : previewVideoUrl.includes('youtube.com') || previewVideoUrl.includes('youtu.be') ? (
+              <iframe 
+                className="w-full h-full"
+                src={previewVideoUrl}
+                title="Course Preview Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            ) : (
+              <video 
+                className="w-full h-full object-contain bg-black"
+                src={previewVideoUrl}
+                controls
+                autoPlay
+              >
+                Your browser does not support the video tag.
+              </video>
+            )}
           </div>
         </div>
       )}
@@ -463,7 +481,7 @@ export const CourseDetail: React.FC = () => {
                                       </div>
                                       {lesson.isTrial && (
                                         <button 
-                                          onClick={() => setIsVideoModalOpen(true)}
+                                          onClick={() => setPreviewVideoUrl(lesson.videoUrl || 'NO_VIDEO')}
                                           className="bg-primary text-white text-body-sm font-bold px-3 py-1 rounded hover:bg-primary-hover transition-all"
                                         >
                                           Preview
@@ -657,7 +675,19 @@ export const CourseDetail: React.FC = () => {
             <div className="sticky top-24 bg-surface rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
               {/* Video Preview */}
               <div 
-                onClick={() => setIsVideoModalOpen(true)}
+                onClick={() => {
+                  let url = 'NO_VIDEO';
+                  if (curriculum) {
+                    for (const chap of curriculum) {
+                      const trial = chap.lessons.find(l => l.isTrial && l.videoUrl);
+                      if (trial && trial.videoUrl) {
+                        url = trial.videoUrl;
+                        break;
+                      }
+                    }
+                  }
+                  setPreviewVideoUrl(url);
+                }}
                 className="relative w-full aspect-video group cursor-pointer"
               >
                 <img

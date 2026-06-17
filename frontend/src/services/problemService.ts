@@ -24,11 +24,13 @@ export interface ProblemDetail {
   exampleOutput: string;
   hint: string;
   tags: string[];
-  templates: { [key: string]: string };
+  templates?: { [key: string]: string };
+  starterTemplates?: { [key: string]: string };
   status: 'solved' | 'unsolved' | 'attempted';
   acceptance: string;
   totalSolved: number;
   source_code?: string;
+  language_id?: number;
 }
 
 export interface ProblemSolution {
@@ -102,15 +104,18 @@ export const problemService = {
     return data.result;
   },
 
-  async submitSolution(problemId: number | string, languageId: number, sourceCode: string): Promise<SubmitResponse> {
-
+  async submitSolution(problemId: number | string, languageId: number, sourceCode: string, contestId?: number | string): Promise<SubmitResponse> {
+    const payload: any = { problemId: Number(problemId), languageId, sourceCode };
+    if (contestId !== undefined && contestId !== null) {
+      payload.contestId = Number(contestId);
+    }
     const response = await fetch(`${BASE_URL}/online-judge/submissions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({ problemId: Number(problemId), languageId, sourceCode }),
+      body: JSON.stringify(payload),
     });
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
@@ -180,6 +185,36 @@ export const problemService = {
       throw new Error('Failed to fetch submissions history');
     }
     const data: ApiResponse<ProblemSubmission[]> = await response.json();
+    return data.result;
+  },
+
+  async fetchContestProblemDetail(contestId: number | string, problemId: number | string): Promise<ProblemDetail> {
+    const response = await fetch(`${BASE_URL}/contests/${contestId}/problems/${problemId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch contest problem description');
+    }
+    const data: ApiResponse<ProblemDetail> = await response.json();
+    return data.result;
+  },
+
+  async fetchContestSubmissions(contestId: number | string): Promise<any[]> {
+    const response = await fetch(`${BASE_URL}/contests/${contestId}/submissions`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch contest submissions');
+    }
+    const data: ApiResponse<any[]> = await response.json();
     return data.result;
   }
 };

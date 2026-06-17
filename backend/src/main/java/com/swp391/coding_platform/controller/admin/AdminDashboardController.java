@@ -27,6 +27,7 @@ public class AdminDashboardController {
 
     AdminDashboardService adminDashboardService;
 
+
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<AdminDashboardStatsResponse>> getDashboardStats() {
         AdminDashboardStatsResponse result = adminDashboardService.getDashboardStats();
@@ -46,6 +47,18 @@ public class AdminDashboardController {
                 .status(200)
                 .code(1000)
                 .message("Fetched admin dashboard recent deposits successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/all-deposits")
+    public ResponseEntity<ApiResponse<List<AdminDepositHistoryResponse>>> getAllDeposits() {
+        List<AdminDepositHistoryResponse> result = adminDashboardService.getAllDeposits();
+        return ResponseEntity.ok(ApiResponse.<List<AdminDepositHistoryResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Fetched all admin dashboard deposits successfully")
                 .result(result)
                 .timestamp(Instant.now().toString())
                 .build());

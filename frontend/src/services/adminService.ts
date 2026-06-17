@@ -246,6 +246,8 @@ export interface AdminProblemTestcase {
   expectedOutput: string;
   orderIndex: number;
   token?: string;
+  scoreWeight?: number;
+  isHidden?: boolean;
 }
 
 /*
@@ -278,11 +280,13 @@ export interface AdminContest {
   startTime: string;
   endTime: string;
   durations: number; // in minutes
-  status: 'UPCOMING' | 'ONGOING' | 'ENDED' | 'CANCELLED';
+  status: 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'CANCELLED' | 'DELETED';
   participantCount: number;
   submissionCount: number;
   averageScore: number;
   password?: string;
+  isDeleted?: boolean;
+  databaseStatus?: string;
 }
 
 export interface ActivityLog {
@@ -301,14 +305,6 @@ export interface AdminDepositHistory {
 }
 
 // Mock database to simulate stateful actions locally when backend is unavailable
-let mockStats: AdminDashboardStats = {
-  totalRevenue: 24580000,
-  activeUsers: 342,
-  activeContests: 4,
-  totalCourses: 18,
-  totalInstructors: 8,
-  totalProblems: 45,
-};
 
 let mockCourses: AdminCourse[] = [
   {
@@ -591,34 +587,7 @@ let mockProblems: AdminProblem[] = [
 ];
 */
 
-let mockContests: AdminContest[] = [
-  {
-    id: 1,
-    title: "Non-Stop Coding Championship Season 1",
-    description: "Our quarterly programming contest containing 5 hard problems. ICPC rules.",
-    scoringRule: "ICPC",
-    startTime: "2026-06-15T18:00:00Z",
-    endTime: "2026-06-15T21:00:00Z",
-    durations: 180,
-    status: "UPCOMING",
-    participantCount: 124,
-    submissionCount: 412,
-    averageScore: 68.5
-  },
-  {
-    id: 2,
-    title: "Weekly Practice Contest #12",
-    description: "Weekly friendly challenge containing 3 easy-to-medium problems.",
-    scoringRule: "IOI",
-    startTime: "2026-06-07T09:00:00Z",
-    endTime: "2026-06-07T11:00:00Z",
-    durations: 120,
-    status: "ONGOING",
-    participantCount: 89,
-    submissionCount: 201,
-    averageScore: 78.2
-  }
-];
+// let mockContests: AdminContest[] = [];
 
 let mockActivityLogs: ActivityLog[] = [
   {
@@ -651,13 +620,6 @@ let mockActivityLogs: ActivityLog[] = [
   }
 ];
 
-let mockRecentDeposits: AdminDepositHistory[] = [
-  { id: "dep-1", userName: "Nguyen Van A", amount: 500000, date: "2026-06-07T07:45:00Z" },
-  { id: "dep-2", userName: "Tran Thi B", amount: 1000000, date: "2026-06-07T06:30:00Z" },
-  { id: "dep-3", userName: "Le Van C", amount: 200000, date: "2026-06-06T15:20:00Z" },
-  { id: "dep-4", userName: "Pham Minh D", amount: 1500000, date: "2026-06-05T09:10:00Z" },
-  { id: "dep-5", userName: "Hoang Van E", amount: 50000, date: "2026-06-04T11:00:00Z" }
-];
 
 // Helper to delay response for realism
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -672,10 +634,9 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Dashboard Stats:", err);
+      console.warn("API for Dashboard Stats failed:", err);
     }
-    await delay(300);
-    return mockStats;
+    return null as any;
   },
 
   async getActivityLogs(): Promise<ActivityLog[]> {
@@ -686,10 +647,9 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Activity Logs:", err);
+      console.warn("API for Activity Logs failed:", err);
     }
-    await delay(200);
-    return mockActivityLogs;
+    return [];
   },
 
   async getRecentDeposits(): Promise<AdminDepositHistory[]> {
@@ -700,10 +660,22 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Recent Deposits:", err);
+      console.warn("API for Recent Deposits failed:", err);
     }
-    await delay(200);
-    return mockRecentDeposits;
+    return [];
+  },
+
+  async getAllDeposits(): Promise<AdminDepositHistory[]> {
+    try {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/dashboard/all-deposits`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (err) {
+      console.warn("API for All Deposits failed:", err);
+    }
+    return [];
   },
 
   // Courses
@@ -759,10 +731,9 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Instructor Applications:", err);
+      console.warn("API for Instructor Applications failed:", err);
     }
-    await delay(300);
-    return mockInstructorApplications;
+    return [];
   },
 
   async approveInstructorApplication(appId: number, status: 'APPROVED' | 'REJECTED', adminNote?: string): Promise<AdminInstructorApplication> {
@@ -798,7 +769,7 @@ export const adminService = {
         rating: 5.0,
         studentsCount: 0
       });
-      mockStats.totalInstructors += 1;
+
     }
     // Add log
     mockActivityLogs.unshift({
@@ -872,10 +843,9 @@ export const adminService = {
         return data.result;
       }
     } catch (err) {
-      console.warn("Using mock data for Users list:", err);
+      console.warn("API for Users list failed:", err);
     }
-    await delay(300);
-    return mockUsers;
+    return [];
   },
 
   async setUserLockStatus(userId: number, status: 'ACTIVE' | 'LOCKED', reason?: string): Promise<AdminUser> {
@@ -1012,43 +982,135 @@ export const adminService = {
       const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
-        return data.result;
+        return data.result || [];
       }
     } catch (err) {
-      console.warn("Using mock data for Contests:", err);
+      console.warn("Failed to get Contests from backend:", err);
     }
-    await delay(300);
-    return mockContests;
+    return [];
   },
 
   async createContest(contest: Omit<AdminContest, 'id' | 'status' | 'participantCount' | 'submissionCount' | 'averageScore'>): Promise<AdminContest> {
-    try {
-      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contest),
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data.result;
-      }
-    } catch (err) {
-      console.warn("Mocking create contest:", err);
-    }
-    await delay(400);
-    const newContest: AdminContest = {
+    const body = {
       ...contest,
-      id: mockContests.length + 1,
-      status: 'UPCOMING',
-      participantCount: 0,
-      submissionCount: 0,
-      averageScore: 0.0
+      startTime: contest.startTime ? new Date(contest.startTime).toISOString() : undefined,
+      endTime: contest.endTime ? new Date(contest.endTime).toISOString() : undefined,
     };
-    mockContests.push(newContest);
-    mockStats.activeContests += 1;
-    return newContest;
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to create contest');
+    }
+    const data = await response.json();
+    return data.result;
   },
+
+  async getContestProblems(contestId: number): Promise<any[]> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/problems`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch contest problems');
+    }
+    const data = await response.json();
+    return data.result || [];
+  },
+
+  async addProblemToContest(contestId: number, problemId: number, orderIndex: number): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/problems`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ problemId, orderIndex }),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to add problem to contest');
+    }
+  },
+
+  async removeProblemFromContest(contestId: number, problemId: number): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/problems/${problemId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to remove problem from contest');
+    }
+  },
+
+  async updateContest(contestId: number, contest: Partial<AdminContest>): Promise<AdminContest> {
+    const body = {
+      ...contest,
+      startTime: contest.startTime ? new Date(contest.startTime).toISOString() : undefined,
+      endTime: contest.endTime ? new Date(contest.endTime).toISOString() : undefined,
+    };
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to update contest');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async deleteContest(contestId: number): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to delete contest');
+    }
+  },
+
+  async publishContest(contestId: number): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/publish`, {
+      method: 'PUT',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to publish contest');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async restoreContest(contestId: number): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/restore`, {
+      method: 'PUT',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to restore contest');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async hardDeleteContest(contestId: number): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/hard`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to permanently delete contest');
+    }
+  },
+
 
   // Financial Chart details for 12 months
   getFinancialChartData() {

@@ -50,9 +50,10 @@ public class ContestEntity {
     @Column(name = "durations", nullable = false)
     Integer durations;
 
+    @Enumerated(EnumType.STRING)
     @Builder.Default
-    @Column(name = "is_cancelled", nullable = false)
-    Boolean isCancelled = false;
+    @Column(name = "status", nullable = false)
+    ContestStatus status = ContestStatus.DRAFT;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)

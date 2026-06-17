@@ -87,6 +87,8 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, In
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM EnrollmentEntity e WHERE e.user.id = :userId AND e.course.id = :courseId")
-    Optional<EnrollmentEntity> findEnrollmentWithLock(@Param("userId") Long userId, @Param("courseId") Long courseId);
+    Optional<EnrollmentEntity> findEnrollmentWithLock(@Param("userId") Integer userId, @Param("courseId") Long courseId);
+
+    List<EnrollmentEntity> findByCourseId(Long courseId);
 }
 

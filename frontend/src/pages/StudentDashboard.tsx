@@ -18,6 +18,12 @@ import {
   type LearningCurriculumChapterResponse,
   type LessonComment
 } from '../services/courseService';
+import {
+  getMyContestStats,
+  getMyContestHistory,
+  type MyContestStats,
+  type MyContestHistory
+} from '../services/contestService';
 
 
 const TX_TYPE_OPTIONS = [
@@ -28,9 +34,11 @@ const TX_TYPE_OPTIONS = [
   { value: 'AWARD', label: 'Award', bg: 'bg-amber-100 text-amber-700' }
 ];
 
-// Mock data for contest participation display
-const participatedContests: any[] = [];
-const contestHistoryData: any[] = [];
+// ==========================================
+// MOCK DATA & PLACEHOLDERS - CONTEST MODULE
+// ==========================================
+// Note: participatedContests and contestHistoryData have been replaced with dynamic API fetching state inside the StudentDashboard component.
+
 
 const EmptyState: React.FC<{
   icon: string;
@@ -114,6 +122,9 @@ export const StudentDashboard: React.FC = () => {
 
   // Contest History tab states
   const [contestFilter, setContestFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'ended'>('all');
+  const [myContestStats, setMyContestStats] = useState<MyContestStats | null>(null);
+  const [myContestHistory, setMyContestHistory] = useState<MyContestHistory[]>([]);
+  const [isContestHistoryLoading, setIsContestHistoryLoading] = useState<boolean>(false);
 
   // Course Player (Learning View) States
   const [playerCourseId, setPlayerCourseId] = useState<number | null>(null);
@@ -126,6 +137,7 @@ export const StudentDashboard: React.FC = () => {
   const [playerTheoryContent, setPlayerTheoryContent] = useState<string>('');
   const [learningChapters, setLearningChapters] = useState<LearningCurriculumChapterResponse[]>([]);
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
+  const [playerLessonStatus, setPlayerLessonStatus] = useState<string>('ACTIVE');
   const [isPlayerLoading, setIsPlayerLoading] = useState<boolean>(false);
   
   const [playerActiveTab, setPlayerActiveTab] = useState<'overview' | 'qa' | 'exercises' | 'quiz'>('overview');
@@ -557,6 +569,8 @@ export const StudentDashboard: React.FC = () => {
                   setPlayerLectureTitle(lesson.title);
                   setPlayerVideoUrl(lesson.videoUrl || '');
                   setPlayerTheoryContent(lesson.theoryContent || '');
+                  setPlayerExercises(lesson.exercises || []);
+                  setPlayerLessonStatus(lesson.status || 'ACTIVE');
                 } else {
                   setPlayerLectureTitle('No lessons available');
                   setPlayerVideoUrl('');
@@ -696,6 +710,28 @@ export const StudentDashboard: React.FC = () => {
           setSubmissionStats(data);
         })
         .catch(console.error);
+    }
+  }, [user, activeTab]);
+
+  // Fetch Contest Stats and History
+  useEffect(() => {
+    if (user && (activeTab === 'dashboard' || activeTab === 'contest-history')) {
+      setIsContestHistoryLoading(true);
+      Promise.all([
+        getMyContestStats().catch(err => {
+          console.error('Error fetching contest stats:', err);
+          return null;
+        }),
+        getMyContestHistory().catch(err => {
+          console.error('Error fetching contest history:', err);
+          return [];
+        })
+      ]).then(([stats, history]) => {
+        if (stats) setMyContestStats(stats);
+        if (history) setMyContestHistory(history);
+      }).finally(() => {
+        setIsContestHistoryLoading(false);
+      });
     }
   }, [user, activeTab]);
 
@@ -867,10 +903,13 @@ export const StudentDashboard: React.FC = () => {
         setPlayerLectureTitle(lesson.title);
         setPlayerVideoUrl(lesson.videoUrl || '');
         setPlayerTheoryContent(lesson.theoryContent || '');
+        setPlayerExercises(lesson.exercises || []);
+        setPlayerLessonStatus(lesson.status || 'ACTIVE');
       } else {
         setPlayerLectureTitle('No lessons available');
         setPlayerVideoUrl('');
         setPlayerTheoryContent('');
+        setPlayerExercises([]);
       }
     } catch (err) {
       console.error('Failed to load learning data:', err);
@@ -895,6 +934,8 @@ export const StudentDashboard: React.FC = () => {
       setPlayerLectureTitle(lesson.title);
       setPlayerVideoUrl(lesson.videoUrl || '');
       setPlayerTheoryContent(lesson.theoryContent || '');
+      setPlayerExercises(lesson.exercises || []);
+      setPlayerLessonStatus(lesson.status || 'ACTIVE');
 
       // Optional: Refresh progress and curriculum status on selecting/learning
       const detail = await fetchCourseLearningDetail(playerCourseId);
@@ -1584,11 +1625,11 @@ export const StudentDashboard: React.FC = () => {
                   <span className="material-symbols-outlined text-brand-blue-light">emoji_events</span>
                   Participated Contests
                 </h2>
-                {participatedContests.length > 0 && (
+                {myContestHistory.length > 0 && (
                   <button onClick={() => handleTabChange('contest-history')} className="text-sm text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer">View History</button>
                 )}
               </div>
-              {participatedContests.length > 0 ? (
+              {myContestHistory.length > 0 ? (
                 <div className="bg-surface rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left whitespace-nowrap border-collapse">
@@ -1601,24 +1642,25 @@ export const StudentDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 text-sm font-medium text-text-main">
-                        {participatedContests.map((c, idx) => (
+                        {myContestHistory.slice(0, 5).map((c, idx) => (
                           <tr key={idx} className="hover:bg-surface-gray/50 transition-colors">
                             <td className="px-6 py-4 flex items-center gap-2">
                               <span className="material-symbols-outlined text-primary text-[18px]">
-                                {idx === 0 ? 'trophy' : 'workspace_premium'}
+                                {c.rank === 1 ? 'trophy' : 'workspace_premium'}
                               </span>
-                              {c.name}
+                              {c.title}
                             </td>
-                            <td className="px-6 py-4 text-text-muted">{c.date}</td>
+                            <td className="px-6 py-4 text-text-muted">{c.startDate}</td>
                             <td className="px-6 py-4">
                               <span className={`px-3 py-1 rounded-md text-sm font-bold ${
-                                idx === 0 ? 'bg-primary-light/30 text-primary' : 
-                                idx === 1 ? 'bg-brand-blue/10 text-brand-blue' : 'bg-gray-100 text-text-main'
+                                c.rank === 1 ? 'bg-amber-100 text-amber-700' : 
+                                c.rank === 2 ? 'bg-slate-100 text-slate-700' : 
+                                c.rank === 3 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-text-main'
                               }`}>
-                                {c.rank}
+                                #{c.rank} / {c.totalParticipants}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-right">{c.score.split(' ')[0]} <span className="text-text-muted">pts</span></td>
+                            <td className="px-6 py-4 text-right">{c.problemsSolved} <span className="text-text-muted">Solved</span></td>
                           </tr>
                         ))}
                       </tbody>
@@ -1804,6 +1846,19 @@ export const StudentDashboard: React.FC = () => {
                       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                       <p className="text-white/80 text-xs font-semibold">Loading lesson content...</p>
                     </div>
+                  ) : playerLessonStatus === 'INACTIVE' ? (
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-5 text-center px-6 h-full bg-[#0a0f1d]/90 backdrop-blur-md w-full border border-gray-800/50">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center shadow-lg shadow-amber-500/20 border border-white/10 relative z-10">
+                          <span className="material-symbols-outlined text-white text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>construction</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1.5 mt-2">
+                        <h3 className="text-white text-2xl font-black tracking-tight drop-shadow-md">Under Maintenance</h3>
+                        <p className="text-white/60 text-sm max-w-md font-medium leading-relaxed">This lesson is currently undergoing updates and is pending admin approval. Please check back later.</p>
+                      </div>
+                    </div>
                   ) : playerVideoUrl ? (
                     <iframe
                       className="w-full h-full border-none rounded-2xl aspect-video"
@@ -1876,7 +1931,18 @@ export const StudentDashboard: React.FC = () => {
                 </div>
 
                 {/* Sub-tab Panels */}
-                <div className="bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px]">
+                <div className="relative bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px]">
+                  {playerLessonStatus === 'INACTIVE' && (
+                    <div className="absolute inset-0 z-30 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center pointer-events-auto border border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.8)]">
+                      <div className="bg-white/80 backdrop-blur-xl border border-white p-8 rounded-2xl text-center max-w-md flex flex-col items-center shadow-2xl shadow-slate-200/50 ambient-shadow">
+                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 mb-5 text-white">
+                           <span className="material-symbols-outlined text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>engineering</span>
+                         </div>
+                         <h4 className="text-xl font-black text-brand-blue tracking-tight">Content Unavailable</h4>
+                         <p className="text-sm text-slate-600 font-medium mt-3 leading-relaxed">Lesson materials, exercises, and discussions are temporarily locked while this lesson is being updated.</p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Overview */}
                   {playerActiveTab === 'overview' && (
@@ -2496,12 +2562,18 @@ export const StudentDashboard: React.FC = () => {
                                       radio_button_unchecked
                                     </span>
                                   )}
-                                  <span className={`text-xs flex-1 truncate ${
+                                  <span className={`text-xs flex-1 truncate flex items-center gap-2 ${
                                     isSelected 
                                       ? 'text-primary font-bold' 
                                       : 'text-text-main group-hover:text-primary'
                                   }`}>
-                                    {lesson.title}
+                                    <span className="truncate">{lesson.title}</span>
+                                    {lesson.status === 'INACTIVE' && (
+                                      <span className="shrink-0 flex items-center gap-1 pl-1.5 pr-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] uppercase tracking-wider rounded-md shadow-md shadow-orange-500/20 border border-orange-400/50">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                        Updating
+                                      </span>
+                                    )}
                                   </span>
                                 </div>
                               );
@@ -3492,7 +3564,7 @@ export const StudentDashboard: React.FC = () => {
 
         {/* Tab: Contest History */}
         {activeTab === 'contest-history' && (() => {
-          const participatedContestsOnly = contestHistoryData.filter(c => c.status.toLowerCase() !== 'upcoming');
+          const participatedContestsOnly = myContestHistory;
           return (
             <div className="flex flex-col gap-8 animate-fade-in text-left">
               {/* Header section */}
@@ -3507,48 +3579,17 @@ export const StudentDashboard: React.FC = () => {
                 <p className="text-text-muted mt-1 text-sm md:text-base">Track your competitive coding journey, review points, and view past contest standings.</p>
               </div>
 
-              {/* Performance Stats Grid */}
+              {/* Contest Statistics Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
                 <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
                   <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Total Points</span>
-                      <p className="text-3xl font-display font-black text-brand-blue mt-1">780 <span className="text-xs font-semibold text-text-muted">pts</span></p>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Contests Attended</span>
+                      <p className="text-3xl font-display font-black text-brand-blue mt-1">{myContestStats?.totalContests ?? 0} <span className="text-xs font-semibold text-text-muted">contests</span></p>
                     </div>
                     <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
-                      <span className="material-symbols-outlined text-xl icon-fill">trophy</span>
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-brand-green font-bold flex items-center gap-0.5 mt-5">
-                    <span className="material-symbols-outlined text-[12px] font-black">trending_up</span> +32 last week
-                  </div>
-                </div>
-
-                <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-blue"></div>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Global Rank</span>
-                      <p className="text-3xl font-display font-black text-brand-blue mt-1">#458</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-brand-blue group-hover:scale-110 transition-transform duration-300">
-                      <span className="material-symbols-outlined text-xl">leaderboard</span>
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-text-muted font-bold mt-5">
-                    Top 4.2% among active players
-                  </div>
-                </div>
-
-                <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-green"></div>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Contests Attended</span>
-                      <p className="text-3xl font-display font-black text-brand-blue mt-1">3</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-brand-green group-hover:scale-110 transition-transform duration-300">
                       <span className="material-symbols-outlined text-xl">calendar_today</span>
                     </div>
                   </div>
@@ -3558,28 +3599,50 @@ export const StudentDashboard: React.FC = () => {
                 </div>
 
                 <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Top Placements</span>
-                      <div className="flex items-center gap-2.5 mt-2">
-                        <span className="inline-flex items-center bg-amber-50 text-amber-700 border border-amber-250/20 rounded-full px-3 py-1 text-sm font-black shadow-sm transition-transform hover:scale-105" title="Top 1">
-                          <span className="text-base mr-1">🥇</span> 1
-                        </span>
-                        <span className="inline-flex items-center bg-slate-50 text-slate-700 border border-slate-250/20 rounded-full px-3 py-1 text-sm font-black shadow-sm transition-transform hover:scale-105" title="Top 2">
-                          <span className="text-base mr-1">🥈</span> 1
-                        </span>
-                        <span className="inline-flex items-center bg-orange-50 text-orange-700 border border-orange-250/20 rounded-full px-3 py-1 text-sm font-black shadow-sm transition-transform hover:scale-105" title="Top 3">
-                          <span className="text-base mr-1">🥉</span> 0
-                        </span>
-                      </div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Top 1 Placements</span>
+                      <p className="text-3xl font-display font-black text-brand-blue mt-1">{myContestStats?.top1Count ?? 0} <span className="text-xs font-semibold text-text-muted">times</span></p>
                     </div>
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform duration-300">
-                      <span className="material-symbols-outlined text-xl">military_tech</span>
+                    <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-xl">🥇</span>
                     </div>
                   </div>
                   <div className="text-[10px] text-text-muted font-bold mt-5">
-                    Podium finish counts
+                    First place podium finishes
+                  </div>
+                </div>
+
+                <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-slate-400"></div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Top 2 Placements</span>
+                      <p className="text-3xl font-display font-black text-brand-blue mt-1">{myContestStats?.top2Count ?? 0} <span className="text-xs font-semibold text-text-muted">times</span></p>
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-xl">🥈</span>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-text-muted font-bold mt-5">
+                    Second place finishes
+                  </div>
+                </div>
+
+                <div className="bg-surface rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-orange-500"></div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Top 3 Placements</span>
+                      <p className="text-3xl font-display font-black text-brand-blue mt-1">{myContestStats?.top3Count ?? 0} <span className="text-xs font-semibold text-text-muted">times</span></p>
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-xl">🥉</span>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-text-muted font-bold mt-5">
+                    Third place finishes
                   </div>
                 </div>
               </div>
@@ -3651,7 +3714,7 @@ export const StudentDashboard: React.FC = () => {
 
                           <div>
                             <h3 className="font-display font-black text-lg md:text-xl text-brand-blue group-hover:text-primary transition-colors tracking-tight leading-snug duration-200">
-                              {contest.name}
+                              {contest.title}
                             </h3>
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-text-muted text-xs mt-2.5 font-semibold">
                               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-lg px-2.5 py-1">
@@ -3674,7 +3737,7 @@ export const StudentDashboard: React.FC = () => {
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Your Rank</p>
-                                <p className="text-sm font-black text-brand-blue mt-0.5">{contest.rank}</p>
+                                <p className="text-sm font-black text-brand-blue mt-0.5">#{contest.rank} / {contest.totalParticipants}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3 relative z-10 sm:border-l sm:border-slate-200/50 sm:pl-4">
@@ -3683,7 +3746,7 @@ export const StudentDashboard: React.FC = () => {
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Contest Score</p>
-                                <p className="text-sm font-black text-brand-blue mt-0.5">{contest.score}</p>
+                                <p className="text-sm font-black text-brand-blue mt-0.5">{contest.score} mins penalty</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3 relative z-10 sm:border-l sm:border-slate-200/50 sm:pl-4">
@@ -3703,18 +3766,18 @@ export const StudentDashboard: React.FC = () => {
                           {isOngoing && (
                             <>
                               <Link 
-                                to="/contests/1" 
+                                to={`/contests/${contest.id}`} 
                                 className="w-full text-center px-6 py-3 bg-gradient-to-r from-brand-green to-emerald-600 hover:from-brand-green-hover hover:to-emerald-700 text-white font-extrabold text-xs rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.98] transform"
                               >
                                 Enter Arena
                               </Link>
-                              <span className="text-[10px] text-text-muted font-bold text-center w-full block">Time Remaining: 3 days</span>
+                              <span className="text-[10px] text-text-muted font-bold text-center w-full block">Ends on: {contest.endDate}</span>
                             </>
                           )}
                           {isEnded && (
                             <>
                               <Link 
-                                to="/contests/1" 
+                                to={`/contests/${contest.id}`} 
                                 className="w-full text-center px-6 py-3 bg-slate-50 hover:bg-slate-100 text-brand-blue border border-slate-200/80 font-extrabold text-xs rounded-2xl shadow-sm hover:border-slate-300 transition-all duration-200 active:scale-[0.98] transform"
                               >
                                 View Standings

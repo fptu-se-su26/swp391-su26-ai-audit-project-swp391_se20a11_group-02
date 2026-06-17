@@ -1,6 +1,7 @@
 package com.swp391.coding_platform.service.judge0;
 
 import com.swp391.coding_platform.dto.judge0.Judge0BatchRequest;
+import com.swp391.coding_platform.dto.judge0.Judge0CallbackPayload;
 import com.swp391.coding_platform.dto.judge0.Judge0TokenResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +37,25 @@ public class Judge0ClientService {
 
         log.info("Successfully received {} tokens from Judge0.", tokens != null ? tokens.size() : 0);
         return tokens;
+    }
+
+    public Judge0CallbackPayload submitSynchronous(int languageId, String sourceCode) {
+        log.info("Sending synchronous testcase generation request to Judge0 (langId={})...", languageId);
+
+        var requestBody = java.util.Map.of(
+            "language_id", languageId,
+            "source_code", sourceCode
+        );
+
+        Judge0CallbackPayload response = judge0WebClient.post()
+                .uri("/submissions?base64_encoded=false&wait=true")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(requestBody), Object.class)
+                .retrieve()
+                .bodyToMono(Judge0CallbackPayload.class)
+                .block();
+
+        log.info("Received synchronous response from Judge0. Status: {}", response != null && response.getStatus() != null ? response.getStatus().getDescription() : "UNKNOWN");
+        return response;
     }
 }
