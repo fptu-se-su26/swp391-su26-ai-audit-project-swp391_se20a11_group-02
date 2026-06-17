@@ -50,6 +50,7 @@ import com.swp391.coding_platform.repository.problem.ProblemTagMappingRepository
 import com.swp391.coding_platform.entity.problem.ProblemTagMappingEntity;
 import com.swp391.coding_platform.entity.enums.OjVerdict;
 
+@lombok.extern.slf4j.Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -65,6 +66,8 @@ public class ContestService {
     ProblemRepository problemRepository;
     ProblemTagMappingRepository problemTagMappingRepository;
     PasswordEncoder passwordEncoder;
+    com.swp391.coding_platform.repository.contest.ContestRankingRepository contestRankingRepository;
+    org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
     private String calculateStatus(ContestEntity contest, Instant now) {
         if (contest.getStatus() == ContestStatus.DELETED) {
@@ -736,5 +739,153 @@ public class ContestService {
             templates.put("JavaScript", "var solve = function() {\n    // Write your code here\n};");
         }
         return templates;
+    }
+
+    @Transactional(readOnly = true)
+    public com.swp391.coding_platform.dto.response.MyContestStatsResponse getMyContestStats(Integer userId) {
+        if (userId == null) {
+            return null;
+        }
+
+        List<com.swp391.coding_platform.entity.contest.ContestParticipantEntity> registrations =
+                contestParticipantRepository.findByUserIdWithContest(userId);
+
+        long totalContests = registrations.size();
+        int top1 = 0;
+        int top2 = 0;
+        int top3 = 0;
+
+        if (totalContests > 0) {
+            List<Integer> contestIds = registrations.stream()
+                    .map(r -> r.getContest().getId())
+                    .collect(Collectors.toList());
+
+            List<Object[]> partCounts = contestParticipantRepository.countParticipantsByContestIds(contestIds);
+            Map<Integer, Long> partCountMap = partCounts.stream()
+                    .collect(Collectors.toMap(
+                            row -> (Integer) row[0],
+                            row -> (Long) row[1]
+                    ));
+
+            List<com.swp391.coding_platform.entity.contest.ContestRankingEntity> userRankings =
+                    contestRankingRepository.findByUserIdAndContestIds(userId, contestIds);
+            Map<Integer, com.swp391.coding_platform.entity.contest.ContestRankingEntity> rankingMap = userRankings.stream()
+                    .collect(Collectors.toMap(
+                            r -> r.getContest().getId(),
+                            r -> r
+                    ));
+
+            for (Integer contestId : contestIds) {
+                int rank = calculateUserRank(contestId, userId, rankingMap.get(contestId), partCountMap.getOrDefault(contestId, 0L));
+                if (rank == 1) {
+                    top1++;
+                } else if (rank == 2) {
+                    top2++;
+                } else if (rank == 3) {
+                    top3++;
+                }
+            }
+        }
+
+        return com.swp391.coding_platform.dto.response.MyContestStatsResponse.builder()
+                .totalContests(totalContests)
+                .top1Count(top1)
+                .top2Count(top2)
+                .top3Count(top3)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.swp391.coding_platform.dto.response.MyContestHistoryResponse> getMyContestHistory(Integer userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+
+        List<com.swp391.coding_platform.entity.contest.ContestParticipantEntity> registrations =
+                contestParticipantRepository.findByUserIdWithContest(userId);
+
+        if (registrations.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> contestIds = registrations.stream()
+                .map(r -> r.getContest().getId())
+                .collect(Collectors.toList());
+
+        List<Object[]> partCounts = contestParticipantRepository.countParticipantsByContestIds(contestIds);
+        Map<Integer, Long> partCountMap = partCounts.stream()
+                .collect(Collectors.toMap(
+                        row -> (Integer) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        List<com.swp391.coding_platform.entity.contest.ContestRankingEntity> userRankings =
+                    contestRankingRepository.findByUserIdAndContestIds(userId, contestIds);
+        Map<Integer, com.swp391.coding_platform.entity.contest.ContestRankingEntity> rankingMap = userRankings.stream()
+                .collect(Collectors.toMap(
+                        r -> r.getContest().getId(),
+                        r -> r
+                ));
+
+        Instant now = Instant.now();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
+                .ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(java.time.ZoneId.systemDefault());
+
+        List<com.swp391.coding_platform.dto.response.MyContestHistoryResponse> historyList = new ArrayList<>();
+
+        for (com.swp391.coding_platform.entity.contest.ContestParticipantEntity reg : registrations) {
+            com.swp391.coding_platform.entity.contest.ContestEntity contest = reg.getContest();
+            Integer contestId = contest.getId();
+
+            com.swp391.coding_platform.entity.contest.ContestRankingEntity rankingEntity = rankingMap.get(contestId);
+            long totalParticipants = partCountMap.getOrDefault(contestId, 0L);
+
+            int rank = calculateUserRank(contestId, userId, rankingEntity, totalParticipants);
+            int solved = rankingEntity != null ? rankingEntity.getProblemsSolved() : 0;
+            int penalty = rankingEntity != null ? rankingEntity.getTotalPenalty() : 0;
+
+            String status = calculateStatus(contest, now);
+
+            historyList.add(com.swp391.coding_platform.dto.response.MyContestHistoryResponse.builder()
+                    .id(contestId)
+                    .title(contest.getTitle())
+                    .startDate(formatter.format(contest.getStartTime()))
+                    .endDate(formatter.format(contest.getEndTime()))
+                    .status(status)
+                    .rank(rank)
+                    .totalParticipants(totalParticipants)
+                    .problemsSolved(solved)
+                    .score(penalty)
+                    .build());
+        }
+
+        return historyList;
+    }
+
+    private int calculateUserRank(Integer contestId, Integer userId, com.swp391.coding_platform.entity.contest.ContestRankingEntity rankingEntity, long totalParticipants) {
+        try {
+            String zsetKey = "contest:scoreboard:" + contestId + ":live";
+            Double score = stringRedisTemplate.opsForZSet().score(zsetKey, String.valueOf(userId));
+            if (score != null) {
+                Long revRank = stringRedisTemplate.opsForZSet().reverseRank(zsetKey, String.valueOf(userId));
+                if (revRank != null) {
+                    return revRank.intValue() + 1;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch live rank from Redis for user {} in contest {}: {}", userId, contestId, e.getMessage());
+        }
+
+        if (rankingEntity == null) {
+            return (int) totalParticipants;
+        }
+
+        long betterCount = contestRankingRepository.countBetterRankings(
+                contestId,
+                rankingEntity.getProblemsSolved(),
+                rankingEntity.getTotalPenalty()
+        );
+        return (int) (betterCount + 1);
     }
 }

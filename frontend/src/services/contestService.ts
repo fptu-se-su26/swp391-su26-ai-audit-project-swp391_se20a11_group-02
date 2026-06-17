@@ -46,3 +46,55 @@ export const getPastContests = async (): Promise<Contest[]> => {
   return mockContests.filter(c => c.status === 'past');
 };
 
+const BASE_URL = 'http://localhost:8080/nonstopcoding';
+
+export interface MyContestStats {
+  totalContests: number;
+  top1Count: number;
+  top2Count: number;
+  top3Count: number;
+}
+
+export interface MyContestHistory {
+  id: number;
+  title: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  rank: number;
+  totalParticipants: number;
+  problemsSolved: number;
+  score: number;
+}
+
+export const getMyContestStats = async (): Promise<MyContestStats> => {
+  const response = await fetch(`${BASE_URL}/contests/my-stats`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch my contest stats');
+  }
+  const data = await response.json();
+  return data.result;
+};
+
+export const getMyContestHistory = async (): Promise<MyContestHistory[]> => {
+  const response = await fetch(`${BASE_URL}/contests/my-history`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch my contest history');
+  }
+  const data = await response.json();
+  return data.result;
+};
+
+
