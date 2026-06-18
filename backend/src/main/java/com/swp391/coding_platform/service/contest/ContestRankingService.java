@@ -168,6 +168,10 @@ public class ContestRankingService {
                 .userId(userId)
                 .problemsSolved(problemsSolved)
                 .totalPenaltyMinutes((int) (totalPenaltySeconds / 60))
+                .problemId(problemId)
+                .isSolved(isAc == 1)
+                .solvedAtSeconds(isAc == 1 ? (int) firstAcTimeSeconds : null)
+                .failedAttemptsCount(wrongAttempts)
                 .build();
         rabbitTemplate.convertAndSend(RabbitMQConfig.CONTEST_RANKING_DB_UPDATE_QUEUE, dbMessage);
         log.info("Sent contest ranking DB update message to RabbitMQ for user {} in contest {}", userId, contestId);
