@@ -12,7 +12,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   language,
   value,
   onChange,
-  theme = 'vs-dark',
+  theme = 'vs',
 }) => {
   return (
     <div className="w-full h-full flex-grow relative min-h-[400px]">
@@ -25,6 +25,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         onChange={onChange}
         options={{
           fontSize: 14,
+          fontWeight: '600',
           fontFamily: "'Fira Code', 'Courier New', Courier, monospace",
           minimap: { enabled: false },
           automaticLayout: true,
@@ -46,7 +47,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           },
         }}
         loading={
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1e1e1e] text-gray-400">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white text-gray-500">
             <svg className="animate-spin h-8 w-8 text-primary mb-3" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
