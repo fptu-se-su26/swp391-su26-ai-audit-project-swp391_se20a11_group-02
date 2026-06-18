@@ -361,7 +361,7 @@ export const Problems: React.FC = () => {
                       onClick={(e) => e.stopPropagation()}
                       className="font-bold text-text-main group-hover:text-primary transition-colors"
                     >
-                      {prob.id}. {prob.title}
+                      {prob.title}
                     </Link>
                     <div className="text-xs text-text-muted mt-1 flex gap-2">
                       {prob.tags.map((tag) => (
