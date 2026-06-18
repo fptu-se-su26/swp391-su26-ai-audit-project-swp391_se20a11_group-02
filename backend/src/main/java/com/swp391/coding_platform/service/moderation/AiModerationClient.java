@@ -32,15 +32,43 @@ public class AiModerationClient {
     @Value("${ai.gemini-model:gemini-2.5-flash}")
     private String geminiModel;
 
+    @Value("${ai.openai-api-key:}")
+    private String openAiApiKey;
+
     // 1. Chuyển đổi giọng nói thành văn bản (Sử dụng OpenAI Whisper API - dự phòng)
     public String transcribeAudio(File audioFile) {
+        if (openAiApiKey == null || openAiApiKey.trim().isEmpty()) {
+            log.warn("Whisper API (OpenAI) chưa được cấu hình API Key. Trả về nhãn mặc định.");
+            return "[VIDEO_PRESENT_BUT_TRANSCRIPT_UNAVAILABLE]";
+        }
+
         try {
             log.info("Bắt đầu gửi audio Whisper transcription cho file: {}", audioFile.getName());
-            // Gọi Gemini để mô tả nội dung audio thông qua file path (fallback khi không có Whisper key)
-            // Khi có OpenAI API key, tích hợp trực tiếp ở đây.
-            // Hiện tại trả về signal rõ ràng để AI biết bài học có video nhưng chưa được transcribe.
-            log.warn("Whisper API chưa được cấu hình - bỏ qua transcript video cho file: {}", audioFile.getName());
-            return "[VIDEO_PRESENT_BUT_TRANSCRIPT_UNAVAILABLE]";
+            
+            org.springframework.util.MultiValueMap<String, Object> body = new org.springframework.util.LinkedMultiValueMap<>();
+            body.add("file", new org.springframework.core.io.FileSystemResource(audioFile));
+            body.add("model", "whisper-1");
+            body.add("language", "vi");
+
+            String jsonResponse = WebClient.create("https://api.openai.com")
+                    .post()
+                    .uri("/v1/audio/transcriptions")
+                    .header("Authorization", "Bearer " + openAiApiKey.trim())
+                    .contentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA)
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            if (jsonResponse != null) {
+                java.util.Map<String, Object> map = objectMapper.readValue(jsonResponse, java.util.Map.class);
+                if (map.containsKey("text")) {
+                    String transcript = (String) map.get("text");
+                    log.info("Dịch thành công âm thanh bằng Whisper. Số ký tự: {}", transcript.length());
+                    return transcript;
+                }
+            }
+            throw new RuntimeException("Phản hồi từ OpenAI Whisper API rỗng hoặc không có trường 'text'.");
         } catch (Throwable t) {
             return fallbackWhisper(audioFile, t);
         }

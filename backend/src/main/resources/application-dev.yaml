@@ -95,4 +95,5 @@ ai:
   timeout: ${AI_TIMEOUT:120s}
   gemini-api-key: ${GEMINI_API_KEY}
   gemini-model: ${GEMINI_MODEL:gemini-2.5-flash}
+  openai-api-key: ${OPENAI_API_KEY:}
 
