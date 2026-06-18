@@ -29,6 +29,17 @@ public class GeminiRequest {
     @AllArgsConstructor
     public static class Part {
         private String text;
+        private InlineData inlineData;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class InlineData {
+        private String mimeType;
+        private String data;
     }
 
     @Getter
