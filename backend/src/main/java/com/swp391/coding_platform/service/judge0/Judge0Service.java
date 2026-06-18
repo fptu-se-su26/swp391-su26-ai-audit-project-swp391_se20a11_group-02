@@ -208,6 +208,7 @@ public class Judge0Service {
 
     }
 
+    @Transactional
     public void processJudge0Callback(Judge0CallbackPayload judge0CallbackPayload) {
 
         // Lấy thông tin SubmissionDetail (bao gồm luôn Submission cha và Problem nhờ
@@ -293,6 +294,7 @@ public class Judge0Service {
             submissionEntity.setExecutionTime(maxStats.getMaxTime());
             submissionEntity.setMemoryUsed(maxStats.getMaxMemory());
             problemSubmissionRepository.save(submissionEntity);
+
 
             // Bắn sự kiện SubmissionJudgedEvent qua Redis Pub/Sub
             SubmissionJudgedEvent event = SubmissionJudgedEvent.builder()
