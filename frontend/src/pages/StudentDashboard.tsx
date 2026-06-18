@@ -517,7 +517,7 @@ export const StudentDashboard: React.FC = () => {
     // Parse hash like 'learning-view?courseId=1' into tab + query params
     const [hash, queryString] = rawHash.split('?');
     const hashParams = new URLSearchParams(queryString || '');
-    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history', 'my-profile'];
+    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history', 'my-profile'];
     if (hash && validTabs.includes(hash)) {
       if (hash === 'payment-transaction') {
         setActiveTab('wallet-transaction');
@@ -1203,17 +1203,6 @@ export const StudentDashboard: React.FC = () => {
           <span className="sidebar-text hidden md:inline">Learning Journal</span>
         </a>
 
-        <button
-          onClick={() => handleTabChange('comments')}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left ${
-            activeTab === 'comments'
-              ? 'bg-primary-light/20 text-primary font-bold border border-primary/10'
-              : 'text-text-main hover:bg-surface-gray hover:text-primary'
-          }`}
-        >
-          <span className="material-symbols-outlined">forum</span>
-          <span className="sidebar-text hidden md:inline">Comments</span>
-        </button>
 
         {/* Collapsible My Wallet Menu */}
         <div className="flex flex-col gap-1">
@@ -2593,7 +2582,7 @@ export const StudentDashboard: React.FC = () => {
         )}
 
         {/* Tab: Comments */}
-        {activeTab === 'comments' && (
+        {false && activeTab === 'comments' && (
           <div className="flex flex-col gap-8 animate-fade-in">
             <div className="mb-2">
               <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-3 shadow-sm">

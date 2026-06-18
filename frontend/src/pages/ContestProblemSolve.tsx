@@ -683,8 +683,8 @@ export const ContestProblemSolve: React.FC = () => {
             </div>
           </div>
 
-          {/* Editor Area (Dark theme with Monaco) */}
-          <div className="flex-grow overflow-hidden relative bg-[#1e1e1e]">
+          {/* Editor Area (Light theme with Monaco) */}
+          <div className="flex-grow overflow-hidden relative bg-white border-t border-gray-200">
             <CodeEditor
               language={LANGUAGE_KEYS[selectedLangId] || 'plaintext'}
               value={LANGUAGE_KEYS[selectedLangId] ? codeByLang[LANGUAGE_KEYS[selectedLangId]] : ''}
