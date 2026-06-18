@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { problemService } from '../services/problemService';
-import type { ProblemDetail, ProblemComment } from '../services/problemService';
+import type { ProblemDetail, ProblemComment, ProblemSolution } from '../services/problemService';
 import { useApp } from '../context/AppContext';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import { CodeEditor } from '../components/CodeEditor';
+import Editor from '@monaco-editor/react';
 
 export const SolveProblem: React.FC = () => {
   const { user } = useApp();
@@ -310,6 +311,33 @@ export const SolveProblem: React.FC = () => {
       });
   };
 
+  // Solution states
+  const [solution, setSolution] = useState<ProblemSolution | null>(null);
+  const [solutionLoading, setSolutionLoading] = useState<boolean>(false);
+  const [solutionError, setSolutionError] = useState<string | null>(null);
+
+  const fetchSolution = () => {
+    if (!id) return;
+    setSolutionLoading(true);
+    setSolutionError(null);
+    problemService.fetchProblemSolution(id)
+      .then(data => {
+        setSolution(data);
+        setSolutionLoading(false);
+        setLoadedTabs(prev => ({ ...prev, solutions: true }));
+      })
+      .catch(err => {
+        console.error("Failed to load solution:", err);
+        setSolutionError(err.message || "Failed to load solution.");
+        setSolutionLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    if (!id || activeTab !== 'solutions' || loadedTabs['solutions']) return;
+    fetchSolution();
+  }, [id, activeTab]);
+
   // Submissions list
   const [submissions, setSubmissions] = useState<any[]>([]);
 
@@ -325,6 +353,8 @@ export const SolveProblem: React.FC = () => {
 
         problemService.fetchProblemDetail(id).then(data => {
           setProblem(prev => prev ? { ...prev, acceptance: data.acceptance, status: data.status } : data);
+          // Reset solutions loaded state so it will fetch the new unlocked solution
+          setLoadedTabs(prev => ({ ...prev, solutions: false }));
         }).catch(console.error);
       }
     }, 1000);
@@ -516,7 +546,7 @@ export const SolveProblem: React.FC = () => {
             {activeTab === 'description' && (
               <div id="tab-description" className="block space-y-6">
                 <div className="flex items-center justify-between">
-                  <h1 className="text-2xl font-bold text-text-main">{problem.id}. {problem.title}</h1>
+                  <h1 className="text-2xl font-bold text-text-main">{problem.title}</h1>
                   <div className="flex items-center gap-2">
                     {problem.difficulty === 'Easy' && <span className="bg-green-50 border border-green-200 text-brand-green px-3 py-1 rounded-full text-xs font-bold">Easy</span>}
                     {problem.difficulty === 'Medium' && <span className="bg-orange-50 border border-orange-200 text-orange-500 px-3 py-1 rounded-full text-xs font-bold">Medium</span>}
@@ -740,50 +770,90 @@ export const SolveProblem: React.FC = () => {
             {activeTab === 'solutions' && (
               <div id="tab-solutions" className="block space-y-6">
                 <h2 className="text-xl font-bold text-brand-blue">Solutions</h2>
-                {problem && problem.status === 'solved' ? (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                    <div className="bg-surface-gray px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                {solutionLoading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <svg className="animate-spin h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  </div>
+                ) : solution ? (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm flex flex-col h-[500px]">
+                    <div className="bg-surface-gray px-4 py-3 border-b border-gray-200 flex justify-between items-center shrink-0">
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-brand-green">check_circle</span>
-                        <span className="font-bold text-text-main">Java - One Pass HashMap</span>
+                        <span className="font-bold text-text-main">{solution.title || problem?.title || 'Official Solution'}</span>
                       </div>
-                      <span className="text-sm text-text-muted">By Jane Smith</span>
+                      <span className="text-sm text-text-muted">Official Solution</span>
                     </div>
-                    <div className="p-4 bg-white text-gray-800 font-mono text-sm overflow-x-auto custom-scroll">
-                      <pre>
-                        <code>
-                          <span className="text-purple-600">class</span> <span className="text-teal-600">Solution</span> {'{\n'}
-                          {'    '}<span className="text-purple-600">public</span> <span className="text-blue-600">int</span>[] <span className="text-blue-600">twoSum</span>(<span className="text-blue-600">int</span>[] <span className="text-sky-600">nums</span>, <span className="text-blue-600">int</span> <span className="text-sky-600">target</span>) {'{\n'}
-                          {'        '}<span className="text-teal-600">Map</span>&lt;<span className="text-teal-600">Integer</span>, <span className="text-teal-600">Integer</span>&gt; <span className="text-sky-600">map</span> = <span className="text-purple-600">new</span> <span className="text-teal-600">HashMap</span>&lt;&gt;();{"\n"}
-                          {'        '}<span className="text-purple-600">for</span> (<span className="text-blue-600">int</span> <span className="text-sky-600">i</span> = <span className="text-orange-600">0</span>; <span className="text-sky-600">i</span> &lt; <span className="text-sky-600">nums</span>.length; <span className="text-sky-600">i</span>++) {'{\n'}
-                          {'            '}<span className="text-blue-600">int</span> <span className="text-sky-600">complement</span> = <span className="text-sky-600">target</span> - <span className="text-sky-600">nums</span>[<span className="text-sky-600">i</span>];{"\n"}
-                          {'            '}<span className="text-purple-600">if</span> (<span className="text-sky-600">map</span>.<span className="text-blue-600">containsKey</span>(<span className="text-sky-600">complement</span>)) {'{\n'}
-                          {'                '}<span className="text-purple-600">return</span> <span className="text-purple-600">new</span> <span className="text-blue-600">int</span>[] {'{'} <span className="text-sky-600">map</span>.<span className="text-blue-600">get</span>(<span className="text-sky-600">complement</span>), <span className="text-sky-600">i</span> {'}'};{"\n"}
-                          {'            '}{'}\n'}
-                          {'            '}<span className="text-sky-600">map</span>.<span className="text-blue-600">put</span>(<span className="text-sky-600">nums</span>[<span className="text-sky-600">i</span>], <span className="text-sky-600">i</span>);{"\n"}
-                          {'        '}{'}\n'}
-                          {'        '}<span className="text-purple-600">return</span> <span className="text-purple-600">new</span> <span className="text-blue-600">int</span>[] {'{}'};{"\n"}
-                          {'    '}{'}\n'}
-                          {'}'}
-                        </code>
-                      </pre>
+                    <div className="flex-grow relative w-full h-full bg-white">
+                      <Editor
+                        height="100%"
+                        width="100%"
+                        language={LANGUAGE_KEYS[problem?.language_id || selectedLangId || 62] || 'java'}
+                        theme="vs"
+                        value={solution.solutionCode || '// An official solution for this problem is not available yet.'}
+                        options={{
+                          readOnly: true,
+                          domReadOnly: true,
+                          fontSize: 14,
+                          fontWeight: '600',
+                          fontFamily: "'Fira Code', 'Courier New', Courier, monospace",
+                          minimap: { enabled: false },
+                          automaticLayout: true,
+                          scrollBeyondLastLine: false,
+                          padding: { top: 16, bottom: 16 },
+                          tabSize: 4,
+                          insertSpaces: true,
+                          wordWrap: 'on',
+                          lineNumbers: 'on',
+                          scrollbar: {
+                            vertical: 'visible',
+                            horizontal: 'visible',
+                            verticalScrollbarSize: 10,
+                            horizontalScrollbarSize: 10,
+                          },
+                        }}
+                        loading={
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white text-gray-500">
+                            <svg className="animate-spin h-8 w-8 text-primary mb-3" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            <span className="font-semibold text-sm">Loading Editor...</span>
+                          </div>
+                        }
+                      />
                     </div>
                   </div>
                 ) : (
                   <div className="border border-outline-variant/60 rounded-xl bg-surface-gray/30 p-8 text-center flex flex-col items-center justify-center min-h-[300px] border-dashed">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 animate-pulse">
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
                       <span className="material-symbols-outlined text-[32px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
                     </div>
-                    <h3 className="text-headline-sm font-bold text-text-main mb-2">Solution Locked</h3>
+                    <h3 className="text-headline-sm font-bold text-text-main mb-2">
+                      {solutionError && !solutionError.includes("locked") ? "Failed to Load Solution" : "Solution Locked"}
+                    </h3>
                     <p className="text-body-md text-text-muted max-w-md mb-6">
-                      To view the author's official solution and optimal approaches, you must first solve this problem and pass all test cases.
+                      {solutionError && !solutionError.includes("locked") 
+                        ? solutionError 
+                        : "To view the author's official solution and optimal approaches, you must first solve this problem and pass all test cases."}
                     </p>
-                    <button
-                      onClick={() => setActiveTab('description')}
-                      className="px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors shadow-sm active:scale-95 flex items-center gap-1.5"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span> Back to Description
-                    </button>
+                    {solutionError && !solutionError.includes("locked") ? (
+                      <button
+                        onClick={fetchSolution}
+                        className="px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors shadow-sm active:scale-95 flex items-center gap-1.5"
+                      >
+                        Retry Loading
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setActiveTab('description')}
+                        className="px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors shadow-sm active:scale-95 flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span> Back to Description
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -950,8 +1020,8 @@ export const SolveProblem: React.FC = () => {
             </div>
           </div>
 
-          {/* Editor Area (Dark theme with Monaco) */}
-          <div className="flex-grow overflow-hidden relative bg-[#1e1e1e]">
+          {/* Editor Area (Light theme with Monaco) */}
+          <div className="flex-grow overflow-hidden relative bg-white border-t border-gray-200">
             <CodeEditor
               language={LANGUAGE_KEYS[selectedLangId] || 'plaintext'}
               value={LANGUAGE_KEYS[selectedLangId] ? codeByLang[LANGUAGE_KEYS[selectedLangId]] : ''}
