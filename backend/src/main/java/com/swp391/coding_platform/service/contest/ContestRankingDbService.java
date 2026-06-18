@@ -3,8 +3,11 @@ package com.swp391.coding_platform.service.contest;
 import com.swp391.coding_platform.configuration.RabbitMQConfig;
 import com.swp391.coding_platform.dto.message.ContestRankingDbUpdateMessage;
 import com.swp391.coding_platform.entity.contest.ContestRankingEntity;
+import com.swp391.coding_platform.entity.contest.ContestProblemAttemptEntity;
+import com.swp391.coding_platform.repository.contest.ContestProblemAttemptRepository;
 import com.swp391.coding_platform.repository.contest.ContestRankingRepository;
 import com.swp391.coding_platform.repository.contest.ContestRepository;
+import com.swp391.coding_platform.repository.problem.ProblemRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,8 @@ public class ContestRankingDbService {
     ContestRankingRepository contestRankingRepository;
     ContestRepository contestRepository;
     UserRepository userRepository;
+    ContestProblemAttemptRepository contestProblemAttemptRepository;
+    ProblemRepository problemRepository;
 
     /**
      * Tiêu thụ tin nhắn cập nhật xếp hạng từ RabbitMQ và lưu vào DB.
@@ -40,6 +45,7 @@ public class ContestRankingDbService {
         log.info("[RABBITMQ-CONSUMER] Received ranking update message for user {} in contest {} (Thread: {})",
                 userId, contestId, Thread.currentThread().getName());
         try {
+            // 1. Update ContestRankingEntity
             var existingOpt = contestRankingRepository.findByContestIdAndUserId(contestId, userId);
             if (existingOpt.isPresent()) {
                 ContestRankingEntity existing = existingOpt.get();
@@ -61,8 +67,39 @@ public class ContestRankingDbService {
                 log.info("[RABBITMQ-CONSUMER] Successfully inserted DB ranking for user {} in contest {}: solved={}, penalty={}min",
                         userId, contestId, problemsSolved, totalPenaltyMinutes);
             }
+
+            // 2. Update or insert ContestProblemAttemptEntity
+            if (message.getProblemId() != null) {
+                var attemptOpt = contestProblemAttemptRepository.findByContestIdAndUserIdAndProblemId(contestId, userId, message.getProblemId());
+                if (attemptOpt.isPresent()) {
+                    ContestProblemAttemptEntity attempt = attemptOpt.get();
+                    attempt.setIsSolved(message.getIsSolved());
+                    if (message.getSolvedAtSeconds() != null) {
+                        attempt.setSolvedAtSeconds(message.getSolvedAtSeconds());
+                    }
+                    attempt.setFailedAttemptsCount(message.getFailedAttemptsCount());
+                    attempt.setUpdatedAt(Instant.now());
+                    contestProblemAttemptRepository.save(attempt);
+                    log.info("[RABBITMQ-CONSUMER] Successfully updated ContestProblemAttempt for user {} on problem {} in contest {}: solved={}, attempts={}",
+                            userId, message.getProblemId(), contestId, message.getIsSolved(), message.getFailedAttemptsCount());
+                } else {
+                    ContestProblemAttemptEntity newAttempt = ContestProblemAttemptEntity.builder()
+                            .contest(contestRepository.getReferenceById(contestId))
+                            .user(userRepository.getReferenceById(userId))
+                            .problem(problemRepository.getReferenceById(message.getProblemId()))
+                            .isSolved(message.getIsSolved())
+                            .solvedAtSeconds(message.getSolvedAtSeconds())
+                            .failedAttemptsCount(message.getFailedAttemptsCount())
+                            .createdAt(Instant.now())
+                            .updatedAt(Instant.now())
+                            .build();
+                    contestProblemAttemptRepository.save(newAttempt);
+                    log.info("[RABBITMQ-CONSUMER] Successfully inserted ContestProblemAttempt for user {} on problem {} in contest {}: solved={}, attempts={}",
+                            userId, message.getProblemId(), contestId, message.getIsSolved(), message.getFailedAttemptsCount());
+                }
+            }
         } catch (Exception e) {
-            log.error("[RABBITMQ-CONSUMER] Failed to persist ranking to DB for user {} in contest {}: {}",
+            log.error("[RABBITMQ-CONSUMER] Failed to persist ranking or attempts to DB for user {} in contest {}: {}",
                     userId, contestId, e.getMessage(), e);
         }
     }

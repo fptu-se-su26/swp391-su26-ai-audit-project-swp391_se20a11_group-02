@@ -14,4 +14,10 @@ public class ContestRankingDbUpdateMessage implements Serializable {
     private Integer userId;
     private int problemsSolved;
     private int totalPenaltyMinutes;
+
+    // Additional fields for ContestProblemAttempt update
+    private Integer problemId;
+    private Boolean isSolved;
+    private Integer solvedAtSeconds;
+    private Integer failedAttemptsCount;
 }
