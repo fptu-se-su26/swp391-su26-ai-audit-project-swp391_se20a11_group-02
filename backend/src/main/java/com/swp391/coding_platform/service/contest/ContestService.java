@@ -52,6 +52,7 @@ import com.swp391.coding_platform.entity.enums.OjVerdict;
 
 @lombok.extern.slf4j.Slf4j
 @Service
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ContestService {
 
@@ -68,29 +69,6 @@ public class ContestService {
     com.swp391.coding_platform.repository.contest.ContestRankingRepository contestRankingRepository;
     org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
-    public ContestService(
-            ContestRepository contestRepository,
-            ContestMapper contestMapper,
-            UserRepository userRepository,
-            ProblemSubmissionRepository problemSubmissionRepository,
-            ContestParticipantRepository contestParticipantRepository,
-            ContestProblemRepository contestProblemRepository,
-            ContestProblemAttemptRepository contestProblemAttemptRepository,
-            ProblemRepository problemRepository,
-            ProblemTagMappingRepository problemTagMappingRepository,
-            PasswordEncoder passwordEncoder
-    ) {
-        this.contestRepository = contestRepository;
-        this.contestMapper = contestMapper;
-        this.userRepository = userRepository;
-        this.problemSubmissionRepository = problemSubmissionRepository;
-        this.contestParticipantRepository = contestParticipantRepository;
-        this.contestProblemRepository = contestProblemRepository;
-        this.contestProblemAttemptRepository = contestProblemAttemptRepository;
-        this.problemRepository = problemRepository;
-        this.problemTagMappingRepository = problemTagMappingRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     private String calculateStatus(ContestEntity contest, Instant now) {
         if (contest.getStatus() == ContestStatus.DELETED) {
