@@ -26,33 +26,49 @@ public class WebClientConfig {
     @Value("${judge0.timeout:20s}")
     Duration timeout;
 
+    @Value("${ai.base-url:https://generativelanguage.googleapis.com}")
+    String aiBaseUrl;
+
+    @Value("${ai.timeout:120s}")
+    Duration aiTimeout;
+
     @Bean
     public WebClient judge0WebClient() {
         int timeoutMillis = (int) timeout.toMillis();
 
-        // Cấu hình HttpClient của Netty với 3 lớp bảo vệ (3-Layer Protection)
         HttpClient httpClient = HttpClient.create()
                 .resolver(DefaultAddressResolverGroup.INSTANCE)
-
-                // Lớp 1: Giới hạn thời gian thiết lập kết nối ban đầu (TCP Handshake)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutMillis)
-
-                // Lớp 2: Giới hạn thời gian chờ phản hồi toàn bộ (Tính từ lúc gửi xong Request)
                 .responseTimeout(timeout)
-
-                // Lớp 3: Giới hạn thời gian rảnh (Idle) khi Đọc/Ghi dữ liệu ở mức Socket
                 .doOnConnected(connection ->
                         connection
                                 .addHandlerLast(new ReadTimeoutHandler(timeoutMillis, TimeUnit.MILLISECONDS))
                                 .addHandlerLast(new WriteTimeoutHandler(timeoutMillis, TimeUnit.MILLISECONDS))
                 );
 
-        // Nhúng HttpClient an toàn vào WebClient của Spring
         return WebClient.builder()
                 .baseUrl(baseUrl)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
-                // Bổ sung thêm Default Header nếu Judge0 của bạn yêu cầu API Key
-                // .defaultHeader("X-Auth-Token", "your-secret-token")
+                .build();
+    }
+
+    @Bean
+    public WebClient aiWebClient() {
+        int timeoutMillis = (int) aiTimeout.toMillis();
+
+        HttpClient httpClient = HttpClient.create()
+                .resolver(DefaultAddressResolverGroup.INSTANCE)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutMillis)
+                .responseTimeout(aiTimeout)
+                .doOnConnected(connection ->
+                        connection
+                                .addHandlerLast(new ReadTimeoutHandler(timeoutMillis, TimeUnit.MILLISECONDS))
+                                .addHandlerLast(new WriteTimeoutHandler(timeoutMillis, TimeUnit.MILLISECONDS))
+                );
+
+        return WebClient.builder()
+                .baseUrl(aiBaseUrl)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
 }
