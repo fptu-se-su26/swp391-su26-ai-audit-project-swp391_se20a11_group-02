@@ -99,6 +99,20 @@ services:
     <<: *default-logging
     restart: always
 
+  ffmpeg-service:
+    build:
+      context: ./ffmpeg-service
+      dockerfile: Dockerfile
+    container_name: nonstopcoding_ffmpeg
+    restart: always
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 volumes:
   postgres_data:
   redis_data:

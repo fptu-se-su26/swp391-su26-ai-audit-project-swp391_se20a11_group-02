@@ -194,10 +194,10 @@ public class CourseService {
 
         boolean isOwner = false;
         if (userId != null) {
-            isOwner = courseEntity.getInstructor().getUser().getId().equals(userId);
+            isOwner = courseEntity.getInstructor().getUser().getId().longValue() == userId.longValue();
         }
 
-        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner) {
+        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner && !isCurrentUserAdmin()) {
             throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
 
@@ -228,10 +228,10 @@ public class CourseService {
 
         boolean isOwner = false;
         if (userId != null) {
-            isOwner = courseEntity.getInstructor().getUser().getId().equals(userId);
+            isOwner = courseEntity.getInstructor().getUser().getId().longValue() == userId.longValue();
         }
 
-        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner) {
+        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner && !isCurrentUserAdmin()) {
             throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
 
@@ -240,6 +240,15 @@ public class CourseService {
         return chapters.stream()
                 .map(courseMapper::toCurriculumChapterResponse)
                 .collect(Collectors.toList());
+    }
+
+    private boolean isCurrentUserAdmin() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ADMIN".equals(a.getAuthority()) || "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     public CourseReviewStatsResponse getCourseReviews(Long courseId, Long userId, Pageable pageable) {

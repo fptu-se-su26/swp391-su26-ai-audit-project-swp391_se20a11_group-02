@@ -84,6 +84,13 @@ public class CourseModerationListener {
 
                     // Tách âm thanh & Dịch video (Whisper) nếu bài học có Video Url
                     if (lesson.getVideoUrl() != null && lesson.getVideoUrl().startsWith("http")) {
+                        if (!audioService.isFfmpegAvailable()) {
+                            log.warn("Bỏ qua trích xuất audio cho bài '{}' do FFmpeg không khả dụng trên hệ thống.", lesson.getTitle());
+                            transcriptCollector.append("Lesson ").append(lesson.getTitle()).append(" Video Transcript:\n")
+                                               .append("[VIDEO_PRESENT_BUT_TRANSCRIPT_UNAVAILABLE]\n\n");
+                            continue;
+                        }
+
                         String tempAudioPath = System.getProperty("java.io.tmpdir") + File.separator + 
                                                "course_" + courseId + "_lesson_" + lesson.getId() + ".mp3";
                         File audioFile = null;
