@@ -103,9 +103,9 @@ export interface CreateCoursePayload {
 function mapBackendStatusToFrontend(status: string): 'published' | 'review' | 'draft' {
   if (!status) return 'draft';
   const s = status.toUpperCase();
-  if (s === 'APPROVED') return 'published';
-  if (s === 'PENDING') return 'review';
-  if (s === 'DRAFTS' || s === 'DRAFT') return 'draft';
+  if (s === 'APPROVED' || s === 'PUBLISHED') return 'published';
+  if (s === 'PENDING' || s === 'REVIEW') return 'review';
+  if (s === 'DRAFTS' || s === 'DRAFT' || s === 'REJECTED') return 'draft';
   return 'draft';
 }
 
