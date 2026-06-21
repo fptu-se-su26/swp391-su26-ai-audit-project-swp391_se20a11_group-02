@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Repository
@@ -20,10 +21,12 @@ public interface ProblemRepository extends JpaRepository<ProblemEntity, Integer>
     List<ProblemEntity> findByProblemScopeIn(Collection<ProblemScope> scopes);
     Optional<ProblemEntity> findByIdAndIsPublicTrue(Integer id);
 
+    @Transactional
     @Modifying
     @Query("UPDATE ProblemEntity p SET p.totalSubmission = p.totalSubmission + 1 WHERE p.id = :problemId")
     void incrementTotalSubmission(@Param("problemId") Integer problemId);
 
+    @Transactional
     @Modifying
     @Query("UPDATE ProblemEntity p SET p.totalAccepted = p.totalAccepted + 1 WHERE p.id = :problemId")
     void incrementTotalAccepted(@Param("problemId") Integer problemId);

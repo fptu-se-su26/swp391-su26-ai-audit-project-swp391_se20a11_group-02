@@ -370,7 +370,7 @@ export const AdminDashboard: React.FC = () => {
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
-  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared'>('repository');
+  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared' | 'draft'>('repository');
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'DELETED'>('ALL');
   const [contestSubTab, setContestSubTab] = useState<'active' | 'trash'>('active');
 
@@ -788,7 +788,7 @@ export const AdminDashboard: React.FC = () => {
   const [newProbConstraints, setNewProbConstraints] = useState('');
   const [newProbExampleInput, setNewProbExampleInput] = useState('');
   const [newProbExampleOutput, setNewProbExampleOutput] = useState('');
-  const [newProbHint, setNewProbHint] = useState('');
+  const [newProbHints, setNewProbHints] = useState<string[]>(['']);
   const [newProbScope, setNewProbScope] = useState<'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE'>('PRACTICE');
   const [newProbDifficulty, setNewProbDifficulty] = useState<'EASY' | 'MEDIUM' | 'HARD'>('MEDIUM');
   const [newProbScore, setNewProbScore] = useState(100);
@@ -1155,10 +1155,18 @@ export const AdminDashboard: React.FC = () => {
 
   const handleCreateProblemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      showGlobalToast("Please fill in the title and description.", "error");
-      return;
-    }
+    if (!newProbTitle.trim()) { showGlobalToast("Problem Title is required.", "error"); return; }
+    if (!newProbDesc.trim()) { showGlobalToast("Problem Description is required.", "error"); return; }
+    if (!newProbInputDesc.trim()) { showGlobalToast("Input Description is required.", "error"); return; }
+    if (!newProbOutputDesc.trim()) { showGlobalToast("Output Description is required.", "error"); return; }
+    if (!newProbConstraints.trim()) { showGlobalToast("Constraints are required.", "error"); return; }
+    if (!newProbExampleInput.trim()) { showGlobalToast("Example Input is required.", "error"); return; }
+    if (!newProbExampleOutput.trim()) { showGlobalToast("Example Output is required.", "error"); return; }
+    if (newProbScore <= 0) { showGlobalToast("Max Score must be greater than 0.", "error"); return; }
+    if (newProbTimeLimit <= 0) { showGlobalToast("Time Limit must be greater than 0.", "error"); return; }
+    if (newProbMemoryLimit <= 0) { showGlobalToast("Memory Limit must be greater than 0.", "error"); return; }
+    if (testcasesList.length === 0) { showGlobalToast("At least one test case is required.", "error"); return; }
+    if (testcasesList.some(tc => !tc.inputData.trim() || !tc.expectedOutput.trim())) { showGlobalToast("All test cases must have input and expected output data.", "error"); return; }
 
     try {
       const starterTemplates: Record<string, string> = {};
@@ -1176,7 +1184,7 @@ export const AdminDashboard: React.FC = () => {
         constraints: newProbConstraints.trim(),
         exampleInput: newProbExampleInput.trim(),
         exampleOutput: newProbExampleOutput.trim(),
-        hint: newProbHint.trim(),
+        hint: JSON.stringify(newProbHints.filter(h => h.trim() !== '')),
         problemScope: newProbScope,
         difficulty: newProbDifficulty,
         totalTestcases: 0,
@@ -1219,7 +1227,7 @@ export const AdminDashboard: React.FC = () => {
       setNewProbConstraints('');
       setNewProbExampleInput('');
       setNewProbExampleOutput('');
-      setNewProbHint('');
+      setNewProbHints(['']);
       setNewProbScope('PRACTICE');
       setNewProbDifficulty('MEDIUM');
       setNewProbScore(100);
@@ -1250,13 +1258,13 @@ export const AdminDashboard: React.FC = () => {
     setNewProbConstraints('');
     setNewProbExampleInput('');
     setNewProbExampleOutput('');
-    setNewProbHint('');
+    setNewProbHints(['']);
     setNewProbScope('PRACTICE');
     setNewProbDifficulty('MEDIUM');
     setNewProbScore(100);
     setNewProbTimeLimit(2000);
     setNewProbMemoryLimit(128000);
-    setNewProbIsPublic(true);
+    setNewProbIsPublic(false);
     setNewProbSolutions('');
     setNewProbTags([]);
     setNewProbStarterC('');
@@ -1281,7 +1289,17 @@ export const AdminDashboard: React.FC = () => {
     setNewProbConstraints(p.constraints || '');
     setNewProbExampleInput(p.exampleInput || '');
     setNewProbExampleOutput(p.exampleOutput || '');
-    setNewProbHint(p.hint || '');
+    let hintsToSet = [''];
+    if (p.hint) {
+      try {
+        const parsed = JSON.parse(p.hint);
+        if (Array.isArray(parsed)) hintsToSet = parsed.length > 0 ? parsed : [''];
+        else hintsToSet = [p.hint];
+      } catch {
+        hintsToSet = [p.hint];
+      }
+    }
+    setNewProbHints(hintsToSet);
     setNewProbScope(p.problemScope);
     setNewProbDifficulty(p.difficulty);
     setNewProbScore(p.score);
@@ -1322,10 +1340,18 @@ export const AdminDashboard: React.FC = () => {
   const handleEditProblemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProblemId === null) return;
-    if (!newProbTitle.trim() || !newProbDesc.trim()) {
-      showGlobalToast("Please fill in the title and description.", "error");
-      return;
-    }
+    if (!newProbTitle.trim()) { showGlobalToast("Problem Title is required.", "error"); return; }
+    if (!newProbDesc.trim()) { showGlobalToast("Problem Description is required.", "error"); return; }
+    if (!newProbInputDesc.trim()) { showGlobalToast("Input Description is required.", "error"); return; }
+    if (!newProbOutputDesc.trim()) { showGlobalToast("Output Description is required.", "error"); return; }
+    if (!newProbConstraints.trim()) { showGlobalToast("Constraints are required.", "error"); return; }
+    if (!newProbExampleInput.trim()) { showGlobalToast("Example Input is required.", "error"); return; }
+    if (!newProbExampleOutput.trim()) { showGlobalToast("Example Output is required.", "error"); return; }
+    if (newProbScore <= 0) { showGlobalToast("Max Score must be greater than 0.", "error"); return; }
+    if (newProbTimeLimit <= 0) { showGlobalToast("Time Limit must be greater than 0.", "error"); return; }
+    if (newProbMemoryLimit <= 0) { showGlobalToast("Memory Limit must be greater than 0.", "error"); return; }
+    if (testcasesList.length === 0) { showGlobalToast("At least one test case is required.", "error"); return; }
+    if (testcasesList.some(tc => !tc.inputData.trim() || !tc.expectedOutput.trim())) { showGlobalToast("All test cases must have input and expected output data.", "error"); return; }
 
     try {
       const existingProb = problems.find(p => p.id === editingProblemId);
@@ -1344,7 +1370,7 @@ export const AdminDashboard: React.FC = () => {
         constraints: newProbConstraints.trim(),
         exampleInput: newProbExampleInput.trim(),
         exampleOutput: newProbExampleOutput.trim(),
-        hint: newProbHint.trim(),
+        hint: JSON.stringify(newProbHints.filter(h => h.trim() !== '')),
         problemScope: newProbScope,
         difficulty: newProbDifficulty,
         totalTestcases: existingProb?.totalTestcases || 0,
@@ -1382,7 +1408,7 @@ export const AdminDashboard: React.FC = () => {
       setNewProbConstraints('');
       setNewProbExampleInput('');
       setNewProbExampleOutput('');
-      setNewProbHint('');
+      setNewProbHints(['']);
       setNewProbScope('PRACTICE');
       setNewProbDifficulty('MEDIUM');
       setNewProbScore(100);
@@ -1842,12 +1868,14 @@ export const AdminDashboard: React.FC = () => {
       let matchesSubTab = false;
       if (problemSubTab === 'repository') {
         matchesSubTab = true; // All problems
+      } else if (problemSubTab === 'draft') {
+        matchesSubTab = !p.isPublic;
       } else if (problemSubTab === 'practice') {
-        matchesSubTab = p.problemScope === 'PRACTICE';
+        matchesSubTab = p.problemScope === 'PRACTICE' && p.isPublic;
       } else if (problemSubTab === 'contest') {
-        matchesSubTab = p.problemScope === 'CONTEST';
+        matchesSubTab = p.problemScope === 'CONTEST' && p.isPublic;
       } else if (problemSubTab === 'shared') {
-        matchesSubTab = p.problemScope === 'SHARED';
+        matchesSubTab = p.problemScope === 'SHARED' && p.isPublic;
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -3123,15 +3151,32 @@ export const AdminDashboard: React.FC = () => {
                               </div>
 
                               {/* Hint */}
-                              <details className="group bg-surface-gray rounded-lg border border-gray-200">
-                                <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-text-main">
-                                  Show Hint
-                                  <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
-                                </summary>
-                                <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-white">
-                                  {realProb ? (realProb.hint || 'No hints available for this problem.') : 'A really brute force way would be to search for all possible pairs of numbers but that would be too slow. Again, it\'s best to try out brute force solutions for just for completeness. It is from these brute force solutions that you can come up with optimizations.'}
-                                </div>
-                              </details>
+                              {(() => {
+                                let parsedHints: string[] = [];
+                                if (realProb && realProb.hint) {
+                                  try {
+                                    const parsed = JSON.parse(realProb.hint);
+                                    if (Array.isArray(parsed)) parsedHints = parsed;
+                                    else parsedHints = [realProb.hint];
+                                  } catch {
+                                    parsedHints = [realProb.hint];
+                                  }
+                                } else if (!realProb) {
+                                  parsedHints = ["A really brute force way would be to search for all possible pairs of numbers but that would be too slow. Again, it's best to try out brute force solutions for just for completeness. It is from these brute force solutions that you can come up with optimizations."];
+                                }
+                                
+                                if (parsedHints.length === 0) return null;
+
+                                return parsedHints.map((h, idx) => (
+                                  <details key={idx} className="group bg-surface-gray rounded-lg border border-gray-200 mb-2">
+                                    <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-text-main">
+                                      {parsedHints.length > 1 ? `Show Hint ${idx + 1}` : 'Show Hint'}
+                                      <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                                    </summary>
+                                    <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-white" dangerouslySetInnerHTML={{ __html: h }} />
+                                  </details>
+                                ));
+                              })()}
                             </div>
                           </div>
 
@@ -4295,7 +4340,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">terminal</span>
-                    Practice Problems ({problems.filter(p => p.problemScope === 'PRACTICE').length})
+                    Practice Problems ({problems.filter(p => p.problemScope === 'PRACTICE' && p.isPublic).length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('contest')}
@@ -4305,7 +4350,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
-                    Contest Problems ({problems.filter(p => p.problemScope === 'CONTEST').length})
+                    Contest Problems ({problems.filter(p => p.problemScope === 'CONTEST' && p.isPublic).length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('shared')}
@@ -4315,7 +4360,17 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">share</span>
-                    Shared Problems ({problems.filter(p => p.problemScope === 'SHARED').length})
+                    Shared Problems ({problems.filter(p => p.problemScope === 'SHARED' && p.isPublic).length})
+                  </button>
+                  <button
+                    onClick={() => setProblemSubTab('draft')}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'draft'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-primary'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit_document</span>
+                    Draft Problems ({problems.filter(p => !p.isPublic).length})
                   </button>
                 </div>
 
@@ -4382,45 +4437,26 @@ export const AdminDashboard: React.FC = () => {
                                 </select>
                               </td>
                               <td className="py-4 px-6 text-center">
-                                {!p.isActive ? (
-                                  <select
-                                    disabled
-                                    value="INACTIVE"
-                                    className="bg-amber-50 border border-amber-250 text-amber-600 rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold outline-none cursor-not-allowed"
-                                  >
-                                    <option value="INACTIVE">Inactive</option>
-                                  </select>
-                                ) : (
-                                  <select
-                                    value={p.isPublic ? "PUBLIC" : "PRIVATE"}
-                                    onChange={(e) => handleUpdateProblemPublicStatus(p.id, e.target.value === "PUBLIC")}
-                                    className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold outline-none cursor-pointer ${p.isPublic
-                                      ? "bg-emerald-50 border-emerald-250 text-emerald-600"
-                                      : "bg-slate-100 border-slate-200 text-slate-600"
-                                      }`}
-                                  >
-                                    <option value="PUBLIC">Public</option>
-                                    <option value="PRIVATE">Private</option>
-                                  </select>
-                                )}
+                                <select
+                                  value={p.isPublic ? "PUBLIC" : "PRIVATE"}
+                                  onChange={(e) => handleUpdateProblemPublicStatus(p.id, e.target.value === "PUBLIC")}
+                                  className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold outline-none cursor-pointer ${p.isPublic
+                                    ? "bg-emerald-50 border-emerald-250 text-emerald-600"
+                                    : "bg-slate-100 border-slate-200 text-slate-600"
+                                    }`}
+                                >
+                                  <option value="PUBLIC" className="bg-white text-emerald-600 font-bold">Public</option>
+                                  <option value="PRIVATE" className="bg-white text-slate-600 font-bold">Private</option>
+                                </select>
                               </td>
                               <td className="py-4 px-6 text-center">
                                 <div className="flex items-center justify-center gap-2">
-                                  {!p.isActive ? (
-                                    <button
-                                      onClick={() => handleOpenTestcaseModal(p)}
-                                      className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-[14px]">tune</span> Add Test Cases
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleEditProblemClick(p)}
-                                      className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-[14px]">edit</span> Edit
-                                    </button>
-                                  )}
+                                  <button
+                                    onClick={() => handleEditProblemClick(p)}
+                                    className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">edit</span> Edit
+                                  </button>
                                   <button
                                     onClick={() => handleDeleteProblemClick(p.id)}
                                     className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
@@ -5349,7 +5385,7 @@ export const AdminDashboard: React.FC = () => {
                   setNewProbConstraints('');
                   setNewProbExampleInput('');
                   setNewProbExampleOutput('');
-                  setNewProbHint('');
+                  setNewProbHints(['']);
                   setNewProbScope('PRACTICE');
                   setNewProbDifficulty('MEDIUM');
                   setNewProbScore(100);
@@ -5448,58 +5484,86 @@ export const AdminDashboard: React.FC = () => {
                 <textarea required value={newProbDesc} onChange={e => setNewProbDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue resize-y h-32" placeholder="Explain the problem here..." />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Input Description</label>
-                  <textarea rows={2} value={newProbInputDesc} onChange={e => setNewProbInputDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Describe input structure..." />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Input Description *</label>
+                    <textarea rows={2} value={newProbInputDesc} onChange={e => setNewProbInputDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Describe input structure..." />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Output Description *</label>
+                    <textarea rows={2} value={newProbOutputDesc} onChange={e => setNewProbOutputDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Describe output structure..." />
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Output Description</label>
-                  <textarea rows={2} value={newProbOutputDesc} onChange={e => setNewProbOutputDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Describe output structure..." />
-                </div>
-              </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Constraints</label>
+                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Constraints *</label>
                 <textarea rows={2} value={newProbConstraints} onChange={e => setNewProbConstraints(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="e.g. 1 <= nums.length <= 10^5" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Example Input</label>
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Example Input *</label>
                   <textarea rows={2} value={newProbExampleInput} onChange={e => setNewProbExampleInput(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue" placeholder="Input sample..." />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Example Output</label>
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Example Output *</label>
                   <textarea rows={2} value={newProbExampleOutput} onChange={e => setNewProbExampleOutput(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono focus:ring-primary focus:border-primary text-brand-blue" placeholder="Output sample..." />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Max Score</label>
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Max Score *</label>
                   <input type="number" value={newProbScore} onChange={e => setNewProbScore(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Time Limit (ms)</label>
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Time Limit (ms) *</label>
                   <input type="number" value={newProbTimeLimit} onChange={e => setNewProbTimeLimit(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Memory Limit (KB)</label>
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Memory Limit (KB) *</label>
                   <input type="number" value={newProbMemoryLimit} onChange={e => setNewProbMemoryLimit(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Hint</label>
-                <input type="text" value={newProbHint} onChange={e => setNewProbHint(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue" placeholder="Tip or pointer..." />
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Hints</label>
+                  <button
+                    type="button"
+                    onClick={() => setNewProbHints(prev => [...prev, ''])}
+                    className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span> Add Hint
+                  </button>
+                </div>
+                {newProbHints.map((hint, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={hint}
+                      onChange={e => setNewProbHints(prev => prev.map((h, i) => i === idx ? e.target.value : h))}
+                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-primary focus:border-primary text-brand-blue"
+                      placeholder={`Hint ${idx + 1}...`}
+                    />
+                    {newProbHints.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setNewProbHints(prev => prev.filter((_, i) => i !== idx))}
+                        className="text-slate-400 hover:text-red-500 transition-colors p-2"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
 
               {/* TESTCASES SECTION */}
               <div className="flex flex-col gap-4 mt-4 border-t border-slate-200 pt-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <h4 className="font-display font-black text-lg text-brand-blue uppercase tracking-wider">Test Cases</h4>
+                    <h4 className="font-display font-black text-lg text-brand-blue uppercase tracking-wider">Test Cases *</h4>
                     <div className="flex bg-slate-100 rounded-lg p-1 shadow-inner">
                       <button 
                         type="button" 
@@ -5610,6 +5674,7 @@ export const AdminDashboard: React.FC = () => {
                     <p className="text-xs text-text-muted font-bold">No test cases added yet.</p>
                   </div>
                 ) : (
+
                   <div className="flex flex-col gap-4">
                     {testcasesList.map((tc, idx) => (
                       <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">

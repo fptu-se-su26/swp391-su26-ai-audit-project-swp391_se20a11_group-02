@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { problemService } from '../services/problemService';
-import type { ProblemDetail, ProblemComment } from '../services/problemService';
+import type { ProblemDetail, ProblemComment, ProblemSolution } from '../services/problemService';
 import { useApp } from '../context/AppContext';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
+import { CodeEditor } from '../components/CodeEditor';
+import Editor from '@monaco-editor/react';
 
 export const SolveProblem: React.FC = () => {
   const { user } = useApp();
@@ -82,7 +84,22 @@ export const SolveProblem: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [codeHtml, setCodeHtml] = useState<string>('');
+  // A mapping from language ID to its standard string identifier used by Monaco and the state dictionary
+  const LANGUAGE_KEYS: Record<number, string> = {
+    50: 'c',
+    54: 'cpp',
+    62: 'java',
+    71: 'python',
+    51: 'csharp'
+  };
+
+  const [codeByLang, setCodeByLang] = useState<Record<string, string>>({
+    c: '',
+    cpp: '',
+    java: '',
+    python: '',
+    csharp: ''
+  });
 
   // Track which tabs have already been loaded to avoid duplicate API calls
   const [loadedTabs, setLoadedTabs] = useState<{[key: string]: boolean}>({});
@@ -95,11 +112,35 @@ export const SolveProblem: React.FC = () => {
     problemService.fetchProblemDetail(id)
       .then(data => {
         setProblem(data);
-        if (data.templates) {
-          const defaultLangId = 62; 
-          setSelectedLangId(defaultLangId);
-          setCodeHtml(data.source_code || getTemplateForLang(defaultLangId, data.templates) || '');
+        const actualTemplates = data.templates || data.starterTemplates;
+        
+        // Prepare boilerplate code for all supported languages
+        const initialCodeByLang: Record<string, string> = {
+          c: '',
+          cpp: '',
+          java: '',
+          python: '',
+          csharp: ''
+        };
+        
+        if (actualTemplates) {
+          SUPPORTED_LANGUAGES.forEach(lang => {
+            const langKey = LANGUAGE_KEYS[lang.id];
+            if (langKey) {
+              initialCodeByLang[langKey] = getTemplateForLang(lang.id, actualTemplates);
+            }
+          });
         }
+        
+        const defaultLangId = data.language_id || 62; // Java default or last submission lang
+        setSelectedLangId(defaultLangId);
+        
+        const defaultLangKey = LANGUAGE_KEYS[defaultLangId];
+        if (data.source_code && defaultLangKey) {
+          initialCodeByLang[defaultLangKey] = data.source_code;
+        }
+        
+        setCodeByLang(initialCodeByLang);
         setLoading(false);
       })
       .catch(err => {
@@ -127,14 +168,27 @@ export const SolveProblem: React.FC = () => {
     setSelectedLangId(newLangId);
   };
 
+  const handleCodeChange = (newCode: string | undefined) => {
+    const langKey = LANGUAGE_KEYS[selectedLangId];
+    if (langKey && newCode !== undefined) {
+      setCodeByLang(prev => ({
+        ...prev,
+        [langKey]: newCode
+      }));
+    }
+  };
+
   // Handle Reset Code
   const handleResetCode = () => {
-    if (problem && problem.templates) {
-      const defaultCode = getTemplateForLang(selectedLangId, problem.templates);
-      setCodeHtml(defaultCode);
-      const editor = document.getElementById('code-editor');
-      if (editor) {
-        editor.innerText = defaultCode;
+    const actualTemplates = problem?.templates || problem?.starterTemplates;
+    if (actualTemplates) {
+      const defaultCode = getTemplateForLang(selectedLangId, actualTemplates);
+      const langKey = LANGUAGE_KEYS[selectedLangId];
+      if (langKey) {
+        setCodeByLang(prev => ({
+          ...prev,
+          [langKey]: defaultCode
+        }));
       }
     }
   };
@@ -257,6 +311,33 @@ export const SolveProblem: React.FC = () => {
       });
   };
 
+  // Solution states
+  const [solution, setSolution] = useState<ProblemSolution | null>(null);
+  const [solutionLoading, setSolutionLoading] = useState<boolean>(false);
+  const [solutionError, setSolutionError] = useState<string | null>(null);
+
+  const fetchSolution = () => {
+    if (!id) return;
+    setSolutionLoading(true);
+    setSolutionError(null);
+    problemService.fetchProblemSolution(id)
+      .then(data => {
+        setSolution(data);
+        setSolutionLoading(false);
+        setLoadedTabs(prev => ({ ...prev, solutions: true }));
+      })
+      .catch(err => {
+        console.error("Failed to load solution:", err);
+        setSolutionError(err.message || "Failed to load solution.");
+        setSolutionLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    if (!id || activeTab !== 'solutions' || loadedTabs['solutions']) return;
+    fetchSolution();
+  }, [id, activeTab]);
+
   // Submissions list
   const [submissions, setSubmissions] = useState<any[]>([]);
 
@@ -269,6 +350,12 @@ export const SolveProblem: React.FC = () => {
           setSubmissions(data);
           setLoadedTabs(prev => ({ ...prev, submissions: true }));
         }).catch(console.error);
+
+        problemService.fetchProblemDetail(id).then(data => {
+          setProblem(prev => prev ? { ...prev, acceptance: data.acceptance, status: data.status } : data);
+          // Reset solutions loaded state so it will fetch the new unlocked solution
+          setLoadedTabs(prev => ({ ...prev, solutions: false }));
+        }).catch(console.error);
       }
     }, 1000);
   };
@@ -279,8 +366,9 @@ export const SolveProblem: React.FC = () => {
     setTestcasesLogs([]);
     setOverallResult(null);
     setExpandedTestcases({});
-    const editorElement = document.getElementById('code-editor');
-    const sourceCode = editorElement ? (editorElement as HTMLElement).innerText : '';
+    
+    const langKey = LANGUAGE_KEYS[selectedLangId];
+    const sourceCode = langKey ? codeByLang[langKey] : '';
 
     problemService.submitSolution(id, selectedLangId, sourceCode)
       .then(() => {
@@ -458,7 +546,7 @@ export const SolveProblem: React.FC = () => {
             {activeTab === 'description' && (
               <div id="tab-description" className="block space-y-6">
                 <div className="flex items-center justify-between">
-                  <h1 className="text-2xl font-bold text-text-main">{problem.id}. {problem.title}</h1>
+                  <h1 className="text-2xl font-bold text-text-main">{problem.title}</h1>
                   <div className="flex items-center gap-2">
                     {problem.difficulty === 'Easy' && <span className="bg-green-50 border border-green-200 text-brand-green px-3 py-1 rounded-full text-xs font-bold">Easy</span>}
                     {problem.difficulty === 'Medium' && <span className="bg-orange-50 border border-orange-200 text-orange-500 px-3 py-1 rounded-full text-xs font-bold">Medium</span>}
@@ -535,15 +623,27 @@ export const SolveProblem: React.FC = () => {
                   </div>
                 )}
 
-                {problem.hint && (
-                  <details className="group bg-surface-gray rounded-lg border border-gray-200">
-                    <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-brand-blue">
-                      Show Hint
-                      <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
-                    </summary>
-                    <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-surface" dangerouslySetInnerHTML={{ __html: problem.hint }} />
-                  </details>
-                )}
+                {(() => {
+                  if (!problem.hint) return null;
+                  let parsedHints: string[] = [];
+                  try {
+                    const parsed = JSON.parse(problem.hint);
+                    if (Array.isArray(parsed)) parsedHints = parsed;
+                    else parsedHints = [problem.hint];
+                  } catch {
+                    parsedHints = [problem.hint];
+                  }
+                  
+                  return parsedHints.map((h, idx) => (
+                    <details key={idx} className="group bg-surface-gray rounded-lg border border-gray-200 mb-2">
+                      <summary className="flex items-center justify-between p-4 cursor-pointer font-semibold text-brand-blue">
+                        {parsedHints.length > 1 ? `Show Hint ${idx + 1}` : 'Show Hint'}
+                        <span className="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+                      </summary>
+                      <div className="p-4 border-t border-gray-200 text-text-muted text-sm leading-relaxed bg-surface" dangerouslySetInnerHTML={{ __html: h }} />
+                    </details>
+                  ));
+                })()}
               </div>
             )}
 
@@ -670,50 +770,90 @@ export const SolveProblem: React.FC = () => {
             {activeTab === 'solutions' && (
               <div id="tab-solutions" className="block space-y-6">
                 <h2 className="text-xl font-bold text-brand-blue">Solutions</h2>
-                {problem && problem.status === 'solved' ? (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                    <div className="bg-surface-gray px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                {solutionLoading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <svg className="animate-spin h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  </div>
+                ) : solution ? (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm flex flex-col h-[500px]">
+                    <div className="bg-surface-gray px-4 py-3 border-b border-gray-200 flex justify-between items-center shrink-0">
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-brand-green">check_circle</span>
-                        <span className="font-bold text-text-main">Java - One Pass HashMap</span>
+                        <span className="font-bold text-text-main">{solution.title || problem?.title || 'Official Solution'}</span>
                       </div>
-                      <span className="text-sm text-text-muted">By Jane Smith</span>
+                      <span className="text-sm text-text-muted">Official Solution</span>
                     </div>
-                    <div className="p-4 bg-white text-gray-800 font-mono text-sm overflow-x-auto custom-scroll">
-                      <pre>
-                        <code>
-                          <span className="text-purple-600">class</span> <span className="text-teal-600">Solution</span> {'{\n'}
-                          {'    '}<span className="text-purple-600">public</span> <span className="text-blue-600">int</span>[] <span className="text-blue-600">twoSum</span>(<span className="text-blue-600">int</span>[] <span className="text-sky-600">nums</span>, <span className="text-blue-600">int</span> <span className="text-sky-600">target</span>) {'{\n'}
-                          {'        '}<span className="text-teal-600">Map</span>&lt;<span className="text-teal-600">Integer</span>, <span className="text-teal-600">Integer</span>&gt; <span className="text-sky-600">map</span> = <span className="text-purple-600">new</span> <span className="text-teal-600">HashMap</span>&lt;&gt;();{"\n"}
-                          {'        '}<span className="text-purple-600">for</span> (<span className="text-blue-600">int</span> <span className="text-sky-600">i</span> = <span className="text-orange-600">0</span>; <span className="text-sky-600">i</span> &lt; <span className="text-sky-600">nums</span>.length; <span className="text-sky-600">i</span>++) {'{\n'}
-                          {'            '}<span className="text-blue-600">int</span> <span className="text-sky-600">complement</span> = <span className="text-sky-600">target</span> - <span className="text-sky-600">nums</span>[<span className="text-sky-600">i</span>];{"\n"}
-                          {'            '}<span className="text-purple-600">if</span> (<span className="text-sky-600">map</span>.<span className="text-blue-600">containsKey</span>(<span className="text-sky-600">complement</span>)) {'{\n'}
-                          {'                '}<span className="text-purple-600">return</span> <span className="text-purple-600">new</span> <span className="text-blue-600">int</span>[] {'{'} <span className="text-sky-600">map</span>.<span className="text-blue-600">get</span>(<span className="text-sky-600">complement</span>), <span className="text-sky-600">i</span> {'}'};{"\n"}
-                          {'            '}{'}\n'}
-                          {'            '}<span className="text-sky-600">map</span>.<span className="text-blue-600">put</span>(<span className="text-sky-600">nums</span>[<span className="text-sky-600">i</span>], <span className="text-sky-600">i</span>);{"\n"}
-                          {'        '}{'}\n'}
-                          {'        '}<span className="text-purple-600">return</span> <span className="text-purple-600">new</span> <span className="text-blue-600">int</span>[] {'{}'};{"\n"}
-                          {'    '}{'}\n'}
-                          {'}'}
-                        </code>
-                      </pre>
+                    <div className="flex-grow relative w-full h-full bg-white">
+                      <Editor
+                        height="100%"
+                        width="100%"
+                        language={LANGUAGE_KEYS[problem?.language_id || selectedLangId || 62] || 'java'}
+                        theme="vs"
+                        value={solution.solutionCode || '// An official solution for this problem is not available yet.'}
+                        options={{
+                          readOnly: true,
+                          domReadOnly: true,
+                          fontSize: 14,
+                          fontWeight: '600',
+                          fontFamily: "'Fira Code', 'Courier New', Courier, monospace",
+                          minimap: { enabled: false },
+                          automaticLayout: true,
+                          scrollBeyondLastLine: false,
+                          padding: { top: 16, bottom: 16 },
+                          tabSize: 4,
+                          insertSpaces: true,
+                          wordWrap: 'on',
+                          lineNumbers: 'on',
+                          scrollbar: {
+                            vertical: 'visible',
+                            horizontal: 'visible',
+                            verticalScrollbarSize: 10,
+                            horizontalScrollbarSize: 10,
+                          },
+                        }}
+                        loading={
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white text-gray-500">
+                            <svg className="animate-spin h-8 w-8 text-primary mb-3" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            <span className="font-semibold text-sm">Loading Editor...</span>
+                          </div>
+                        }
+                      />
                     </div>
                   </div>
                 ) : (
                   <div className="border border-outline-variant/60 rounded-xl bg-surface-gray/30 p-8 text-center flex flex-col items-center justify-center min-h-[300px] border-dashed">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 animate-pulse">
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
                       <span className="material-symbols-outlined text-[32px] icon-fill" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
                     </div>
-                    <h3 className="text-headline-sm font-bold text-text-main mb-2">Solution Locked</h3>
+                    <h3 className="text-headline-sm font-bold text-text-main mb-2">
+                      {solutionError && !solutionError.includes("locked") ? "Failed to Load Solution" : "Solution Locked"}
+                    </h3>
                     <p className="text-body-md text-text-muted max-w-md mb-6">
-                      To view the author's official solution and optimal approaches, you must first solve this problem and pass all test cases.
+                      {solutionError && !solutionError.includes("locked") 
+                        ? solutionError 
+                        : "To view the author's official solution and optimal approaches, you must first solve this problem and pass all test cases."}
                     </p>
-                    <button
-                      onClick={() => setActiveTab('description')}
-                      className="px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors shadow-sm active:scale-95 flex items-center gap-1.5"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span> Back to Description
-                    </button>
+                    {solutionError && !solutionError.includes("locked") ? (
+                      <button
+                        onClick={fetchSolution}
+                        className="px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors shadow-sm active:scale-95 flex items-center gap-1.5"
+                      >
+                        Retry Loading
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setActiveTab('description')}
+                        className="px-6 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors shadow-sm active:scale-95 flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span> Back to Description
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -880,23 +1020,12 @@ export const SolveProblem: React.FC = () => {
             </div>
           </div>
 
-          {/* Editor Area (White theme) */}
-          <div className="flex-grow flex overflow-y-auto custom-scroll text-[15px] leading-relaxed font-mono text-gray-800 bg-white">
-            {/* Line Numbers */}
-            <div className="w-12 flex flex-col items-end py-4 pr-3 text-gray-400 bg-surface-gray border-r border-gray-200 select-none shrink-0">
-              {Array.from({ length: Math.max(15, codeHtml.split(/\r?\n|<br\/?>/gi).length) }, (_, i) => (
-                <span key={i + 1}>{i + 1}</span>
-              ))}
-            </div>
-            {/* Code */}
-            <div
-              id="code-editor"
-              className="flex-grow py-4 pl-4 overflow-x-auto custom-scroll whitespace-pre outline-none"
-              contentEditable={true}
-              suppressContentEditableWarning={true}
-              spellCheck={false}
-              dangerouslySetInnerHTML={{ __html: codeHtml }}
-              onBlur={(e) => setCodeHtml(e.currentTarget.innerHTML)}
+          {/* Editor Area (Light theme with Monaco) */}
+          <div className="flex-grow overflow-hidden relative bg-white border-t border-gray-200">
+            <CodeEditor
+              language={LANGUAGE_KEYS[selectedLangId] || 'plaintext'}
+              value={LANGUAGE_KEYS[selectedLangId] ? codeByLang[LANGUAGE_KEYS[selectedLangId]] : ''}
+              onChange={handleCodeChange}
             />
           </div>
 

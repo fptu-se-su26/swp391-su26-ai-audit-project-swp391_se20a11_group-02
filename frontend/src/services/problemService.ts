@@ -24,11 +24,13 @@ export interface ProblemDetail {
   exampleOutput: string;
   hint: string;
   tags: string[];
-  templates: { [key: string]: string };
+  templates?: { [key: string]: string };
+  starterTemplates?: { [key: string]: string };
   status: 'solved' | 'unsolved' | 'attempted';
   acceptance: string;
   totalSolved: number;
   source_code?: string;
+  language_id?: number;
 }
 
 export interface ProblemSolution {

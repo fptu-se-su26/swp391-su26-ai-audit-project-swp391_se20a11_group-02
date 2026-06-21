@@ -27,6 +27,7 @@ public class AdminDashboardController {
 
     AdminDashboardService adminDashboardService;
 
+
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<AdminDashboardStatsResponse>> getDashboardStats() {
         AdminDashboardStatsResponse result = adminDashboardService.getDashboardStats();

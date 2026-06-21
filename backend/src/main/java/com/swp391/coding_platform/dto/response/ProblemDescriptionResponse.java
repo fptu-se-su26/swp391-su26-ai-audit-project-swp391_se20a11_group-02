@@ -29,4 +29,7 @@ public class ProblemDescriptionResponse {
     
     @com.fasterxml.jackson.annotation.JsonProperty("source_code")
     String sourceCode;
+    
+    @com.fasterxml.jackson.annotation.JsonProperty("language_id")
+    Integer languageId;
 }
