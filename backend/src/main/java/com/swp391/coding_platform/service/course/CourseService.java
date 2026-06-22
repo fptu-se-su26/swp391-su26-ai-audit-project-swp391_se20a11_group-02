@@ -38,8 +38,6 @@ import com.swp391.coding_platform.dto.response.LessonCommentResponse;
 import com.swp391.coding_platform.entity.course.LessonCommentEntity;
 import com.swp391.coding_platform.repository.course.LessonCommentRepository;
 import com.swp391.coding_platform.repository.course.LessonRepository;
-import com.swp391.coding_platform.repository.course.LessonProblemRepository;
-import com.swp391.coding_platform.repository.course.QuizRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +54,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CourseService {
     CourseRepository courseRepository;
@@ -68,39 +67,6 @@ public class CourseService {
     UserRepository userRepository;
     LessonCommentRepository lessonCommentRepository;
     LessonRepository lessonRepository;
-    LessonProblemRepository lessonProblemRepository;
-    QuizRepository quizRepository;
-    QuizService quizService;
-
-    public CourseService(
-            CourseRepository courseRepository,
-            CourseMapper courseMapper,
-            CompletedLessonCountRepository completedLessonCountRepository,
-            LessonProgressRepository lessonProgressRepository,
-            EnrollmentRepository enrollmentRepository,
-            ChapterRepository chapterRepository,
-            CourseReviewRepository courseReviewRepository,
-            UserRepository userRepository,
-            LessonCommentRepository lessonCommentRepository,
-            LessonRepository lessonRepository,
-            LessonProblemRepository lessonProblemRepository,
-            QuizRepository quizRepository,
-            QuizService quizService
-    ) {
-        this.courseRepository = courseRepository;
-        this.courseMapper = courseMapper;
-        this.completedLessonCountRepository = completedLessonCountRepository;
-        this.lessonProgressRepository = lessonProgressRepository;
-        this.enrollmentRepository = enrollmentRepository;
-        this.chapterRepository = chapterRepository;
-        this.courseReviewRepository = courseReviewRepository;
-        this.userRepository = userRepository;
-        this.lessonCommentRepository = lessonCommentRepository;
-        this.lessonRepository = lessonRepository;
-        this.lessonProblemRepository = lessonProblemRepository;
-        this.quizRepository = quizRepository;
-        this.quizService = quizService;
-    }
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
 
@@ -194,10 +160,10 @@ public class CourseService {
 
         boolean isOwner = false;
         if (userId != null) {
-            isOwner = courseEntity.getInstructor().getUser().getId().longValue() == userId.longValue();
+            isOwner = courseEntity.getInstructor().getUser().getId().equals(userId);
         }
 
-        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner && !isCurrentUserAdmin()) {
+        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner) {
             throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
 
@@ -228,10 +194,10 @@ public class CourseService {
 
         boolean isOwner = false;
         if (userId != null) {
-            isOwner = courseEntity.getInstructor().getUser().getId().longValue() == userId.longValue();
+            isOwner = courseEntity.getInstructor().getUser().getId().equals(userId);
         }
 
-        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner && !isCurrentUserAdmin()) {
+        if (courseEntity.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && !isOwner) {
             throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
 
@@ -240,15 +206,6 @@ public class CourseService {
         return chapters.stream()
                 .map(courseMapper::toCurriculumChapterResponse)
                 .collect(Collectors.toList());
-    }
-
-    private boolean isCurrentUserAdmin() {
-        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return false;
-        }
-        return auth.getAuthorities().stream()
-                .anyMatch(a -> "ADMIN".equals(a.getAuthority()) || "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     public CourseReviewStatsResponse getCourseReviews(Long courseId, Long userId, Pageable pageable) {
@@ -389,44 +346,7 @@ public class CourseService {
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
 
-        LearningLessonResponse response = courseMapper.toLearningLessonResponse(lesson);
-        response.setSourceCode(null);
-
-        // Fetch coding problems linked to this lesson
-        List<com.swp391.coding_platform.entity.course.LessonProblemEntity> lessonProblems = 
-                lessonProblemRepository.findByLessonIdOrderByOrderIndexAsc(lessonId);
-        List<com.swp391.coding_platform.dto.response.ProblemListItemResponse> problemResponses = lessonProblems.stream()
-                .map(lp -> {
-                    var problem = lp.getProblem();
-                    String diff = problem.getDifficulty() != null 
-                            ? problem.getDifficulty().name().substring(0, 1).toUpperCase() + problem.getDifficulty().name().substring(1).toLowerCase()
-                            : "Medium";
-                    return com.swp391.coding_platform.dto.response.ProblemListItemResponse.builder()
-                            .id(problem.getId())
-                            .title(problem.getTitle())
-                            .difficulty(diff)
-                            .score(problem.getScore() != null ? problem.getScore().intValue() : 0)
-                            .totalSubmission(problem.getTotalSubmission() != null ? problem.getTotalSubmission() : 0)
-                            .totalAccepted(problem.getTotalAccepted() != null ? problem.getTotalAccepted() : 0)
-                            .isSolved(false)
-                            .status("unsolved")
-                            .build();
-                })
-                .toList();
-        response.setProblems(problemResponses);
-
-        // Fetch quiz details if present
-        try {
-            if (quizRepository.findByLessonId(lessonId).isPresent()) {
-                com.swp391.coding_platform.dto.response.QuizDetailResponse quizDetail = 
-                        quizService.getQuizDetailByLessonId(lessonId, userId != null ? userId.intValue() : 0);
-                response.setQuiz(quizDetail);
-            }
-        } catch (Exception e) {
-            log.warn("[CourseService] Failed to load quiz details for lessonId: {}, error: {}", lessonId, e.getMessage());
-        }
-
-        return response;
+        return courseMapper.toLearningLessonResponse(lesson);
     }
 
     public List<LessonCommentResponse> getLessonComments(Integer lessonId) {

@@ -268,23 +268,7 @@ public class InstructorService {
         return instructor;
     }
 
-    private static class TimeRange {
-        private final java.time.Instant start;
-        private final java.time.Instant end;
-
-        public TimeRange(java.time.Instant start, java.time.Instant end) {
-            this.start = start;
-            this.end = end;
-        }
-
-        public java.time.Instant start() {
-            return start;
-        }
-
-        public java.time.Instant end() {
-            return end;
-        }
-    }
+    private record TimeRange(java.time.Instant start, java.time.Instant end) {}
 
     private TimeRange parseTimeRange(String filter, String startDate, String endDate, java.time.ZonedDateTime now) {
         java.time.Instant start = null;
