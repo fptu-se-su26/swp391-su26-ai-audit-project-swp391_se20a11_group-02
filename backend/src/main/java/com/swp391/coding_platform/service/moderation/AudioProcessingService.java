@@ -21,6 +21,7 @@ public class AudioProcessingService {
     public AudioProcessingService(@Value("${ffmpeg.base-url:http://localhost:9000}") String ffmpegServiceUrl) {
         this.webClient = WebClient.builder()
                 .baseUrl(ffmpegServiceUrl)
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(500 * 1024 * 1024))
                 .build();
     }
 

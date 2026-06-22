@@ -331,7 +331,17 @@ export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   // Navigation Active Tab: 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'>('dashboard');
+  const getTabFromUrl = (urlTab?: string): 'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial' => {
+    if (urlTab === 'courses') return 'courses';
+    if (urlTab === 'problems') return 'problems';
+    if (urlTab === 'contests') return 'contest';
+    if (urlTab === 'instructors') return 'instructor';
+    if (urlTab === 'users') return 'users';
+    if (urlTab === 'financial') return 'financial';
+    return 'dashboard';
+  };
+
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial'>(getTabFromUrl(tab));
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // States for API data
@@ -360,7 +370,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   // Filter states
-  const [courseFilter, setCourseFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'REJECTED'>('ALL');
+  const [courseFilter, setCourseFilter] = useState<'APPROVED' | 'PENDING_ADMIN' | 'PENDING_AI' | 'REJECTED'>('PENDING_ADMIN');
 
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState<'ALL' | 'ACTIVE' | 'LOCKED'>('ALL');
@@ -422,7 +432,7 @@ export const AdminDashboard: React.FC = () => {
 
   // Course Player Review Mode states
   const [reviewingCourse, setReviewingCourse] = useState<AdminCourse | null>(null);
-  const [reviewPlayerTab, setReviewPlayerTab] = useState<'overview' | 'qa' | 'exercises' | 'source-code' | 'quiz' | 'ai-moderation'>('overview');
+  const [reviewPlayerTab, setReviewPlayerTab] = useState<'overview' | 'qa' | 'exercises' | 'source-code' | 'quiz'>('overview');
   const [reviewLectureTitle, setReviewLectureTitle] = useState('1.1 Course Introduction');
   const [reviewCurriculumSections, setReviewCurriculumSections] = useState<Record<string, boolean>>({ sec1: true });
   const [reviewCurrentProblem, setReviewCurrentProblem] = useState<any | null>(null);
@@ -438,7 +448,20 @@ export const AdminDashboard: React.FC = () => {
   const [reviewIsLoading, setReviewIsLoading] = useState<boolean>(false);
   const [loadingProblemDetail, setLoadingProblemDetail] = useState<boolean>(false);
   const [reviewModerationReport, setReviewModerationReport] = useState<any | null>(null);
+  const [isAiReportModalOpen, setIsAiReportModalOpen] = useState<boolean>(false);
   const [loadingModerationReport, setLoadingModerationReport] = useState<boolean>(false);
+
+  const parsedAiReport = useMemo(() => {
+    if (!reviewModerationReport || !reviewModerationReport.reportJson) return null;
+    try {
+      return typeof reviewModerationReport.reportJson === 'string' 
+        ? JSON.parse(reviewModerationReport.reportJson) 
+        : reviewModerationReport.reportJson;
+    } catch (e) {
+      return null;
+    }
+  }, [reviewModerationReport]);
+
 
   // Contest Detail Review Mode states
   const [reviewingContest, setReviewingContest] = useState<AdminContest | null>(() => {
@@ -726,47 +749,46 @@ export const AdminDashboard: React.FC = () => {
     });
   };
 
-  // Fetch all dashboard data
+  // Fetch data based on the active tab
   const loadData = async () => {
     setLoading(true);
     try {
-      const [
-        statsRes,
-        coursesRes,
-        instsRes,
-        usersRes,
-        probsRes,
-        contestsRes,
-        recentDepositsRes,
-        tagsRes,
-        monthlyRecordsRes,
-        topCoursesRes,
-        financialDetailsRes
-      ] = await Promise.all([
-        adminService.getDashboardStats().catch(err => { console.error("Failed to load stats:", err); return null; }),
-        adminService.getCourses().catch(err => { console.error("Failed to load courses:", err); return []; }),
-        adminService.getInstructors().catch(err => { console.error("Failed to load instructors:", err); return []; }),
-        adminService.getUsers().catch(err => { console.error("Failed to load users:", err); return []; }),
-        adminService.getProblems().catch(err => { console.error("Failed to load problems:", err); return []; }),
-        adminService.getContests().catch(err => { console.error("Failed to load contests:", err); return []; }),
-        adminService.getRecentDeposits().catch(err => { console.error("Failed to load recent deposits:", err); return []; }),
-        adminService.getTags().catch(err => { console.error("Failed to load tags:", err); return []; }),
-        adminService.getFinancialMonthlyRecords().catch(err => { console.error("Failed to load monthly records:", err); return []; }),
-        adminService.getFinancialTopCourses().catch(err => { console.error("Failed to load top courses:", err); return []; }),
-        adminService.getFinancialDetails().catch(err => { console.error("Failed to load financial details:", err); return null; })
-      ]);
-
-      setStats(statsRes);
-      setCourses(coursesRes || []);
-      setInstructors(instsRes || []);
-      setUsers(usersRes || []);
-      setProblems(probsRes || []);
-      setContests(contestsRes || []);
-      setRecentDeposits(recentDepositsRes || []);
-      setAllTags(tagsRes || []);
-      setMonthlyRecords(monthlyRecordsRes || []);
-      setTopCourses(topCoursesRes || []);
-      setFinancialDetails(financialDetailsRes);
+      if (activeTab === 'dashboard') {
+        const [statsRes, recentDepositsRes] = await Promise.all([
+          adminService.getDashboardStats().catch(err => { console.error("Failed to load stats:", err); return null; }),
+          adminService.getRecentDeposits().catch(err => { console.error("Failed to load recent deposits:", err); return []; })
+        ]);
+        setStats(statsRes);
+        setRecentDeposits(recentDepositsRes || []);
+      } else if (activeTab === 'courses') {
+        const coursesRes = await adminService.getCourses().catch(err => { console.error("Failed to load courses:", err); return []; });
+        setCourses(coursesRes || []);
+      } else if (activeTab === 'problems') {
+        const [probsRes, tagsRes] = await Promise.all([
+          adminService.getProblems().catch(err => { console.error("Failed to load problems:", err); return []; }),
+          adminService.getTags().catch(err => { console.error("Failed to load tags:", err); return []; })
+        ]);
+        setProblems(probsRes || []);
+        setAllTags(tagsRes || []);
+      } else if (activeTab === 'contest') {
+        const contestsRes = await adminService.getContests().catch(err => { console.error("Failed to load contests:", err); return []; });
+        setContests(contestsRes || []);
+      } else if (activeTab === 'instructor') {
+        const instsRes = await adminService.getInstructors().catch(err => { console.error("Failed to load instructors:", err); return []; });
+        setInstructors(instsRes || []);
+      } else if (activeTab === 'users') {
+        const usersRes = await adminService.getUsers().catch(err => { console.error("Failed to load users:", err); return []; });
+        setUsers(usersRes || []);
+      } else if (activeTab === 'financial') {
+        const [monthlyRecordsRes, topCoursesRes, financialDetailsRes] = await Promise.all([
+          adminService.getFinancialMonthlyRecords().catch(err => { console.error("Failed to load monthly records:", err); return []; }),
+          adminService.getFinancialTopCourses().catch(err => { console.error("Failed to load top courses:", err); return []; }),
+          adminService.getFinancialDetails().catch(err => { console.error("Failed to load financial details:", err); return null; })
+        ]);
+        setMonthlyRecords(monthlyRecordsRes || []);
+        setTopCourses(topCoursesRes || []);
+        setFinancialDetails(financialDetailsRes);
+      }
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
     } finally {
@@ -776,7 +798,7 @@ export const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, [tab]);
+  }, [activeTab, courseFilter]);
 
 
 
@@ -1832,7 +1854,6 @@ export const AdminDashboard: React.FC = () => {
 
   // Computations for filters
   const filteredCourses = useMemo(() => {
-    if (courseFilter === 'ALL') return courses;
     return courses.filter(c => c.status === courseFilter);
   }, [courses, courseFilter]);
 
@@ -2077,14 +2098,7 @@ export const AdminDashboard: React.FC = () => {
         className={`flex-grow transition-all duration-300 relative z-10 ${isSidebarCollapsed ? 'main-collapsed' : 'main-expanded'
           } min-h-screen flex flex-col`}
       >
-        {loading ? (
-          <div className="flex-grow flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <span className="animate-spin material-symbols-outlined text-4xl text-primary">sync</span>
-              <p className="text-sm text-text-muted font-bold">Synchronizing Admin Panel Data...</p>
-            </div>
-          </div>
-        ) : (activeTab === 'courses' && reviewingCourse) ? (
+        {(activeTab === 'courses' && reviewingCourse) ? (
           <div className="flex-grow flex flex-col bg-[#f0f4f9] animate-fade-in w-full">
             {/* Admin Review Action Banner */}
             <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm sticky top-0 z-20">
@@ -2104,21 +2118,32 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsAiReportModalOpen(true)}
+                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2 border border-indigo-200"
+                >
+                  <span className="material-symbols-outlined text-[18px]">smart_toy</span>
+                  View AI Audit Report
+                </button>
                 <span className="text-xs text-amber-700 font-semibold hidden md:inline">By {reviewingCourse.instructorName} • {reviewingCourse.price.toLocaleString('vi-VN')} ₫</span>
-                <button
-                  onClick={() => handleApproveCourse(reviewingCourse.id, 'APPROVED')}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                  Approve
-                </button>
-                <button
-                  onClick={() => handleApproveCourse(reviewingCourse.id, 'REJECTED')}
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold text-xs px-5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-[16px]">cancel</span>
-                  Reject
-                </button>
+                {reviewingCourse.status === 'PENDING_ADMIN' && (
+                  <>
+                    <button
+                      onClick={() => handleApproveCourse(reviewingCourse.id, 'APPROVED')}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleApproveCourse(reviewingCourse.id, 'REJECTED')}
+                      className="bg-red-500 hover:bg-red-600 text-white font-bold text-xs px-5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">cancel</span>
+                      Reject
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -2132,11 +2157,15 @@ export const AdminDashboard: React.FC = () => {
                     <h1 className="text-2xl md:text-3xl font-display font-black text-brand-blue leading-tight">{reviewingCourse.title}</h1>
                     <p className="text-sm text-text-muted">By {reviewingCourse.instructorName}</p>
                   </div>
-                  <div className="bg-surface py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.04)] border border-gray-100 flex items-center gap-3 shrink-0">
-                    <span className="material-symbols-outlined text-amber-500 bg-amber-50 p-1.5 rounded-lg text-lg">pending</span>
+                  <div className={`bg-surface py-2 px-4 rounded-xl shadow-[0_2px_12px_rgba(26,54,93,0.04)] border border-gray-100 flex items-center gap-3 shrink-0 ${reviewingCourse.status === 'REJECTED' ? 'bg-rose-50 border-rose-100' : ''}`}>
+                    <span className={`material-symbols-outlined p-1.5 rounded-lg text-lg ${reviewingCourse.status === 'REJECTED' ? 'text-rose-500 bg-rose-100' : 'text-amber-500 bg-amber-50'}`}>
+                      {reviewingCourse.status === 'REJECTED' ? 'cancel' : 'pending'}
+                    </span>
                     <div>
-                      <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Status</p>
-                      <p className="text-[15px] font-extrabold text-amber-600 leading-none mt-0.5">Pending Review</p>
+                      <p className={`text-[10px] uppercase tracking-wider font-semibold ${reviewingCourse.status === 'REJECTED' ? 'text-rose-400' : 'text-text-muted'}`}>Status</p>
+                      <p className={`text-[15px] font-extrabold leading-none mt-0.5 ${reviewingCourse.status === 'REJECTED' ? 'text-rose-600' : 'text-amber-600'}`}>
+                        {reviewingCourse.status === 'REJECTED' ? 'Rejected' : 'Pending Review'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2180,8 +2209,7 @@ export const AdminDashboard: React.FC = () => {
                         { key: 'overview', icon: 'info', label: 'Theory Content' },
                         { key: 'qa', icon: 'forum', label: 'Q&A' },
                         { key: 'exercises', icon: 'terminal', label: 'Exercises' },
-                        { key: 'quiz', icon: 'quiz', label: 'Quiz' },
-                        { key: 'ai-moderation', icon: 'smart_toy', label: 'AI Moderation Report' },
+                        { key: 'quiz', icon: 'quiz', label: 'Quiz' }
                       ] as const).map((tab) => (
                         <button
                           key={tab.key}
@@ -2442,103 +2470,7 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                           )}
 
-                          {/* AI Moderation Tab */}
-                          {reviewPlayerTab === 'ai-moderation' && (
-                            <div className="animate-fade-in space-y-6">
-                              <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
-                                <h2 className="text-lg font-bold text-text-main flex items-center gap-2">
-                                  <span className="material-symbols-outlined text-primary">smart_toy</span>
-                                  AI Moderation & Quality Audit Report
-                                </h2>
-                                {reviewModerationReport && (
-                                  <span className={`px-2.5 py-1 text-xs font-black rounded-full uppercase ${
-                                    reviewModerationReport.needsAdminReview 
-                                      ? 'bg-red-100 text-red-700' 
-                                      : 'bg-green-100 text-green-700'
-                                  }`}>
-                                    {reviewModerationReport.needsAdminReview ? 'Needs Admin Review' : 'Auto-Approved Quality'}
-                                  </span>
-                                )}
-                              </div>
-
-                              {loadingModerationReport ? (
-                                <div className="flex flex-col items-center justify-center py-12 gap-2 text-text-muted">
-                                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                  <p className="text-xs">Loading AI report data...</p>
-                                </div>
-                              ) : !reviewModerationReport ? (
-                                <div className="text-center py-8 text-text-muted italic bg-slate-50 border border-gray-200 rounded-xl flex flex-col items-center gap-3">
-                                  <span className="material-symbols-outlined text-[32px] text-gray-400">report_off</span>
-                                  <div>
-                                    <p className="font-semibold text-sm">No Moderation Report Found</p>
-                                    <p className="text-[11px] mt-1">This course has not been moderated by AI yet or the report is missing.</p>
-                                  </div>
-                                  <button
-                                    onClick={async () => {
-                                      setLoadingModerationReport(true);
-                                      try {
-                                        await adminService.triggerAiModeration(reviewingCourse.id);
-                                        showGlobalToast("Manually triggered AI Moderation task! Please wait a moment...", "info");
-                                        setTimeout(() => handleReviewCourse(reviewingCourse), 3000);
-                                      } catch (err) {
-                                        console.error("Failed to trigger moderation:", err);
-                                        showGlobalToast("Failed to trigger AI moderation", "error");
-                                        setLoadingModerationReport(false);
-                                      }
-                                    }}
-                                    className="bg-primary hover:bg-primary-hover text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-all shadow-md"
-                                  >
-                                    Trigger AI Moderation
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="space-y-6">
-                                  {/* Score Overview */}
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-                                      <p className="text-xs text-text-muted font-bold uppercase tracking-wider">Quality Score</p>
-                                      <p className="text-3xl font-black text-primary mt-1">{(reviewModerationReport.qualityScore * 100).toFixed(0)}%</p>
-                                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                                        <div className="bg-primary h-1.5 rounded-full" style={{ width: `${reviewModerationReport.qualityScore * 100}%` }}></div>
-                                      </div>
-                                    </div>
-                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-                                      <p className="text-xs text-text-muted font-bold uppercase tracking-wider">Risk Score</p>
-                                      <p className={`text-3xl font-black mt-1 ${reviewModerationReport.riskScore > 0.4 ? 'text-red-600' : 'text-green-600'}`}>
-                                        {(reviewModerationReport.riskScore * 100).toFixed(0)}%
-                                      </p>
-                                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                                        <div className={`h-1.5 rounded-full ${reviewModerationReport.riskScore > 0.4 ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${reviewModerationReport.riskScore * 100}%` }}></div>
-                                      </div>
-                                    </div>
-                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-                                      <p className="text-xs text-text-muted font-bold uppercase tracking-wider">Confidence Score</p>
-                                      <p className="text-3xl font-black text-slate-700 mt-1">{(reviewModerationReport.confidenceScore * 100).toFixed(0)}%</p>
-                                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                                        <div className="bg-slate-500 h-1.5 rounded-full" style={{ width: `${reviewModerationReport.confidenceScore * 100}%` }}></div>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* AI Rationale */}
-                                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
-                                    <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider mb-2">AI Analysis & Rationale</h3>
-                                    <p className="text-sm text-text-main leading-relaxed whitespace-pre-line bg-white border border-gray-150 p-4 rounded-xl shadow-inner font-medium">
-                                      {reviewModerationReport.reasons || 'No rationale explanation provided by AI.'}
-                                    </p>
-                                  </div>
-
-                                  {/* Error log if present */}
-                                  {reviewModerationReport.errorLog && (
-                                    <div className="bg-red-50 border border-red-200 rounded-xl p-5 text-red-800">
-                                      <h3 className="text-xs font-black uppercase text-red-600 tracking-wider mb-2">Moderation Error Log</h3>
-                                      <pre className="text-xs font-mono bg-white border border-red-150 p-4 rounded-xl overflow-x-auto">{reviewModerationReport.errorLog}</pre>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          {/* Tab removed */}
                         </>
                       )}
                     </div>
@@ -3716,8 +3648,17 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* TAB: DASHBOARD */}
-            {activeTab === 'dashboard' && (
+            {loading ? (
+              <div className="flex-grow flex items-center justify-center min-h-[400px]">
+                <div className="flex flex-col items-center gap-3">
+                  <span className="animate-spin material-symbols-outlined text-4xl text-primary">sync</span>
+                  <p className="text-sm text-text-muted font-bold">Synchronizing Admin Panel Data...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* TAB: DASHBOARD */}
+                {activeTab === 'dashboard' && (
               <div className="flex flex-col gap-8">
                 {/* Stats cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
@@ -4157,8 +4098,8 @@ export const AdminDashboard: React.FC = () => {
 
                       {/* Course Approvals quick preview */}
                       <div className="flex flex-col gap-3">
-                        <h4 className="text-xs font-black text-text-muted uppercase tracking-wider">Pending Courses ({courses.filter(c => c.status === 'PENDING').length})</h4>
-                        {courses.filter(c => c.status === 'PENDING').slice(0, 2).map((c) => (
+                        <h4 className="text-xs font-black text-text-muted uppercase tracking-wider">Pending Courses ({courses.filter(c => c.status === 'PENDING_ADMIN').length})</h4>
+                        {courses.filter(c => c.status === 'PENDING_ADMIN').slice(0, 2).map((c) => (
                           <div key={c.id} className="flex items-center justify-between bg-slate-50/50 border border-slate-100 p-3 rounded-xl">
                             <div className="min-w-0">
                               <p className="text-xs font-bold text-text-main truncate">{c.title}</p>
@@ -4172,7 +4113,7 @@ export const AdminDashboard: React.FC = () => {
                             </button>
                           </div>
                         ))}
-                        {courses.filter(c => c.status === 'PENDING').length === 0 && (
+                        {courses.filter(c => c.status === 'PENDING_ADMIN').length === 0 && (
                           <p className="text-xs text-text-muted italic">No pending course registrations.</p>
                         )}
 
@@ -4201,7 +4142,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                   {/* Status Filters */}
                   <div className="flex gap-2">
-                    {['ALL', 'APPROVED', 'PENDING', 'REJECTED'].map((filterVal) => (
+                    {['APPROVED', 'PENDING_ADMIN', 'PENDING_AI', 'REJECTED'].map((filterVal) => (
                       <button
                         key={filterVal}
                         onClick={() => setCourseFilter(filterVal as any)}
@@ -4223,8 +4164,9 @@ export const AdminDashboard: React.FC = () => {
                         <img src={c.thumbnailUrl} alt={c.title} className="w-full h-40 object-cover border-b border-slate-100" />
                         <div className="p-5 flex flex-col gap-2">
                           <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md self-start ${c.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                            c.status === 'PENDING' ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'
-                            }`}>{c.status}</span>
+                            c.status === 'PENDING_ADMIN' ? 'bg-orange-50 text-orange-500' : 
+                            c.status === 'PENDING_AI' ? 'bg-blue-50 text-blue-500' : 'bg-red-50 text-red-500'
+                            }`}>{c.status === 'PENDING_ADMIN' ? 'WAITING ADMIN' : c.status === 'PENDING_AI' ? 'AI MODERATING' : c.status}</span>
                           <h3 className="font-display font-bold text-base text-brand-blue truncate mt-1">{c.title}</h3>
                           <p className="text-xs text-text-muted line-clamp-2">{c.shortDescription}</p>
                           <div className="flex items-center gap-2 mt-1">
@@ -4257,13 +4199,17 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      {c.status === 'PENDING' && (
+                      {(c.status === 'PENDING_ADMIN' || c.status === 'REJECTED') && (
                         <div className="p-5 pt-0 border-t border-slate-50 mt-2 flex gap-2">
                           <button
                             onClick={() => handleReviewCourse(c)}
-                            className="flex-1 text-xs bg-primary hover:bg-primary-hover text-white font-bold py-2 rounded-xl transition-all"
+                            className={`flex-1 text-xs text-white font-bold py-2 rounded-xl transition-all ${
+                              c.status === 'REJECTED' 
+                                ? 'bg-rose-500 hover:bg-rose-600' 
+                                : 'bg-primary hover:bg-primary-hover'
+                            }`}
                           >
-                            Review & Approve
+                            {c.status === 'REJECTED' ? 'View Moderation Report' : 'Review & Approve'}
                           </button>
                         </div>
                       )}
@@ -5321,6 +5267,8 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>              </div>
             )}
+              </>
+            )}
           </main>
         )}
       </div>
@@ -6293,6 +6241,159 @@ export const AdminDashboard: React.FC = () => {
                 className="px-6 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs cursor-pointer"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: View AI Audit Report */}
+      {isAiReportModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+            onClick={() => setIsAiReportModalOpen(false)}
+          ></div>
+          
+          <div className="bg-surface w-full max-w-4xl max-h-[85vh] rounded-3xl shadow-2xl relative z-[101] animate-scale-in flex flex-col overflow-hidden border border-slate-200/50">
+            {/* Modal Header */}
+            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
+              <div>
+                <h3 className="text-xl font-display font-black text-brand-blue flex items-center gap-2">
+                  <span className="material-symbols-outlined text-indigo-600 text-2xl">smart_toy</span> 
+                  AI Moderation Audit Report
+                </h3>
+                <p className="text-xs text-text-muted mt-1 font-medium">Detailed AI analysis of course content and quality</p>
+              </div>
+              <button 
+                onClick={() => setIsAiReportModalOpen(false)}
+                className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 overflow-y-auto bg-slate-50 flex-1">
+              {loadingModerationReport ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 text-text-muted">
+                  <div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                  <p className="text-sm font-bold">Loading AI report data...</p>
+                </div>
+              ) : !parsedAiReport ? (
+                <div className="text-center py-16 text-text-muted italic bg-white border border-gray-200 rounded-2xl flex flex-col items-center gap-4">
+                  <span className="material-symbols-outlined text-[48px] text-gray-300">report_off</span>
+                  <div>
+                    <p className="font-bold text-base text-slate-700">No Moderation Report Found</p>
+                    <p className="text-xs mt-1 max-w-sm">This course has not been moderated by AI yet, or the report is missing.</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      setLoadingModerationReport(true);
+                      try {
+                        await adminService.triggerAiModeration(reviewingCourse?.id as string);
+                        showGlobalToast("Manually triggered AI Moderation task! Please wait a moment...", "info");
+                        setTimeout(() => handleReviewCourse(reviewingCourse as AdminCourse), 3000);
+                      } catch (err) {
+                        console.error("Failed to trigger moderation:", err);
+                        showGlobalToast("Failed to trigger AI moderation", "error");
+                        setLoadingModerationReport(false);
+                      }
+                    }}
+                    className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">bolt</span>
+                    Trigger AI Moderation Now
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Status Banner */}
+                  <div className={`p-5 rounded-2xl border flex items-start gap-4 ${
+                    parsedAiReport.isClean 
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-rose-50 border-rose-200 text-rose-800'
+                  }`}>
+                    <span className="material-symbols-outlined text-3xl mt-0.5">
+                      {parsedAiReport.isClean ? 'verified_user' : 'gpp_bad'}
+                    </span>
+                    <div>
+                      <h4 className="font-black text-lg">
+                        {parsedAiReport.isClean ? 'AI Assessment: CLEAN (Approved)' : 'AI Assessment: VIOLATIONS DETECTED (Rejected)'}
+                      </h4>
+                      <p className="text-sm font-medium mt-1 opacity-90">
+                        {parsedAiReport.isClean 
+                          ? 'This course meets all quality standards and policies.' 
+                          : 'This course violates one or more platform policies and cannot be automatically approved.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Course Level Violations */}
+                  {parsedAiReport.courseViolations && parsedAiReport.courseViolations.length > 0 && (
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="bg-slate-100 px-5 py-3 border-b border-slate-200">
+                        <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-rose-500">warning</span>
+                          Course-Level Violations
+                        </h4>
+                      </div>
+                      <ul className="divide-y divide-slate-100">
+                        {parsedAiReport.courseViolations.map((v: string, idx: number) => (
+                          <li key={idx} className="p-4 px-5 text-sm font-medium text-slate-700 flex items-start gap-3">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-2 shrink-0"></span>
+                            {v}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Lesson Level Violations */}
+                  {parsedAiReport.lessonViolations && parsedAiReport.lessonViolations.length > 0 && (
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="bg-slate-100 px-5 py-3 border-b border-slate-200">
+                        <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-orange-500">menu_book</span>
+                          Lesson-Level Violations
+                        </h4>
+                      </div>
+                      <div className="p-5 grid gap-4">
+                        {parsedAiReport.lessonViolations.map((lv: any, idx: number) => (
+                          <div key={idx} className="bg-orange-50/50 border border-orange-100 p-4 rounded-xl">
+                            <h5 className="font-bold text-orange-900 text-sm mb-1">
+                              Lesson ID: {lv.lessonId} - {lv.lessonTitle}
+                            </h5>
+                            <div className="mt-2 text-[10px] font-black px-2 py-1 bg-white text-orange-700 border border-orange-200 inline-block rounded-lg uppercase tracking-wider mb-2">
+                              {lv.violationType}
+                            </div>
+                            <p className="text-sm font-medium text-slate-700">
+                              <span className="font-bold text-slate-900">Reason:</span> {lv.reason}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* If no violations but isClean is false, show fallback */}
+                  {!parsedAiReport.isClean && (!parsedAiReport.courseViolations || parsedAiReport.courseViolations.length === 0) && (!parsedAiReport.lessonViolations || parsedAiReport.lessonViolations.length === 0) && (
+                     <div className="bg-white p-5 rounded-2xl border border-rose-200 text-rose-700 font-medium text-sm">
+                       The AI rejected this course, but no specific violation details were provided in the report.
+                     </div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="px-8 py-5 border-t border-slate-100 bg-white flex justify-end items-center rounded-b-3xl gap-3">
+              <button
+                type="button"
+                onClick={() => setIsAiReportModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs cursor-pointer"
+              >
+                Close Report
               </button>
             </div>
           </div>

@@ -3,8 +3,9 @@ package com.swp391.coding_platform.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
-import java.util.List;
 
 @Getter
 @Setter
@@ -23,29 +24,12 @@ public class CourseModerationReportEntity {
     @Column(name = "course_id", nullable = false, unique = true)
     Long courseId;
 
-    @Column(name = "quality_score", nullable = false)
-    Double qualityScore;
+    @Column(name = "status")
+    String status;
 
-    @Column(name = "risk_score", nullable = false)
-    Double riskScore;
-
-    @Column(name = "confidence_score", nullable = false)
-    Double confidenceScore;
-
-    @Column(name = "needs_admin_review", nullable = false)
-    Boolean needsAdminReview;
-
-    // Sử dụng ElementCollection để lưu danh sách các danh mục vi phạm dạng String trong DB
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-        name = "course_moderation_flagged_categories",
-        joinColumns = @JoinColumn(name = "report_id")
-    )
-    @Column(name = "category")
-    List<String> flaggedCategories;
-
-    @Column(name = "reasons", nullable = false, columnDefinition = "TEXT")
-    String reasons;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "report_json", columnDefinition = "jsonb")
+    String reportJson;
 
     @Column(name = "error_log", columnDefinition = "TEXT")
     String errorLog;

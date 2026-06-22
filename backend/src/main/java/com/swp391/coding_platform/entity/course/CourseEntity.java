@@ -32,8 +32,11 @@ public class CourseEntity {
     @Column(name = "title", nullable = false, length = 255)
     String title;
 
-    @Column(name = "thumbnail_url", nullable = false, length = 255)
+    @Column(name = "thumbnail_url", length = 255)
     String thumbnailUrl;
+
+    @Column(name = "text_audio", columnDefinition = "TEXT")
+    String textAudio;
 
     @Column(name = "short_description", nullable = false, length = 255)
     String shortDescription;
@@ -62,7 +65,7 @@ public class CourseEntity {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(name = "status")
-    CourseStatus status = CourseStatus.PENDING;
+    CourseStatus status = CourseStatus.DRAFTS;
 
     @Builder.Default
     @Column(name = "price", nullable = false, precision = 15, scale = 2)

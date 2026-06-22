@@ -9,10 +9,19 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ModerationResult {
-    private Double qualityScore;      // Điểm chất lượng (0.00 -> 1.00)
-    private Double riskScore;         // Điểm rủi ro (0.00 -> 1.00)
-    private Double confidenceScore;   // Điểm tin cậy (0.00 -> 1.00)
-    private List<String> flaggedCategories; // Danh mục vi phạm chính sách
-    private String reasons;           // Lý giải chi tiết từ LLM
-    private String recommendedAction; // Hành động kiến nghị: APPROVE, REJECT, REVIEW
+    private Boolean isClean;
+    private List<String> courseViolations;
+    private List<LessonViolation> lessonViolations;
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LessonViolation {
+        private Long lessonId;
+        private String lessonTitle;
+        private String violationType;
+        private String reason;
+    }
 }

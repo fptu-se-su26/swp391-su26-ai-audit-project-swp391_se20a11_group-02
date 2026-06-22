@@ -139,7 +139,7 @@ public class InstructorCourseService {
             String status = "draft";
             if ("APPROVED".equalsIgnoreCase(course.getStatus().name())) {
                 status = "published";
-            } else if ("PENDING".equalsIgnoreCase(course.getStatus().name())) {
+            } else if ("PENDING_AI".equalsIgnoreCase(course.getStatus().name()) || "PENDING_ADMIN".equalsIgnoreCase(course.getStatus().name())) {
                 status = "review";
             } else if ("REJECTED".equalsIgnoreCase(course.getStatus().name())) {
                 status = "rejected";
@@ -199,8 +199,8 @@ public class InstructorCourseService {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        // 3. Đổi status sang PENDING và lưu
-        course.setStatus(CourseStatus.PENDING);
+        // 3. Đổi status sang PENDING_AI và lưu
+        course.setStatus(CourseStatus.PENDING_AI);
         
         if (course.getChapters() != null) {
             for (var chapter : course.getChapters()) {
@@ -219,17 +219,23 @@ public class InstructorCourseService {
 
         // 4. Đẩy courseId vào RabbitMQ để kích hoạt AI Moderation Pipeline
         try {
+            java.util.Map<String, Object> msg = new java.util.HashMap<>();
+            msg.put("type", "FULL_COURSE");
+            msg.put("courseId", courseId);
             rabbitTemplate.convertAndSend(
                     ModerationQueueConfig.MODERATION_EXCHANGE,
                     ModerationQueueConfig.MODERATION_ROUTING_KEY,
-                    courseId
+                    msg
             );
             log.info("Đã gửi courseId {} vào RabbitMQ queue để AI kiểm duyệt", courseId);
         } catch (Exception e) {
             log.error("Không thể kết nối RabbitMQ: {}. Khởi chạy luồng kiểm duyệt AI nền dự phòng (CompletableFuture)...", e.getMessage());
             java.util.concurrent.CompletableFuture.runAsync(() -> {
                 try {
-                    courseModerationListener.processCourseModeration(courseId);
+                    java.util.Map<String, Object> msg = new java.util.HashMap<>();
+                    msg.put("type", "FULL_COURSE");
+                    msg.put("courseId", courseId);
+                    courseModerationListener.processCourseModeration(msg);
                 } catch (Exception ex) {
                     log.error("Lỗi trong luồng kiểm duyệt AI nền dự phòng cho khóa học ID: {}", courseId, ex);
                 }
@@ -242,17 +248,23 @@ public class InstructorCourseService {
      */
     public void triggerModerationForNewCourse(Long courseId) {
         try {
+            java.util.Map<String, Object> msg = new java.util.HashMap<>();
+            msg.put("type", "FULL_COURSE");
+            msg.put("courseId", courseId);
             rabbitTemplate.convertAndSend(
                     ModerationQueueConfig.MODERATION_EXCHANGE,
                     ModerationQueueConfig.MODERATION_ROUTING_KEY,
-                    courseId
+                    msg
             );
             log.info("Đã gửi courseId {} vào RabbitMQ queue để AI kiểm duyệt (khóa học mới)", courseId);
         } catch (Exception e) {
             log.error("Không thể kết nối RabbitMQ: {}. Khởi chạy luồng kiểm duyệt AI nền dự phòng cho khóa học mới...", e.getMessage());
             java.util.concurrent.CompletableFuture.runAsync(() -> {
                 try {
-                    courseModerationListener.processCourseModeration(courseId);
+                    java.util.Map<String, Object> msg = new java.util.HashMap<>();
+                    msg.put("type", "FULL_COURSE");
+                    msg.put("courseId", courseId);
+                    courseModerationListener.processCourseModeration(msg);
                 } catch (Exception ex) {
                     log.error("Lỗi trong luồng kiểm duyệt AI nền dự phòng (khóa học mới) cho khóa học ID: {}", courseId, ex);
                 }
@@ -369,7 +381,22 @@ public class InstructorCourseService {
                         if (course.getStatus() == com.swp391.coding_platform.entity.enums.CourseStatus.DRAFTS) {
                             lesEntity.setStatus(null);
                         } else if (isExistingChanged) {
-                            lesEntity.setStatus(com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE);
+                            lesEntity.setStatus(com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE);
+                            
+                            if (lesEntity.getId() != null) {
+                                try {
+                                    java.util.Map<String, Object> msg = new java.util.HashMap<>();
+                                    msg.put("type", "SINGLE_LESSON");
+                                    msg.put("lessonId", lesEntity.getId());
+                                    rabbitTemplate.convertAndSend(
+                                            ModerationQueueConfig.MODERATION_EXCHANGE,
+                                            ModerationQueueConfig.MODERATION_ROUTING_KEY,
+                                            msg
+                                    );
+                                } catch(Exception e) {
+                                    log.error("Failed to send SINGLE_LESSON msg to rabbitmq", e);
+                                }
+                            }
                         }
 
                         lesEntity.setTitle(lesDto.getTitle());
@@ -477,6 +504,11 @@ public class InstructorCourseService {
 
                                 if (qDto.getId() != null && String.valueOf(qDto.getId()).length() < 10) {
                                     qEntity = existingQuizzes.stream().filter(q -> qDto.getId().longValue() == q.getId().longValue()).findFirst().orElse(null);
+                                }
+                                
+                                if (qEntity == null && !existingQuizzes.isEmpty() && existingQuizzes.size() > qIdx) {
+                                    // Reuse existing quiz to avoid UNIQUE constraint violation on lesson_id during Hibernate flush
+                                    qEntity = existingQuizzes.get(qIdx);
                                 }
 
                                 if (qEntity == null) {
@@ -589,6 +621,8 @@ public class InstructorCourseService {
             status = "published";
         } else if ("PENDING".equalsIgnoreCase(saved.getStatus().name())) {
             status = "review";
+        } else if ("REJECTED".equalsIgnoreCase(saved.getStatus().name())) {
+            status = "rejected";
         }
         String gradient = "from-orange-400 to-primary";
         if (saved.getId() % 3 == 0) gradient = "from-blue-500 to-indigo-600";

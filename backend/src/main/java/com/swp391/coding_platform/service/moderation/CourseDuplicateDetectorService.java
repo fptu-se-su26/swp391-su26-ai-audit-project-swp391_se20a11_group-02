@@ -74,7 +74,7 @@ public class CourseDuplicateDetectorService {
     }
 
     // 3. Đối chiếu trùng lặp khóa học
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public DuplicationCheckResult checkDuplication(Long courseId, String courseText) {
         log.info("Bắt đầu kiểm tra trùng lặp cho khóa học ID: {}", courseId);
         try {

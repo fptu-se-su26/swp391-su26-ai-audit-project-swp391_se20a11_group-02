@@ -3,6 +3,7 @@ package com.swp391.coding_platform.configuration;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -59,10 +60,13 @@ public class ModerationQueueConfig {
      * defaultRequeueRejected=false: message bị reject sẽ vào DLQ thay vì requeue vô hạn.
      */
     @Bean("moderationContainerFactory")
-    public SimpleRabbitListenerContainerFactory moderationContainerFactory(ConnectionFactory connectionFactory) {
+    public SimpleRabbitListenerContainerFactory moderationContainerFactory(
+            ConnectionFactory connectionFactory,
+            MessageConverter messageConverter) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setDefaultRequeueRejected(false); // Không requeue khi listener fail → vào DLQ
+        factory.setMessageConverter(messageConverter);
         return factory;
     }
 }
