@@ -847,9 +847,6 @@ export interface LearningLessonResponse {
   title: string;
   videoUrl: string;
   theoryContent: string;
-  sourceCode?: string;
-  problems?: any[];
-  quiz?: any;
   exercises?: any[];
   status?: string;
 }

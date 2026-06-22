@@ -263,6 +263,7 @@ public class ContestServiceTest {
 
         when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
         when(problemSubmissionRepository.countByContestId(contestId)).thenReturn(0L);
+        when(contestProblemRepository.findByContestIdWithProblem(contestId)).thenReturn(Collections.emptyList());
 
         // Act
         contestService.hardDeleteAdminContest(contestId);

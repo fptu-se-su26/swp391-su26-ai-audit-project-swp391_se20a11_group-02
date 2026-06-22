@@ -1,20 +1,15 @@
 package com.swp391.coding_platform.service.instructor;
 
-import com.swp391.coding_platform.configuration.ModerationQueueConfig;
 import com.swp391.coding_platform.dto.response.InstructorCourseResponse;
 import com.swp391.coding_platform.entity.course.CourseEntity;
-import com.swp391.coding_platform.entity.enums.CourseStatus;
 import com.swp391.coding_platform.entity.instructor.InstructorEntity;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.repository.course.CourseRepository;
 import com.swp391.coding_platform.repository.instructor.InstructorRepository;
-import com.swp391.coding_platform.service.moderation.CourseModerationListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +18,7 @@ import com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse;
 import com.swp391.coding_platform.mapper.CourseMapper;
 import java.util.stream.Collectors;
 import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
+import com.swp391.coding_platform.entity.enums.CourseStatus;
 import java.time.Instant;
 import com.swp391.coding_platform.service.judge0.Judge0ClientService;
 import com.swp391.coding_platform.dto.request.TestcaseGeneratorRequest;
@@ -38,7 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class InstructorCourseService {
     private final InstructorRepository instructorRepository;
     private final CourseRepository courseRepository;
-    private final RabbitTemplate rabbitTemplate;
     private final CourseMapper courseMapper;
     private final com.swp391.coding_platform.repository.course.ChapterRepository chapterRepository;
     private final com.swp391.coding_platform.repository.course.LessonRepository lessonRepository;
@@ -48,7 +43,6 @@ public class InstructorCourseService {
     private final com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository completedLessonCountRepository;
     private final com.swp391.coding_platform.repository.category.CategoryRepository categoryRepository;
     private final Judge0ClientService judge0ClientService;
-    private final CourseModerationListener courseModerationListener;
 
     public InstructorCourseDetailResponse getCourseDetail(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
@@ -141,8 +135,6 @@ public class InstructorCourseService {
                 status = "published";
             } else if ("PENDING".equalsIgnoreCase(course.getStatus().name())) {
                 status = "review";
-            } else if ("REJECTED".equalsIgnoreCase(course.getStatus().name())) {
-                status = "rejected";
             }
 
             // Map gradient & icon based on topic/id
@@ -181,25 +173,15 @@ public class InstructorCourseService {
         return responses;
     }
 
-    /**
-     * Instructor nộp khóa học để AI kiểm duyệt.
-     * Chỉ cho phép nộp khi đang là DRAFTS hoặc REJECTED.
-     */
-    @Transactional
     public void submitCourseForReview(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
-
-        // 1. Kiểm tra khóa học tồn tại và thuộc về instructor này
         CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
-        // 2. Chỉ cho phép nộp khi đang là DRAFTS hoặc REJECTED
-        if (course.getStatus() != CourseStatus.DRAFTS && course.getStatus() != CourseStatus.REJECTED) {
-            log.warn("Không thể submit khóa học {} với trạng thái hiện tại: {}", courseId, course.getStatus());
-            throw new AppException(ErrorCode.INVALID_REQUEST);
+        if (course.getStatus() != CourseStatus.DRAFTS) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION); // Replace with specific code if needed
         }
 
-        // 3. Đổi status sang PENDING và lưu
         course.setStatus(CourseStatus.PENDING);
         
         if (course.getChapters() != null) {
@@ -215,56 +197,17 @@ public class InstructorCourseService {
         }
         
         courseRepository.save(course);
-        log.info("Instructor {} đã nộp khóa học {} để kiểm duyệt", userId, courseId);
-
-        // 4. Đẩy courseId vào RabbitMQ để kích hoạt AI Moderation Pipeline
-        try {
-            rabbitTemplate.convertAndSend(
-                    ModerationQueueConfig.MODERATION_EXCHANGE,
-                    ModerationQueueConfig.MODERATION_ROUTING_KEY,
-                    courseId
-            );
-            log.info("Đã gửi courseId {} vào RabbitMQ queue để AI kiểm duyệt", courseId);
-        } catch (Exception e) {
-            log.error("Không thể kết nối RabbitMQ: {}. Khởi chạy luồng kiểm duyệt AI nền dự phòng (CompletableFuture)...", e.getMessage());
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                try {
-                    courseModerationListener.processCourseModeration(courseId);
-                } catch (Exception ex) {
-                    log.error("Lỗi trong luồng kiểm duyệt AI nền dự phòng cho khóa học ID: {}", courseId, ex);
-                }
-            });
-        }
     }
 
-    /**
-     * Kích hoạt AI kiểm duyệt ngay khi khóa học vừa được tạo mới (status mặc định PENDING).
-     */
-    public void triggerModerationForNewCourse(Long courseId) {
-        try {
-            rabbitTemplate.convertAndSend(
-                    ModerationQueueConfig.MODERATION_EXCHANGE,
-                    ModerationQueueConfig.MODERATION_ROUTING_KEY,
-                    courseId
-            );
-            log.info("Đã gửi courseId {} vào RabbitMQ queue để AI kiểm duyệt (khóa học mới)", courseId);
-        } catch (Exception e) {
-            log.error("Không thể kết nối RabbitMQ: {}. Khởi chạy luồng kiểm duyệt AI nền dự phòng cho khóa học mới...", e.getMessage());
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                try {
-                    courseModerationListener.processCourseModeration(courseId);
-                } catch (Exception ex) {
-                    log.error("Lỗi trong luồng kiểm duyệt AI nền dự phòng (khóa học mới) cho khóa học ID: {}", courseId, ex);
-                }
-            });
-        }
-    }
-
-    @Transactional
     public InstructorCourseResponse updateCourse(Integer userId, Long courseId, com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest request) {
         InstructorEntity instructor = getInstructorByUserId(userId);
         CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        // Allow editing even if it's PENDING, so they don't get errors when saving multiple times.
+        // if (course.getStatus() == CourseStatus.PENDING) {
+        //     throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        // }
 
         // Update all editable fields
         if (request.getTitle() != null) course.setTitle(request.getTitle());
@@ -315,7 +258,7 @@ public class InstructorCourseService {
                 com.swp391.coding_platform.entity.course.ChapterEntity chEntity;
 
                 if (chDto.getId() != null) {
-                    chEntity = existingChapters.stream().filter(c -> c.getId().longValue() == chDto.getId().longValue()).findFirst().orElse(null);
+                    chEntity = existingChapters.stream().filter(c -> c.getId().equals(chDto.getId())).findFirst().orElse(null);
                     if (chEntity == null) {
                         chEntity = new com.swp391.coding_platform.entity.course.ChapterEntity();
                         chEntity.setCourse(course);
@@ -344,7 +287,7 @@ public class InstructorCourseService {
                         boolean isExistingChanged = false;
 
                         if (lesDto.getId() != null) {
-                            lesEntity = existingLessons.stream().filter(l -> l.getId().longValue() == lesDto.getId().longValue()).findFirst().orElse(null);
+                            lesEntity = existingLessons.stream().filter(l -> l.getId().equals(lesDto.getId())).findFirst().orElse(null);
                             if (lesEntity != null) {
                                 if (course.getStatus() == com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && 
                                     lesEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE) {
@@ -394,7 +337,7 @@ public class InstructorCourseService {
                                 com.swp391.coding_platform.entity.problem.ProblemEntity problemEntity = null;
 
                                 if (exDto.getId() != null && String.valueOf(exDto.getId()).length() < 10) {
-                                    lpEntity = existingExercises.stream().filter(e -> exDto.getId().longValue() == e.getProblem().getId().longValue()).findFirst().orElse(null);
+                                    lpEntity = existingExercises.stream().filter(e -> exDto.getId().equals(e.getProblem().getId())).findFirst().orElse(null);
                                 }
                                 
                                 if (lpEntity != null) {
@@ -476,7 +419,7 @@ public class InstructorCourseService {
                                 com.swp391.coding_platform.entity.course.QuizEntity qEntity = null;
 
                                 if (qDto.getId() != null && String.valueOf(qDto.getId()).length() < 10) {
-                                    qEntity = existingQuizzes.stream().filter(q -> qDto.getId().longValue() == q.getId().longValue()).findFirst().orElse(null);
+                                    qEntity = existingQuizzes.stream().filter(q -> qDto.getId().equals(q.getId())).findFirst().orElse(null);
                                 }
 
                                 if (qEntity == null) {
@@ -499,7 +442,7 @@ public class InstructorCourseService {
                                         com.swp391.coding_platform.entity.course.QuizQuestionEntity qtEntity = null;
 
                                         if (qtDto.getId() != null && String.valueOf(qtDto.getId()).length() < 10) {
-                                            qtEntity = qEntity.getQuestions().stream().filter(qt -> qtDto.getId().longValue() == qt.getId().longValue()).findFirst().orElse(null);
+                                            qtEntity = qEntity.getQuestions().stream().filter(qt -> qtDto.getId().equals(qt.getId())).findFirst().orElse(null);
                                         }
 
                                         if (qtEntity == null) {
@@ -644,7 +587,7 @@ public class InstructorCourseService {
             } else if (response.getStderr() != null && !response.getStderr().trim().isEmpty()) {
                 errorMsg += "\nRuntime Error:\n" + response.getStderr();
             }
-            throw new RuntimeException(errorMsg);
+            throw new RuntimeException(errorMsg); // using RuntimeException so frontend gets 400 or 500
         }
 
         String stdout = response.getStdout() != null ? response.getStdout() : "";
@@ -655,6 +598,11 @@ public class InstructorCourseService {
             block = block.trim();
             if (block.isEmpty()) continue;
             
+            // Expected block format:
+            // INPUT:
+            // <input string>
+            // OUTPUT:
+            // <output string>
             int inputIdx = block.indexOf("INPUT:");
             int outputIdx = block.indexOf("OUTPUT:");
             
@@ -663,7 +611,7 @@ public class InstructorCourseService {
                 String outputStr = block.substring(outputIdx + 7).trim();
                 
                 TestcaseDto tc = new TestcaseDto();
-                tc.setId((long)(Math.random() * 1000000));
+                tc.setId((int)(Math.random() * 1000000));
                 tc.setInput(inputStr);
                 tc.setOutput(outputStr);
                 testcases.add(tc);
@@ -682,12 +630,12 @@ public class InstructorCourseService {
     public com.swp391.coding_platform.dto.response.CourseStatisticResponse getCourseStatistics(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
         CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+                .orElseThrow(() -> new com.swp391.coding_platform.exception.AppException(com.swp391.coding_platform.exception.ErrorCode.COURSE_NOT_FOUND));
 
-        BigDecimal revenue = course.getPrice() != null ? course.getPrice().multiply(BigDecimal.valueOf(course.getTotalEnrolled())) : BigDecimal.ZERO;
+        java.math.BigDecimal revenue = course.getPrice() != null ? course.getPrice().multiply(java.math.BigDecimal.valueOf(course.getTotalEnrolled())) : java.math.BigDecimal.ZERO;
 
-        List<com.swp391.coding_platform.entity.course.EnrollmentEntity> enrollments = enrollmentRepository.findByCourseId(courseId);
-        List<com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity> progressList = completedLessonCountRepository.findByCourseId(courseId);
+        java.util.List<com.swp391.coding_platform.entity.course.EnrollmentEntity> enrollments = enrollmentRepository.findByCourseId(courseId);
+        java.util.List<com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity> progressList = completedLessonCountRepository.findByCourseId(courseId);
 
         java.util.Map<Integer, Integer> userProgressMap = progressList.stream()
                 .collect(java.util.stream.Collectors.toMap(
@@ -696,7 +644,7 @@ public class InstructorCourseService {
                         (existing, replacement) -> existing
                 ));
 
-        List<com.swp391.coding_platform.dto.response.CourseStatisticResponse.StudentProgressDto> studentStats = new ArrayList<>();
+        java.util.List<com.swp391.coding_platform.dto.response.CourseStatisticResponse.StudentProgressDto> studentStats = new java.util.ArrayList<>();
         double totalCompletionPercentage = 0.0;
         int validStudents = 0;
         
