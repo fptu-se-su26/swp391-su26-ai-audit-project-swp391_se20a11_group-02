@@ -76,7 +76,10 @@ public class CourseController {
 
         Long userId = null;
         if (jwt != null) {
-            userId = jwt.getClaim("userId");
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.longValue();
+            }
         }
 
         var result = courseService.getCourseDetail(userId, id);
@@ -97,7 +100,10 @@ public class CourseController {
 
         Long userId = null;
         if (jwt != null) {
-            userId = jwt.getClaim("userId");
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.longValue();
+            }
         }
 
         var result = courseService.getCourseCurriculum(userId, id);

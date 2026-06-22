@@ -69,6 +69,7 @@ public class ContestService {
     com.swp391.coding_platform.repository.contest.ContestRankingRepository contestRankingRepository;
     org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
+
     private String calculateStatus(ContestEntity contest, Instant now) {
         if (contest.getStatus() == ContestStatus.DELETED) {
             return "DELETED";

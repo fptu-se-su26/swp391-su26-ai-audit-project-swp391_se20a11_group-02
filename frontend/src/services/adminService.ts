@@ -976,6 +976,43 @@ export const adminService = {
     return data.result;
   },
 
+  async getContestSubmissions(contestId: number): Promise<any[]> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/contests/${contestId}/submissions`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch contest submissions');
+    }
+    const data = await response.json();
+    return data.result || [];
+  },
+
+  async getContestScoreboard(contestId: number): Promise<any> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/v1/contests/${contestId}/scoreboard`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch contest scoreboard');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getCourseModerationReport(courseId: number | string): Promise<any> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/moderation/report/${courseId}`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch AI moderation report');
+    }
+    return response.json();
+  },
+
+  async triggerAiModeration(courseId: number | string): Promise<any> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/moderation/test/${courseId}`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to trigger AI moderation');
+    }
+    return response.json();
+  },
+
   // Contests
   async getContests(): Promise<AdminContest[]> {
     try {

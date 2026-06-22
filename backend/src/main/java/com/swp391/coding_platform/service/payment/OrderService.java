@@ -38,7 +38,6 @@ import java.util.Set;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderService {
 
@@ -48,6 +47,22 @@ public class OrderService {
     WalletRepository walletRepository;
     WalletTransactionRepository walletTransactionRepository;
     OrderRepository orderRepository;
+
+    public OrderService(
+            UserRepository userRepository,
+            CourseRepository courseRepository,
+            EnrollmentRepository enrollmentRepository,
+            WalletRepository walletRepository,
+            WalletTransactionRepository walletTransactionRepository,
+            OrderRepository orderRepository
+    ) {
+        this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.walletRepository = walletRepository;
+        this.walletTransactionRepository = walletTransactionRepository;
+        this.orderRepository = orderRepository;
+    }
 
     @Transactional
     public OrderCheckoutResponse createCheckout(Integer userId, OrderCheckoutRequest request) {
