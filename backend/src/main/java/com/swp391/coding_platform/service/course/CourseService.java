@@ -392,6 +392,13 @@ public class CourseService {
         LearningLessonResponse response = courseMapper.toLearningLessonResponse(lesson);
         response.setSourceCode(null);
 
+        if (lesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ||
+                lesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE) {
+            response.setProblems(new ArrayList<>());
+            response.setQuiz(null);
+            return response;
+        }
+
         // Fetch coding problems linked to this lesson
         List<com.swp391.coding_platform.entity.course.LessonProblemEntity> lessonProblems = 
                 lessonProblemRepository.findByLessonIdOrderByOrderIndexAsc(lessonId);

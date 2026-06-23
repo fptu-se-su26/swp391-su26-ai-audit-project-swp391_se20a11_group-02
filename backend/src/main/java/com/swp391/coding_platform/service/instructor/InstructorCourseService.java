@@ -358,15 +358,11 @@ public class InstructorCourseService {
                         if (lesDto.getId() != null) {
                             lesEntity = existingLessons.stream().filter(l -> l.getId().longValue() == lesDto.getId().longValue()).findFirst().orElse(null);
                             if (lesEntity != null) {
-                                if (course.getStatus() == com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED && 
-                                    lesEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE) {
-                                    updatedLessons.add(lesEntity);
-                                    continue;
-                                }
                                 if (!java.util.Objects.equals(lesEntity.getTitle(), lesDto.getTitle()) ||
                                     !java.util.Objects.equals(lesEntity.getTheoryContent(), lesDto.getTheory()) ||
                                     !java.util.Objects.equals(lesEntity.getVideoUrl(), lesDto.getVideo()) ||
-                                    !java.util.Objects.equals(lesEntity.getIsTrial(), lesDto.getIsTrial() != null ? lesDto.getIsTrial() : false)) {
+                                    !java.util.Objects.equals(lesEntity.getIsTrial(), lesDto.getIsTrial() != null ? lesDto.getIsTrial() : false) ||
+                                    lesEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE) {
                                     isExistingChanged = true;
                                 }
                             } else {

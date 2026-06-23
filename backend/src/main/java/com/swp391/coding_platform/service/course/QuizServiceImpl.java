@@ -37,6 +37,12 @@ public class QuizServiceImpl implements QuizService {
         QuizEntity quiz = quizRepository.findByLessonId(lessonId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
 
+        if (quiz.getLesson() != null && (
+                quiz.getLesson().getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ||
+                quiz.getLesson().getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE)) {
+            throw new AppException(ErrorCode.QUIZ_NOT_FOUND);
+        }
+
         List<QuizQuestionEntity> questions = quizQuestionRepository.findByQuizIdWithOptions(quiz.getId());
         
         Optional<QuizAttemptEntity> attemptOpt = quizAttemptRepository

@@ -5034,14 +5034,14 @@ export const InstructorDashboard: React.FC = () => {
                              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
                            </div>
                            <div className="flex flex-col mt-0.5">
-                             <h4 className="text-sm font-black text-brand-blue tracking-tight">Lesson Locked (Pending Review)</h4>
-                             <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">This lesson is currently inactive and waiting for admin approval. You can view the contents but cannot make edits.</p>
+                             <h4 className="text-sm font-black text-brand-blue tracking-tight">Lesson Rejected / Inactive</h4>
+                             <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">This lesson has been rejected by AI or is inactive. You can update the content and click "Save" to trigger AI re-check.</p>
                            </div>
                         </div>
                       </div>
                     )}
                     
-                    <div className={instructorCourses.find(c => c.id === workspaceCourseId)?.status === 'published' && selectedItem.type === 'lesson' && activeLesson?.status === 'INACTIVE' ? 'pointer-events-none opacity-80 grayscale-[10%] select-none' : ''}>
+                    <div>
                       {/* TAB 1: Overview */}
                       {editorTab === 'overview' && (
                         <div className="flex flex-col gap-5">

@@ -135,17 +135,15 @@ public class CourseModerationService {
             // 2. Chờ tất cả luồng dịch video hoàn thành
             CompletableFuture.allOf(transcriptionFutures.toArray(new CompletableFuture[0])).join();
 
-            // Lấy toàn bộ text audio gom lại lưu vào course.textAudio để kiểm tra
-            StringBuilder allTextAudio = new StringBuilder();
-            for (CourseModerationPayload.ChapterPayload cp : payload.getChapters()) {
-                for (CourseModerationPayload.LessonPayload lp : cp.getLessons()) {
-                    if (lp.getVideoTranscript() != null && !lp.getVideoTranscript().isBlank()) {
-                        allTextAudio.append("--- Bài học: ").append(lp.getLessonTitle()).append(" ---\n")
-                                .append(lp.getVideoTranscript()).append("\n\n");
-                    }
+            // Lưu text_audio vào từng bài học tương ứng và không lưu ở course nữa
+            for (ChapterEntity chapter : chapters) {
+                if (chapter.getLessons() == null) continue;
+                for (LessonEntity lesson : chapter.getLessons()) {
+                    String transcript = findTranscriptForLesson(payload, lesson.getId());
+                    lesson.setTextAudio(transcript);
+                    lessonRepository.save(lesson);
                 }
             }
-            course.setTextAudio(allTextAudio.toString());
 
             // 3. Gửi payload lên AI
             ModerationResult result = aiEvaluationService.evaluateCourse(payload);
@@ -177,7 +175,10 @@ public class CourseModerationService {
 
         CourseEntity course = lesson.getChapter().getCourse();
         CourseModerationReportEntity report = reportRepository.findByCourseId(course.getId())
-                .orElse(CourseModerationReportEntity.builder().courseId(course.getId()).build());
+                .orElse(CourseModerationReportEntity.builder()
+                        .courseId(course.getId())
+                        .status("ACTIVE")
+                        .build());
 
         try {
             CourseModerationPayload.LessonPayload lessonPayload = new CourseModerationPayload.LessonPayload();
@@ -205,10 +206,12 @@ public class CourseModerationService {
             }
             lessonPayload.setQuizzes(quizPayloads);
 
+            String transcript = "";
             if (lesson.getVideoUrl() != null && lesson.getVideoUrl().startsWith("http")) {
-                String transcript = videoTranscriptionService.transcribeVideoAsync(course.getId(), lesson.getId() != null ? lesson.getId().longValue() : null, lesson.getVideoUrl()).join();
+                transcript = videoTranscriptionService.transcribeVideoAsync(course.getId(), lesson.getId() != null ? lesson.getId().longValue() : null, lesson.getVideoUrl()).join();
                 lessonPayload.setVideoTranscript(transcript);
             }
+            lesson.setTextAudio(transcript); // Lưu audio text của bài học lẻ
 
             ModerationResult result = aiEvaluationService.evaluateSingleLesson(lessonPayload);
 
@@ -218,15 +221,81 @@ public class CourseModerationService {
                 lesson.setStatus(LessonStatus.INACTIVE); // Ẩn khỏi học viên
             }
             lessonRepository.save(lesson);
-            
-            // Note: Đối với update single lesson, ta có thể nối thêm lỗi vào report JSON hiện tại nếu muốn,
-            // hoặc tạo cơ chế log riêng. Để đơn giản, chỉ cập nhật trạng thái Lesson.
+
+            // Cập nhật kết quả vào course_moderation_reports
+            ModerationResult courseResult = null;
+            if (report.getReportJson() != null && !report.getReportJson().isBlank()) {
+                try {
+                    courseResult = objectMapper.readValue(report.getReportJson(), ModerationResult.class);
+                } catch (Exception e) {
+                    log.warn("Không thể parse reportJson cũ, sẽ tạo mới kết quả", e);
+                }
+            }
+
+            if (courseResult == null) {
+                courseResult = ModerationResult.builder()
+                        .isClean(true)
+                        .courseViolations(new ArrayList<>())
+                        .lessonViolations(new ArrayList<>())
+                        .build();
+            }
+
+            if (courseResult.getCourseViolations() == null) {
+                courseResult.setCourseViolations(new ArrayList<>());
+            }
+            if (courseResult.getLessonViolations() == null) {
+                courseResult.setLessonViolations(new ArrayList<>());
+            }
+
+            // Xóa các vi phạm cũ của bài học này khỏi báo cáo của khóa học
+            courseResult.getLessonViolations().removeIf(lv -> lv.getLessonId() != null && lv.getLessonId().equals(lessonId));
+
+            // Nếu bài lẻ bị vi phạm, thêm vào danh sách
+            if (Boolean.FALSE.equals(result.getIsClean())) {
+                if (result.getLessonViolations() != null && !result.getLessonViolations().isEmpty()) {
+                    courseResult.getLessonViolations().addAll(result.getLessonViolations());
+                } else {
+                    courseResult.getLessonViolations().add(ModerationResult.LessonViolation.builder()
+                            .lessonId(lessonId)
+                            .lessonTitle(lesson.getTitle())
+                            .violationType("CONTENT_VIOLATION")
+                            .reason("Bài học chứa nội dung vi phạm tiêu chuẩn chính sách.")
+                            .build());
+                }
+            }
+
+            // Tính toán lại isClean của toàn bộ khóa học
+            boolean courseIsClean = courseResult.getCourseViolations().isEmpty() && courseResult.getLessonViolations().isEmpty();
+            courseResult.setIsClean(courseIsClean);
+
+            report.setReportJson(objectMapper.writeValueAsString(courseResult));
+            if (!courseIsClean) {
+                report.setStatus("LESSON_REJECTED");
+            } else {
+                report.setStatus("PASSED_AI");
+            }
+            reportRepository.save(report);
 
         } catch (Exception e) {
             log.error("Lỗi duyệt bài học lẻ", e);
             lesson.setStatus(LessonStatus.INACTIVE);
             lessonRepository.save(lesson);
         }
+    }
+
+    private String findTranscriptForLesson(CourseModerationPayload payload, Integer lessonId) {
+        if (payload == null || payload.getChapters() == null || lessonId == null) {
+            return "";
+        }
+        for (var cp : payload.getChapters()) {
+            if (cp.getLessons() == null) continue;
+            for (var lp : cp.getLessons()) {
+                if (lp.getLessonId() != null && lp.getLessonId().intValue() == lessonId.intValue()) {
+                    return lp.getVideoTranscript() != null ? lp.getVideoTranscript() : "";
+                }
+            }
+        }
+        return "";
     }
 
     private void rejectCourse(CourseEntity course, CourseModerationReportEntity report, List<String> courseViolations, List<ModerationResult.LessonViolation> lessonViolations) {
