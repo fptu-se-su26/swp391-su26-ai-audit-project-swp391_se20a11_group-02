@@ -1127,9 +1127,17 @@ export const InstructorDashboard: React.FC = () => {
   const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
 
   const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+  const [courseSubTab, setCourseSubTab] = useState<'published' | 'review' | 'draft' | 'rejected'>('published');
+
+  // Tab-specific loading states
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [loadingGeneralRevenue, setLoadingGeneralRevenue] = useState(false);
+  const [loadingFilteredRevenue, setLoadingFilteredRevenue] = useState(false);
+  const [loadingTrendData, setLoadingTrendData] = useState(false);
 
   useEffect(() => {
     const fetchInstructorCourses = async () => {
+      setLoadingCourses(true);
       try {
         const coursesData = await instructorService.getCourses();
         if (coursesData && coursesData.length > 0) {
@@ -1141,6 +1149,8 @@ export const InstructorDashboard: React.FC = () => {
       } catch (error) {
         console.error('Failed to fetch instructor courses:', error);
         setInstructorCourses([]);
+      } finally {
+        setLoadingCourses(false);
       }
     };
 
@@ -1153,14 +1163,15 @@ export const InstructorDashboard: React.FC = () => {
       }
     };
 
-    if (user) {
+    if (user && (activeTab === 'dashboard' || activeTab === 'my-courses' || activeTab === 'edit-course')) {
       fetchInstructorCourses();
       fetchCategories();
     }
-  }, [user]);
+  }, [user, activeTab, courseSubTab]);
 
   useEffect(() => {
     const fetchGeneralRevenueData = async () => {
+      setLoadingGeneralRevenue(true);
       try {
         const [recentRegs, payoutLogs, chartData, lifetimeSummary] = await Promise.all([
           instructorService.getRecentRegistrations(),
@@ -1174,16 +1185,19 @@ export const InstructorDashboard: React.FC = () => {
         setLifetimeGrossRevenue(lifetimeSummary?.totalGrossRevenue || 0);
       } catch (err) {
         console.error("Failed to load general revenue data:", err);
+      } finally {
+        setLoadingGeneralRevenue(false);
       }
     };
 
-    if (user) {
+    if (user && (activeTab === 'dashboard' || activeTab === 'revenue')) {
       fetchGeneralRevenueData();
     }
-  }, [user]);
+  }, [user, activeTab]);
 
   useEffect(() => {
     const fetchFilteredRevenueData = async () => {
+      setLoadingFilteredRevenue(true);
       try {
         const [summary, sales, breakdown] = await Promise.all([
           instructorService.getRevenueSummary(revenueFilter, appliedStartDate, appliedEndDate),
@@ -1198,16 +1212,19 @@ export const InstructorDashboard: React.FC = () => {
         setBreakdownPage(1);
       } catch (err) {
         console.error("Failed to load filtered revenue data:", err);
+      } finally {
+        setLoadingFilteredRevenue(false);
       }
     };
 
-    if (user) {
+    if (user && activeTab === 'revenue') {
       fetchFilteredRevenueData();
     }
-  }, [user, revenueFilter, appliedStartDate, appliedEndDate]);
+  }, [user, activeTab, revenueFilter, appliedStartDate, appliedEndDate]);
 
   useEffect(() => {
     const fetchTrendData = async () => {
+      setLoadingTrendData(true);
       try {
         const trendRes = await instructorService.getCourseRegistrations(trendTimeframe);
         setCourseRegistrationsState(trendRes?.courseRegistrations || []);
@@ -1215,15 +1232,17 @@ export const InstructorDashboard: React.FC = () => {
         setCourseRegPage(1);
       } catch (err) {
         console.error("Failed to load trend data:", err);
+      } finally {
+        setLoadingTrendData(false);
       }
     };
 
-    if (user) {
+    if (user && activeTab === 'revenue') {
       fetchTrendData();
     }
-  }, [user, trendTimeframe]);
+  }, [user, activeTab, trendTimeframe]);
 
-  const [courseSubTab, setCourseSubTab] = useState<'published' | 'review' | 'draft' | 'rejected'>('published');
+
 
   // Derive stats
   const totalCourses = instructorCourses.length;
@@ -2189,8 +2208,14 @@ export const InstructorDashboard: React.FC = () => {
                   {/* ================= TAB: DASHBOARD ================= */}
             {activeTab === 'dashboard' && (
               <div id="tab-dashboard" className="tab-content flex flex-col gap-8">
-                
-                {/* Header Banner */}
+                {loadingCourses || loadingGeneralRevenue ? (
+                  <div className="flex flex-col items-center justify-center py-32 gap-4 bg-white rounded-3xl border border-slate-200/50 shadow-sm w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                    <p className="text-slate-500 font-semibold text-sm animate-pulse">Loading dashboard analytics...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Header Banner */}
                 <div className="relative overflow-hidden bg-gradient-to-r from-brand-blue to-[#1c3d73] rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                   {/* Decorative glowing gradient blur elements */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
@@ -3009,7 +3034,8 @@ export const InstructorDashboard: React.FC = () => {
                   </div>
 
                 </div>
-
+                  </>
+                )}
               </div>
             )}
 
@@ -3139,7 +3165,13 @@ export const InstructorDashboard: React.FC = () => {
                 </div>
 
                 {/* Courses Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="courses-container">
+                {loadingCourses ? (
+                  <div className="flex flex-col items-center justify-center py-32 gap-4 bg-white rounded-3xl border border-slate-200/50 shadow-sm w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                    <p className="text-slate-500 font-semibold text-sm animate-pulse">Loading your courses...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="courses-container">
                   {filteredAndSortedCourses.length === 0 ? (
                     <div className="col-span-full py-12 text-center bg-surface border border-dashed border-slate-200 rounded-2xl">
                       <span className="material-symbols-outlined text-slate-400 text-5xl mb-3">inbox</span>
@@ -3326,8 +3358,7 @@ export const InstructorDashboard: React.FC = () => {
                     ))
                   )}
                 </div>
-
-
+                )}
               </div>
             )}
 
@@ -3336,8 +3367,14 @@ export const InstructorDashboard: React.FC = () => {
             {/* ================= TAB: REVENUE ================= */}
             {activeTab === 'revenue' && (
               <div id="tab-revenue" className="tab-content flex flex-col gap-8 animate-fade-in pb-12">
-                
-                {/* Header Section */}
+                {loadingGeneralRevenue || loadingFilteredRevenue || loadingTrendData ? (
+                  <div className="flex flex-col items-center justify-center py-32 gap-4 bg-white rounded-3xl border border-slate-200/50 shadow-sm w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                    <p className="text-slate-500 font-semibold text-sm animate-pulse">Loading revenue analytics...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Header Section */}
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                   <div>
                     <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
@@ -4258,6 +4295,8 @@ export const InstructorDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             )}
