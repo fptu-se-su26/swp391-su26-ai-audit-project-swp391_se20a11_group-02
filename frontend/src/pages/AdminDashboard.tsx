@@ -2065,7 +2065,7 @@ export const AdminDashboard: React.FC = () => {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs md:text-sm font-semibold transition-all duration-200 justify-center md:justify-start shadow-md shadow-primary/20"
           >
             <span className="material-symbols-outlined text-[20px] shrink-0">swap_horiz</span>
-            <span className="sidebar-footer-text whitespace-nowrap">Student View</span>
+            <span className="sidebar-footer-text whitespace-nowrap">Customer View</span>
           </Link>
 
           <div className="flex items-center gap-3 p-2 rounded-xl bg-brand-blue-light/30">
