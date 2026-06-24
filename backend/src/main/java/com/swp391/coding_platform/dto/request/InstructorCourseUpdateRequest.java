@@ -33,7 +33,7 @@ public class InstructorCourseUpdateRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class ChapterDto {
-        Integer id; // Can be null if new
+        Long id; // Can be null if new
         String title;
         List<LessonDto> lessons;
     }
@@ -44,7 +44,7 @@ public class InstructorCourseUpdateRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class LessonDto {
-        Integer id; // Can be null if new
+        Long id; // Can be null if new
         String title;
         String video;
         String theory;
@@ -59,7 +59,7 @@ public class InstructorCourseUpdateRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class ExerciseDto {
-        Integer id;
+        Long id;
         String title;
         String difficulty;
         String description;
@@ -83,7 +83,7 @@ public class InstructorCourseUpdateRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class TestcaseDto {
-        Integer id;
+        Long id;
         String input;
         String output;
         Integer orderIndex;
@@ -95,7 +95,7 @@ public class InstructorCourseUpdateRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class QuizDto {
-        Integer id;
+        Long id;
         String title;
         List<QuizQuestionDto> questions;
     }
@@ -106,7 +106,7 @@ public class InstructorCourseUpdateRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class QuizQuestionDto {
-        Integer id;
+        Long id;
         String content;
         List<QuizOptionDto> options;
     }
@@ -117,7 +117,7 @@ public class InstructorCourseUpdateRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class QuizOptionDto {
-        Integer id;
+        Long id;
         String content;
         Boolean isCorrect;
     }

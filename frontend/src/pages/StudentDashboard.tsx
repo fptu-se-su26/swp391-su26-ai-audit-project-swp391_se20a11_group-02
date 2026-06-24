@@ -1835,7 +1835,7 @@ export const StudentDashboard: React.FC = () => {
                       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                       <p className="text-white/80 text-xs font-semibold">Loading lesson content...</p>
                     </div>
-                  ) : playerLessonStatus === 'INACTIVE' ? (
+                  ) : (playerLessonStatus === 'INACTIVE' || playerLessonStatus === 'PENDING_UPDATE') ? (
                     <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-5 text-center px-6 h-full bg-[#0a0f1d]/90 backdrop-blur-md w-full border border-gray-800/50">
                       <div className="relative">
                         <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
@@ -1921,7 +1921,7 @@ export const StudentDashboard: React.FC = () => {
 
                 {/* Sub-tab Panels */}
                 <div className="relative bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px]">
-                  {playerLessonStatus === 'INACTIVE' && (
+                  {(playerLessonStatus === 'INACTIVE' || playerLessonStatus === 'PENDING_UPDATE') && (
                     <div className="absolute inset-0 z-30 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center pointer-events-auto border border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.8)]">
                       <div className="bg-white/80 backdrop-blur-xl border border-white p-8 rounded-2xl text-center max-w-md flex flex-col items-center shadow-2xl shadow-slate-200/50 ambient-shadow">
                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 mb-5 text-white">
@@ -2557,7 +2557,7 @@ export const StudentDashboard: React.FC = () => {
                                       : 'text-text-main group-hover:text-primary'
                                   }`}>
                                     <span className="truncate">{lesson.title}</span>
-                                    {lesson.status === 'INACTIVE' && (
+                                    {(lesson.status === 'INACTIVE' || lesson.status === 'PENDING_UPDATE') && (
                                       <span className="shrink-0 flex items-center gap-1 pl-1.5 pr-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] uppercase tracking-wider rounded-md shadow-md shadow-orange-500/20 border border-orange-400/50">
                                         <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                                         Updating

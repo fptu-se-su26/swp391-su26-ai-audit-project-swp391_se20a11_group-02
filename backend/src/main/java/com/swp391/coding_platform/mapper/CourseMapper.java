@@ -31,7 +31,7 @@ public interface CourseMapper {
 
     CurriculumChapterResponse toCurriculumChapterResponse(ChapterEntity chapterEntity);
 
-    @Mapping(target = "videoUrl", expression = "java(lessonEntity.getIsTrial() != null && lessonEntity.getIsTrial() && lessonEntity.getStatus() != com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? lessonEntity.getVideoUrl() : null)")
+    @Mapping(target = "videoUrl", expression = "java(lessonEntity.getIsTrial() != null && lessonEntity.getIsTrial() && lessonEntity.getStatus() != com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE && lessonEntity.getStatus() != com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE ? lessonEntity.getVideoUrl() : null)")
     @Mapping(target = "type", expression = "java(lessonEntity.getVideoUrl() != null && !lessonEntity.getVideoUrl().isEmpty() ? \"video\" : (lessonEntity.getTheoryContent() != null && !lessonEntity.getTheoryContent().isEmpty() ? \"reading\" : \"coding\"))")
     CurriculumLessonResponse toCurriculumLessonResponse(LessonEntity lessonEntity);
 
@@ -45,13 +45,13 @@ public interface CourseMapper {
     @Mapping(target = "progressPercentage", source = "progressPercentage")
     @Mapping(target = "activeLessonId", source = "activeLesson.id")
     @Mapping(target = "activeLessonTitle", source = "activeLesson.title")
-    @Mapping(target = "activeLessonVideoUrl", expression = "java(activeLesson != null && activeLesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : (activeLesson != null ? activeLesson.getVideoUrl() : null))")
-    @Mapping(target = "activeLessonTheoryContent", expression = "java(activeLesson != null && activeLesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : (activeLesson != null ? activeLesson.getTheoryContent() : null))")
+    @Mapping(target = "activeLessonVideoUrl", expression = "java(activeLesson != null && (activeLesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE || activeLesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE) ? null : (activeLesson != null ? activeLesson.getVideoUrl() : null))")
+    @Mapping(target = "activeLessonTheoryContent", expression = "java(activeLesson != null && (activeLesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE || activeLesson.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE) ? null : (activeLesson != null ? activeLesson.getTheoryContent() : null))")
     LearningDetailResponse toLearningDetailResponse(CourseEntity course, int progressPercentage, LessonEntity activeLesson);
 
-    @Mapping(target = "exercises", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : lessonEntity.getLessonProblems().stream().map(this::toLearningExerciseResponse).collect(java.util.stream.Collectors.toList()))")
-    @Mapping(target = "videoUrl", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : lessonEntity.getVideoUrl())")
-    @Mapping(target = "theoryContent", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE ? null : lessonEntity.getTheoryContent())")
+    @Mapping(target = "exercises", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE || lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE ? null : lessonEntity.getLessonProblems().stream().map(this::toLearningExerciseResponse).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "videoUrl", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE || lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE ? null : lessonEntity.getVideoUrl())")
+    @Mapping(target = "theoryContent", expression = "java(lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.INACTIVE || lessonEntity.getStatus() == com.swp391.coding_platform.entity.enums.LessonStatus.PENDING_UPDATE ? null : lessonEntity.getTheoryContent())")
     LearningLessonResponse toLearningLessonResponse(LessonEntity lessonEntity);
 
     @Mapping(target = "id", source = "problem.id")

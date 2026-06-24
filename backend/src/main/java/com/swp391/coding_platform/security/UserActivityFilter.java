@@ -36,7 +36,8 @@ public class UserActivityFilter extends OncePerRequestFilter {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth instanceof JwtAuthenticationToken jwtAuth) {
+        if (auth instanceof JwtAuthenticationToken) {
+            JwtAuthenticationToken jwtAuth = (JwtAuthenticationToken) auth;
             try {
                 Jwt jwt = jwtAuth.getToken();
                 Number idClaim = jwt.getClaim("userId");
