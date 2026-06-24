@@ -17,4 +17,12 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.data.jpa.repository.Query("DELETE FROM ContestParticipantEntity cp WHERE cp.contest.id = :contestId")
     void deleteByContestId(@Param("contestId") Integer contestId);
+
+    @Query("SELECT cp FROM ContestParticipantEntity cp JOIN FETCH cp.contest WHERE cp.user.id = :userId ORDER BY cp.joinedAt DESC")
+    java.util.List<ContestParticipantEntity> findByUserIdWithContest(@Param("userId") Integer userId);
+
+    @Query("SELECT cp.contest.id, COUNT(cp) FROM ContestParticipantEntity cp WHERE cp.contest.id IN :contestIds GROUP BY cp.contest.id")
+    java.util.List<Object[]> countParticipantsByContestIds(@Param("contestIds") java.util.List<Integer> contestIds);
+
+    long countByContestId(Integer contestId);
 }

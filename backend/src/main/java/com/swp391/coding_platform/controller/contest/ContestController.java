@@ -75,6 +75,34 @@ public class ContestController {
                 .build());
     }
 
+    @GetMapping("/my-stats")
+    public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.MyContestStatsResponse>> getMyContestStats(@AuthenticationPrincipal Jwt jwt) {
+        Integer userId = getUserId(jwt);
+        com.swp391.coding_platform.dto.response.MyContestStatsResponse result = contestService.getMyContestStats(userId);
+
+        return ResponseEntity.ok(ApiResponse.<com.swp391.coding_platform.dto.response.MyContestStatsResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Get user contest statistics successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @GetMapping("/my-history")
+    public ResponseEntity<ApiResponse<List<com.swp391.coding_platform.dto.response.MyContestHistoryResponse>>> getMyContestHistory(@AuthenticationPrincipal Jwt jwt) {
+        Integer userId = getUserId(jwt);
+        List<com.swp391.coding_platform.dto.response.MyContestHistoryResponse> result = contestService.getMyContestHistory(userId);
+
+        return ResponseEntity.ok(ApiResponse.<List<com.swp391.coding_platform.dto.response.MyContestHistoryResponse>>builder()
+                .status(200)
+                .code(1000)
+                .message("Get user contest history successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
     @GetMapping("/{contestId}")
     public ResponseEntity<ApiResponse<ContestResponse>> getContestById(
             @AuthenticationPrincipal Jwt jwt,

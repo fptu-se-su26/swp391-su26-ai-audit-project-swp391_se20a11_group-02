@@ -126,10 +126,21 @@ public class ProblemService {
         List<ProblemTagMappingEntity> mappings = problemTagMappingRepository.findByProblemId(id);
         List<String> tags = mappings.stream().map(m -> m.getTag().getName()).toList();
 
-        Map<String, String> templates = generateTemplates(problem.getTitle());
+        Map<String, String> templates = new HashMap<>();
+        if (problem.getStarterTemplates() != null && !problem.getStarterTemplates().isBlank()) {
+            try {
+                templates = objectMapper.readValue(problem.getStarterTemplates(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {});
+            } catch (Exception e) {
+                log.warn("Failed to parse starter templates for problem {}: {}", id, e.getMessage());
+            }
+        }
+        if (templates.isEmpty()) {
+            templates = generateTemplates(problem.getTitle());
+        }
 
         String status = "unsolved";
         String sourceCode = null;
+        Integer languageId = null;
         if (userId != null) {
             List<ProblemSubmissionEntity> subs = problemSubmissionRepository.findByUserIdAndProblemId(userId.intValue(), id);
             if (!subs.isEmpty()) {
@@ -138,9 +149,11 @@ public class ProblemService {
                 if (acceptedOpt.isPresent()) {
                     status = "solved";
                     sourceCode = acceptedOpt.get().getSourceCode();
+                    languageId = acceptedOpt.get().getLanguageId();
                 } else {
                     status = "attempted";
                     sourceCode = subs.get(0).getSourceCode();
+                    languageId = subs.get(0).getLanguageId();
                 }
             }
         }
@@ -175,6 +188,7 @@ public class ProblemService {
                 .acceptance(acceptance)
                 .totalSolved(totalSolved)
                 .sourceCode(sourceCode)
+                .languageId(languageId)
                 .build();
     }
 

@@ -199,6 +199,9 @@ public class Judge0Service {
         }
         problemSubmissionDetailRepository.saveAll(submissionDetails);
 
+        // Tăng tổng số lượt nộp của Problem
+        problemRepository.incrementTotalSubmission(request.getProblemId());
+
         // Trả về Response cho Frontend ngay lập tức
         return OjSubmissionInitialResponse.builder()
                 .submissionId(onlineJudgeSubmissionEntity.getId())
@@ -208,7 +211,6 @@ public class Judge0Service {
 
     }
 
-    @Transactional
     public void processJudge0Callback(Judge0CallbackPayload judge0CallbackPayload) {
 
         // Lấy thông tin SubmissionDetail (bao gồm luôn Submission cha và Problem nhờ
@@ -295,6 +297,10 @@ public class Judge0Service {
             submissionEntity.setMemoryUsed(maxStats.getMaxMemory());
             problemSubmissionRepository.save(submissionEntity);
 
+            // Tăng tổng số lượt AC của Problem nếu kết quả là ACCEPTED
+            if (overallVerdict == OjVerdict.ACCEPTED) {
+                problemRepository.incrementTotalAccepted(submissionEntity.getProblem().getId());
+            }
 
             // Bắn sự kiện SubmissionJudgedEvent qua Redis Pub/Sub
             SubmissionJudgedEvent event = SubmissionJudgedEvent.builder()

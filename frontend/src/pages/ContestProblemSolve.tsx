@@ -4,6 +4,7 @@ import { problemService } from '../services/problemService';
 import { useApp } from '../context/AppContext';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
+import { CodeEditor } from '../components/CodeEditor';
 
 export const ContestProblemSolve: React.FC = () => {
   const { user } = useApp();
@@ -80,8 +81,24 @@ export const ContestProblemSolve: React.FC = () => {
   const [problem, setProblem] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [codeHtml, setCodeHtml] = useState<string>('');
   const [loadedTabs, setLoadedTabs] = useState<{[key: string]: boolean}>({});
+
+  // A mapping from language ID to its standard string identifier used by Monaco and the state dictionary
+  const LANGUAGE_KEYS: Record<number, string> = {
+    50: 'c',
+    54: 'cpp',
+    62: 'java',
+    71: 'python',
+    51: 'csharp'
+  };
+
+  const [codeByLang, setCodeByLang] = useState<Record<string, string>>({
+    c: '',
+    cpp: '',
+    java: '',
+    python: '',
+    csharp: ''
+  });
 
   useEffect(() => {
     if (!contestId || !problemId) return;
@@ -90,11 +107,35 @@ export const ContestProblemSolve: React.FC = () => {
     problemService.fetchContestProblemDetail(contestId, problemId)
       .then(data => {
         setProblem(data);
-        if (data.templates) {
-          const defaultLangId = 62; 
-          setSelectedLangId(defaultLangId);
-          setCodeHtml(data.source_code || getTemplateForLang(defaultLangId, data.templates) || '');
+        const actualTemplates = data.templates;
+        
+        // Prepare boilerplate code for all supported languages
+        const initialCodeByLang: Record<string, string> = {
+          c: '',
+          cpp: '',
+          java: '',
+          python: '',
+          csharp: ''
+        };
+        
+        if (actualTemplates) {
+          SUPPORTED_LANGUAGES.forEach(lang => {
+            const langKey = LANGUAGE_KEYS[lang.id];
+            if (langKey) {
+              initialCodeByLang[langKey] = getTemplateForLang(lang.id, actualTemplates);
+            }
+          });
         }
+        
+        const defaultLangId = data.language_id || 62; // Java default or last submission lang
+        setSelectedLangId(defaultLangId);
+        
+        const defaultLangKey = LANGUAGE_KEYS[defaultLangId];
+        if (data.source_code && defaultLangKey) {
+          initialCodeByLang[defaultLangKey] = data.source_code;
+        }
+        
+        setCodeByLang(initialCodeByLang);
         setLoading(false);
       })
       .catch(err => {
@@ -122,24 +163,25 @@ export const ContestProblemSolve: React.FC = () => {
     setSelectedLangId(newLangId);
   };
 
-  useEffect(() => {
-    if (problem && problem.templates) {
-      const defaultCode = getTemplateForLang(selectedLangId, problem.templates);
-      setCodeHtml(defaultCode);
-      const editor = document.getElementById('code-editor');
-      if (editor) {
-        editor.innerText = defaultCode;
-      }
+  const handleCodeChange = (newCode: string | undefined) => {
+    const langKey = LANGUAGE_KEYS[selectedLangId];
+    if (langKey && newCode !== undefined) {
+      setCodeByLang(prev => ({
+        ...prev,
+        [langKey]: newCode
+      }));
     }
-  }, [selectedLangId]);
+  };
 
   const handleResetCode = () => {
     if (problem && problem.templates) {
       const defaultCode = getTemplateForLang(selectedLangId, problem.templates);
-      setCodeHtml(defaultCode);
-      const editor = document.getElementById('code-editor');
-      if (editor) {
-        editor.innerText = defaultCode;
+      const langKey = LANGUAGE_KEYS[selectedLangId];
+      if (langKey) {
+        setCodeByLang(prev => ({
+          ...prev,
+          [langKey]: defaultCode
+        }));
       }
     }
   };
@@ -197,6 +239,12 @@ export const ContestProblemSolve: React.FC = () => {
           setSubmissions(data);
           setLoadedTabs(prev => ({ ...prev, submissions: true }));
         }).catch(console.error);
+
+        if (problemId) {
+          problemService.fetchContestProblemDetail(contestId, problemId).then(data => {
+            setProblem((prev: any) => prev ? { ...prev, acceptance: data.acceptance, status: data.status } : data);
+          }).catch(console.error);
+        }
       }
     }, 1000);
   };
@@ -207,8 +255,9 @@ export const ContestProblemSolve: React.FC = () => {
     setTestcasesLogs([]);
     setOverallResult(null);
     setExpandedTestcases({});
-    const editorElement = document.getElementById('code-editor');
-    const sourceCode = editorElement ? (editorElement as HTMLElement).innerText : '';
+    
+    const langKey = LANGUAGE_KEYS[selectedLangId];
+    const sourceCode = langKey ? codeByLang[langKey] : '';
 
     problemService.submitSolution(problemId, selectedLangId, sourceCode, contestId)
       .then(() => {
@@ -634,23 +683,12 @@ export const ContestProblemSolve: React.FC = () => {
             </div>
           </div>
 
-          {/* Editor Area */}
-          <div className="flex-grow flex overflow-y-auto custom-scroll text-[15px] leading-relaxed font-mono text-gray-800 bg-white">
-            {/* Line Numbers */}
-            <div className="w-12 flex flex-col items-end py-4 pr-3 text-gray-400 bg-surface-gray border-r border-gray-200 select-none shrink-0">
-              {Array.from({ length: Math.max(15, codeHtml.split(/\r?\n|<br\/?>/gi).length) }, (_, i) => (
-                <span key={i + 1}>{i + 1}</span>
-              ))}
-            </div>
-            {/* Code */}
-            <div
-              id="code-editor"
-              className="flex-grow py-4 pl-4 overflow-x-auto custom-scroll whitespace-pre outline-none"
-              contentEditable={true}
-              suppressContentEditableWarning={true}
-              spellCheck={false}
-              dangerouslySetInnerHTML={{ __html: codeHtml }}
-              onBlur={(e) => setCodeHtml(e.currentTarget.innerHTML)}
+          {/* Editor Area (Light theme with Monaco) */}
+          <div className="flex-grow overflow-hidden relative bg-white border-t border-gray-200">
+            <CodeEditor
+              language={LANGUAGE_KEYS[selectedLangId] || 'plaintext'}
+              value={LANGUAGE_KEYS[selectedLangId] ? codeByLang[LANGUAGE_KEYS[selectedLangId]] : ''}
+              onChange={handleCodeChange}
             />
           </div>
 

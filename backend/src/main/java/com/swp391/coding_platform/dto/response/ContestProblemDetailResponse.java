@@ -28,6 +28,9 @@ public class ContestProblemDetailResponse {
     
     @com.fasterxml.jackson.annotation.JsonProperty("source_code")
     String sourceCode;
+    
+    @com.fasterxml.jackson.annotation.JsonProperty("language_id")
+    Integer languageId;
 
     String problemLabel;
     Integer timeLimitMs;

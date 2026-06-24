@@ -25,9 +25,12 @@ import com.swp391.coding_platform.dto.request.TestcaseGeneratorRequest;
 import com.swp391.coding_platform.dto.judge0.Judge0CallbackPayload;
 import com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest.TestcaseDto;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class InstructorCourseService {
     private final InstructorRepository instructorRepository;
     private final CourseRepository courseRepository;

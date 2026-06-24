@@ -9,6 +9,8 @@ import com.swp391.coding_platform.dto.response.LearningDetailResponse;
 import com.swp391.coding_platform.dto.response.LearningLessonResponse;
 import com.swp391.coding_platform.dto.response.LearningCurriculumChapterResponse;
 import com.swp391.coding_platform.entity.course.LessonEntity;
+import com.swp391.coding_platform.entity.course.EnrollmentEntity;
+import com.swp391.coding_platform.entity.course.ChapterEntity;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
@@ -417,7 +419,7 @@ public class CourseService {
         }
 
         // 3. Lấy Pessimistic Lock trên Enrollment của User để đồng bộ hóa, tránh race condition
-        enrollmentRepository.findEnrollmentWithLock(userId.intValue(), courseId)
+        EnrollmentEntity enrollment = enrollmentRepository.findEnrollmentWithLock(userId.intValue(), courseId)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_ENROLLED));
 
         // 4. Kiểm tra xem bài học đã hoàn thành chưa
@@ -451,6 +453,24 @@ public class CourseService {
         completedLessonCountRepository.save(countEntity);
         log.info("[completeLesson] User {} completed lesson {} in course {}. Completed count: {}", 
                 userId, lessonId, courseId, countEntity.getCompletedLessonsCount());
+
+        // 7. Kiểm tra bài học cuối cùng và cập nhật EnrollmentStatus thành COMPLETED
+        if (enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
+            int totalLessons = course.getTotalLessons() != null ? course.getTotalLessons() : 0;
+            if (totalLessons == 0 && course.getChapters() != null) {
+                for (ChapterEntity chapter : course.getChapters()) {
+                    if (chapter.getLessons() != null) {
+                        totalLessons += chapter.getLessons().size();
+                    }
+                }
+            }
+            if (totalLessons > 0 && countEntity.getCompletedLessonsCount() >= totalLessons) {
+                enrollment.setStatus(EnrollmentStatus.COMPLETED);
+                enrollmentRepository.save(enrollment);
+                log.info("[completeLesson] User {} completed all {} lessons of course {}. Enrollment status updated to COMPLETED.", 
+                        userId, totalLessons, courseId);
+            }
+        }
     }
 }
 

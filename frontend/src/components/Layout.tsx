@@ -298,10 +298,20 @@ export const Layout: React.FC = () => {
                   <span>Admin</span>
                 </Link>
               )}
-              <button className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all">
+              <button 
+                onClick={() => {
+                  if (!user) {
+                    navigate('/login');
+                  }
+                }}
+                className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all"
+              >
                 <span className="material-symbols-outlined">notifications</span>
               </button>
-              <Link to="/shopping-cart" className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all relative">
+              <Link 
+                to={!user ? '/login' : '/shopping-cart'} 
+                className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all relative"
+              >
                 <span className="material-symbols-outlined">shopping_cart</span>
                 {cart.length > 0 && (
                   <span className="absolute top-1 right-0 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">{cart.length}</span>
@@ -369,21 +379,22 @@ export const Layout: React.FC = () => {
       <main className={`relative z-10 flex-grow w-full min-w-0 ${(isInstructorRoute || isAdminRoute) ? '' : 'pt-16'}`}>
         {isContestPage ? (
           <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10">
-            {/* Main content column on the left (85%) */}
-            <div className="w-full md:w-[85%] flex flex-col bg-surface-gray min-w-0">
-              <Outlet context={{ contest, loading, error, fetchContest }} />
+            {/* Main content column on the left (85% default, 100% for ranking) */}
+            <div className={activeTab === 'ranking' ? "w-full flex flex-col bg-surface-gray min-w-0" : "w-full md:w-[85%] flex flex-col bg-surface-gray min-w-0"}>
+              <Outlet context={{ contest, loading, error, fetchContest, timeLeft, timerLabel }} />
             </div>
 
-            {/* Shared right sidebar (15%) */}
-            <ContestSidebar
-              contestId={contestId || ''}
-              activeTab={activeTab}
-              timeLeft={timeLeft}
-              timerLabel={timerLabel}
-              isRegistered={!!contest?.isUserRegistered}
-              contestStatus={contest?.status}
-            >
-              {!loading && contest && (
+            {/* Shared right sidebar (15%) - Hidden on ranking tab */}
+            {activeTab !== 'ranking' && (
+              <ContestSidebar
+                contestId={contestId || ''}
+                activeTab={activeTab}
+                timeLeft={timeLeft}
+                timerLabel={timerLabel}
+                isRegistered={!!contest?.isUserRegistered}
+                contestStatus={contest?.status}
+              >
+              {activeTab === 'overview' && !loading && contest && (
                 <div className="mt-8 border-t border-gray-100 pt-6">
                   {!user ? (
                     <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-4 text-center space-y-3">
@@ -447,7 +458,8 @@ export const Layout: React.FC = () => {
                   )}
                 </div>
               )}
-            </ContestSidebar>
+              </ContestSidebar>
+            )}
           </div>
         ) : (
           <Outlet />
