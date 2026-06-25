@@ -298,10 +298,20 @@ export const Layout: React.FC = () => {
                   <span>Admin</span>
                 </Link>
               )}
-              <button className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all">
+              <button 
+                onClick={() => {
+                  if (!user) {
+                    navigate('/login');
+                  }
+                }}
+                className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all"
+              >
                 <span className="material-symbols-outlined">notifications</span>
               </button>
-              <Link to="/shopping-cart" className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all relative">
+              <Link 
+                to={!user ? '/login' : '/shopping-cart'} 
+                className="p-2 rounded-full text-text-muted hover:text-primary hover:bg-surface-gray transition-all relative"
+              >
                 <span className="material-symbols-outlined">shopping_cart</span>
                 {cart.length > 0 && (
                   <span className="absolute top-1 right-0 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">{cart.length}</span>
