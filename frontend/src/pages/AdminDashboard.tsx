@@ -1962,7 +1962,7 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex flex-row antialiased selection:bg-primary-light selection:text-brand-blue relative overflow-x-hidden w-full text-left">
+    <div className="bg-[#f0f4f9] text-text-main font-body h-screen overflow-hidden flex flex-row antialiased selection:bg-primary-light selection:text-brand-blue w-full text-left">
       <style>{`
         .material-symbols-outlined {
           font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -2122,7 +2122,7 @@ export const AdminDashboard: React.FC = () => {
       <div
         id="main-content"
         className={`flex-grow transition-all duration-300 relative z-10 ${isSidebarCollapsed ? 'main-collapsed' : 'main-expanded'
-          } min-h-screen flex flex-col`}
+          } h-full flex flex-col overflow-y-auto`}
       >
         {(activeTab === 'courses' && reviewingCourse) ? (
           <div className="flex-grow flex flex-col bg-[#f0f4f9] animate-fade-in w-full">
