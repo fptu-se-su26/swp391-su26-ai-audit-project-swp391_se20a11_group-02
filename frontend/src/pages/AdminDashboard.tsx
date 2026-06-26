@@ -3565,7 +3565,7 @@ export const AdminDashboard: React.FC = () => {
                                       <tr key={team.name} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="p-1 sm:p-2 text-center font-bold text-slate-900 border-r border-gray-200">{team.rank}</td>
                                         <td className="p-1 sm:p-2 text-left border-r border-gray-200 truncate">
-                                          <div className="font-bold text-slate-900 truncate">@{team.name}</div>
+                                          <div className="font-bold text-slate-900 truncate">{team.displayName || team.name}</div>
                                           <div className="text-[9px] sm:text-[10px] text-slate-400 font-normal truncate">{team.affiliation}</div>
                                         </td>
                                         <td className="p-1 sm:p-2 text-center font-bold text-slate-900 bg-slate-50/60 border-r border-gray-200">{team.solved}</td>

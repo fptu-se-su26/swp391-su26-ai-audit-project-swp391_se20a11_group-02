@@ -12,6 +12,7 @@ interface SubmissionDetail {
 interface Team {
   rank: number;
   name: string;
+  displayName?: string;
   affiliation: string;
   solved: number;
   totalAttempts: number;
@@ -615,7 +616,7 @@ export const ContestRanking: React.FC = () => {
                           </td>
                           <td className="p-1 sm:p-2 border-r border-gray-200 truncate">
                             <div className="flex flex-col truncate">
-                              <span className="font-semibold text-text-main truncate">@{team.name}</span>
+                              <span className="font-semibold text-text-main truncate">{team.displayName || team.name}</span>
                               <span className="text-[9px] sm:text-xs text-text-muted truncate">{team.affiliation}</span>
                             </div>
                           </td>
