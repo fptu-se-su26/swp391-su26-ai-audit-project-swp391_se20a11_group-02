@@ -614,16 +614,42 @@ export const AdminDashboard: React.FC = () => {
   };
 
   useEffect(() => {
+    let eventSource: EventSource | null = null;
+
     if (reviewingContest) {
       if (reviewContestTab === 'submissions') {
         fetchContestSubmissions(reviewingContest.id);
       } else if (reviewContestTab === 'ranking') {
         fetchContestRanking(reviewingContest.id);
+        
+        // Add SSE for realtime scoreboard updates
+        eventSource = new EventSource(`http://localhost:8080/nonstopcoding/api/v1/contests/${reviewingContest.id}/scoreboard/stream`, { withCredentials: true });
+        
+        eventSource.addEventListener('scoreboard-update', (event: any) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed && parsed.rows) {
+              setRankingTeams(parsed.rows);
+            }
+          } catch (err) {
+            console.error('Error parsing SSE scoreboard update:', err);
+          }
+        });
+
+        eventSource.onerror = (err) => {
+          console.error('EventSource error:', err);
+        };
       }
     } else {
       setContestSubmissions([]);
       setRankingTeams([]);
     }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
   }, [reviewingContest, reviewContestTab]);
 
   useEffect(() => {
@@ -3508,22 +3534,22 @@ export const AdminDashboard: React.FC = () => {
                             <div className="p-6 border-b border-gray-200 bg-white">
                               <h2 className="text-lg font-bold text-text-main">Standings Scoreboard</h2>
                             </div>
-                            <div className="overflow-x-auto">
-                              <table className="w-full text-left border-collapse">
+                            <div className="w-full overflow-hidden">
+                              <table className="w-full table-fixed text-left border-collapse">
                                 <thead>
-                                  <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-xs uppercase tracking-wider text-center">
-                                    <th className="p-3 w-12 text-center">Rank</th>
-                                    <th className="p-3 text-left">Team</th>
-                                    <th className="p-3 w-16 text-center">Solved</th>
-                                    <th className="p-3 w-24 text-center">Penalty</th>
+                                  <tr className="bg-slate-50 border-b border-gray-200 text-text-main font-semibold text-[10px] sm:text-xs uppercase tracking-wider text-center">
+                                    <th className="p-1 sm:p-2 w-8 sm:w-12 text-center border-r border-gray-200">#</th>
+                                    <th className="p-1 sm:p-2 w-1/4 text-left border-r border-gray-200 truncate">Team</th>
+                                    <th className="p-1 sm:p-2 w-10 sm:w-16 text-center border-r border-gray-200 whitespace-nowrap text-[9px] sm:text-[11px]">AC</th>
+                                    <th className="p-1 sm:p-2 w-12 sm:w-20 text-center border-r border-gray-200 text-[9px] sm:text-[11px]">Pen</th>
                                     {contestProblems.map((prob, idx) => (
-                                      <th key={prob.problemId} className="p-3 w-16 text-center">
+                                      <th key={prob.problemId} className="p-1 sm:p-2 text-center border-r border-gray-200 truncate" title={prob.title}>
                                         {String.fromCharCode(65 + idx)}
                                       </th>
                                     ))}
                                   </tr>
                                 </thead>
-                                <tbody className="text-xs font-semibold divide-y divide-gray-200">
+                                <tbody className="text-[10px] sm:text-xs font-semibold divide-y divide-gray-200">
                                   {rankingTeams.map((team) => {
                                     // Calculate penalty
                                     let penaltyMinutes = 0;
@@ -3537,33 +3563,33 @@ export const AdminDashboard: React.FC = () => {
 
                                     return (
                                       <tr key={team.name} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="p-3 text-center font-bold text-slate-900">{team.rank}</td>
-                                        <td className="p-3 text-left">
-                                          <div className="font-bold text-slate-900">@{team.name}</div>
-                                          <div className="text-[10px] text-slate-400 font-normal">{team.affiliation}</div>
+                                        <td className="p-1 sm:p-2 text-center font-bold text-slate-900 border-r border-gray-200">{team.rank}</td>
+                                        <td className="p-1 sm:p-2 text-left border-r border-gray-200 truncate">
+                                          <div className="font-bold text-slate-900 truncate">{team.displayName || team.name}</div>
+                                          <div className="text-[9px] sm:text-[10px] text-slate-400 font-normal truncate">{team.affiliation}</div>
                                         </td>
-                                        <td className="p-3 text-center font-bold text-slate-900 bg-slate-50/60">{team.solved}</td>
-                                        <td className="p-3 text-center font-mono text-slate-500 font-normal">{team.totalPenalty || penaltyMinutes} m</td>
+                                        <td className="p-1 sm:p-2 text-center font-bold text-slate-900 bg-slate-50/60 border-r border-gray-200">{team.solved}</td>
+                                        <td className="p-1 sm:p-2 text-center font-mono text-slate-500 font-normal border-r border-gray-200">{team.totalPenalty || penaltyMinutes}</td>
                                         {contestProblems.map((p, pIdx) => {
                                           const probCode = String.fromCharCode(65 + pIdx);
                                           const sub = team.submissions?.[probCode];
                                           if (!sub || sub.status === 'unattempted') {
-                                            return <td key={p.problemId} className="p-3 border border-white text-center bg-gray-50/50"></td>;
+                                            return <td key={p.problemId} className="p-1 sm:p-2 border border-white text-center bg-gray-50/50"></td>;
                                           }
                                           if (sub.status === 'failed') {
                                             return (
-                                              <td key={p.problemId} className="p-3 border border-white text-center bg-primary text-white">
+                                              <td key={p.problemId} className="p-1 sm:p-2 border border-white text-center bg-primary text-white">
                                                 --
-                                                <div className="text-[9px] font-normal text-white/80 font-mono">(-{sub.penalty})</div>
+                                                <div className="text-[8px] sm:text-[9px] font-normal text-white/80 font-mono">(-{sub.penalty})</div>
                                               </td>
                                             );
                                           }
                                           const penaltyText = sub.penalty > 0 ? `(-${sub.penalty})` : '';
                                           const bgClass = sub.status === 'first_solve' ? 'bg-brand-blue' : 'bg-brand-green';
                                           return (
-                                            <td key={p.problemId} className={`p-3 border border-white text-center text-white ${bgClass}`}>
+                                            <td key={p.problemId} className={`p-1 sm:p-2 border border-white text-center text-white ${bgClass}`}>
                                               {sub.time}
-                                              <div className="text-[9px] font-normal text-white/80 font-mono">{penaltyText}</div>
+                                              <div className="text-[8px] sm:text-[9px] font-normal text-white/80 font-mono">{penaltyText}</div>
                                             </td>
                                           );
                                         })}
