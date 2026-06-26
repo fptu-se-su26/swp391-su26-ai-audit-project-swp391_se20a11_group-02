@@ -47,6 +47,9 @@ public class LessonEntity {
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
 
+    @Column(name = "text_audio", columnDefinition = "TEXT")
+    String textAudio;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(name = "status")

@@ -100,6 +100,10 @@ public class CourseSecurity {
         return false;
     }
 
+    public boolean canAccessLesson(Integer lessonId) {
+        return canAccessLesson(lessonId == null ? null : lessonId.longValue());
+    }
+
     public boolean canAccessQuiz(Long quizId) {
         Long userId = getCurrentUserId();
         log.info("[CourseSecurity] canAccessQuiz - userId: {}, quizId: {}", userId, quizId);
@@ -128,6 +132,10 @@ public class CourseSecurity {
         }
 
         return false;
+    }
+
+    public boolean canAccessQuiz(Integer quizId) {
+        return canAccessQuiz(quizId == null ? null : quizId.longValue());
     }
 
     public boolean canAccessProblem(Long problemId) {

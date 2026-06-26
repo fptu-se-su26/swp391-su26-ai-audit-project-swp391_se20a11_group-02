@@ -49,6 +49,10 @@ public class CodingPlatformApplication {
 		} catch (Exception e) {
 			System.err.println("Failed to load .env file: " + e.getMessage());
 		}
+		System.out.println("DEBUG: System property DB_URL = " + System.getProperty("DB_URL"));
+		System.out.println("DEBUG: System property DB_USERNAME = " + System.getProperty("DB_USERNAME"));
+		System.out.println("DEBUG: System property DB_PASSWORD = " + System.getProperty("DB_PASSWORD"));
+		System.out.println("DEBUG: Env property DB_PASSWORD = " + System.getenv("DB_PASSWORD"));
 		SpringApplication.run(CodingPlatformApplication.class, args);
 	}
 }
