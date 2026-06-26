@@ -288,7 +288,7 @@ export const ContestRanking: React.FC = () => {
           </div>
           <h3 className="font-display font-black text-xl text-brand-blue">Arena Locked</h3>
           <p className="font-body text-sm text-text-muted">
-            You must register for this contest first to view the rankings. Use the registration panel on the right sidebar.
+            You must register for this contest first to view the rankings. Use the registration panel on the sidebar.
           </p>
         </div>
       </main>
@@ -300,12 +300,12 @@ export const ContestRanking: React.FC = () => {
 
   return (
     <>
-      <main className="w-full pl-4 sm:pl-8 py-8 md:py-12 pr-0 bg-surface-gray flex-grow min-w-0">
+      <main className="w-full pl-4 sm:pl-8 py-8 md:py-12 pr-4 sm:pr-8 bg-surface-gray flex-grow min-w-0">
         <div className="w-full flex flex-col gap-4">
           
           <div className="flex flex-col md:flex-row w-full gap-0 items-stretch">
             {/* Top Section: Interactive Custom SVG Chart & Legends */}
-            <div className="flex-grow min-w-0 pr-4 sm:pr-8">
+            <div className="flex-grow min-w-0">
               <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 flex flex-col gap-4 relative overflow-hidden group">
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
             
@@ -555,21 +555,10 @@ export const ContestRanking: React.FC = () => {
             )}
           </section>
         </div>
-
-        {/* Shorter Contest Sidebar on the right of the chart */}
-        <ContestSidebar
-          contestId={String(contest?.id || '')}
-          activeTab="ranking"
-          timeLeft={timeLeft}
-          timerLabel={timerLabel}
-          isRegistered={!!contest?.isUserRegistered}
-          contestStatus={contest?.status}
-          className="w-full md:w-[15%] min-w-[280px] bg-white border-l border-gray-200 flex flex-col relative sticky top-16 h-fit z-20 shrink-0"
-        />
       </div>
 
       {/* Bottom Section: Detailed Scoreboard */}
-      <div className="w-full pr-4 sm:pr-8">
+      <div className="w-full mt-4">
         <section className="bg-white rounded-xl shadow-[0_4px_20px_rgba(18,40,76,0.05)] border border-gray-200 overflow-hidden flex flex-col w-full">
             <div className="p-4 border-b border-gray-200 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>

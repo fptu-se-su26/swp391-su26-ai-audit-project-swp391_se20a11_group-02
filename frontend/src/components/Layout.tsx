@@ -72,7 +72,7 @@ export const Layout: React.FC = () => {
   const [registering, setRegistering] = useState(false);
   const [registrationMessage, setRegistrationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const timeOffsetRef = useRef<number>(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<any>(null);
   const lastFetchTimeRef = useRef<number>(0);
 
   const fetchContest = React.useCallback(async () => {
@@ -222,7 +222,7 @@ export const Layout: React.FC = () => {
     }
   }, [user, isPrivateRoute, navigate]);
 
-  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN';
+  const isAdmin = (user?.role as any) === 'ROLE_ADMIN' || (user?.role as any) === 'ADMIN' || user?.role === 'admin';
   const effectiveContest = React.useMemo(() => {
     return contest ? { ...contest, isUserRegistered: contest.isUserRegistered || isAdmin } : null;
   }, [contest, isAdmin]);
@@ -390,14 +390,13 @@ export const Layout: React.FC = () => {
       <main className={`relative z-10 flex-grow w-full min-w-0 ${(isInstructorRoute || isAdminRoute) ? '' : 'pt-16'}`}>
         {isContestPage ? (
           <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10">
-            {/* Main content column on the left (85% default, 100% for ranking) */}
-            <div className={activeTab === 'ranking' ? "w-full flex flex-col bg-surface-gray min-w-0" : "w-full md:w-[85%] flex flex-col bg-surface-gray min-w-0"}>
+            {/* Main content column on the left (88%) */}
+            <div className="w-full md:w-[88%] flex flex-col bg-surface-gray min-w-0">
               <Outlet context={{ contest: effectiveContest, loading, error, fetchContest, timeLeft, timerLabel }} />
             </div>
 
-            {/* Shared right sidebar (15%) - Hidden on ranking tab */}
-            {activeTab !== 'ranking' && (
-              <ContestSidebar
+            {/* Shared right sidebar (12%) - Now visible for all tabs! */}
+            <ContestSidebar
                 contestId={contestId || ''}
                 activeTab={activeTab}
                 timeLeft={timeLeft}
@@ -475,8 +474,7 @@ export const Layout: React.FC = () => {
                   )}
                 </div>
               )}
-              </ContestSidebar>
-            )}
+            </ContestSidebar>
           </div>
         ) : (
           <Outlet />
