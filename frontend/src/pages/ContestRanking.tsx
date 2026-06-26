@@ -582,25 +582,25 @@ export const ContestRanking: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="overflow-x-auto w-full">
+            <div className="w-full overflow-hidden">
               {problems.length === 0 ? (
                 <div className="p-8 text-center text-text-muted">No problems assigned to this contest.</div>
               ) : (
-                <table className="w-max text-left border-collapse min-w-[1200px] w-full">
+                <table className="w-full table-fixed text-left border-collapse">
                   <thead>
-                    <tr className="bg-surface-gray text-text-main font-label text-xs border-b-2 border-gray-200 uppercase tracking-wider text-center">
-                      <th className="p-4 font-bold w-12 text-center sticky left-0 bg-surface-gray z-25 shadow-[1px_0_0_#e2e8f0]">#</th>
-                      <th className="p-4 font-bold sticky left-[48px] bg-surface-gray z-25 min-w-[250px] w-[250px] max-w-[250px] text-left shadow-[1px_0_0_#e2e8f0]">User</th>
-                      <th className="p-2 font-bold w-20 whitespace-nowrap">AC / Total</th>
-                      <th className="p-2 font-bold w-28 border-r border-gray-200">Pen</th>
+                    <tr className="bg-surface-gray text-text-main font-label text-[10px] sm:text-xs border-b-2 border-gray-200 uppercase tracking-wider text-center">
+                      <th className="p-1 sm:p-2 font-bold w-8 sm:w-12 text-center border-r border-gray-200">#</th>
+                      <th className="p-1 sm:p-2 font-bold w-1/4 text-left border-r border-gray-200 truncate">User</th>
+                      <th className="p-1 sm:p-2 font-bold w-12 sm:w-16 whitespace-nowrap border-r border-gray-200 text-[9px] sm:text-[11px]">AC/T</th>
+                      <th className="p-1 sm:p-2 font-bold w-10 sm:w-14 border-r border-gray-200 text-[9px] sm:text-[11px]">Pen</th>
                       {problems.map((p) => (
-                        <th key={p.problemId} className="p-3 font-semibold w-[80px]" title={p.title}>
+                        <th key={p.problemId} className="p-1 sm:p-2 font-semibold border-r border-gray-200 truncate" title={p.title}>
                           {String.fromCharCode(65 + p.orderIndex)}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="text-sm font-body text-text-main divide-y divide-gray-200">
+                  <tbody className="text-[10px] sm:text-sm font-body text-text-main divide-y divide-gray-200">
                     {teams.length === 0 ? (
                       <tr>
                         <td colSpan={4 + problems.length} className="p-8 text-center text-text-muted">
@@ -610,19 +610,19 @@ export const ContestRanking: React.FC = () => {
                     ) : (
                       teams.map((team) => (
                         <tr key={team.name} className="hover:bg-surface-gray transition-colors group">
-                          <td className="p-4 text-center font-black text-primary sticky left-0 bg-white group-hover:bg-surface-gray z-10 shadow-[1px_0_0_#e2e8f0]">
+                          <td className="p-1 sm:p-2 text-center font-black text-primary border-r border-gray-200">
                             {team.rank}
                           </td>
-                          <td className="p-4 sticky left-[48px] bg-white group-hover:bg-surface-gray z-10 shadow-[1px_0_0_#e2e8f0]">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-text-main">@{team.name}</span>
-                              <span className="text-xs text-text-muted">{team.affiliation}</span>
+                          <td className="p-1 sm:p-2 border-r border-gray-200 truncate">
+                            <div className="flex flex-col truncate">
+                              <span className="font-semibold text-text-main truncate">@{team.name}</span>
+                              <span className="text-[9px] sm:text-xs text-text-muted truncate">{team.affiliation}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-center font-bold whitespace-nowrap">
+                          <td className="p-1 sm:p-2 text-center font-bold whitespace-nowrap border-r border-gray-200 text-[10px] sm:text-xs">
                             {team.solved} / {team.totalAttempts}
                           </td>
-                          <td className="p-4 text-center text-text-muted font-mono border-r border-gray-200">
+                          <td className="p-1 sm:p-2 text-center text-text-muted font-mono border-r border-gray-200 text-[10px] sm:text-xs">
                              {team.totalPenalty}
                            </td>
                           {problems.map((p) => {
