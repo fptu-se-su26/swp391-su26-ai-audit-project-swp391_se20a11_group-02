@@ -528,7 +528,8 @@ export const ContestProblemSolve: React.FC = () => {
                     <table className="w-full text-left border-collapse whitespace-nowrap min-w-[600px]">
                       <thead>
                         <tr className="bg-surface-gray border-b border-gray-200 text-text-muted text-xs font-bold uppercase tracking-wider">
-                          <th className="p-4 w-1/3">Status</th>
+                          <th className="p-4 w-1/4">Status</th>
+                          <th className="p-4">User</th>
                           <th className="p-4">Language</th>
                           <th className="p-4">Runtime</th>
                           <th className="p-4">Memory</th>
@@ -541,6 +542,7 @@ export const ContestProblemSolve: React.FC = () => {
                             <td className="p-4">
                               <span className={`${sub.statusClass} font-bold group-hover:underline`}>{sub.status}</span>
                             </td>
+                            <td className="p-4 text-text-muted">{sub.username}</td>
                             <td className="p-4 text-text-muted">{sub.lang}</td>
                             <td className="p-4">{sub.runtime}</td>
                             <td className="p-4">{sub.memory}</td>
@@ -549,7 +551,7 @@ export const ContestProblemSolve: React.FC = () => {
                         ))}
                         {filteredSubmissions.length === 0 && (
                           <tr>
-                            <td colSpan={5} className="p-8 text-center text-text-muted">
+                            <td colSpan={6} className="p-8 text-center text-text-muted">
                               No submissions found for this problem.
                             </td>
                           </tr>
@@ -693,25 +695,27 @@ export const ContestProblemSolve: React.FC = () => {
           </div>
 
           {/* Action Bar */}
-          <div className="p-3 bg-surface border-t border-gray-200 flex justify-end gap-3 shrink-0">
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="px-8 py-2 bg-brand-green hover:bg-[#3d8c38] text-white rounded-lg font-bold transition-colors shadow-sm text-sm active:scale-95 disabled:bg-gray-400 flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Submitting...
-                </>
-              ) : (
-                'Submit'
-              )}
-            </button>
-          </div>
+          {user?.role !== 'ROLE_ADMIN' && user?.role !== 'ADMIN' && (
+            <div className="p-3 bg-surface border-t border-gray-200 flex justify-end gap-3 shrink-0">
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="px-8 py-2 bg-brand-green hover:bg-[#3d8c38] text-white rounded-lg font-bold transition-colors shadow-sm text-sm active:scale-95 disabled:bg-gray-400 flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit'
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

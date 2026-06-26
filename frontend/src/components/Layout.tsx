@@ -72,8 +72,10 @@ export const Layout: React.FC = () => {
   const [registering, setRegistering] = useState(false);
   const [registrationMessage, setRegistrationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const timeOffsetRef = useRef<number>(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastFetchTimeRef = useRef<number>(0);
 
-  const fetchContest = async () => {
+  const fetchContest = React.useCallback(async () => {
     if (!contestId) return;
     try {
       const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contestId}`, {
@@ -95,7 +97,7 @@ export const Layout: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [contestId]);
 
   useEffect(() => {
     if (isContestPage && contestId) {
@@ -127,8 +129,12 @@ export const Layout: React.FC = () => {
       const diff = end - now;
 
       if (diff <= 0) {
-        fetchContest();
+        if (timerRef.current) clearInterval(timerRef.current);
         setTimeLeft('Ended');
+        if (Date.now() - lastFetchTimeRef.current > 3000) {
+          lastFetchTimeRef.current = Date.now();
+          fetchContest();
+        }
         return;
       }
 
@@ -142,6 +148,7 @@ export const Layout: React.FC = () => {
 
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
+    timerRef.current = timer;
     return () => clearInterval(timer);
   }, [contest, isContestPage]);
 
@@ -215,6 +222,10 @@ export const Layout: React.FC = () => {
     }
   }, [user, isPrivateRoute, navigate]);
 
+  const isAdmin = user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN';
+  const effectiveContest = React.useMemo(() => {
+    return contest ? { ...contest, isUserRegistered: contest.isUserRegistered || isAdmin } : null;
+  }, [contest, isAdmin]);
 
   return (
     <div className="bg-[#f0f4f9] text-text-main font-body min-h-screen flex flex-col antialiased selection:bg-primary-light selection:text-brand-blue relative">
@@ -381,7 +392,7 @@ export const Layout: React.FC = () => {
           <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10">
             {/* Main content column on the left (85% default, 100% for ranking) */}
             <div className={activeTab === 'ranking' ? "w-full flex flex-col bg-surface-gray min-w-0" : "w-full md:w-[85%] flex flex-col bg-surface-gray min-w-0"}>
-              <Outlet context={{ contest, loading, error, fetchContest, timeLeft, timerLabel }} />
+              <Outlet context={{ contest: effectiveContest, loading, error, fetchContest, timeLeft, timerLabel }} />
             </div>
 
             {/* Shared right sidebar (15%) - Hidden on ranking tab */}
@@ -391,10 +402,10 @@ export const Layout: React.FC = () => {
                 activeTab={activeTab}
                 timeLeft={timeLeft}
                 timerLabel={timerLabel}
-                isRegistered={!!contest?.isUserRegistered}
-                contestStatus={contest?.status}
+                isRegistered={!!effectiveContest?.isUserRegistered}
+                contestStatus={effectiveContest?.status}
               >
-              {activeTab === 'overview' && !loading && contest && (
+              {activeTab === 'overview' && !loading && effectiveContest && (
                 <div className="mt-8 border-t border-gray-100 pt-6">
                   {!user ? (
                     <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-4 text-center space-y-3">
@@ -408,13 +419,19 @@ export const Layout: React.FC = () => {
                         Go to Login
                       </button>
                     </div>
-                  ) : contest.isUserRegistered ? (
+                  ) : isAdmin ? (
+                    <div className="bg-purple-50 border border-purple-200 text-purple-800 rounded-xl p-4 text-center">
+                      <span className="material-symbols-outlined text-purple-600 text-3xl mb-1 icon-fill">admin_panel_settings</span>
+                      <p className="text-sm font-bold">Admin Mode</p>
+                      <p className="text-xs text-purple-600 mt-1">You have full access to this arena.</p>
+                    </div>
+                  ) : effectiveContest.isUserRegistered ? (
                     <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl p-4 text-center">
                       <span className="material-symbols-outlined text-green-600 text-3xl mb-1 icon-fill">verified_user</span>
                       <p className="text-sm font-bold">Registered</p>
                       <p className="text-xs text-green-600 mt-1">You are in this arena!</p>
                     </div>
-                  ) : contest.status === 'ENDED' ? (
+                  ) : effectiveContest.status === 'ENDED' ? (
                     <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 text-center">
                       <span className="material-symbols-outlined text-red-600 text-3xl mb-1">lock</span>
                       <p className="text-sm font-bold">Registration Closed</p>
@@ -422,7 +439,7 @@ export const Layout: React.FC = () => {
                     </div>
                   ) : (
                     <form onSubmit={handleRegister} className="space-y-4">
-                      {contest.isPrivate && (
+                      {effectiveContest.isPrivate && (
                         <div>
                           <label className="block text-label-md font-medium text-text-muted mb-2 tracking-wider uppercase text-center" htmlFor="contest-password">
                             Contest Password

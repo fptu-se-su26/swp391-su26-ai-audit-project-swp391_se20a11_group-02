@@ -614,16 +614,42 @@ export const AdminDashboard: React.FC = () => {
   };
 
   useEffect(() => {
+    let eventSource: EventSource | null = null;
+
     if (reviewingContest) {
       if (reviewContestTab === 'submissions') {
         fetchContestSubmissions(reviewingContest.id);
       } else if (reviewContestTab === 'ranking') {
         fetchContestRanking(reviewingContest.id);
+        
+        // Add SSE for realtime scoreboard updates
+        eventSource = new EventSource(`http://localhost:8080/nonstopcoding/api/v1/contests/${reviewingContest.id}/scoreboard/stream`, { withCredentials: true });
+        
+        eventSource.addEventListener('scoreboard-update', (event: any) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed && parsed.rows) {
+              setRankingTeams(parsed.rows);
+            }
+          } catch (err) {
+            console.error('Error parsing SSE scoreboard update:', err);
+          }
+        });
+
+        eventSource.onerror = (err) => {
+          console.error('EventSource error:', err);
+        };
       }
     } else {
       setContestSubmissions([]);
       setRankingTeams([]);
     }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
   }, [reviewingContest, reviewContestTab]);
 
   useEffect(() => {
