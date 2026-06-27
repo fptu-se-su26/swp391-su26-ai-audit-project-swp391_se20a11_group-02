@@ -287,7 +287,7 @@ export const Layout: React.FC = () => {
             </Link>
             <nav className="hidden lg:flex gap-6 items-center absolute left-1/2 transform -translate-x-1/2 h-full">
               {user && (
-                <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Learning</NavLink>
+                <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/dashboard">My Dashboard</NavLink>
               )}
               <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/courses">Courses</NavLink>
               <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/problems">Problems</NavLink>
@@ -343,7 +343,7 @@ export const Layout: React.FC = () => {
                   {/* Dropdown Menu */}
                   <div className="absolute top-full right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2 cursor-default text-left">
                     <Link to="/dashboard" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">dashboard</span> My Learning
+                      <span className="material-symbols-outlined text-[18px]">dashboard</span> My Dashboard
                     </Link>
                     {user && user.role === 'admin' && (
                       <Link to="/admin" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
