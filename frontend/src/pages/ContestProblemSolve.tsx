@@ -542,7 +542,7 @@ export const ContestProblemSolve: React.FC = () => {
                             <td className="p-4">
                               <span className={`${sub.statusClass} font-bold group-hover:underline`}>{sub.status}</span>
                             </td>
-                            <td className="p-4 text-text-muted">{sub.username}</td>
+                            <td className="p-4 text-text-muted">{sub.displayName || sub.username}</td>
                             <td className="p-4 text-text-muted">{sub.lang}</td>
                             <td className="p-4">{sub.runtime}</td>
                             <td className="p-4">{sub.memory}</td>

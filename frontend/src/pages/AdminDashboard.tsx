@@ -3281,7 +3281,7 @@ export const AdminDashboard: React.FC = () => {
                             contestSubmissions.map((sub) => (
                               <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
                                 <td className="px-6 py-4 text-slate-500 font-normal">{sub.submittedAt}</td>
-                                <td className="px-6 py-4 font-bold text-slate-900">@{sub.username}</td>
+                                <td className="px-6 py-4 font-bold text-slate-900">{sub.displayName || sub.username}</td>
                                 <td className="px-6 py-4 text-center">
                                   <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold border border-slate-200">{sub.problemLabel}</span>
                                 </td>
