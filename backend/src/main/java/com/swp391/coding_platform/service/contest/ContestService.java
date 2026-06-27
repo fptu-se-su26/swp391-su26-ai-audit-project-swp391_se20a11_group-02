@@ -603,6 +603,7 @@ public class ContestService {
                     .id(s.getId())
                     .submittedAt(timeStr)
                     .username(s.getUser().getUsername())
+                    .displayName(s.getUser().getDisplayname() != null ? s.getUser().getDisplayname() : s.getUser().getUsername())
                     .problemLabel(label)
                     .problemId(s.getProblem().getId())
                     .problemTitle(s.getProblem().getTitle())
