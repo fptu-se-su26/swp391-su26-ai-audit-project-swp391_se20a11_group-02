@@ -109,6 +109,16 @@ export interface OrderDetails {
   date: string;
 }
 
+export interface PayoutDetails {
+  id: string;
+  instructorName: string;
+  instructorEmail: string;
+  amount: number;
+  bankAccount: string;
+  status: 'COMPLETED' | 'PENDING' | 'FAILED';
+  date: string;
+}
+
 export interface AwardDetails {
   id: string;
   userName: string;
@@ -210,6 +220,17 @@ export interface AdminUser {
   isOnline?: boolean;
   lockReason?: string;
   lockAppeal?: string;
+}
+
+export interface PageResponse<T> {
+  page: number;
+  size: number;
+  numberOfElements: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  content: T[];
 }
 
 export interface AdminProblem {
@@ -769,7 +790,6 @@ export const adminService = {
         rating: 5.0,
         studentsCount: 0
       });
-
     }
     // Add log
     mockActivityLogs.unshift({
@@ -1217,6 +1237,54 @@ export const adminService = {
     const response = await fetch(`${BASE_URL}/admin/financial/details`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch financial audit details');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getFinancialOrders(page: number, limit: number, startDate?: string, endDate?: string): Promise<PageResponse<OrderDetails>> {
+    let url = `${BASE_URL}/admin/financial/orders?page=${page}&limit=${limit}`;
+    if (startDate) url += `&startDate=${startDate}`;
+    if (endDate) url += `&endDate=${endDate}`;
+    const response = await fetch(url, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch financial orders');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getFinancialAwards(page: number, limit: number, startDate?: string, endDate?: string): Promise<PageResponse<AwardDetails>> {
+    let url = `${BASE_URL}/admin/financial/awards?page=${page}&limit=${limit}`;
+    if (startDate) url += `&startDate=${startDate}`;
+    if (endDate) url += `&endDate=${endDate}`;
+    const response = await fetch(url, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch financial awards');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getFinancialSales(page: number, limit: number, startDate?: string, endDate?: string): Promise<PageResponse<SaleDetails>> {
+    let url = `${BASE_URL}/admin/financial/sales?page=${page}&limit=${limit}`;
+    if (startDate) url += `&startDate=${startDate}`;
+    if (endDate) url += `&endDate=${endDate}`;
+    const response = await fetch(url, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch financial sales');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async getFinancialPayouts(page: number = 1, size: number = 10, startDate?: string, endDate?: string): Promise<PageResponse<PayoutDetails>> {
+    let url = `${BASE_URL}/admin/financial/payouts?page=${page}&limit=${size}`;
+    if (startDate) url += `&startDate=${startDate}`;
+    if (endDate) url += `&endDate=${endDate}`;
+    const response = await fetch(url, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch financial payouts');
     }
     const data = await response.json();
     return data.result;
