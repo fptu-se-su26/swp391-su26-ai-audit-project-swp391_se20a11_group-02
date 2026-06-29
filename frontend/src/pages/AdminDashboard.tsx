@@ -18,7 +18,8 @@ import type {
   MonthlyFinancialBreakdown,
   OrderDetails,
   AwardDetails,
-  SaleDetails
+  SaleDetails,
+  PageResponse
 } from '../services/adminService';
 import Editor from '@monaco-editor/react';
 
@@ -176,155 +177,6 @@ const rankingFormatMinutes = (m: number): string => {
   return `${hrs}h ${mins}m`;
 };
 
-const FinancialAllTimeReport: React.FC<{ details: AdminFinancialDetails | null }> = ({ details }) => {
-  const [selectedYear, setSelectedYear] = useState<string>('ALL');
-
-  const availableYears = useMemo(() => {
-    const yearsSet = new Set<string>();
-    (details?.monthlyBreakdowns || []).forEach((b: MonthlyFinancialBreakdown) => {
-      if (b.datePrefix && b.datePrefix.length >= 4) {
-        const year = b.datePrefix.substring(0, 4);
-        yearsSet.add(year);
-      }
-    });
-    return Array.from(yearsSet).sort().reverse();
-  }, [details]);
-
-  const filteredBreakdowns = useMemo(() => {
-    const list = details?.monthlyBreakdowns || [];
-    if (selectedYear === 'ALL') return list;
-    return list.filter((b: MonthlyFinancialBreakdown) => b.datePrefix && b.datePrefix.startsWith(selectedYear));
-  }, [details, selectedYear]);
-
-  const summary = useMemo(() => {
-    let gross = 0;
-    let count = 0;
-    let rewards = 0;
-    let server = 0;
-    let marketing = 0;
-    let netProfit = 0;
-
-    filteredBreakdowns.forEach((item: MonthlyFinancialBreakdown) => {
-      gross += item.gross || 0;
-      count += item.count || 0;
-      rewards += item.rewards || 0;
-      server += item.server || 0;
-      marketing += item.marketing || 0;
-      netProfit += item.netProfit || 0;
-    });
-
-    const platformShare = Math.round(gross * 0.3);
-    const instructorShare = Math.round(gross * 0.7);
-    const gatewayFees = Math.round(gross * 0.02);
-
-    return {
-      gross,
-      count,
-      rewards,
-      server,
-      marketing,
-      netProfit,
-      platformShare,
-      instructorShare,
-      gatewayFees
-    };
-  }, [filteredBreakdowns]);
-
-  return (
-    <div className="flex flex-col gap-5 text-slate-800">
-      {/* Year Selector */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-600">Lọc theo năm báo cáo:</span>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-brand-blue outline-none cursor-pointer"
-          >
-            <option value="ALL">Toàn bộ thời gian hoạt động</option>
-            {availableYears.map(yr => (
-              <option key={yr} value={yr}>Năm {yr}</option>
-            ))}
-          </select>
-        </div>
-        <span className="text-[10px] font-black uppercase text-slate-400">
-          Thời gian: {selectedYear === 'ALL' ? 'Từ đầu hoạt động' : `Năm ${selectedYear}`}
-        </span>
-      </div>
-
-      {/* KPI summaries for selected range */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-          <p className="text-[10px] text-slate-400 uppercase font-black">Doanh thu gộp (Gross)</p>
-          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.gross.toLocaleString()} ₫</p>
-        </div>
-        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-          <p className="text-[10px] text-slate-400 uppercase font-black">Giữ lại Platform (30%)</p>
-          <p className="text-sm font-mono font-black text-indigo-600 mt-1">{summary.platformShare.toLocaleString()} ₫</p>
-        </div>
-        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-          <p className="text-[10px] text-slate-400 uppercase font-black">Khóa học bán ra</p>
-          <p className="text-sm font-mono font-black text-slate-900 mt-1">{summary.count.toLocaleString()} copies</p>
-        </div>
-        <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-          <p className="text-[10px] text-slate-400 uppercase font-black">Lợi nhuận ròng (Net Profit)</p>
-          <p className={`text-sm font-mono font-black mt-1 ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-            {summary.netProfit.toLocaleString()} ₫
-          </p>
-        </div>
-      </div>
-
-      {/* Monthly Breakdown Sheet */}
-      <div>
-        <h4 className="font-display font-black text-slate-900 text-xs mb-3">
-          Bảng báo cáo chi tiết tài chính từng tháng
-        </h4>
-        <div className="overflow-x-auto border border-slate-100 rounded-xl">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
-                <th className="p-3">Tháng</th>
-                <th className="p-3 text-right">Doanh thu gộp</th>
-                <th className="p-3 text-right">Platform (30%)</th>
-                <th className="p-3 text-right">Giải thưởng (AWARD)</th>
-                <th className="p-3 text-right">Chi phí vận hành</th>
-                <th className="p-3 text-right">Lợi nhuận ròng</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-              {filteredBreakdowns.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu.</td>
-                </tr>
-              ) : (
-                filteredBreakdowns.map((b: MonthlyFinancialBreakdown, idx: number) => {
-                  const gross = b.gross || 0;
-                  const platformShare = Math.round(gross * 0.3);
-                  const gatewayFees = Math.round(gross * 0.02);
-                  const operCosts = (b.server || 0) + (b.marketing || 0) + gatewayFees;
-                  return (
-                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-3 text-slate-900 font-bold">{b.label}</td>
-                      <td className="p-3 text-right font-mono text-slate-900">{gross.toLocaleString()} ₫</td>
-                      <td className="p-3 text-right font-mono text-indigo-600">+{platformShare.toLocaleString()} ₫</td>
-                      <td className="p-3 text-right font-mono text-rose-500">-{b.rewards.toLocaleString()} ₫</td>
-                      <td className="p-3 text-right font-mono text-slate-500" title={`Server: ${(b.server || 0).toLocaleString()} ₫, Marketing: ${(b.marketing || 0).toLocaleString()} ₫, Gateway Fee (2%): ${gatewayFees.toLocaleString()} ₫`}>
-                        -{operCosts.toLocaleString()} ₫
-                      </td>
-                      <td className={`p-3 text-right font-mono font-bold ${b.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {b.netProfit.toLocaleString()} ₫
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export const AdminDashboard: React.FC = () => {
   const { tab } = useParams<{ tab?: string }>();
@@ -353,14 +205,11 @@ export const AdminDashboard: React.FC = () => {
   const [problems, setProblems] = useState<AdminProblem[]>([]);
   const [contests, setContests] = useState<AdminContest[]>([]);
   const [recentDeposits, setRecentDeposits] = useState<AdminDepositHistory[]>([]);
-  const [allDeposits, setAllDeposits] = useState<AdminDepositHistory[]>([]);
-  const [showAllDepositsModal, setShowAllDepositsModal] = useState<boolean>(false);
-  const [loadingAllDeposits, setLoadingAllDeposits] = useState<boolean>(false);
+  const [recentPayouts, setRecentPayouts] = useState<any[]>([]);
   const [monthlyRecords, setMonthlyRecords] = useState<MonthlyFinancialRecord[]>([]);
   const [topCourses, setTopCourses] = useState<TopRevenueCourse[]>([]);
   const [financialDetails, setFinancialDetails] = useState<AdminFinancialDetails | null>(null);
-  const [activeFinancialModal, setActiveFinancialModal] = useState<'gross' | 'instructor' | 'platform' | 'awards' | 'profit' | 'sales' | 'courses-sold-all' | null>(null);
-
+  const [activeFinancialModal, setActiveFinancialModal] = useState<string | null>(null);
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
   const [globalToast, setGlobalToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -381,8 +230,18 @@ export const AdminDashboard: React.FC = () => {
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
   const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared' | 'draft'>('repository');
+  const [problemPage, setProblemPage] = useState(1);
+  const [selectedProblems, setSelectedProblems] = useState<number[]>([]);
+  const problemsPerPage = 10;
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'DELETED'>('ALL');
   const [contestSubTab, setContestSubTab] = useState<'active' | 'trash'>('active');
+
+  useEffect(() => {
+    setProblemPage(1);
+    setSelectedProblems([]);
+  }, [problemSearch, problemDifficultyFilter, problemScopeFilter, problemSubTab]);
+
+
 
   // Status change confirm modal state
   const [statusConfirmTarget, setStatusConfirmTarget] = useState<{
@@ -806,14 +665,16 @@ export const AdminDashboard: React.FC = () => {
         const usersRes = await adminService.getUsers().catch(err => { console.error("Failed to load users:", err); return []; });
         setUsers(usersRes || []);
       } else if (activeTab === 'financial') {
-        const [monthlyRecordsRes, topCoursesRes, financialDetailsRes] = await Promise.all([
+        const [monthlyRecordsRes, topCoursesRes, financialDetailsRes, payoutsRes] = await Promise.all([
           adminService.getFinancialMonthlyRecords().catch(err => { console.error("Failed to load monthly records:", err); return []; }),
           adminService.getFinancialTopCourses().catch(err => { console.error("Failed to load top courses:", err); return []; }),
-          adminService.getFinancialDetails().catch(err => { console.error("Failed to load financial details:", err); return null; })
+          adminService.getFinancialDetails().catch(err => { console.error("Failed to load financial details:", err); return null; }),
+          adminService.getFinancialPayouts(1, 3).catch(err => { console.error("Failed to load payouts:", err); return { content: [] }; })
         ]);
         setMonthlyRecords(monthlyRecordsRes || []);
         setTopCourses(topCoursesRes || []);
         setFinancialDetails(financialDetailsRes);
+        setRecentPayouts(payoutsRes?.content || []);
       }
     } catch (error) {
       console.error("Error loading admin dashboard data:", error);
@@ -825,6 +686,26 @@ export const AdminDashboard: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [activeTab, courseFilter]);
+
+  const exportFinancialDataToCSV = () => {
+    if (filteredFinancialData.length === 0) {
+      showGlobalToast("No data to export", "info");
+      return;
+    }
+    const headers = ["Label", "Start Date", "End Date", "Gross Revenue", "Courses Sold", "Contest Rewards", "Other Expenses", "Net Profit", "Instructor Share", "Platform Share"];
+    const csvRows = [headers.join(",")];
+    filteredFinancialData.forEach(r => {
+      csvRows.push(`"${r.label}","${r.startDate}","${r.endDate}",${r.grossRevenue},${r.coursesSold},${r.contestRewards},${r.otherExpenses},${r.netProfit},${r.instructorShare},${r.platformShare}`);
+    });
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'financial_report.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
 
 
@@ -1036,19 +917,7 @@ export const AdminDashboard: React.FC = () => {
 
   const topProblemsTotal = useMemo(() => topProblemsChartData.reduce((sum, c) => sum + c.count, 0), [topProblemsChartData]);
 
-  // Action handlers
-  const handleOpenAllDeposits = async () => {
-    setLoadingAllDeposits(true);
-    setShowAllDepositsModal(true);
-    const data = await adminService.getAllDeposits();
-    setAllDeposits(data);
-    setLoadingAllDeposits(false);
-  };
 
-  const handleCloseAllDeposits = () => {
-    setShowAllDepositsModal(false);
-    setAllDeposits([]);
-  };
 
   const getReviewYoutubeEmbedUrl = (url?: string) => {
     if (!url) return '';
@@ -1941,6 +1810,10 @@ export const AdminDashboard: React.FC = () => {
     }
     return list;
   }, [contests, contestStatusFilter, contestSubTab]);
+
+  const totalProblemPages = Math.ceil(filteredProblems.length / problemsPerPage);
+  const safeProblemPage = Math.min(problemPage, Math.max(1, totalProblemPages));
+  const paginatedProblems = filteredProblems.slice((safeProblemPage - 1) * problemsPerPage, safeProblemPage * problemsPerPage);
 
   // Auth checking context (Only allow role == ADMIN, or default username admin, let's keep it safe)
   // const isAdmin = useMemo(() => {
@@ -3749,7 +3622,13 @@ export const AdminDashboard: React.FC = () => {
                     </div>
 
                     <div className="w-full h-[220px] select-none mt-2">
-                      <svg viewBox={`0 0 ${lineChartPoints.width} ${lineChartPoints.height}`} className="w-full h-full overflow-visible">
+                      {lineChartPoints.points.length === 0 ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                          <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">monitoring</span>
+                          <span className="text-sm font-bold text-slate-400">No Data Available</span>
+                        </div>
+                      ) : (
+                        <svg viewBox={`0 0 ${lineChartPoints.width} ${lineChartPoints.height}`} className="w-full h-full overflow-visible">
                         <linearGradient id="admin-revenue-grad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#F36F21" stopOpacity="0.25" />
                           <stop offset="100%" stopColor="#F36F21" stopOpacity="0" />
@@ -3799,6 +3678,7 @@ export const AdminDashboard: React.FC = () => {
                           <text key={idx} x={lineChartPoints.points[idx].x} y={lineChartPoints.height - 8} fill="#64748b" fontSize="9" fontWeight="700" textAnchor="middle">{m.label}</text>
                         ))}
                       </svg>
+                      )}
                     </div>
                   </div>
 
@@ -4078,8 +3958,8 @@ export const AdminDashboard: React.FC = () => {
                         <span className="material-symbols-outlined text-primary">payments</span> User Deposit History
                       </h3>
                       <button 
-                        onClick={handleOpenAllDeposits}
-                        className="text-xs font-bold text-primary hover:text-brand-blue transition-colors flex items-center gap-1 bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full"
+                        onClick={() => setActiveFinancialModal('deposits')}
+                        className="text-xs font-bold text-primary hover:text-brand-blue transition-colors flex items-center gap-1 bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full cursor-pointer"
                       >
                         View All <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                       </button>
@@ -4347,31 +4227,94 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Problems List Table */}
+                {selectedProblems.length > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between mb-4 shadow-sm animate-fade-in-up">
+                    <div className="flex items-center gap-2 text-blue-700 font-bold text-sm">
+                      <span className="material-symbols-outlined">check_box</span>
+                      <span>{selectedProblems.length} problem{selectedProblems.length > 1 ? 's' : ''} selected</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => triggerConfirm("Bulk Publish", `Publish ${selectedProblems.length} selected problems?`, () => {
+                          Promise.all(selectedProblems.map(id => adminService.updateProblemPublicStatus(id, true))).then(() => {
+                            showGlobalToast(`Published ${selectedProblems.length} problems`, "success");
+                            setSelectedProblems([]);
+                            loadData();
+                          }).catch(() => showGlobalToast("Failed to publish some problems", "error"));
+                        })}
+                        className="bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">public</span> Publish
+                      </button>
+                      <button 
+                        onClick={() => triggerConfirm("Bulk Hide", `Make ${selectedProblems.length} selected problems private?`, () => {
+                          Promise.all(selectedProblems.map(id => adminService.updateProblemPublicStatus(id, false))).then(() => {
+                            showGlobalToast(`Made ${selectedProblems.length} problems private`, "success");
+                            setSelectedProblems([]);
+                            loadData();
+                          }).catch(() => showGlobalToast("Failed to hide some problems", "error"));
+                        })}
+                        className="bg-white border border-blue-200 text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">visibility_off</span> Private
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
+                          <th className="py-4 px-6 w-12 text-center">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 rounded text-brand-blue border-slate-300 focus:ring-brand-blue"
+                              checked={paginatedProblems.length > 0 && selectedProblems.length === paginatedProblems.length}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedProblems(paginatedProblems.map(p => p.id));
+                                } else {
+                                  setSelectedProblems([]);
+                                }
+                              }}
+                            />
+                          </th>
                           <th className="py-4 px-6">ID</th>
                           <th className="py-4 px-6">Title</th>
                           <th className="py-4 px-6">Difficulty</th>
                           <th className="py-4 px-6 text-right">Submissions</th>
                           <th className="py-4 px-6 text-right">Accepted Rate</th>
+                          <th className="py-4 px-6 text-center">Testcases</th>
                           <th className="py-4 px-6 text-center">Scope</th>
                           <th className="py-4 px-6 text-center">Status</th>
                           <th className="py-4 px-6 text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
-                        {filteredProblems.map((p, index) => {
+                        {paginatedProblems.map((p, index) => {
                           const totalSubs = p.totalSubmissions || 0;
                           const acceptedSubs = p.acceptedSubmissions || 0;
                           const calculatedRate = totalSubs > 0 ? (acceptedSubs / totalSubs * 100) : 0;
                           const acceptedRate = Math.min(calculatedRate, 100).toFixed(1);
 
                           return (
-                            <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="py-4 px-6 text-brand-blue font-bold">#{index + 1}</td>
+                            <tr key={p.id} className={`hover:bg-slate-50/50 transition-colors ${selectedProblems.includes(p.id) ? 'bg-blue-50/30' : ''}`}>
+                              <td className="py-4 px-6 text-center">
+                                <input 
+                                  type="checkbox" 
+                                  className="w-4 h-4 rounded text-brand-blue border-slate-300 focus:ring-brand-blue"
+                                  checked={selectedProblems.includes(p.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedProblems(prev => [...prev, p.id]);
+                                    } else {
+                                      setSelectedProblems(prev => prev.filter(id => id !== p.id));
+                                    }
+                                  }}
+                                />
+                              </td>
+                              <td className="py-4 px-6 text-brand-blue font-bold">#{p.id}</td>
                               <td className="py-4 px-6 font-bold text-slate-900">{p.title}</td>
                               <td className="py-4 px-6">
                                 <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${p.difficulty === 'EASY' ? 'bg-emerald-50 text-emerald-600' :
@@ -4393,9 +4336,21 @@ export const AdminDashboard: React.FC = () => {
                                 </div>
                               </td>
                               <td className="py-4 px-6 text-center">
+                                <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold border border-slate-200">
+                                  {p.totalTestcases || 0}
+                                </span>
+                              </td>
+                              <td className="py-4 px-6 text-center">
                                 <select
                                   value={p.problemScope}
-                                  onChange={(e) => handleUpdateProblemScope(p.id, e.target.value as any)}
+                                  onChange={(e) => {
+                                    const newScope = e.target.value as any;
+                                    triggerConfirm(
+                                      "Change Problem Scope",
+                                      `Are you sure you want to change the scope to ${newScope}?`,
+                                      () => handleUpdateProblemScope(p.id, newScope)
+                                    );
+                                  }}
                                   className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${p.problemScope === 'PRACTICE'
                                     ? 'bg-green-50 text-green-600 border-green-200'
                                     : p.problemScope === 'CONTEST'
@@ -4411,7 +4366,14 @@ export const AdminDashboard: React.FC = () => {
                               <td className="py-4 px-6 text-center">
                                 <select
                                   value={p.isPublic ? "PUBLIC" : "PRIVATE"}
-                                  onChange={(e) => handleUpdateProblemPublicStatus(p.id, e.target.value === "PUBLIC")}
+                                  onChange={(e) => {
+                                    const isPublic = e.target.value === "PUBLIC";
+                                    triggerConfirm(
+                                      "Change Publish Status",
+                                      `Are you sure you want to make this problem ${isPublic ? "public" : "private"}?`,
+                                      () => handleUpdateProblemPublicStatus(p.id, isPublic)
+                                    );
+                                  }}
                                   className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold outline-none cursor-pointer ${p.isPublic
                                     ? "bg-emerald-50 border-emerald-250 text-emerald-600"
                                     : "bg-slate-100 border-slate-200 text-slate-600"
@@ -4440,14 +4402,63 @@ export const AdminDashboard: React.FC = () => {
                             </tr>
                           );
                         })}
-                        {filteredProblems.length === 0 && (
+                        {paginatedProblems.length === 0 && (
                           <tr>
-                            <td colSpan={8} className="py-12 text-center text-text-muted italic">No problems found.</td>
+                            <td colSpan={10} className="py-12 text-center text-text-muted italic">No problems found.</td>
                           </tr>
                         )}
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Pagination Controls */}
+                  {totalProblemPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                      <span className="text-xs font-semibold text-slate-500">
+                        Showing {(safeProblemPage - 1) * problemsPerPage + 1} to {Math.min(safeProblemPage * problemsPerPage, filteredProblems.length)} of {filteredProblems.length} entries
+                      </span>
+                      <div className="flex gap-1">
+                        <button 
+                          onClick={() => setProblemPage(p => Math.max(1, p - 1))}
+                          disabled={safeProblemPage === 1}
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-white disabled:opacity-50 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
+                        
+                        <div className="flex gap-1">
+                          {Array.from({ length: Math.min(5, totalProblemPages) }).map((_, i) => {
+                            let pageNum = i + 1;
+                            if (totalProblemPages > 5) {
+                              if (safeProblemPage > 3) pageNum = safeProblemPage - 2 + i;
+                              if (pageNum > totalProblemPages) pageNum = totalProblemPages - (4 - i);
+                            }
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setProblemPage(pageNum)}
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                                  safeProblemPage === pageNum 
+                                    ? 'bg-brand-blue text-white shadow-sm' 
+                                    : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        
+                        <button 
+                          onClick={() => setProblemPage(p => Math.min(totalProblemPages, p + 1))}
+                          disabled={safeProblemPage === totalProblemPages}
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-white disabled:opacity-50 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -4841,10 +4852,10 @@ export const AdminDashboard: React.FC = () => {
                     {/* Preset buttons */}
                     <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5">
                       {[
-                        { val: 'month', label: 'Tháng này' },
-                        { val: '3months', label: '3 tháng' },
-                        { val: '9months', label: '9 tháng' },
-                        { val: '12months', label: '12 tháng' }
+                        { val: 'month', label: 'This Month' },
+                        { val: '3months', label: '3 Months' },
+                        { val: '9months', label: '9 Months' },
+                        { val: '12months', label: '12 Months' }
                       ].map(p => (
                         <button
                           key={p.val}
@@ -4877,7 +4888,7 @@ export const AdminDashboard: React.FC = () => {
                             setFinancialTimeFilter('custom');
                           }}
                           className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
-                          placeholder="Từ ngày"
+                          placeholder="Start date"
                         />
                       </div>
                       <span className="text-xs text-slate-400 font-bold">to</span>
@@ -4891,7 +4902,7 @@ export const AdminDashboard: React.FC = () => {
                             setFinancialTimeFilter('custom');
                           }}
                           className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
-                          placeholder="Đến ngày"
+                          placeholder="End date"
                         />
                       </div>
                     </div>
@@ -4929,8 +4940,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
                       <span className="text-[10px] text-slate-400 font-semibold">Total sales volume generated</span>
-                      <button onClick={() => setActiveFinancialModal('gross')} className="text-[10px] text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
-                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      <button onClick={() => navigate('/admin/financial-reports', { state: { tab: 'gross' } })} className="text-[10px] text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        View All <span className="material-symbols-outlined text-xs">arrow_forward</span>
                       </button>
                     </div>
                   </div>
@@ -4949,8 +4960,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
                       <span className="text-[10px] text-slate-400 font-semibold">70% split allocated to lecturers</span>
-                      <button onClick={() => setActiveFinancialModal('instructor')} className="text-[10px] text-violet-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
-                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      <button onClick={() => navigate('/admin/financial-reports', { state: { tab: 'instructor' } })} className="text-[10px] text-violet-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        View All <span className="material-symbols-outlined text-xs">arrow_forward</span>
                       </button>
                     </div>
                   </div>
@@ -4969,8 +4980,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
                       <span className="text-[10px] text-slate-400 font-semibold">System shares from courses</span>
-                      <button onClick={() => setActiveFinancialModal('platform')} className="text-[10px] text-indigo-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
-                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      <button onClick={() => navigate('/admin/financial-reports', { state: { tab: 'platform' } })} className="text-[10px] text-indigo-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        View All <span className="material-symbols-outlined text-xs">arrow_forward</span>
                       </button>
                     </div>
                   </div>
@@ -4989,8 +5000,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
                       <span className="text-[10px] text-slate-400 font-semibold">Total cash rewarded to top users</span>
-                      <button onClick={() => setActiveFinancialModal('awards')} className="text-[10px] text-rose-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
-                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      <button onClick={() => navigate('/admin/financial-reports', { state: { tab: 'awards' } })} className="text-[10px] text-rose-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        View All <span className="material-symbols-outlined text-xs">arrow_forward</span>
                       </button>
                     </div>
                   </div>
@@ -5011,8 +5022,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
                       <span className="text-[10px] text-slate-400 font-semibold">Platform Share after expenses</span>
-                      <button onClick={() => setActiveFinancialModal('profit')} className="text-[10px] text-emerald-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
-                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      <button onClick={() => navigate('/admin/financial-reports', { state: { tab: 'profit' } })} className="text-[10px] text-emerald-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        View All <span className="material-symbols-outlined text-xs">arrow_forward</span>
                       </button>
                     </div>
                   </div>
@@ -5031,8 +5042,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mt-4 border-t border-slate-50 pt-2">
                       <span className="text-[10px] text-slate-400 font-semibold">Total purchased copies count</span>
-                      <button onClick={() => setActiveFinancialModal('sales')} className="text-[10px] text-amber-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
-                        Xem tất cả <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      <button onClick={() => navigate('/admin/financial-reports', { state: { tab: 'sales' } })} className="text-[10px] text-amber-500 font-black hover:underline flex items-center gap-0.5 transition-colors">
+                        View All <span className="material-symbols-outlined text-xs">arrow_forward</span>
                       </button>
                     </div>
                   </div>
@@ -5255,8 +5266,8 @@ export const AdminDashboard: React.FC = () => {
                       </h3>
                       <p className="text-xs text-text-muted mt-0.5">Highest earning syllabus offerings and division statistics.</p>
                     </div>
-                    <button onClick={() => setActiveFinancialModal('courses-sold-all')} className="text-xs text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors border border-blue-100 hover:bg-blue-50/50 px-3 py-1.5 rounded-xl">
-                      Xem tất cả <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    <button onClick={() => navigate('/admin/financial-reports', { state: { tab: 'course-stats' } })} className="text-xs text-blue-500 font-black hover:underline flex items-center gap-0.5 transition-colors border border-blue-100 hover:bg-blue-50/50 px-3 py-1.5 rounded-xl cursor-pointer">
+                      View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
                   </div>
 
@@ -5291,13 +5302,80 @@ export const AdminDashboard: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-                </div>              </div>
+                </div>
+                
+                {/* Table: Recent Instructor Payouts */}
+                <div className="w-full bg-white rounded-2xl p-6 border border-slate-200/50 shadow-sm flex flex-col justify-between mt-6">
+                  <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-display font-black text-lg text-slate-800 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-emerald-500">account_balance</span> Recent Instructor Payouts
+                      </h3>
+                      <p className="text-xs text-text-muted mt-1">Latest automated money transfers to instructors.</p>
+                    </div>
+                    <button
+                      onClick={() => navigate('/admin/financial-reports', { state: { tab: 'payouts' } })}
+                      className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full"
+                    >
+                      View All <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                    </button>
+                  </div>
+                  
+                  <div className="overflow-x-auto mt-4">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
+                          <th className="p-3">Transaction ID</th>
+                          <th className="p-3">Instructor</th>
+                          <th className="p-3">Bank Account</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Amount Transferred</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                        {recentPayouts.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-8 text-center text-slate-400 italic font-medium">No recent payout records found.</td>
+                          </tr>
+                        ) : (
+                          recentPayouts.map((p, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 font-mono text-[11px] text-slate-400">{p.id}</td>
+                              <td className="p-3">
+                                <div className="flex flex-col">
+                                  <span className="text-slate-900 font-bold text-sm">{p.instructorName}</span>
+                                  <span className="text-xs text-slate-500 font-medium">{p.instructorEmail}</span>
+                                </div>
+                              </td>
+                              <td className="p-3 font-mono text-sm text-slate-600">{p.bankAccount}</td>
+                              <td className="p-3">
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider ${
+                                  p.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-600' :
+                                  p.status === 'PENDING' ? 'bg-orange-100 text-orange-600' :
+                                  'bg-red-100 text-red-600'
+                                }`}>
+                                  {p.status}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right font-mono font-bold text-[#10B981]">-{p.amount.toLocaleString()} ₫</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
             )}
               </>
             )}
           </main>
         )}
       </div>
+
+
+
 
 
 
@@ -5882,16 +5960,12 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex justify-between items-center pb-4 border-b border-slate-100">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-brand-blue bg-blue-50 px-2.5 py-1 rounded-md">
-                  Báo cáo chi tiết tài chính
+                  Detailed Financial Report
                 </span>
                 <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">
-                  {activeFinancialModal === 'gross' && 'Chi tiết doanh thu gộp (Gross Revenue)'}
-                  {activeFinancialModal === 'instructor' && 'Chi tiết chia sẻ doanh thu Giảng viên (Instructor Share - 70%)'}
-                  {activeFinancialModal === 'platform' && 'Chi tiết chia sẻ doanh thu Nền tảng (Platform Cut - 30%)'}
-                  {activeFinancialModal === 'awards' && 'Chi tiết tiền thưởng giải đấu (Contest Prizes)'}
-                  {activeFinancialModal === 'profit' && 'Báo cáo lợi nhuận toàn diện (Comprehensive Profit Report)'}
-                  {activeFinancialModal === 'sales' && 'Danh sách chi tiết các lượt bán khóa học (Course Sales)'}
-                  {activeFinancialModal === 'courses-sold-all' && 'Báo cáo xếp hạng doanh thu tất cả khóa học'}
+                  {activeFinancialModal === 'profit' && 'Comprehensive Profit Report'}
+                  {activeFinancialModal === 'deposits' && 'All User Deposits Report'}
+                  {activeFinancialModal === 'courses-sold-all' && 'All Courses Revenue Ranking Report'}
                 </h3>
               </div>
               <button
@@ -5903,95 +5977,36 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="overflow-y-auto my-4 flex-1 pr-1 text-xs">
-              {/* Case 1: Gross / Instructor / Platform (Orders detail list) */}
-              {(activeFinancialModal === 'gross' || activeFinancialModal === 'instructor' || activeFinancialModal === 'platform') && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <span className="font-semibold text-slate-500">Tổng quan toàn bộ thời gian:</span>
-                    <span className="font-mono font-black text-sm text-slate-900">
-                      {activeFinancialModal === 'gross' && `Gross: ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.grossAmount, 0)).toLocaleString()} ₫`}
-                      {activeFinancialModal === 'instructor' && `Instructor Share (70%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.instructorShare, 0)).toLocaleString()} ₫`}
-                      {activeFinancialModal === 'platform' && `Platform Cut (30%): ${((financialDetails?.orders || []).reduce((acc: number, o: OrderDetails) => acc + o.platformCut, 0)).toLocaleString()} ₫`}
-                    </span>
-                  </div>
+              {/* Note: Modals for orders, awards, and sales have been migrated to AdminFinancialReports.tsx */}
 
+              {/* Note: Modals for courses sold all has been migrated to AdminFinancialReports.tsx */}
+
+              {activeFinancialModal === 'deposits' && (
+                <div className="flex flex-col gap-4">
                   <div className="overflow-x-auto border border-slate-100 rounded-xl">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
-                          <th className="p-3">Mã đơn</th>
-                          <th className="p-3">Học viên</th>
-                          <th className="p-3">Khóa học</th>
-                          <th className="p-3 text-right">Doanh thu gộp</th>
-                          <th className="p-3 text-right">Giảng viên (70%)</th>
-                          <th className="p-3 text-right">Platform (30%)</th>
-                          <th className="p-3">Ngày giao dịch</th>
+                          <th className="p-3">User Name</th>
+                          <th className="p-3 text-right">Deposit Amount</th>
+                          <th className="p-3">Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                        {(financialDetails?.orders || []).length === 0 ? (
+                        {recentDeposits.length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="p-4 text-center text-slate-400 italic">Chưa có giao dịch nào được ghi nhận.</td>
+                            <td colSpan={3} className="p-8 text-center text-slate-400 italic font-medium">No deposit records found.</td>
                           </tr>
                         ) : (
-                          (financialDetails?.orders || []).map((o: OrderDetails, idx: number) => (
-                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="p-3 text-slate-900 font-bold">#{o.id}</td>
-                              <td className="p-3">
-                                <div>{o.customerName}</div>
-                                <div className="text-[10px] text-slate-400 font-medium">{o.customerEmail}</div>
+                          recentDeposits.map((dep) => (
+                            <tr key={dep.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-3 font-bold text-slate-900">{dep.userName}</td>
+                              <td className="p-3 text-right font-bold text-[#10B981]">
+                                {dep.amount.toLocaleString('vi-VN')} ₫
                               </td>
-                              <td className="p-3 max-w-[200px] truncate" title={o.courses}>{o.courses}</td>
-                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{o.grossAmount.toLocaleString()} ₫</td>
-                              <td className="p-3 text-right font-mono text-violet-600">+{o.instructorShare.toLocaleString()} ₫</td>
-                              <td className="p-3 text-right font-mono text-indigo-600">+{o.platformCut.toLocaleString()} ₫</td>
-                              <td className="p-3 text-slate-400 font-medium">{new Date(o.date).toLocaleString()}</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Case 2: Awards details list */}
-              {activeFinancialModal === 'awards' && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <span className="font-semibold text-slate-500">Tổng phần thưởng giải đấu toàn thời gian:</span>
-                    <span className="font-mono font-black text-sm text-rose-600">
-                      -{((financialDetails?.awards || []).reduce((acc: number, a: AwardDetails) => acc + a.amount, 0)).toLocaleString()} ₫
-                    </span>
-                  </div>
-
-                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
-                          <th className="p-3">Mã GD</th>
-                          <th className="p-3">Tài khoản nhận giải</th>
-                          <th className="p-3 text-right">Tiền thưởng</th>
-                          <th className="p-3">Nội dung giải thưởng</th>
-                          <th className="p-3">Thời gian</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                        {(financialDetails?.awards || []).length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="p-4 text-center text-slate-400 italic">Chưa có phần thưởng giải đấu nào được trao.</td>
-                          </tr>
-                        ) : (
-                          (financialDetails?.awards || []).map((a: AwardDetails, idx: number) => (
-                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="p-3 text-slate-900 font-bold">#{a.id}</td>
-                              <td className="p-3">
-                                <div>{a.userName}</div>
-                                <div className="text-[10px] text-slate-400 font-medium">{a.userEmail}</div>
+                              <td className="p-3 text-slate-500 font-medium">
+                                {new Date(dep.date).toLocaleString()}
                               </td>
-                              <td className="p-3 text-right font-mono text-rose-600 font-bold">-{a.amount.toLocaleString()} ₫</td>
-                              <td className="p-3 font-medium text-slate-600">{a.referenceId || 'Giải thưởng cuộc thi lập trình'}</td>
-                              <td className="p-3 text-slate-400 font-medium">{new Date(a.date).toLocaleString()}</td>
                             </tr>
                           ))
                         )}
@@ -6001,93 +6016,6 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Case 3: Courses Sold sales list (order items detail) */}
-              {activeFinancialModal === 'sales' && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <span className="font-semibold text-slate-500">Tổng số lượng bản copy đã bán toàn thời gian:</span>
-                    <span className="font-black text-sm text-slate-900">
-                      {(financialDetails?.sales || []).length} copies
-                    </span>
-                  </div>
-
-                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
-                          <th className="p-3">Mã đơn</th>
-                          <th className="p-3">Học viên</th>
-                          <th className="p-3">Khóa học</th>
-                          <th className="p-3">Giảng viên</th>
-                          <th className="p-3 text-right">Giá bán</th>
-                          <th className="p-3">Ngày bán</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                        {(financialDetails?.sales || []).length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có lượt bán khóa học nào.</td>
-                          </tr>
-                        ) : (
-                          (financialDetails?.sales || []).map((s: SaleDetails, idx: number) => (
-                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="p-3 text-slate-900 font-bold">#{s.orderId}</td>
-                              <td className="p-3">{s.customerName}</td>
-                              <td className="p-3 max-w-[200px] truncate" title={s.courseTitle}>{s.courseTitle}</td>
-                              <td className="p-3 text-slate-500 font-extrabold">{s.instructorName}</td>
-                              <td className="p-3 text-right font-mono text-slate-900 font-bold">{s.price.toLocaleString()} ₫</td>
-                              <td className="p-3 text-slate-400 font-medium">{new Date(s.date).toLocaleString()}</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Case 4: courses-sold-all - Top Revenue Generating Courses full list */}
-              {activeFinancialModal === 'courses-sold-all' && (
-                <div className="flex flex-col gap-4">
-                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-slate-50 text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-wider">
-                          <th className="p-3">Tên khóa học</th>
-                          <th className="p-3">Giảng viên</th>
-                          <th className="p-3 text-center">Bản đã bán</th>
-                          <th className="p-3 text-right">Doanh thu gộp</th>
-                          <th className="p-3 text-right">Giảng viên (70%)</th>
-                          <th className="p-3 text-right">Platform (30%)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                        {(topCourses || []).length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="p-4 text-center text-slate-400 italic">Chưa có dữ liệu doanh thu khóa học.</td>
-                          </tr>
-                        ) : (
-                          (topCourses || []).map((c, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="p-3 text-slate-900 font-bold">{c.name}</td>
-                              <td className="p-3 text-slate-500 font-extrabold">{c.tutor}</td>
-                              <td className="p-3 text-center font-mono font-bold">{c.sold}</td>
-                              <td className="p-3 text-right font-mono font-bold text-slate-900">{c.gross.toLocaleString()} ₫</td>
-                              <td className="p-3 text-right font-mono text-violet-600">+{c.payout.toLocaleString()} ₫</td>
-                              <td className="p-3 text-right font-mono text-indigo-600">+{c.plat.toLocaleString()} ₫</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Case 5: profit - Comprehensive Financial Report (All time, by year) */}
-              {activeFinancialModal === 'profit' && (
-                <FinancialAllTimeReport details={financialDetails} />
-              )}
             </div>
 
             <div className="flex justify-end pt-4 border-t border-slate-100">
@@ -6095,7 +6023,7 @@ export const AdminDashboard: React.FC = () => {
                 onClick={() => setActiveFinancialModal(null)}
                 className="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer"
               >
-                Đóng báo cáo
+                Close Report
               </button>
             </div>
           </div>
@@ -6177,101 +6105,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL: View All Deposits */}
-      {showAllDepositsModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
-            onClick={handleCloseAllDeposits}
-          ></div>
-          
-          <div className="bg-surface w-full max-w-4xl max-h-[85vh] rounded-3xl shadow-2xl relative z-[101] animate-scale-in flex flex-col overflow-hidden border border-slate-200/50">
-            {/* Modal Header */}
-            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
-              <div>
-                <h3 className="text-xl font-display font-black text-brand-blue flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-2xl">receipt_long</span> 
-                  All Deposit History
-                </h3>
-                <p className="text-xs text-text-muted mt-1 font-medium">Complete record of all successful user deposits</p>
-              </div>
-              <button 
-                onClick={handleCloseAllDeposits}
-                className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
 
-            {/* Modal Content */}
-            <div className="p-8 overflow-y-auto bg-slate-50/50 flex-1">
-              {loadingAllDeposits ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
-                  <p className="mt-4 text-sm font-bold text-slate-500 animate-pulse">Loading deposit records...</p>
-                </div>
-              ) : allDeposits.length === 0 ? (
-                <div className="text-center py-20">
-                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="material-symbols-outlined text-4xl text-slate-400">money_off</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-700">No Deposits Found</h3>
-                  <p className="text-sm text-text-muted mt-2">There are currently no successful deposit records in the system.</p>
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden shadow-sm">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50/80 text-xs font-black text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                        <th className="py-4 px-6">Transaction ID</th>
-                        <th className="py-4 px-6">User Name</th>
-                        <th className="py-4 px-6">Amount</th>
-                        <th className="py-4 px-6 text-right">Date & Time</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm font-semibold divide-y divide-slate-100">
-                      {allDeposits.map((dep) => (
-                        <tr key={dep.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="py-4 px-6 text-slate-500 text-xs">#{dep.id}</td>
-                          <td className="py-4 px-6 text-slate-900 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
-                              {dep.userName.charAt(0).toUpperCase()}
-                            </div>
-                            {dep.userName}
-                          </td>
-                          <td className="py-4 px-6 text-emerald-600 font-bold">
-                            +{dep.amount.toLocaleString()} ₫
-                          </td>
-                          <td className="py-4 px-6 text-slate-500 text-xs text-right">
-                            {new Date(dep.date).toLocaleString('en-GB', {
-                              hour: '2-digit', minute: '2-digit', second: '2-digit',
-                              day: '2-digit', month: '2-digit', year: 'numeric'
-                            })}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-            
-            {/* Modal Footer */}
-            <div className="px-8 py-5 border-t border-slate-100 bg-white flex justify-between items-center rounded-b-3xl">
-              <span className="text-xs font-bold text-slate-500">
-                Total Records: <span className="text-primary">{allDeposits.length}</span>
-              </span>
-              <button
-                type="button"
-                onClick={handleCloseAllDeposits}
-                className="px-6 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-xs cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* MODAL: View AI Audit Report */}
       {isAiReportModalOpen && (
