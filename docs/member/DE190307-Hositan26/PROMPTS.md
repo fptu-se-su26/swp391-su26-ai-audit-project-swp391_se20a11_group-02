@@ -57,31 +57,38 @@ Sinh viên/nhóm cần ghi lại:
 | 3 | 2026-05-16 | GitHub Copilot | Tạo khung giao diện React bằng Tailwind CSS | Yêu cầu sinh layout cho Problem List với search & filter | Cấu trúc UI hoàn chỉnh dùng Flex/Grid | Có | Component UI |
 | 4 | 2026-05-17 | ChatGPT | Tối ưu câu lệnh SQL tính Leaderboard | Hỏi SQL để tìm tổng điểm các bài nộp cao nhất theo thời gian | Lời khuyên dùng Window Function thay vì Group By | Có | Native Query Repository |
 | 5 | 2026-06-23 | Antigravity | Phân tích lỗi tạo khóa học & Đổ dữ liệu mẫu | Đọc .env, truy cập Database, sửa UI hiển thị lỗi Premium | Phân tích sâu nguyên nhân lỗi và tự động sửa file UI React | Có | Code Frontend, DB Categories |
+| 6 | 2026-06-16 | Gemini | Xử lý lỗi Invalid Cookie trong Spring Security | Hệ thống báo lỗi: 'A cookie header was received...... | Hỏi kiến thức | Có | axiosClient.js |
+| 7 | 2026-06-16 | ChatGPT | Debug lỗi kết nối WebSocketSession | Khi tôi khởi tạo WebSocket, log báo 'WebSocketSess... | Hỗ trợ debug lỗi | Có | WebSocketConfig.java |
+| 8 | 2026-06-16 | GitHub Copilot | Tích hợp Cloudinary Upload Video/Image | Viết một service class trong Spring Boot tích hợp ... | Hỗ trợ sinh code | Có | CloudinaryService.java |
+| 9 | 2026-06-16 | ChatGPT | Thiết kế luồng tạo Course với Upload Media | Tôi muốn thiết kế luồng tạo khoá học (Create Cours... | Hỏi kiến trúc | Có | CourseCreate.tsx, UploadController.java |
+| 10 | 2026-06-16 | ChatGPT | Tối ưu hóa mã nguồn luồng Create Course | Luồng upload video khi tạo khoá học hiện tại bị gi... | Hỗ trợ một phần | Có | instructorService.ts |
+| 11 | 2026-06-16 | Gemini | Cập nhật state React sau khi upload | Sau khi upload thumbnail thành công, state chứa UR... | Hỗ trợ sửa lỗi | Có | CourseCreate.tsx |
+| 12 | 2026-06-16 | ChatGPT | Viết commit message chuẩn Conventional Commits | Tôi vừa hoàn thành tính năng upload Cloudinary cho... | Hỗ trợ ít | Có | Git Log |
+| 13 | 2026-06-16 | Gemini | Debug lỗi Video HTML5 không phát | Tôi render thẻ <video> của HTML5 với URL từ Cloudi... | Hỗ trợ debug | Có | LessonPlayer.tsx |
+| 14 | 2026-06-16 | GitHub Copilot | Hoàn thiện component Video Player | Tạo một Custom Video Player component bọc ngoài HT... | Hỗ trợ sinh code | Có | CustomVideoPlayer.tsx |
+| 15 | 2026-06-16 | ChatGPT | Sinh kịch bản test (Test Plan) | Hãy lên danh sách các case cần test cho tính năng ... | Hỏi ý tưởng | Có | N/A |
+| 16 | 2026-06-16 | Gemini | Thiết kế luồng cập nhật ảnh (Edit Thumbnail) | Giao diện Edit Course của tôi đang thiếu chỗ cập n... | Hỗ trợ thiết kế | Có | ThumbnailUploader.tsx |
+| 17 | 2026-06-16 | GitHub Copilot | Refactor Tailwind CSS cho giao diện Premium | Cải tiến đoạn code Tailwind này để nó trông 'Premi... | Hỗ trợ sinh code | Có | InstructorDashboard.tsx |
+| 18 | 2026-06-16 | ChatGPT | Fix bug không hiển thị Thumbnail ở Course List | Khi tôi lưu Thumbnail xong, trong database đã có U... | Hỗ trợ debug | Có | CourseMapper.java |
+| 19 | 2026-06-16 | ChatGPT | Refactor code: Loại bỏ hardcode 'Level' | Trong codebase hiện tại có rất nhiều chỗ hardcode ... | Hỗ trợ refactor | Có | CourseEntity.java, CourseResponse.ts |
+| 20 | 2026-06-16 | Gemini | Tối ưu hóa Regex tìm kiếm code thừa | Viết cho tôi một regex để tìm tất cả các file Type... | Hỏi kiến thức | Có | VSCode |
+| 21 | 2026-06-16 | ChatGPT | Giải thích logic gán default properties | Trong Lombok Builder, tại sao khi tạo mới một Cour... | Hỏi kiến thức | Có | CourseEntity.java |
+| 22 | 2026-06-16 | Gemini | Thiết kế luồng trạng thái Khóa học | Tôi muốn quản lý vòng đời khoá học: Tạo mới -> DRA... | Hỏi kiến trúc | Có | CourseStatus.java, CourseService.java |
+| 23 | 2026-06-16 | GitHub Copilot | Sinh code chuyển trạng thái Course | Viết hàm `submitForReview(courseId)` trong `Instru... | Hỗ trợ sinh code | Có | InstructorCourseService.java |
+| 24 | 2026-06-16 | ChatGPT | Xử lý logic khóa (lock) chỉnh sửa Lesson | Trong hệ thống LMS, khi một Lesson đang ở trạng th... | Hỗ trợ giải thuật | Có | LessonService.java |
+| 25 | 2026-06-16 | Gemini | Hiển thị trạng thái khóa học cho Học viên | Khi học viên truy cập bài học bị khóa, hãy trả về ... | Hỗ trợ sinh code | Có | LessonPlayer.tsx |
+| 26 | 2026-06-16 | ChatGPT | Thiết kế luồng Admin duyệt trạng thái | Nếu bài học bị khóa (Không hoạt động), ai sẽ là ng... | Hỏi ý tưởng | Có | LessonEntity.java |
+| 27 | 2026-06-16 | ChatGPT | Giới hạn phạm vi API (Separation of Concerns) | Nên gộp chung API lấy khóa học của Admin, Instruct... | Hỏi kiến trúc | Có | Controllers |
+| 28 | 2026-06-17 | GitHub Copilot | Sinh code MapStruct DTO riêng rẽ | Tạo interface MapStruct chuyển CourseEntity thành ... | Hỗ trợ sinh code | Có | CourseMapper.java |
+| 29 | 2026-06-17 | Gemini | Ngăn ngừa lộ thông tin (Data Leakage) | Khi bài học ở trạng thái INACTIVE, làm sao để chắc... | Hỏi phương pháp | Có | CourseService.java |
+| 30 | 2026-06-17 | ChatGPT | Tóm tắt và chốt kế hoạch Refactor | Dựa trên các thay đổi về trạng thái khóa học, luồn... | Tổng hợp | Có | CHANGELOG.md |
+| 31 | 2026-06-29 | Gemini | Phân tích luồng API Course Detail | Hệ thống đang có 2 luồng get Course Detail cho Ins... | Giải thích logic | Có | Swagger API |
+| 32 | 2026-06-29 | ChatGPT | Giải thích MapStruct Expressions | Trong MapStruct có cú pháp `expression = "java(map... | Hỏi kiến thức | Có | CourseMapper.java |
+| 33 | 2026-06-29 | GitHub Copilot | Sinh script Mock Data (Seeding) an toàn | Tạo 1 file SQL insert 10 bản ghi danh mục (Categor... | Hỗ trợ sinh code | Có | data.sql |
+| 34 | 2026-06-29 | ChatGPT | Debug lỗi 500 khi Tạo Khóa Học | Giao diện báo 'Validation Error' chung chung khi t... | Hỗ trợ xử lý sự cố | Có | AuthService.java |
+| 35 | 2026-06-29 | Gemini | Cải tiến giao diện (Premium Error UI) | Sửa lại khung hiển thị lỗi ở `InstructorDashboard.... | Hỗ trợ thiết kế UI | Có | InstructorDashboard.tsx |
 
-| 6 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 6 | hãy kiểm tra xem khi tôi có thêm cloudin... | Fix code frontend/backend | Có | Source Code |
-| 7 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 7 | Vậy hãy kiểm tra xem chức năng creat cou... | Fix code frontend/backend | Có | Source Code |
-| 8 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 8 | Vậy hãy kiểm tra xem chức năng creat cou... | Fix code frontend/backend | Có | Source Code |
-| 9 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 9 | vậy còn frontend cập nhật lại gì không... | Fix code frontend/backend | Có | Source Code |
-| 10 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 10 | rồi hãy cập nhật vào file plan cho tôi... | Fix code frontend/backend | Có | Source Code |
-| 11 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 11 | rồi hãy làm theo cho tôi... | Fix code frontend/backend | Có | Source Code |
-| 12 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 12 | Continue... | Fix code frontend/backend | Có | Source Code |
-| 13 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 13 | tại sao tôi tải video lên rồi nhưng nhấn... | Fix code frontend/backend | Có | Source Code |
-| 14 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 14 | tôi nhấn chạy video nhưng không được... | Fix code frontend/backend | Có | Source Code |
-| 15 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 15 | hãy ghi cho tôi message plan bạn vừa thự... | Fix code frontend/backend | Có | Source Code |
-| 16 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 16 | tạo sao trong edit course không có edit ... | Fix code frontend/backend | Có | Source Code |
-| 17 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 17 | UI edit thumbnail xấu quá hãy sửa lại ch... | Fix code frontend/backend | Có | Source Code |
-| 18 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 18 | tạo ở trong instructor nó lại không hiện... | Fix code frontend/backend | Có | Source Code |
-| 19 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 19 | Intermediate hiện trong mục đích là gì n... | Fix code frontend/backend | Có | Source Code |
-| 20 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 20 | có phải chữ đó đang fix cứng ở giao diện... | Fix code frontend/backend | Có | Source Code |
-| 21 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 21 | Cụ thể, khi Frontend gọi API lấy danh sá... | Fix code frontend/backend | Có | Source Code |
-| 22 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 22 | hãy bỏ cái phần level này cho tôi lẫn fr... | Fix code frontend/backend | Có | Source Code |
-| 23 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 23 | Giờ hãy sửa luồng cho ở My Course trong ... | Fix code frontend/backend | Có | Source Code |
-| 24 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 24 | Giờ hãy sửa luồng cho ở My Course trong ... | Fix code frontend/backend | Có | Source Code |
-| 25 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 25 | Vấn đề là: Nếu cứ edit là nó bị khóa (Kh... | Fix code frontend/backend | Có | Source Code |
-| 26 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 26 | Không giờ chỉ xử lí phần liên quan đến i... | Fix code frontend/backend | Có | Source Code |
-| 27 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 27 | à không hãy sửa lại thêm phía user nữa, ... | Fix code frontend/backend | Có | Source Code |
-| 28 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 28 | Kiểm tra status của bài học mà user đang... | Fix code frontend/backend | Có | Source Code |
-| 29 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 29 | Nếu INACTIVE: Backend chủ động set video... | Fix code frontend/backend | Có | Source Code |
+---
 
 ---
 
@@ -90,7 +97,6 @@ Sinh viên/nhóm cần ghi lại:
 > Sinh viên/nhóm có thể nhân bản mẫu “Prompt số...” nhiều lần tùy số lượng prompt thực tế đã sử dụng.
 
 ---
-
 ### Prompt số 1
 
 | Nội dung | Thông tin |
@@ -342,44 +348,47 @@ Agentic AI như Antigravity vượt trội hơn hẳn các công cụ chat truy�
 
 ---
 
+---
+
+
 ### Prompt số 6
 
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 6) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | Gemini |
+| Mục đích | Xử lý lỗi Invalid Cookie trong Spring Security |
+| Phân việc liên quan | Backend / Security |
+| Mức độ sử dụng | Hỏi kiến thức |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-hãy kiểm tra xem khi tôi có thêm cloudinary để chứa ảnh và video, hãy kiểm tra xem chức năng này nếu tôi đẩy video lên thì có thực hiện được chức năng này không
+Hệ thống báo lỗi: 'A cookie header was received... that contained an invalid cookie'. Token của tôi vẫn còn hạn. Hãy phân tích cấu trúc Cookie header và gợi ý cách fix lỗi trên Spring Security filter.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / Security, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI phân tích rằng lỗi do trình duyệt gửi định dạng Cookie không hợp lệ (thường do tracking cookie của bên thứ 3) khiến Tomcat/Spring boot chặn request. Gợi ý cấu hình lại `CookieProcessor` thành `LegacyCookieProcessor` hoặc xóa token thủ công ở frontend.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng giải pháp cấu hình lại Tomcat Servlet Web Server Factory ở lớp cấu hình chính.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tôi quyết định dùng giải pháp clean cookie ở phía Client (React) bằng interceptor thay vì hạ cấp bảo mật của Tomcat.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -389,14 +398,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | axiosClient.js |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+AI giúp tìm ra nguyên nhân gốc rễ rất nhanh, tiết kiệm hàng giờ mò mẫm log.
 ```
 
 ---
@@ -406,56 +415,56 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 7) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Debug lỗi kết nối WebSocketSession |
+| Phân việc liên quan | Backend / WebSocket |
+| Mức độ sử dụng | Hỗ trợ debug lỗi |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Vậy hãy kiểm tra xem chức năng creat course lúc tôi upload ảnh với video lên ở chỗ thumbnail và video của bài học có được không hãy kiểm tra giúp tôi, cả về phần edit nữa nhé, kết quả cho tôi plan chưa sửa code nhé /goal
+Khi tôi khởi tạo WebSocket, log báo 'WebSocketSession[0 current WS(0)... 0 closed abnormally]'. Kết nối bị drop ngay lập tức. Hãy chỉ ra các nguyên nhân tiềm năng liên quan đến SockJsScheduler.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / WebSocket, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI chỉ ra 3 nguyên nhân: thiếu cấu hình allowed origins, thiếu thư viện SockJS ở client, hoặc xung đột với JWT Filter khiến request handshake bị HTTP 401 chặn.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Áp dụng cấu hình bypass JWT token kiểm tra cho endpoint `/ws/**`.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tự viết thêm logic truyền token qua URL parameters thay vì Header vì WebSocket JS thuần không hỗ trợ set Header tùy chỉnh.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
-- [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [x] Cần hỏi lại AI nhiều lần
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
 - [ ] Kết quả AI có lỗi hoặc chưa chính xác
 
 #### 5.7. Minh chứng liên quan
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | WebSocketConfig.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Gợi ý của AI khá chung chung, phải hỏi lại nhiều lần mới ra lỗi thực sự do Header.
 ```
 
 ---
@@ -465,32 +474,32 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 8) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | GitHub Copilot |
+| Mục đích | Tích hợp Cloudinary Upload Video/Image |
+| Phân việc liên quan | Backend / Cloud |
+| Mức độ sử dụng | Hỗ trợ sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Vậy hãy kiểm tra xem chức năng creat course lúc tôi upload ảnh với video lên ở chỗ thumbnail và video của bài học có được không hãy kiểm tra giúp tôi, cả về phần edit nữa nhé, kết quả cho tôi plan chưa sửa code nhé /goal
+Viết một service class trong Spring Boot tích hợp Cloudinary SDK để upload file ảnh và video. Yêu cầu có kiểm tra dung lượng tối đa và định dạng file, trả về secure_url.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / Cloud, tôi gặp rào cản kỹ thuật nên cần tham vấn GitHub Copilot.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+Copilot sinh ra `CloudinaryService.java` dùng `ObjectUtils.asMap` để truyền tham số `resource_type: auto`. Có hàm check validation cơ bản.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng cấu trúc code upload file API do Copilot sinh.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tự bổ sung cấu hình file size trong `application.yml` và ném ra Custom Exception thay vì `RuntimeException` mặc định.
 
 #### 5.6. Đánh giá chất lượng prompt
 
@@ -507,14 +516,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CloudinaryService.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Copilot code rất chuẩn xác theo docs của Cloudinary.
 ```
 
 ---
@@ -524,39 +533,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 9) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Thiết kế luồng tạo Course với Upload Media |
+| Phân việc liên quan | Frontend / React |
+| Mức độ sử dụng | Hỏi kiến trúc |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-vậy còn frontend cập nhật lại gì không
+Tôi muốn thiết kế luồng tạo khoá học (Create Course) gồm upload thumbnail và video bài học. Hãy gợi ý luồng thực thi: nên upload trực tiếp từ Frontend lên Cloudinary hay phải thông qua Backend proxy? Ưu nhược điểm là gì?
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Frontend / React, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI đưa ra 2 luồng: Signed Upload (qua Backend) và Unsigned Upload (từ Frontend). Đề xuất Signed Upload để bảo mật API Key của Cloudinary.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Chọn luồng Signed Upload qua Backend proxy.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Sửa lại React Component để hiển thị progress bar trong lúc chờ Backend upload file lên Cloudinary.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -566,14 +575,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CourseCreate.tsx, UploadController.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Phân tích kiến trúc rõ ràng, giúp tôi chọn được giải pháp bảo mật nhất.
 ```
 
 ---
@@ -583,56 +592,56 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 10) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Tối ưu hóa mã nguồn luồng Create Course |
+| Phân việc liên quan | Frontend / React |
+| Mức độ sử dụng | Hỗ trợ một phần |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-rồi hãy cập nhật vào file plan cho tôi
+Luồng upload video khi tạo khoá học hiện tại bị giật lag giao diện (UI block) do file lớn. Hãy gợi ý cách xử lý bất đồng bộ (async/await) kết hợp với Web Worker trong React.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Frontend / React, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI đưa ra ví dụ dùng Web Worker để chia nhỏ file, tuy nhiên đề xuất dùng `FormData` với `axios` onUploadProgress đơn giản hơn nhiều.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Dùng tính năng `onUploadProgress` của axios theo gợi ý.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tự custom lại giao diện thanh tiến trình (progress bar) bằng Tailwind.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
 - [ ] Kết quả AI có lỗi hoặc chưa chính xác
 
 #### 5.7. Minh chứng liên quan
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | instructorService.ts |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Giải pháp AI đưa ra thực tế và dễ triển khai hơn định hướng ban đầu của tôi.
 ```
 
 ---
@@ -642,39 +651,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 11) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | Gemini |
+| Mục đích | Cập nhật state React sau khi upload |
+| Phân việc liên quan | Frontend / State Management |
+| Mức độ sử dụng | Hỗ trợ sửa lỗi |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-rồi hãy làm theo cho tôi
+Sau khi upload thumbnail thành công, state chứa URL ảnh không cập nhật ngay trên giao diện preview. Hãy review lại cách dùng useEffect và useState trong trường hợp này.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Frontend / State Management, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI phát hiện tôi truyền sai dependency array trong `useEffect` và hướng dẫn cách set state theo hướng functional update.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sửa lại logic `setThumbnail(prev => newUrl)`.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Thêm skeleton loading trong lúc ảnh đang render.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -684,14 +693,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CourseCreate.tsx |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Lỗi cơ bản của React nhưng có AI dò hộ nên fix cực nhanh.
 ```
 
 ---
@@ -701,39 +710,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 12) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Viết commit message chuẩn Conventional Commits |
+| Phân việc liên quan | Git |
+| Mức độ sử dụng | Hỗ trợ ít |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Continue
+Tôi vừa hoàn thành tính năng upload Cloudinary cho Course và Lesson. Hãy sinh cho tôi 3 option commit message tuân thủ chuẩn Conventional Commits.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Git, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI trả về các option như: `feat(course): integrate Cloudinary for media upload`, `refactor(upload): optimize upload flow`...
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng `feat(course): integrate Cloudinary for media upload`.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Bổ sung thêm mô tả chi tiết ở phần body của commit.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -743,14 +752,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | Git Log |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Tiện lợi khi bí từ.
 ```
 
 ---
@@ -760,39 +769,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 13) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | Gemini |
+| Mục đích | Debug lỗi Video HTML5 không phát |
+| Phân việc liên quan | Frontend / UI |
+| Mức độ sử dụng | Hỗ trợ debug |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-tại sao tôi tải video lên rồi nhưng nhấn chạy nó không chạy video
+Tôi render thẻ <video> của HTML5 với URL từ Cloudinary nhưng trình duyệt báo lỗi và không tự chạy (autoplay). Vấn đề là do đâu?
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Frontend / UI, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI giải thích chính sách autoplay của Chrome yêu cầu thẻ video phải có thuộc tính `muted`. Đồng thời URL cần dùng https.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Thêm thuộc tính `muted`, `playsInline` vào thẻ video.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Xử lý thêm sự kiện `onError` để hiển thị ảnh thumbnail thay thế nếu video bị hỏng.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -802,14 +811,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | LessonPlayer.tsx |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Rất hài lòng vì AI nắm rõ chính sách của trình duyệt.
 ```
 
 ---
@@ -819,56 +828,56 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 14) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | GitHub Copilot |
+| Mục đích | Hoàn thiện component Video Player |
+| Phân việc liên quan | Frontend / UI |
+| Mức độ sử dụng | Hỗ trợ sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-tôi nhấn chạy video nhưng không được
+Tạo một Custom Video Player component bọc ngoài HTML5 video, có các nút custom play/pause và progress bar dùng Tailwind.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Frontend / UI, tôi gặp rào cản kỹ thuật nên cần tham vấn GitHub Copilot.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+Copilot sinh ra đoạn code dùng `useRef` để gọi `.play()` và `.pause()`, tính toán tiến trình dựa trên `timeupdate` event.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Áp dụng phần logic xử lý event `timeupdate`.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tự viết lại 100% CSS bằng chuẩn Glassmorphism do code của Copilot hơi cũ.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [x] Cần tự kiểm tra và chỉnh sửa nhiều
 - [ ] Kết quả AI có lỗi hoặc chưa chính xác
 
 #### 5.7. Minh chứng liên quan
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CustomVideoPlayer.tsx |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Code base tốt nhưng UI hơi xấu, cần tự customize nhiều.
 ```
 
 ---
@@ -878,39 +887,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 15) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Sinh kịch bản test (Test Plan) |
+| Phân việc liên quan | Testing |
+| Mức độ sử dụng | Hỏi ý tưởng |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-hãy ghi cho tôi message plan bạn vừa thực hiện để tôi commit chỉ cho thôi nhứ đừng commit thay tôi
+Hãy lên danh sách các case cần test cho tính năng Upload Video trong khoá học. Bao gồm cả happy path và edge cases.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Testing, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI liệt kê 10 test cases: file đúng chuẩn, file quá dung lượng, file sai định dạng (pdf), rớt mạng khi đang upload...
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Dùng danh sách này làm checklist kiểm thử thủ công.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Bổ sung thêm case test upload đồng thời nhiều file.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -920,14 +929,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | N/A |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Giúp QA quy trình chặt chẽ hơn, không bỏ sót bug.
 ```
 
 ---
@@ -937,32 +946,32 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 16) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | Gemini |
+| Mục đích | Thiết kế luồng cập nhật ảnh (Edit Thumbnail) |
+| Phân việc liên quan | Frontend / Component |
+| Mức độ sử dụng | Hỗ trợ thiết kế |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-tạo sao trong edit course không có edit cái thumbnail nhỉ hãy bổ sung giúp tôi
+Giao diện Edit Course của tôi đang thiếu chỗ cập nhật Thumbnail. Hãy gợi ý cách thiết kế UI để vừa preview ảnh cũ, vừa hỗ trợ kéo thả (drag & drop) ảnh mới đè lên.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Frontend / Component, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI đề xuất dùng một khung Dropzone mờ, hiển thị ảnh cũ làm background, khi hover sẽ hiện biểu tượng Camera và chữ 'Change Image'.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng ý tưởng thiết kế Dropzone đè lên background.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Sử dụng thư viện `react-dropzone` thay vì viết drag-and-drop thuần để bắt event mượt hơn.
 
 #### 5.6. Đánh giá chất lượng prompt
 
@@ -979,14 +988,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | ThumbnailUploader.tsx |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Ý tưởng UI UX cực kỳ hiện đại, áp dụng vào dự án rất đẹp.
 ```
 
 ---
@@ -996,32 +1005,32 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 17) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | GitHub Copilot |
+| Mục đích | Refactor Tailwind CSS cho giao diện Premium |
+| Phân việc liên quan | Frontend / CSS |
+| Mức độ sử dụng | Hỗ trợ sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-UI edit thumbnail xấu quá hãy sửa lại cho tôi lên bản premium
+Cải tiến đoạn code Tailwind này để nó trông 'Premium' hơn: thêm hiệu ứng đổ bóng mượt (soft shadow), bo góc lớn, border gradient và hiệu ứng chuyển động khi hover.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Frontend / CSS, tôi gặp rào cản kỹ thuật nên cần tham vấn GitHub Copilot.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+Copilot sinh ra các class Tailwind cực kỳ phức tạp: `hover:shadow-2xl transition-all duration-300 ring-1 ring-white/10...`.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng các class tạo soft shadow và transition.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tinh chỉnh lại màu gradient cho hợp với tone màu cam-xanh của hệ thống.
 
 #### 5.6. Đánh giá chất lượng prompt
 
@@ -1038,14 +1047,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | InstructorDashboard.tsx |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Copilot biết cách phối hợp các util classes của Tailwind cực kỳ tốt.
 ```
 
 ---
@@ -1055,39 +1064,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 18) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Fix bug không hiển thị Thumbnail ở Course List |
+| Phân việc liên quan | Backend / DTO |
+| Mức độ sử dụng | Hỗ trợ debug |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-tạo ở trong instructor nó lại không hiện thumbnail ở phần hiển thị course 19.
+Khi tôi lưu Thumbnail xong, trong database đã có URL nhưng API trả về danh sách Course cho Instructor lại bị null trường `thumbnailUrl`. Vấn đề ở đâu trong MapStruct?
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / DTO, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI chỉ ra rằng file `CourseMapper.java` chưa map trường này sang DTO tương ứng (có thể do sai tên biến giữa Entity và DTO).
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Thêm `@Mapping(source = "thumbnailUrl", target = "thumbnailUrl")` vào file Mapper.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Cấu hình lại MapStruct để báo lỗi lúc compile thay vì ignore khi thiếu map field.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1097,14 +1106,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CourseMapper.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Rất hiệu quả trong việc debug lỗi data binding.
 ```
 
 ---
@@ -1114,32 +1123,32 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 19) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Refactor code: Loại bỏ hardcode 'Level' |
+| Phân việc liên quan | Backend / Service |
+| Mức độ sử dụng | Hỗ trợ refactor |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Intermediate hiện trong mục đích là gì nhỉ
+Trong codebase hiện tại có rất nhiều chỗ hardcode level là 'Intermediate' hoặc 'All Levels'. Làm sao để refactor triệt để, xóa hoàn toàn field này khỏi Backend và Frontend mà không bị lỗi crash?
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / Service, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI hướng dẫn quy trình 3 bước: Xóa cột trong Database bằng Flyway/Script -> Xóa trong Entity/DTO -> Chạy RegExp search toàn bộ dự án React để xóa props.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng quy trình 3 bước an toàn do AI đề xuất.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tự tay viết regex để search & destroy các component đang phụ thuộc vào Level.
 
 #### 5.6. Đánh giá chất lượng prompt
 
@@ -1156,14 +1165,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CourseEntity.java, CourseResponse.ts |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Quy trình chuẩn kỹ sư, tránh rủi ro vỡ hệ thống.
 ```
 
 ---
@@ -1173,32 +1182,32 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 20) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | Gemini |
+| Mục đích | Tối ưu hóa Regex tìm kiếm code thừa |
+| Phân việc liên quan | Công cụ |
+| Mức độ sử dụng | Hỏi kiến thức |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-có phải chữ đó đang fix cứng ở giao diện phải không
+Viết cho tôi một regex để tìm tất cả các file TypeScript có chứa interface khai báo thuộc tính `level: string` nhưng bỏ qua các file nằm trong thư mục node_modules.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Công cụ, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI gợi ý cú pháp `interface.*level\s*:\s*string` kết hợp với lệnh grep exclude dir.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng regex để clean code nhanh chóng.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Chạy thẳng trên tính năng Find in Files của VSCode thay vì dùng CLI.
 
 #### 5.6. Đánh giá chất lượng prompt
 
@@ -1215,14 +1224,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | VSCode |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Regex chuẩn xác.
 ```
 
 ---
@@ -1232,39 +1241,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 21) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Giải thích logic gán default properties |
+| Phân việc liên quan | Backend / Builder |
+| Mức độ sử dụng | Hỏi kiến thức |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Cụ thể, khi Frontend gọi API lấy danh sách khóa học, Backend đang tự động ép cứng giá trị:    .level("Intermediate") cho các khóa học đang lấy ra.  .level("All Levels") cho khóa học vừa mới được tạo. lấy ở đâu vậy chỉ cho tôi cái code lấy .level được không
+Trong Lombok Builder, tại sao khi tạo mới một CourseEntity, tôi không truyền Level mà hệ thống lại tự gán là 'All Levels'? Tính năng này được định nghĩa ở đâu?
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / Builder, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI giải thích về `@Builder.Default` của Lombok và hàm hook `@PrePersist` trong JPA.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Tìm ra nguyên nhân gốc và xóa dòng gán mặc định.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Kiểm tra thêm toàn bộ các Entity khác xem có bị lạm dụng Builder.Default không.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1274,14 +1283,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CourseEntity.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Giải đáp thắc mắc về cơ chế chạy ngầm của thư viện rất hay.
 ```
 
 ---
@@ -1291,39 +1300,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 22) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | Gemini |
+| Mục đích | Thiết kế luồng trạng thái Khóa học |
+| Phân việc liên quan | System Design |
+| Mức độ sử dụng | Hỏi kiến trúc |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-hãy bỏ cái phần level này cho tôi lẫn frontend và backend
+Tôi muốn quản lý vòng đời khoá học: Tạo mới -> DRAFTS. Nhấn Submit -> PENDING (chờ duyệt). Admin duyệt -> PUBLISHED. Hãy gợi ý thiết kế Enum trạng thái và phương thức chuyển đổi bảo mật trong Service.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần System Design, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI đề xuất tạo `CourseStatus` enum. Đề xuất quy tắc State Machine: chỉ được chuyển từ DRAFT sang PENDING, không cho phép đi ngược tùy tiện.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Tạo enum `CourseStatus` với các giá trị DRAFTS, PENDING, APPROVED, REJECTED.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Thêm một bảng Log để lưu lịch sử chuyển trạng thái kèm lý do từ chối của Admin.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1333,14 +1342,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CourseStatus.java, CourseService.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Định hướng kiến trúc rất chặt chẽ, bảo mật.
 ```
 
 ---
@@ -1350,39 +1359,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 23) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | GitHub Copilot |
+| Mục đích | Sinh code chuyển trạng thái Course |
+| Phân việc liên quan | Backend / API |
+| Mức độ sử dụng | Hỗ trợ sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Giờ hãy sửa luồng cho ở My Course trong instructor cho tôi: khi tạo khóa học khi nhấn submit course thì nó sẽ hiện qua draft (Tức là course đó đang ở trạng thái draft) và có edit course đó, khi nhấn submit for Review mới hiện trạng thái pending(tức là course đó đang ở trạng thái pending). Tiếp theo là phần edit course , ở trong lesson thêm cho tôi 1 trường đó là status: đó là hoạt động hoặc không hoạt động. khi edit vào lesson nào thì status đó sẽ chuyển sang trạng thái không hoạt động, nhưng course đó vẫn active nhé(Còn edit những phần khác thì course vẫn active), và khi hiện để user học thì nếu lesson đó không ở trạng thái hoạt động thì khi nhấn vào lesson đó sẽ hiện trạng thái đang bảo trì, còn ở lúc edit nếu lesson đó đang ở trạng thái không hoạt động thì thông báo sẽ không được edit phần lesson đó. khi tạo course thì lesson mặc định là hoạt động nhé. Đây là những yêu cầu của tôi bạn hãy đọc phân tích, và cho tôi plan(khoan sửa code đã nhé) /goal
+Viết hàm `submitForReview(courseId)` trong `InstructorCourseService`. Yêu cầu kiểm tra nếu khóa học không phải DRAFTS thì ném lỗi `IllegalStateException`, ngược lại thì đổi thành PENDING.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / API, tôi gặp rào cản kỹ thuật nên cần tham vấn GitHub Copilot.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+Copilot sinh chuẩn logic check DB, ném exception `ErrorCode.INVALID_STATE` nếu điều kiện không thỏa.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng logic kiểm tra trạng thái do Copilot viết.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Thêm logic validate: Khóa học phải có ít nhất 1 Chapter và 1 Lesson mới được Submit.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1392,14 +1401,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | InstructorCourseService.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Copilot hiểu context dự án rất tốt, code pass bài test ngay.
 ```
 
 ---
@@ -1409,39 +1418,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 24) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Xử lý logic khóa (lock) chỉnh sửa Lesson |
+| Phân việc liên quan | Backend / Logic |
+| Mức độ sử dụng | Hỗ trợ giải thuật |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Giờ hãy sửa luồng cho ở My Course trong instructor cho tôi: khi tạo khóa học khi nhấn submit course thì nó sẽ hiện qua draft (Tức là course đó đang ở trạng thái draft) và có edit course đó, khi nhấn submit for Review mới hiện trạng thái pending(tức là course đó đang ở trạng thái pending). Tiếp theo là phần edit course , ở trong lesson thêm cho tôi 1 trường đó là status: đó là hoạt động hoặc không hoạt động. khi edit vào lesson nào thì status đó sẽ chuyển sang trạng thái không hoạt động, nhưng course đó vẫn active nhé(Còn edit những phần khác thì course vẫn active), và khi hiện để user học thì nếu lesson đó không ở trạng thái hoạt động thì khi nhấn vào lesson đó sẽ hiện trạng thái đang bảo trì, còn ở lúc edit nếu lesson đó đang ở trạng thái không hoạt động thì thông báo sẽ không được edit phần lesson đó. khi tạo course thì lesson mặc định là hoạt động nhé. Đây là những yêu cầu của tôi bạn hãy đọc phân tích, và cho tôi plan(khoan sửa code đã nhé) /goal
+Trong hệ thống LMS, khi một Lesson đang ở trạng thái 'Bảo trì', giảng viên không được phép edit nội dung của nó. Hãy viết logic validator kiểm tra điều kiện này ở lớp Controller.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / Logic, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI đề xuất viết một Custom Annotation `@CheckLessonEditable` kết hợp AOP để tái sử dụng, thay vì if/else cứng trong từng hàm API.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Tôi nhận thấy AOP quá phức tạp cho phase này nên chỉ dùng if-else thông thường ở Service.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Viết hàm `checkLessonEditable()` trong Service để tái sử dụng.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1451,14 +1460,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | LessonService.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+AI gợi ý dùng kỹ thuật nâng cao (AOP), tôi đã học thêm kiến thức mới dù chưa áp dụng.
 ```
 
 ---
@@ -1468,39 +1477,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 25) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | Gemini |
+| Mục đích | Hiển thị trạng thái khóa học cho Học viên |
+| Phân việc liên quan | Frontend / React |
+| Mức độ sử dụng | Hỗ trợ sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Vấn đề là: Nếu cứ edit là nó bị khóa (Không hoạt động), và đã khóa thì không cho edit nữa, vậy làm cách nào để Giảng viên có thể mở khóa (chuyển lại thành Hoạt động) cho bài học đó? Có phải bạn muốn có một nút gạt (Toggle Switch) riêng biệt để Giảng viên tự bật/tắt trạng thái Hoạt động/Bảo trì của bài học không? Hãy phản hồi lại cho mình biết ý định thực sự của bạn ở chi tiết này nhé! Ở vấn đề này "Nếu cứ edit là nó bị khóa (Không hoạt động), và đã khóa thì không cho edit nữa" là đúng ý tôi, vậy làm thế nào để giảng viên có thể mở khóa lesson đó thì đó là phần của admin nó sẽ duyệt lại lesson khóa học đó, khi admin accept thì lesson đó mới hoạt động lại. Bạn đã hiểu ý tôi chưa. cập nhật lại plan cho tôi(chưa sửa code nhé)
+Khi học viên truy cập bài học bị khóa, hãy trả về UI hiển thị 'Bài học đang bảo trì' với hình ảnh icon minh hoạ, không render Video Player. Cho tôi code UI bằng Tailwind.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Frontend / React, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI trả về component `MaintenanceScreen` với biểu tượng cờ lê và màu xám nhạt, cực kỳ thân thiện với người dùng.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Áp dụng component `MaintenanceScreen` vào hệ thống.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Thêm nút 'Back to Course' để user dễ điều hướng quay lại.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1510,14 +1519,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | LessonPlayer.tsx |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+UI xử lý edge-case rất chuyên nghiệp.
 ```
 
 ---
@@ -1527,39 +1536,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 26) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Thiết kế luồng Admin duyệt trạng thái |
+| Phân việc liên quan | Backend / Flow |
+| Mức độ sử dụng | Hỏi ý tưởng |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Không giờ chỉ xử lí phần liên quan đến instructor trước đã, bạn hãy cập nhật lại plan cho tôi
+Nếu bài học bị khóa (Không hoạt động), ai sẽ là người mở khóa? Admin hay Giảng viên? Đưa ra best practices cho nền tảng giáo dục lớn.
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / Flow, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI phân tích: Giảng viên tự bật tắt bảo trì, nhưng nếu bài học bị REPORT (báo cáo vi phạm), Admin mới là người có quyền khóa/mở khóa. Khuyên dùng 2 cột: `is_active` (cho GV) và `is_blocked_by_admin` (cho Admin).
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng mô hình 2 biến cờ (flags) để phân rõ quyền quản lý.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tích hợp cờ này vào JWT Payload để Frontend dễ hiển thị UI tương ứng.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1569,14 +1578,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | LessonEntity.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Kiến thức về phân quyền của AI sâu sắc, giải quyết triệt để tranh chấp quyền hạn.
 ```
 
 ---
@@ -1586,39 +1595,39 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 | Nội dung | Thông tin |
 |---|---|
 | Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 27) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Công cụ AI | ChatGPT |
+| Mục đích | Giới hạn phạm vi API (Separation of Concerns) |
+| Phân việc liên quan | Backend / Controller |
+| Mức độ sử dụng | Hỏi kiến trúc |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-à không hãy sửa lại thêm phía user nữa, hãy update lại plan cho tôi( nhớ thêm enum cho lessonnhes)
+Nên gộp chung API lấy khóa học của Admin, Instructor và Student vào 1 hàm `/courses` hay chia làm 3 Controller riêng biệt?
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / Controller, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI khuyên cực kỳ mạnh mẽ nên tách ra làm 3 Controller: `AdminCourseController`, `InstructorCourseController`, `PublicCourseController` để tránh rò rỉ dữ liệu và dễ bảo trì.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Tiến hành bóc tách toàn bộ API Course ra thành 3 luồng riêng biệt.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Tự cấu hình lại Filter Security theo đường dẫn `/api/v1/instructor/**`.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1628,14 +1637,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | Controllers |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Quyết định refactor này giúp hệ thống bảo mật dữ liệu tuyệt đối.
 ```
 
 ---
@@ -1644,40 +1653,40 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 28) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Ngày sử dụng | 2026-06-17 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích | Sinh code MapStruct DTO riêng rẽ |
+| Phân việc liên quan | Backend / DTO |
+| Mức độ sử dụng | Hỗ trợ sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Kiểm tra status của bài học mà user đang mở. là thực hiện ở backend mới lên frontend nhé chứ không phải đưa hết lên frontend sau đó mới check, hãy cập nhật lại plan cho tôi
+Tạo interface MapStruct chuyển CourseEntity thành `StudentCourseResponse` (chỉ lộ thông tin cơ bản) và `InstructorCourseResponse` (lộ cả doanh thu, trạng thái DRAFT).
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / DTO, tôi gặp rào cản kỹ thuật nên cần tham vấn GitHub Copilot.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+Copilot tự động mapping chính xác, loại bỏ các thuộc tính private (như doanh thu) khỏi `StudentCourseResponse`.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Sử dụng hoàn toàn code Mapper sinh bởi Copilot.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Thêm tính năng escape HTML cho phần mô tả ở luồng Public.
 
 #### 5.6. Đánh giá chất lượng prompt
 
 - [x] Prompt rõ ràng
 - [x] Prompt có đủ bối cảnh
 - [ ] Prompt còn thiếu thông tin
-- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả tốt
 - [ ] Prompt tạo ra kết quả chưa phù hợp
 - [ ] Cần hỏi lại AI nhiều lần
 - [ ] Cần tự kiểm tra và chỉnh sửa nhiều
@@ -1687,14 +1696,14 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CourseMapper.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Viết DTO Mapping bằng Copilot là công việc nhàn nhất.
 ```
 
 ---
@@ -1703,33 +1712,33 @@ Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng | 2026-06-16 |
-| Công cụ AI | Antigravity |
-| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 29) |
-| Phân việc liên quan | Fullstack |
-| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+| Ngày sử dụng | 2026-06-17 |
+| Công cụ AI | Gemini |
+| Mục đích | Ngăn ngừa lộ thông tin (Data Leakage) |
+| Phân việc liên quan | Backend / Security |
+| Mức độ sử dụng | Hỏi phương pháp |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Nếu INACTIVE: Backend chủ động set videoUrl = null, theoryContent = null, exercises = empty trước khi gửi xuống Frontend. Đồng thời trả kèm cờ status="INACTIVE". (Đảm bảo tuyệt đối nội dung không bị rò rỉ qua Network/API). cái này là sao tôi không hiểu vì sao set = null có ảnh hưởng đến database không
+Khi bài học ở trạng thái INACTIVE, làm sao để chắc chắn Frontend không bao giờ nhận được URL video bí mật từ Backend?
 ```
 
 #### 5.2. Bối cảnh khi viết prompt
 
-Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+Trong quá trình thực hiện phần Backend / Security, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
 
 #### 5.3. Kết quả AI trả về
 
-AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+AI khuyên: Đừng phó mặc cho Frontend che giao diện (vì hacker có thể xem Network Response). Backend phải chủ động set giá trị URL = null trong DTO trước khi Serialize JSON trả về.
 
 #### 5.4. Kết quả đã áp dụng vào bài
 
-Chấp nhận giải pháp và code AI cung cấp.
+Áp dụng phương pháp làm 'rỗng' dữ liệu nhạy cảm tại tầng Service.
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
 
-Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+Viết một hàm Utility chung để clean sensitive data cho các Lesson Inactive.
 
 #### 5.6. Đánh giá chất lượng prompt
 
@@ -1746,15 +1755,371 @@ Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
 
 | Loại minh chứng | Nội dung |
 |---|---|
-| File liên quan | Source Code |
-| Kết quả chạy/test | Đã giải quyết được bài toán |
+| File liên quan | CourseService.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
 | Ghi chú khác | N/A |
 
 #### 5.8. Ghi chú thêm
 
 ```text
-Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+Một nguyên tắc bảo mật cực kỳ cơ bản nhưng rất dễ bị quên nếu không có AI nhắc.
 ```
+
+---
+
+### Prompt số 30
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-17 |
+| Công cụ AI | ChatGPT |
+| Mục đích | Tóm tắt và chốt kế hoạch Refactor |
+| Phân việc liên quan | Tài liệu hóa |
+| Mức độ sử dụng | Tổng hợp |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Dựa trên các thay đổi về trạng thái khóa học, luồng duyệt của Admin và bảo vệ dữ liệu INACTIVE, hãy viết cho tôi một bản tóm tắt kỹ thuật (Technical Plan) để chốt trước khi deploy.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình thực hiện phần Tài liệu hóa, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
+
+#### 5.3. Kết quả AI trả về
+
+AI trả về một danh sách các công việc đã làm dạng Checklist rõ ràng, có phân mục Database, Backend, Frontend.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Dùng đoạn văn bản này để viết ghi chú Commit (Release Note).
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉnh sửa lại một số thuật ngữ tiếng Anh cho đúng với Convention của dự án.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [ ] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | CHANGELOG.md |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+AI tổng hợp dữ liệu rất mạch lạc, tiện cho việc báo cáo.
+```
+
+---
+
+### Prompt số 31
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-29 |
+| Công cụ AI | Gemini |
+| Mục đích | Phân tích luồng API Course Detail |
+| Phân việc liên quan | Backend / API |
+| Mức độ sử dụng | Giải thích logic |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Hệ thống đang có 2 luồng get Course Detail cho Instructor và Student. Hãy phân tích sự khác biệt về DTO trả về và logic check permission trong file `CourseService.java`.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình thực hiện phần Backend / API, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
+
+#### 5.3. Kết quả AI trả về
+
+AI phân tích rõ ràng: Luồng Student phải kiểm tra xem khóa học đã PUBLISHED chưa, trong khi luồng Instructor kiểm tra quyền sở hữu ID.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Dùng kết quả phân tích để viết API Documentation (Swagger).
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Bổ sung thêm mô tả lỗi 403 Forbidden vào tài liệu.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [ ] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Swagger API |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Đọc code ngược rất tốt, giải thích dễ hiểu cho người mới vào team.
+```
+
+---
+
+### Prompt số 32
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-29 |
+| Công cụ AI | ChatGPT |
+| Mục đích | Giải thích MapStruct Expressions |
+| Phân việc liên quan | Backend / MapStruct |
+| Mức độ sử dụng | Hỏi kiến thức |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Trong MapStruct có cú pháp `expression = "java(mapper.map(...))"`, cú pháp này hoạt động ngầm (under the hood) như thế nào so với custom method?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình thực hiện phần Backend / MapStruct, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
+
+#### 5.3. Kết quả AI trả về
+
+AI giải thích expression sẽ chèn nguyên chuỗi java code vào class Impl sinh tự động, chạy nhanh hơn custom method reflection nhưng dễ bị lỗi compile nếu gõ sai chính tả.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Hiểu rõ bản chất để quyết định chuyển sang dùng `qualifiedByName` thay vì viết chuỗi cứng `expression` để an toàn type-safe.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Refactor lại file `CourseMapper.java`.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [ ] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | CourseMapper.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Kiến thức chuyên sâu, giúp tôi nâng cấp chất lượng code (Best Practice).
+```
+
+---
+
+### Prompt số 33
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-29 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích | Sinh script Mock Data (Seeding) an toàn |
+| Phân việc liên quan | Database / Seeding |
+| Mức độ sử dụng | Hỗ trợ sinh code |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tạo 1 file SQL insert 10 bản ghi danh mục (Categories) lập trình (VD: Web, Mobile, Data Science). Yêu cầu dùng cú pháp INSERT IGNORE hoặc ON CONFLICT DO NOTHING để tránh lỗi duplicate key.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình thực hiện phần Database / Seeding, tôi gặp rào cản kỹ thuật nên cần tham vấn GitHub Copilot.
+
+#### 5.3. Kết quả AI trả về
+
+Copilot sinh ra 10 dòng lệnh chuẩn PostgreSQL `INSERT INTO categories ... ON CONFLICT (name) DO NOTHING`.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Copy vào file Data Seeder chạy ngầm khi khởi động Docker.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Tự cập nhật tên các danh mục tiếng Việt cho phù hợp yêu cầu bài giảng.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [ ] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | data.sql |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Cú pháp chống duplicate rất chính xác.
+```
+
+---
+
+### Prompt số 34
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-29 |
+| Công cụ AI | ChatGPT |
+| Mục đích | Debug lỗi 500 khi Tạo Khóa Học |
+| Phân việc liên quan | Backend / Debug |
+| Mức độ sử dụng | Hỗ trợ xử lý sự cố |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Giao diện báo 'Validation Error' chung chung khi tạo khóa học. Kiểm tra log Backend báo lỗi `EntityNotFoundException: Instructor not found`. Vấn đề là do tài khoản thiếu ROLE hay thiếu Record?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình thực hiện phần Backend / Debug, tôi gặp rào cản kỹ thuật nên cần tham vấn ChatGPT.
+
+#### 5.3. Kết quả AI trả về
+
+AI phân tích: User có `ROLE_INSTRUCTOR` để vào trang Dashboard, nhưng database vừa bị reset nên bảng `instructors` trống, dẫn đến API get profile bị crash.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Tự tay chạy SQL insert bù một record vào bảng `instructors` cho tài khoản test.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Đồng thời bổ sung logic: tự động tạo Instructor Profile trống nếu user có Role giảng viên đăng nhập lần đầu.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | AuthService.java |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Suy luận logic cực kỳ bén, tìm ra sự thiếu đồng bộ giữa User Role và Profile Data.
+```
+
+---
+
+### Prompt số 35
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-29 |
+| Công cụ AI | Gemini |
+| Mục đích | Cải tiến giao diện (Premium Error UI) |
+| Phân việc liên quan | Frontend / React / Tailwind |
+| Mức độ sử dụng | Hỗ trợ thiết kế UI |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Sửa lại khung hiển thị lỗi ở `InstructorDashboard.tsx`. Thay vì alert đỏ tĩnh, hãy hứng `err.message` từ API và thiết kế khung thông báo theo phong cách Premium Glassmorphism (có gradient dọc, shadow mượt).
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình thực hiện phần Frontend / React / Tailwind, tôi gặp rào cản kỹ thuật nên cần tham vấn Gemini.
+
+#### 5.3. Kết quả AI trả về
+
+AI đưa ra cụm class Tailwind cực xịn: `bg-gradient-to-r from-red-50 ... shadow-[0_8px_16px_...] animate-fade-in` và bắt chính xác `err.message`.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Thay thế toàn bộ khối xử lý lỗi ở Frontend bằng code AI sinh.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉnh nhẹ lại font chữ `tracking-wider` để nhìn cá tính hơn.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | InstructorDashboard.tsx |
+| Kết quả chạy/test | Đã giải quyết được lỗi |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Code giao diện của AI cực kỳ mãn nhãn, kết quả vượt ngoài kỳ vọng.
+```
+
+---
 
 ## 6. Prompt quan trọng nhất
 
@@ -1909,3 +2274,9 @@ Sinh viên/nhóm cam kết rằng:
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
 | Hồ Sĩ Tấn | 2026-05-18 |
+| 31 | 2026-06-29 | Antigravity | Yêu cầu tổng hợp tự động | oke giờ hãy làm theo plan cho tôi /goal... | Cập nhật tự động vào file | Có | Markdown Document |
+| 32 | 2026-06-29 | Antigravity | Yêu cầu tổng hợp tự động | Hãy sửa lại giao diện vì web 100% tiếng ... | Cập nhật tự động vào file | Có | Markdown Document |
+| 33 | 2026-06-29 | Antigravity | Yêu cầu tổng hợp tự động | Lỗi gì đây khi tôi nhấn submit for revie... | Cập nhật tự động vào file | Có | Markdown Document |
+| 34 | 2026-06-29 | Antigravity | Yêu cầu tổng hợp tự động | tôi nói khi edit course thì course đó vẫ... | Cập nhật tự động vào file | Có | Markdown Document |
+| 35 | 2026-06-29 | Antigravity | Yêu cầu tổng hợp tự động | bạn có sừa gì ảnh hưởng đến chức năng tạ... | Cập nhật tự động vào file | Có | Markdown Document |
+
