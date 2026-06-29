@@ -69,6 +69,7 @@ public class ContestService {
     com.swp391.coding_platform.repository.contest.ContestRankingRepository contestRankingRepository;
     org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
+
     private String calculateStatus(ContestEntity contest, Instant now) {
         if (contest.getStatus() == ContestStatus.DELETED) {
             return "DELETED";
@@ -254,16 +255,18 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    public List<ContestProblemResponse> getContestProblems(Integer contestId, Integer userId) {
+    public List<ContestProblemResponse> getContestProblems(Integer contestId, Integer userId, boolean isAdmin) {
         if (userId == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-        boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
-        if (!isRegistered) {
-            throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
+        if (!isAdmin) {
+            boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
+            if (!isRegistered) {
+                throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
+            }
         }
         // Block access if contest has not started yet (UPCOMING)
         // ENDED is allowed: users can review problems after contest ends
@@ -600,6 +603,7 @@ public class ContestService {
                     .id(s.getId())
                     .submittedAt(timeStr)
                     .username(s.getUser().getUsername())
+                    .displayName(s.getUser().getDisplayname() != null ? s.getUser().getDisplayname() : s.getUser().getUsername())
                     .problemLabel(label)
                     .problemId(s.getProblem().getId())
                     .problemTitle(s.getProblem().getTitle())
@@ -613,7 +617,7 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    public ContestProblemDetailResponse getContestProblemDetail(Integer contestId, Integer problemId, Integer userId) {
+    public ContestProblemDetailResponse getContestProblemDetail(Integer contestId, Integer problemId, Integer userId, boolean isAdmin) {
         if (userId == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
@@ -622,9 +626,11 @@ public class ContestService {
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
         // Verify user registration
-        boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
-        if (!isRegistered) {
-            throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
+        if (!isAdmin) {
+            boolean isRegistered = contestRepository.isUserRegistered(contestId, userId);
+            if (!isRegistered) {
+                throw new AppException(ErrorCode.CONTEST_NOT_JOINED);
+            }
         }
 
         // Verify contest has started (throw 403 / CONTEST_NOT_STARTED if upcoming)

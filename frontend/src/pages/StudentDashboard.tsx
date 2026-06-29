@@ -24,6 +24,7 @@ import {
   type MyContestStats,
   type MyContestHistory
 } from '../services/contestService';
+import { isYoutubeUrl, getYoutubeEmbedUrl, getOptimizedVideoUrl } from '../utils/videoUtils';
 
 
 const TX_TYPE_OPTIONS = [
@@ -230,15 +231,7 @@ export const StudentDashboard: React.FC = () => {
     sec3: false
   });
 
-  const getYoutubeEmbedUrl = (url?: string) => {
-    if (!url) return '';
-    const regExp = new RegExp('^.*(youtu.be/|v/|u/\\w/|embed/|watch\\?v=|&v=)([^#&\\?]*).*');
-    const match = url.match(regExp);
-    if (match && match[2].length === 11) {
-      return `https://www.youtube.com/embed/${match[2]}`;
-    }
-    return url;
-  };
+  // Video URL helpers are now centralized in ../utils/videoUtils.ts
 
   // Exercises panel inside Course Player
   const [playerExercises, setPlayerExercises] = useState<any[]>([]);
@@ -517,7 +510,7 @@ export const StudentDashboard: React.FC = () => {
     // Parse hash like 'learning-view?courseId=1' into tab + query params
     const [hash, queryString] = rawHash.split('?');
     const hashParams = new URLSearchParams(queryString || '');
-    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'comments', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history', 'my-profile'];
+    const validTabs = ['dashboard', 'my-courses', 'learning-view', 'wallet-transaction', 'deposit', 'payment-transaction', 'purchase-history', 'contest-history', 'my-profile'];
     if (hash && validTabs.includes(hash)) {
       if (hash === 'payment-transaction') {
         setActiveTab('wallet-transaction');
@@ -1203,17 +1196,6 @@ export const StudentDashboard: React.FC = () => {
           <span className="sidebar-text hidden md:inline">Learning Journal</span>
         </a>
 
-        <button
-          onClick={() => handleTabChange('comments')}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left ${
-            activeTab === 'comments'
-              ? 'bg-primary-light/20 text-primary font-bold border border-primary/10'
-              : 'text-text-main hover:bg-surface-gray hover:text-primary'
-          }`}
-        >
-          <span className="material-symbols-outlined">forum</span>
-          <span className="sidebar-text hidden md:inline">Comments</span>
-        </button>
 
         {/* Collapsible My Wallet Menu */}
         <div className="flex flex-col gap-1">
@@ -1846,7 +1828,7 @@ export const StudentDashboard: React.FC = () => {
                       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                       <p className="text-white/80 text-xs font-semibold">Loading lesson content...</p>
                     </div>
-                  ) : playerLessonStatus === 'INACTIVE' ? (
+                  ) : (playerLessonStatus === 'INACTIVE' || playerLessonStatus === 'PENDING_UPDATE') ? (
                     <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-5 text-center px-6 h-full bg-[#0a0f1d]/90 backdrop-blur-md w-full border border-gray-800/50">
                       <div className="relative">
                         <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full"></div>
@@ -1860,13 +1842,24 @@ export const StudentDashboard: React.FC = () => {
                       </div>
                     </div>
                   ) : playerVideoUrl ? (
-                    <iframe
-                      className="w-full h-full border-none rounded-2xl aspect-video"
-                      src={getYoutubeEmbedUrl(playerVideoUrl)}
-                      title="Lesson Video Player"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    ></iframe>
+                    isYoutubeUrl(playerVideoUrl) ? (
+                      <iframe
+                        className="w-full h-full border-none rounded-2xl aspect-video"
+                        src={getYoutubeEmbedUrl(playerVideoUrl)}
+                        title="Lesson Video Player"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      ></iframe>
+                    ) : (
+                      <video
+                        className="w-full h-full rounded-2xl aspect-video object-contain bg-black"
+                        src={getOptimizedVideoUrl(playerVideoUrl)}
+                        controls
+                        preload="metadata"
+                        controlsList="nodownload"
+                        playsInline
+                      />
+                    )
                   ) : (
                     <>
                       <img src={playerVideoThumbnail} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-30" />
@@ -1932,7 +1925,7 @@ export const StudentDashboard: React.FC = () => {
 
                 {/* Sub-tab Panels */}
                 <div className="relative bg-surface rounded-2xl border border-gray-200 p-6 min-h-[300px]">
-                  {playerLessonStatus === 'INACTIVE' && (
+                  {(playerLessonStatus === 'INACTIVE' || playerLessonStatus === 'PENDING_UPDATE') && (
                     <div className="absolute inset-0 z-30 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center pointer-events-auto border border-white/60 shadow-[inset_0_0_20px_rgba(255,255,255,0.8)]">
                       <div className="bg-white/80 backdrop-blur-xl border border-white p-8 rounded-2xl text-center max-w-md flex flex-col items-center shadow-2xl shadow-slate-200/50 ambient-shadow">
                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 mb-5 text-white">
@@ -2568,7 +2561,7 @@ export const StudentDashboard: React.FC = () => {
                                       : 'text-text-main group-hover:text-primary'
                                   }`}>
                                     <span className="truncate">{lesson.title}</span>
-                                    {lesson.status === 'INACTIVE' && (
+                                    {(lesson.status === 'INACTIVE' || lesson.status === 'PENDING_UPDATE') && (
                                       <span className="shrink-0 flex items-center gap-1 pl-1.5 pr-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] uppercase tracking-wider rounded-md shadow-md shadow-orange-500/20 border border-orange-400/50">
                                         <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                                         Updating
@@ -2593,7 +2586,7 @@ export const StudentDashboard: React.FC = () => {
         )}
 
         {/* Tab: Comments */}
-        {activeTab === 'comments' && (
+        {false && activeTab === 'comments' && (
           <div className="flex flex-col gap-8 animate-fade-in">
             <div className="mb-2">
               <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-3 shadow-sm">

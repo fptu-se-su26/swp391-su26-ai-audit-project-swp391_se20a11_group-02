@@ -5,17 +5,18 @@ import com.swp391.coding_platform.dto.response.ContestScoreboardResponse.Problem
 import com.swp391.coding_platform.dto.response.ContestScoreboardResponse.TeamRow;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.contest.ContestProblemEntity;
-import com.swp391.coding_platform.entity.contest.ContestRankingEntity;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.event.SubmissionJudgedEvent;
 import com.swp391.coding_platform.repository.contest.ContestProblemRepository;
-import com.swp391.coding_platform.repository.contest.ContestRankingRepository;
+import com.swp391.coding_platform.configuration.RabbitMQConfig;
+import com.swp391.coding_platform.dto.message.ContestRankingDbUpdateMessage;
 import com.swp391.coding_platform.repository.contest.ContestRepository;
 import com.swp391.coding_platform.repository.user.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class ContestRankingService {
     ContestRepository contestRepository;
     ContestProblemRepository contestProblemRepository;
     UserRepository userRepository;
-    ContestRankingRepository contestRankingRepository;
+    RabbitTemplate rabbitTemplate;
 
     @Transactional
     public ContestScoreboardResponse updateContestRanking(SubmissionJudgedEvent event) {
@@ -136,35 +137,27 @@ public class ContestRankingService {
         String liveScoreboardKey = "contest:scoreboard:" + contestId + ":live";
         stringRedisTemplate.opsForZSet().add(liveScoreboardKey, String.valueOf(userId), zsetScore);
 
-        // Xử lý Contest Freeze
-        Instant endTime = contest.getEndTime();
-        Instant startTime = contest.getStartTime();
-        // Thời gian đóng băng bảng điểm (mặc định là 1 tiếng trước kết thúc)
-        Instant freezeTime = endTime.minus(Duration.ofHours(1));
-        if (freezeTime.isBefore(startTime)) {
-            freezeTime = startTime;
-        }
-
+        // Xử lý Contest (Đóng băng bảng điểm đã được bỏ, cập nhật luôn public và live)
         String publicScoreboardKey = "contest:scoreboard:" + contestId + ":public";
-        if (submitTime.isBefore(freezeTime)) {
-            // Nếu nộp trước thời gian đóng băng, cập nhật ZSET Public Scoreboard và cả Public Hash
-            stringRedisTemplate.opsForZSet().add(publicScoreboardKey, String.valueOf(userId), zsetScore);
-            stringRedisTemplate.opsForHash().put(publicHashKey, field, newStatus);
-            log.info("Updated public status and scoreboard for user {} on problem {} (before freeze)", userId, problemId);
-        } else {
-            // Nếu nộp trong thời gian đóng băng, KHÔNG cập nhật public scoreboard/hash mới, nhưng ZADD người mới vào nếu chưa có
-            // để họ hiển thị ở trạng thái ban đầu của lúc trước freeze
-            Double existingPublicScore = stringRedisTemplate.opsForZSet().score(publicScoreboardKey, String.valueOf(userId));
-            if (existingPublicScore == null) {
-                double defaultScore = (double) baseScore;
-                stringRedisTemplate.opsForZSet().add(publicScoreboardKey, String.valueOf(userId), defaultScore);
-            }
-        }
+        stringRedisTemplate.opsForZSet().add(publicScoreboardKey, String.valueOf(userId), zsetScore);
+        stringRedisTemplate.opsForHash().put(publicHashKey, field, newStatus);
+        log.info("Updated public status and scoreboard for user {} on problem {}", userId, problemId);
 
         // ==========================================
         // PERSIST RANKING TO DATABASE (Lưu xuống DB để không mất khi Redis restart)
         // ==========================================
-        persistRankingToDatabase(contestId, userId, problemsSolved, (int)(totalPenaltySeconds / 60));
+        ContestRankingDbUpdateMessage dbMessage = ContestRankingDbUpdateMessage.builder()
+                .contestId(contestId)
+                .userId(userId)
+                .problemsSolved(problemsSolved)
+                .totalPenaltyMinutes((int) (totalPenaltySeconds / 60))
+                .problemId(problemId)
+                .isSolved(isAc == 1)
+                .solvedAtSeconds(isAc == 1 ? (int) firstAcTimeSeconds : null)
+                .failedAttemptsCount(wrongAttempts)
+                .build();
+        rabbitTemplate.convertAndSend(RabbitMQConfig.CONTEST_RANKING_DB_UPDATE_QUEUE, dbMessage);
+        log.info("Sent contest ranking DB update message to RabbitMQ for user {} in contest {}", userId, contestId);
 
         // Trả về scoreboard để stream (mặc định stream bảng public cho đại chúng)
         return getScoreboard(contestId, false);
@@ -293,47 +286,5 @@ public class ContestRankingService {
         long mins = (totalSecs % 3600) / 60;
         long secs = totalSecs % 60;
         return String.format("%d:%02d:%02d", hrs, mins, secs);
-    }
-
-    /**
-     * Upsert ranking vào DB — luôn ghi state mới nhất từ Redis.
-     * Redis là source of truth (đã tính tích lũy đúng từ updateContestRanking).
-     * DB chỉ là bản sao bền vững để không mất dữ liệu khi Redis restart.
-     *
-     * Không dùng "chỉ update nếu tốt hơn" vì:
-     * - Người dùng nộp sai nhiều lần (chưa có AC) vẫn cần lưu số lần sai
-     * - Redis đã tính đúng tổng penalty và solved count rồi, chỉ cần mirror xuống DB
-     */
-    @Transactional
-    public void persistRankingToDatabase(Integer contestId, Integer userId, int problemsSolved, int totalPenaltyMinutes) {
-        try {
-            var existingOpt = contestRankingRepository.findByContestIdAndUserId(contestId, userId);
-            if (existingOpt.isPresent()) {
-                // Luôn cập nhật với state mới nhất
-                ContestRankingEntity existing = existingOpt.get();
-                existing.setProblemsSolved(problemsSolved);
-                existing.setTotalPenalty(totalPenaltyMinutes);
-                existing.setUpdatedAt(Instant.now());
-                contestRankingRepository.save(existing);
-                log.debug("Updated DB ranking for user {} in contest {}: solved={}, penalty={}min",
-                        userId, contestId, problemsSolved, totalPenaltyMinutes);
-            } else {
-                // Lần đầu tiên user có kết quả → INSERT
-                ContestRankingEntity newRanking = ContestRankingEntity.builder()
-                        .contest(contestRepository.getReferenceById(contestId))
-                        .user(userRepository.getReferenceById(userId))
-                        .problemsSolved(problemsSolved)
-                        .totalPenalty(totalPenaltyMinutes)
-                        .updatedAt(Instant.now())
-                        .build();
-                contestRankingRepository.save(newRanking);
-                log.debug("Inserted DB ranking for user {} in contest {}: solved={}, penalty={}min",
-                        userId, contestId, problemsSolved, totalPenaltyMinutes);
-            }
-        } catch (Exception e) {
-            // Không để lỗi DB ảnh hưởng đến luồng chính (Redis vẫn là source of truth)
-            log.error("Failed to persist ranking to DB for user {} in contest {}: {}",
-                    userId, contestId, e.getMessage());
-        }
     }
 }
