@@ -261,8 +261,1239 @@ Do dùng JPA, tôi phải chuyển đổi câu SQL thuần này thành Native Qu
 ```text
 Nhờ AI, tôi biết thêm kỹ thuật Window Function trong SQL, giúp giải quyết bài toán phức tạp một cách tối ưu.
 ```
+---
+
+### Lần sử dụng AI số 5
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-23 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Giải thích luồng hoạt động của Course Detail, sửa giao diện báo lỗi và thêm dữ liệu mẫu Database |
+| Phân việc liên quan | Backend, Frontend, Database |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+- giải thích cho tôi về chức năng course detail, liên quan đến file nào giải thích file hàm đó ra cho tôi ở backend
+- Hãy truy cập vào database của tôi bằng cách hãy đọc @[backend/.env], sau đó hãy thêm dữ liệu vào category sao cho hợp lý cho tôi
+- Vì sao tôi tạo course không được, và hãy phân tích tôi muốn khi mà tạo course nếu tạo không được thì hãy báo rõ lỗi cho tôi, hiện lỗi theo kiểu UI Premium nhé
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI giải thích chi tiết luồng Backend của `CourseService` (dành cho học viên) và `InstructorCourseService` (dành cho giảng viên). AI tự động đọc cấu hình `.env`, chạy lệnh truy cập PostgreSQL trong Docker và thêm 10 danh mục (categories). AI cũng phân tích nguyên nhân tạo khóa học bị lỗi (do thiếu user trong bảng instructors sau khi reset DB) và đề xuất sửa code Frontend để hiển thị lỗi chi tiết từ Backend bằng UI Premium (Glassmorphism).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng cách giải thích API và luồng dữ liệu để làm tài liệu báo cáo. Sử dụng 10 bản ghi Categories mẫu do AI tạo. Đồng ý cho AI sửa trực tiếp mã nguồn Frontend (`instructorService.ts` và `InstructorDashboard.tsx`) để hiển thị lỗi chuẩn xác với giao diện đẹp mắt.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tôi đã tự chạy thử lại chức năng Create Course sau khi AI cập nhật giao diện hiển thị lỗi để xác nhận nguyên nhân sâu xa (do thiếu dữ liệu Instructor) và tự insert thêm bản ghi instructor cho tài khoản của mình.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | backend/.env, instructorService.ts, InstructorDashboard.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Đã hiển thị thông báo lỗi chi tiết với UI Premium màu đỏ Gradient |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+Antigravity rất thông minh khi có thể tự đọc file môi trường `.env`, chạy lệnh Docker vào database để insert dữ liệu và chủ động phân tích sửa lỗi ngay trên source code mà không cần tôi copy paste qua lại. Giao diện báo lỗi AI sinh ra cực kỳ hiện đại.
+```
 
 ---
+
+
+---
+
+### Lần sử dụng AI số 6
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 6) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+hãy kiểm tra xem khi tôi có thêm cloudinary để chứa ảnh và video, hãy kiểm tra xem chức năng này nếu tôi đẩy video lên thì có thực hiện được chức năng này không
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 7
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 7) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Vậy hãy kiểm tra xem chức năng creat course lúc tôi upload ảnh với video lên ở chỗ thumbnail và video của bài học có được không hãy kiểm tra giúp tôi, cả về phần edit nữa nhé, kết quả cho tôi plan chưa sửa code nhé /goal
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 8
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 8) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Vậy hãy kiểm tra xem chức năng creat course lúc tôi upload ảnh với video lên ở chỗ thumbnail và video của bài học có được không hãy kiểm tra giúp tôi, cả về phần edit nữa nhé, kết quả cho tôi plan chưa sửa code nhé /goal
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 9
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 9) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+vậy còn frontend cập nhật lại gì không
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 10
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 10) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+rồi hãy cập nhật vào file plan cho tôi
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 11
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 11) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+rồi hãy làm theo cho tôi
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 12
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 12) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Continue
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 13
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 13) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+tại sao tôi tải video lên rồi nhưng nhấn chạy nó không chạy video
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 14
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 14) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+tôi nhấn chạy video nhưng không được
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 15
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 15) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+hãy ghi cho tôi message plan bạn vừa thực hiện để tôi commit chỉ cho thôi nhứ đừng commit thay tôi
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 16
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 16) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+tạo sao trong edit course không có edit cái thumbnail nhỉ hãy bổ sung giúp tôi
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 17
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 17) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+UI edit thumbnail xấu quá hãy sửa lại cho tôi lên bản premium
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 18
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 18) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+tạo ở trong instructor nó lại không hiện thumbnail ở phần hiển thị course 19.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 19
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 19) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Intermediate hiện trong mục đích là gì nhỉ
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 20
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 20) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+có phải chữ đó đang fix cứng ở giao diện phải không
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 21
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 21) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Cụ thể, khi Frontend gọi API lấy danh sách khóa học, Backend đang tự động ép cứng giá trị:    .level("Intermediate") cho các khóa học đang lấy ra.  .level("All Levels") cho khóa học vừa mới được tạo. lấy ở đâu vậy chỉ cho tôi cái code lấy .level được không
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 22
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 22) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+hãy bỏ cái phần level này cho tôi lẫn frontend và backend
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 23
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 23) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giờ hãy sửa luồng cho ở My Course trong instructor cho tôi: khi tạo khóa học khi nhấn submit course thì nó sẽ hiện qua draft (Tức là course đó đang ở trạng thái draft) và có edit course đó, khi nhấn submit for Review mới hiện trạng thái pending(tức là course đó đang ở trạng thái pending). Tiếp theo là phần edit course , ở trong lesson thêm cho tôi 1 trường đó là status: đó là hoạt động hoặc không hoạt động. khi edit vào lesson nào thì status đó sẽ chuyển sang trạng thái không hoạt động, nhưng course đó vẫn active nhé(Còn edit những phần khác thì course vẫn active), và khi hiện để user học thì nếu lesson đó không ở trạng thái hoạt động thì khi nhấn vào lesson đó sẽ hiện trạng thái đang bảo trì, còn ở lúc edit nếu lesson đó đang ở trạng thái không hoạt động thì thông báo sẽ không được edit phần lesson đó. khi tạo course thì lesson mặc định là hoạt động nhé. Đây là những yêu cầu của tôi bạn hãy đọc phân tích, và cho tôi plan(khoan sửa code đã nhé) /goal
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 24
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 24) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giờ hãy sửa luồng cho ở My Course trong instructor cho tôi: khi tạo khóa học khi nhấn submit course thì nó sẽ hiện qua draft (Tức là course đó đang ở trạng thái draft) và có edit course đó, khi nhấn submit for Review mới hiện trạng thái pending(tức là course đó đang ở trạng thái pending). Tiếp theo là phần edit course , ở trong lesson thêm cho tôi 1 trường đó là status: đó là hoạt động hoặc không hoạt động. khi edit vào lesson nào thì status đó sẽ chuyển sang trạng thái không hoạt động, nhưng course đó vẫn active nhé(Còn edit những phần khác thì course vẫn active), và khi hiện để user học thì nếu lesson đó không ở trạng thái hoạt động thì khi nhấn vào lesson đó sẽ hiện trạng thái đang bảo trì, còn ở lúc edit nếu lesson đó đang ở trạng thái không hoạt động thì thông báo sẽ không được edit phần lesson đó. khi tạo course thì lesson mặc định là hoạt động nhé. Đây là những yêu cầu của tôi bạn hãy đọc phân tích, và cho tôi plan(khoan sửa code đã nhé) /goal
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 25
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 25) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Vấn đề là: Nếu cứ edit là nó bị khóa (Không hoạt động), và đã khóa thì không cho edit nữa, vậy làm cách nào để Giảng viên có thể mở khóa (chuyển lại thành Hoạt động) cho bài học đó? Có phải bạn muốn có một nút gạt (Toggle Switch) riêng biệt để Giảng viên tự bật/tắt trạng thái Hoạt động/Bảo trì của bài học không? Hãy phản hồi lại cho mình biết ý định thực sự của bạn ở chi tiết này nhé! Ở vấn đề này "Nếu cứ edit là nó bị khóa (Không hoạt động), và đã khóa thì không cho edit nữa" là đúng ý tôi, vậy làm thế nào để giảng viên có thể mở khóa lesson đó thì đó là phần của admin nó sẽ duyệt lại lesson khóa học đó, khi admin accept thì lesson đó mới hoạt động lại. Bạn đã hiểu ý tôi chưa. cập nhật lại plan cho tôi(chưa sửa code nhé)
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 26
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 26) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Không giờ chỉ xử lí phần liên quan đến instructor trước đã, bạn hãy cập nhật lại plan cho tôi
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 27
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 27) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+à không hãy sửa lại thêm phía user nữa, hãy update lại plan cho tôi( nhớ thêm enum cho lessonnhes)
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 28
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 28) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Kiểm tra status của bài học mà user đang mở. là thực hiện ở backend mới lên frontend nhé chứ không phải đưa hết lên frontend sau đó mới check, hãy cập nhật lại plan cho tôi
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
+
+---
+
+### Lần sử dụng AI số 29
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phát triển tính năng và sửa lỗi (Mã yêu cầu 29) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Nếu INACTIVE: Backend chủ động set videoUrl = null, theoryContent = null, exercises = empty trước khi gửi xuống Frontend. Đồng thời trả kèm cờ status="INACTIVE". (Đảm bảo tuyệt đối nội dung không bị rò rỉ qua Network/API). cái này là sao tôi không hiểu vì sao set = null có ảnh hưởng đến database không
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+AI phân tích ngữ cảnh của lỗi hoặc tính năng cần thêm, đưa ra phương án tối ưu và tự động chỉnh sửa các tệp mã nguồn liên quan.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Sử dụng mã nguồn do AI tự động cập nhật vào dự án.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Kiểm tra lại tính năng trên trình duyệt web, đảm bảo không phá vỡ UI/UX hiện tại.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Frontend / Backend code |
+| Kết quả chạy/test | Tính năng hoạt động ổn định |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp rút ngắn đáng kể thời gian tìm và sửa lỗi.
+```
 
 ## 5. Bảng tổng hợp mức độ sử dụng AI
 

@@ -41,7 +41,7 @@ Sinh viên/nhóm cần ghi lại:
 - [ ] Claude
 - [x] GitHub Copilot
 - [ ] Cursor
-- [ ] Antigravity
+- [x] Antigravity
 - [ ] Microsoft Copilot
 - [ ] Perplexity
 - [ ] Công cụ khác: ....................................
@@ -56,6 +56,32 @@ Sinh viên/nhóm cần ghi lại:
 | 2 | 2026-05-14 | Gemini | Cấu hình bảo mật JWT trong Spring Boot | Hỏi cấu hình Spring Security JWT cho 3 roles | Bộ code base cho filter và security config | Có | Config Classes |
 | 3 | 2026-05-16 | GitHub Copilot | Tạo khung giao diện React bằng Tailwind CSS | Yêu cầu sinh layout cho Problem List với search & filter | Cấu trúc UI hoàn chỉnh dùng Flex/Grid | Có | Component UI |
 | 4 | 2026-05-17 | ChatGPT | Tối ưu câu lệnh SQL tính Leaderboard | Hỏi SQL để tìm tổng điểm các bài nộp cao nhất theo thời gian | Lời khuyên dùng Window Function thay vì Group By | Có | Native Query Repository |
+| 5 | 2026-06-23 | Antigravity | Phân tích lỗi tạo khóa học & Đổ dữ liệu mẫu | Đọc .env, truy cập Database, sửa UI hiển thị lỗi Premium | Phân tích sâu nguyên nhân lỗi và tự động sửa file UI React | Có | Code Frontend, DB Categories |
+
+| 6 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 6 | hãy kiểm tra xem khi tôi có thêm cloudin... | Fix code frontend/backend | Có | Source Code |
+| 7 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 7 | Vậy hãy kiểm tra xem chức năng creat cou... | Fix code frontend/backend | Có | Source Code |
+| 8 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 8 | Vậy hãy kiểm tra xem chức năng creat cou... | Fix code frontend/backend | Có | Source Code |
+| 9 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 9 | vậy còn frontend cập nhật lại gì không... | Fix code frontend/backend | Có | Source Code |
+| 10 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 10 | rồi hãy cập nhật vào file plan cho tôi... | Fix code frontend/backend | Có | Source Code |
+| 11 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 11 | rồi hãy làm theo cho tôi... | Fix code frontend/backend | Có | Source Code |
+| 12 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 12 | Continue... | Fix code frontend/backend | Có | Source Code |
+| 13 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 13 | tại sao tôi tải video lên rồi nhưng nhấn... | Fix code frontend/backend | Có | Source Code |
+| 14 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 14 | tôi nhấn chạy video nhưng không được... | Fix code frontend/backend | Có | Source Code |
+| 15 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 15 | hãy ghi cho tôi message plan bạn vừa thự... | Fix code frontend/backend | Có | Source Code |
+| 16 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 16 | tạo sao trong edit course không có edit ... | Fix code frontend/backend | Có | Source Code |
+| 17 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 17 | UI edit thumbnail xấu quá hãy sửa lại ch... | Fix code frontend/backend | Có | Source Code |
+| 18 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 18 | tạo ở trong instructor nó lại không hiện... | Fix code frontend/backend | Có | Source Code |
+| 19 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 19 | Intermediate hiện trong mục đích là gì n... | Fix code frontend/backend | Có | Source Code |
+| 20 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 20 | có phải chữ đó đang fix cứng ở giao diện... | Fix code frontend/backend | Có | Source Code |
+| 21 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 21 | Cụ thể, khi Frontend gọi API lấy danh sá... | Fix code frontend/backend | Có | Source Code |
+| 22 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 22 | hãy bỏ cái phần level này cho tôi lẫn fr... | Fix code frontend/backend | Có | Source Code |
+| 23 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 23 | Giờ hãy sửa luồng cho ở My Course trong ... | Fix code frontend/backend | Có | Source Code |
+| 24 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 24 | Giờ hãy sửa luồng cho ở My Course trong ... | Fix code frontend/backend | Có | Source Code |
+| 25 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 25 | Vấn đề là: Nếu cứ edit là nó bị khóa (Kh... | Fix code frontend/backend | Có | Source Code |
+| 26 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 26 | Không giờ chỉ xử lí phần liên quan đến i... | Fix code frontend/backend | Có | Source Code |
+| 27 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 27 | à không hãy sửa lại thêm phía user nữa, ... | Fix code frontend/backend | Có | Source Code |
+| 28 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 28 | Kiểm tra status của bài học mà user đang... | Fix code frontend/backend | Có | Source Code |
+| 29 | 2026-06-16 | Antigravity | Xử lý yêu cầu lập trình số 29 | Nếu INACTIVE: Backend chủ động set video... | Fix code frontend/backend | Có | Source Code |
 
 ---
 
@@ -250,6 +276,1485 @@ Dùng AI làm frontend UI là cực kỳ hiệu quả.
 ```
 
 ---
+
+### Prompt số 4
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-23 |
+| Công cụ AI | Antigravity |
+| Mục đích | Giải thích luồng hoạt động của Course Detail, sửa giao diện báo lỗi và thêm dữ liệu mẫu Database |
+| Phân việc liên quan | Backend, Frontend, Database |
+| Mức độ sử dụng | Hỗ trợ tự động sửa code |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Vì sao tôi tạo course không được, và hãy phân tích tôi muốn khi mà tạo course nếu tạo không được thì hãy báo rõ lỗi cho tôi, hiện lỗi theo kiểu UI Premium nhé
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Khi test tính năng tạo khóa học trên giao diện Instructor, hệ thống chỉ báo "Validation Error" mà không nói rõ lý do tại sao lỗi, gây khó khăn cho việc debug.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đọc code React và Spring Boot, phát hiện ra Frontend đã gán cứng câu lỗi thay vì đọc response JSON từ Backend. Hơn nữa, AI phát hiện ra DB thiếu thông tin tài khoản Instructor. AI đã tự viết lại 2 đoạn mã nguồn React để fix lỗi và đổi giao diện Glassmorphism cực kỳ đẹp.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Áp dụng 100% phần mã nguồn React do Antigravity sinh ra.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ việc cấp quyền để AI trực tiếp ghi vào file, sau đó tôi tự insert thêm tài khoản của mình vào database.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | instructorService.ts, InstructorDashboard.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Đã hiển thị báo lỗi chi tiết thay vì chung chung |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Agentic AI như Antigravity vượt trội hơn hẳn các công cụ chat truyền thống vì khả năng tự đọc code, phân tích hệ thống và áp dụng thay đổi trực tiếp.
+```
+
+---
+
+
+---
+
+### Prompt số 6
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 6) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+hãy kiểm tra xem khi tôi có thêm cloudinary để chứa ảnh và video, hãy kiểm tra xem chức năng này nếu tôi đẩy video lên thì có thực hiện được chức năng này không
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 7
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 7) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Vậy hãy kiểm tra xem chức năng creat course lúc tôi upload ảnh với video lên ở chỗ thumbnail và video của bài học có được không hãy kiểm tra giúp tôi, cả về phần edit nữa nhé, kết quả cho tôi plan chưa sửa code nhé /goal
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 8
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 8) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Vậy hãy kiểm tra xem chức năng creat course lúc tôi upload ảnh với video lên ở chỗ thumbnail và video của bài học có được không hãy kiểm tra giúp tôi, cả về phần edit nữa nhé, kết quả cho tôi plan chưa sửa code nhé /goal
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 9
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 9) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+vậy còn frontend cập nhật lại gì không
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 10
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 10) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+rồi hãy cập nhật vào file plan cho tôi
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 11
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 11) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+rồi hãy làm theo cho tôi
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 12
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 12) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Continue
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 13
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 13) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+tại sao tôi tải video lên rồi nhưng nhấn chạy nó không chạy video
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 14
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 14) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+tôi nhấn chạy video nhưng không được
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 15
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 15) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+hãy ghi cho tôi message plan bạn vừa thực hiện để tôi commit chỉ cho thôi nhứ đừng commit thay tôi
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 16
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 16) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+tạo sao trong edit course không có edit cái thumbnail nhỉ hãy bổ sung giúp tôi
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 17
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 17) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+UI edit thumbnail xấu quá hãy sửa lại cho tôi lên bản premium
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 18
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 18) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+tạo ở trong instructor nó lại không hiện thumbnail ở phần hiển thị course 19.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 19
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 19) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Intermediate hiện trong mục đích là gì nhỉ
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 20
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 20) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+có phải chữ đó đang fix cứng ở giao diện phải không
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 21
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 21) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Cụ thể, khi Frontend gọi API lấy danh sách khóa học, Backend đang tự động ép cứng giá trị:    .level("Intermediate") cho các khóa học đang lấy ra.  .level("All Levels") cho khóa học vừa mới được tạo. lấy ở đâu vậy chỉ cho tôi cái code lấy .level được không
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 22
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 22) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+hãy bỏ cái phần level này cho tôi lẫn frontend và backend
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 23
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 23) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Giờ hãy sửa luồng cho ở My Course trong instructor cho tôi: khi tạo khóa học khi nhấn submit course thì nó sẽ hiện qua draft (Tức là course đó đang ở trạng thái draft) và có edit course đó, khi nhấn submit for Review mới hiện trạng thái pending(tức là course đó đang ở trạng thái pending). Tiếp theo là phần edit course , ở trong lesson thêm cho tôi 1 trường đó là status: đó là hoạt động hoặc không hoạt động. khi edit vào lesson nào thì status đó sẽ chuyển sang trạng thái không hoạt động, nhưng course đó vẫn active nhé(Còn edit những phần khác thì course vẫn active), và khi hiện để user học thì nếu lesson đó không ở trạng thái hoạt động thì khi nhấn vào lesson đó sẽ hiện trạng thái đang bảo trì, còn ở lúc edit nếu lesson đó đang ở trạng thái không hoạt động thì thông báo sẽ không được edit phần lesson đó. khi tạo course thì lesson mặc định là hoạt động nhé. Đây là những yêu cầu của tôi bạn hãy đọc phân tích, và cho tôi plan(khoan sửa code đã nhé) /goal
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 24
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 24) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Giờ hãy sửa luồng cho ở My Course trong instructor cho tôi: khi tạo khóa học khi nhấn submit course thì nó sẽ hiện qua draft (Tức là course đó đang ở trạng thái draft) và có edit course đó, khi nhấn submit for Review mới hiện trạng thái pending(tức là course đó đang ở trạng thái pending). Tiếp theo là phần edit course , ở trong lesson thêm cho tôi 1 trường đó là status: đó là hoạt động hoặc không hoạt động. khi edit vào lesson nào thì status đó sẽ chuyển sang trạng thái không hoạt động, nhưng course đó vẫn active nhé(Còn edit những phần khác thì course vẫn active), và khi hiện để user học thì nếu lesson đó không ở trạng thái hoạt động thì khi nhấn vào lesson đó sẽ hiện trạng thái đang bảo trì, còn ở lúc edit nếu lesson đó đang ở trạng thái không hoạt động thì thông báo sẽ không được edit phần lesson đó. khi tạo course thì lesson mặc định là hoạt động nhé. Đây là những yêu cầu của tôi bạn hãy đọc phân tích, và cho tôi plan(khoan sửa code đã nhé) /goal
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 25
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 25) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Vấn đề là: Nếu cứ edit là nó bị khóa (Không hoạt động), và đã khóa thì không cho edit nữa, vậy làm cách nào để Giảng viên có thể mở khóa (chuyển lại thành Hoạt động) cho bài học đó? Có phải bạn muốn có một nút gạt (Toggle Switch) riêng biệt để Giảng viên tự bật/tắt trạng thái Hoạt động/Bảo trì của bài học không? Hãy phản hồi lại cho mình biết ý định thực sự của bạn ở chi tiết này nhé! Ở vấn đề này "Nếu cứ edit là nó bị khóa (Không hoạt động), và đã khóa thì không cho edit nữa" là đúng ý tôi, vậy làm thế nào để giảng viên có thể mở khóa lesson đó thì đó là phần của admin nó sẽ duyệt lại lesson khóa học đó, khi admin accept thì lesson đó mới hoạt động lại. Bạn đã hiểu ý tôi chưa. cập nhật lại plan cho tôi(chưa sửa code nhé)
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 26
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 26) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Không giờ chỉ xử lí phần liên quan đến instructor trước đã, bạn hãy cập nhật lại plan cho tôi
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 27
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 27) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+à không hãy sửa lại thêm phía user nữa, hãy update lại plan cho tôi( nhớ thêm enum cho lessonnhes)
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 28
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 28) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Kiểm tra status của bài học mà user đang mở. là thực hiện ở backend mới lên frontend nhé chứ không phải đưa hết lên frontend sau đó mới check, hãy cập nhật lại plan cho tôi
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
+
+---
+
+### Prompt số 29
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-06-16 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phát triển tính năng và sửa lỗi (Mã yêu cầu 29) |
+| Phân việc liên quan | Fullstack |
+| Mức độ sử dụng | Hỗ trợ sinh code / sửa lỗi |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Nếu INACTIVE: Backend chủ động set videoUrl = null, theoryContent = null, exercises = empty trước khi gửi xuống Frontend. Đồng thời trả kèm cờ status="INACTIVE". (Đảm bảo tuyệt đối nội dung không bị rò rỉ qua Network/API). cái này là sao tôi không hiểu vì sao set = null có ảnh hưởng đến database không
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Trong quá trình phát triển tính năng hoặc kiểm thử, xuất hiện các lỗi ngoài ý muốn hoặc cần bổ sung các luồng logic phức tạp, cần nhờ AI phân tích và xử lý.
+
+#### 5.3. Kết quả AI trả về
+
+AI tự động đề xuất plan, đọc code, thay thế nội dung và tạo commit log.
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Chấp nhận giải pháp và code AI cung cấp.
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Chỉ cấp quyền cho AI ghi đè file, sau đó chạy thử nghiệm.
+
+#### 5.6. Đánh giá chất lượng prompt
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| File liên quan | Source Code |
+| Kết quả chạy/test | Đã giải quyết được bài toán |
+| Ghi chú khác | N/A |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Prompt càng chi tiết, kết quả của AI xử lý càng ít lỗi vặt.
+```
 
 ## 6. Prompt quan trọng nhất
 
