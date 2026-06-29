@@ -2,18 +2,18 @@
 
 ## 1. Thông tin chung
 
-| Thông tin | Nội dung |
-|---|---|
-| Môn học | Software Development Project |
-| Mã môn học | SWP391 |
-| Lớp | SE20A11 |
-| Học kỳ | SUMMER 2026 |
+| Thông tin | Nội dung                                                       |
+|---|----------------------------------------------------------------|
+| Môn học | Software Development Project                                   |
+| Mã môn học | SWP391                                                         |
+| Lớp | SE20A11                                                        |
+| Học kỳ | SUMMER 2026                                                    |
 | Tên bài tập / Project | Integrated Coding Education & Competitive Programming Platform |
-| Tên sinh viên / Nhóm | Nguyễn Văn Quang - Group 2 |
-| MSSV / Danh sách MSSV | DE190094 |
-| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
-| Ngày bắt đầu | 2026-05-11 |
-| Ngày hoàn thành | 2026-06-14 |
+| Tên sinh viên / Nhóm | Nguyễn Văn Quang - Group 2                                     |
+| MSSV / Danh sách MSSV | DE190094                                                       |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang                                            |
+| Ngày bắt đầu | 2026-05-11                                                     |
+| Ngày hoàn thành | 2026-06-29                                                     |
 
 ## 2. Công cụ AI đã sử dụng
 
@@ -1618,6 +1618,1226 @@ Giảm tải hoàn toàn cho Database đối với dữ liệu cũ.
 
 ---
 
+### Lần sử dụng AI số 31
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 14/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Custom Annotation Validate |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Trong Spring Boot, làm sao để tạo một custom annotation @ValidPassword kiểm tra mật khẩu phải có chữ hoa, chữ thường và ký tự đặc biệt?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp mã nguồn class annotation @interface ValidPassword và class PasswordConstraintValidator implements ConstraintValidator.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Áp dụng vào trường password của RegisterRequestDTO.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Chỉnh sửa lại regex để cho phép thêm các ký tự đặc biệt theo yêu cầu dự án.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/validator/ValidPassword.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 32
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 14/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Upload file lên Cloudinary |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Viết cho tôi một service trong Spring Boot sử dụng SDK Cloudinary để upload file MultipartFile và trả về URL ảnh.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Hướng dẫn add dependency cloudinary-http44 và cung cấp code CloudinaryService với phương thức upload(MultipartFile).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Tích hợp vào module quản lý ảnh đại diện và video khoá học.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Thêm logic kiểm tra định dạng và dung lượng file trước khi đẩy lên Cloud.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/service/CloudinaryService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 33
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 15/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Cấu hình CORS Spring Security |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi debug |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tôi bị lỗi CORS preflight request bị block 401 Unauthorized dù đã thêm @CrossOrigin trên Controller. Spring Security 6 config như thế nào để fix?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Giải thích do Spring Security chặn OPTIONS request. Gợi ý cấu hình CorsConfigurationSource trong SecurityFilterChain.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Cập nhật lại SecurityConfig.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Chỉ mở CORS cho port 5173 của frontend thay vì mở "*".
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/config/SecurityConfig.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 34
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 16/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Request Logging Filter |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ ý tưởng |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Cách tốt nhất để log toàn bộ HTTP Request (Method, URI, thời gian xử lý) trong Spring Boot là dùng Interceptor hay Filter?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+So sánh Interceptor và Filter. Đề xuất dùng OncePerRequestFilter vì nó đảm bảo chạy một lần và nằm ngoài DispatcherServlet.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Tạo LoggingFilter để ghi log thời gian xử lý API.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Lược bỏ log với các request lấy tài nguyên tĩnh (static resources).
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/filter/LoggingFilter.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 35
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 17/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | React Router Private Route |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Sinh chính nội dung |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tôi sử dụng React Router v6, làm sao để tạo một PrivateRoute chỉ cho phép Instructor truy cập vào trang Dashboard?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp code component <PrivateRoute> sử dụng <Navigate> và Outlet để bọc các route yêu cầu xác thực và phân quyền.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Áp dụng cho các routes của Instructor và Admin.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Kết hợp lấy user context từ Redux store để check role thay vì localStorage.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/routes/PrivateRoute.jsx |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 36
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 18/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Cấu hình Swagger OpenAPI 3 |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Dự án dùng Spring Boot 3, tôi muốn tích hợp Swagger để test API. Cấu hình springdoc-openapi-starter-webmvc-ui như thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Hướng dẫn thêm thư viện, cấu hình application.yml và cách thêm JWT Auth button trên UI Swagger.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Tạo class OpenApiConfig định nghĩa cấu hình JWT scheme.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Viết thêm các annotation @Operation cho từng endpoint cho rõ ràng.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/config/OpenApiConfig.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 37
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 19/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Gửi Notification qua WebSocket |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi giải thích |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Cơ chế hoạt động của WebSocket với STOMP trong Spring Boot như thế nào? Làm sao đẩy thông báo khi khoá học được duyệt?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Giải thích MessageBrokerRegistry, @EnableWebSocketMessageBroker và cách dùng SimpMessagingTemplate để convertAndSendToUser.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Thiết lập WebSocketConfig và thêm logic gửi noti vào Admin service.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Xử lý thêm bảo mật cho WebSocket endpoint (bắt buộc truyền token khi connect STOMP).
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/config/WebSocketConfig.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 38
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 20/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Tối ưu Context API React |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỏi tối ưu |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Khi state trong Context thay đổi, toàn bộ component con bị re-render. Cách khắc phục?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Khuyên tách Context ra làm 2: StateContext và DispatchContext, và kết hợp useMemo, React.memo.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Refactor lại file AuthContext.jsx.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Sử dụng thêm useCallback cho các hàm dispatch dữ liệu.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/context/AuthContext.jsx |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 39
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 21/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Spring Data JPA Pagination |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ ý tưởng |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Viết API lấy danh sách khoá học, hỗ trợ phân trang (Pageable) và sort theo giá hoặc ngày tạo. Truyền parameter từ Controller sao cho chuẩn?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Gợi ý truyền Pageable parameter mặc định qua @PageableDefault và dùng Page<Course> trong Repository.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Áp dụng vào CourseController.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Viết một Custom DTO để wrap lại kết quả Page tránh lộ các cấu trúc thừa của Spring (trả về totalElements, totalPages).
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/controller/CourseController.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 40
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 22/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Dockerize Spring Boot App |
+| Phần việc liên quan | DevOps |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Viết file Dockerfile để build và run ứng dụng Spring Boot sử dụng multi-stage build (dùng Maven để build, JRE để chạy).
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp Dockerfile chia thành 2 stage: `FROM maven` để mvn clean package, `FROM eclipse-temurin` để java -jar.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Đặt Dockerfile vào gốc thư mục backend và build test.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Điều chỉnh lại version JDK 17 cho phù hợp với dự án.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | backend/Dockerfile |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 41
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 23/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Cấu hình CI/CD GitHub Actions |
+| Phần việc liên quan | DevOps |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tạo một workflow GitHub Actions tự động chạy mvn test mỗi khi có pull request vào nhánh main.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp file YAML cấu hình actions/checkout, setup-java, và chạy mvn test.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Đưa file vào thư mục .github/workflows/.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Thêm bước cache maven dependencies để tăng tốc quá trình build.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | .github/workflows/ci.yml |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 42
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 24/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | React Query Caching |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỏi giải thích |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tại sao React Query lại tự động gọi lại API khi tôi chuyển tab quay lại? Làm sao cấu hình staleTime hợp lý?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Giải thích cơ chế refetchOnWindowFocus và staleTime. Khuyên cấu hình staleTime tuỳ độ động của dữ liệu.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Config QueryClient provider.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Set staleTime mặc định là 5 phút cho toàn cục, tắt refetchOnWindowFocus.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/App.jsx |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 43
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 25/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | MapStruct Mapping Lồng Nhau |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi debug |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Entity Course có List<Section>, Section có List<Lesson>. Dùng MapStruct thế nào để map Course sang CourseDetailDTO chứa đầy đủ các list này?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Hướng dẫn cấu hình @Mapper(uses = {SectionMapper.class}) để MapStruct tự động delegate việc map mảng con.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Sửa lại CourseMapper.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Xử lý thêm field mapping thủ công bằng @Mapping cho các trường tên khác nhau.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/mapper/CourseMapper.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 44
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 26/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Axios Interceptor JWT Expired |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Sinh chính nội dung |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Viết Axios Interceptor ở Frontend để bắt lỗi 401 Unauthorized do token hết hạn, tự động gọi API refresh token và retry request cũ.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp code axios.interceptors.response.use với logic hàng đợi (queue) để chứa các request bị fail trong lúc đang refresh.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Áp dụng vào utils/axiosConfig.js.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Thêm logic tự động xoá token và redirect về /login nếu refresh token cũng hết hạn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/utils/axiosConfig.js |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 45
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 27/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Export Excel với Apache POI |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao dùng Apache POI tạo một file Excel báo cáo doanh thu có header in đậm, sau đó trả trực tiếp file qua response thay vì lưu xuống đĩa?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp mã tạo XSSFWorkbook, định dạng CellStyle, và ghi ra ServletOutputStream (set header Content-Disposition).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Tích hợp vào FinanceController.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Thêm logic tự động điều chỉnh độ rộng các cột cho đẹp.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/controller/FinanceController.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 46
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 28/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Integration Test bằng Testcontainers |
+| Phần việc liên quan | Testing |
+| Mức độ sử dụng | Hỏi ý tưởng |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Muốn viết Integration Test cho Repository có tương tác Database thật thay vì H2 (do dùng function MySQL riêng). Testcontainers tích hợp thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Gợi ý cấu hình @Testcontainers, @Container MySQLContainer, @DynamicPropertySource để override database url lúc chạy test.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Áp dụng vào thư mục test.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Cấu hình sử dụng image mysql:8.0.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/test/java/com/app/repository/CourseRepositoryTest.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 47
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 28/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Redis Pub/Sub |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi giải thích |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Nếu hệ thống scale ra 2 server backend, WebSocket message chỉ gửi được cho user kết nối vào đúng server đó. Dùng Redis pub/sub để giải quyết sao?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Giải thích kiến trúc phân tán WebSocket. Khi có thông báo, Backend A push vào Redis, cả Backend A và B nhận event rồi mới đẩy qua WebSocket.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Thiết lập RedisMessageListenerContainer.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Chưa thực sự triển khai do server đang test là single node, nhưng cấu trúc đã sẵn sàng.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/config/RedisPubSubConfig.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 48
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 29/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Thiết kế Dashboard TailwindCSS |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Cho tôi layout Dashboard chia làm các thẻ (Card) hiển thị thông số: Tổng khoá học, Số học viên, Doanh thu. Bố cục dạng grid 3 cột, màu chủ đạo slate-800.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Sinh mã HTML Tailwind với các component Grid, flexbox và icon.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Sử dụng cho Instructor Dashboard.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Thay đổi màu sắc các con số bằng màu green-500 và red-500 tùy tình trạng tăng giảm.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/pages/instructor/Dashboard.jsx |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 49
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 29/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Native Query Thống Kê |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi tối ưu |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Viết một Native Query trong JPA gom nhóm (GROUP BY) số tiền thanh toán theo từng tháng của một Instructor, trả về danh sách DTO.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp câu query SQL dùng hàm MONTH(created_at), SUM(amount) và annotation @Query(nativeQuery = true).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Thêm vào PaymentRepository.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Dùng interface projection thay cho class DTO để Spring Data tự map kết quả.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/repository/PaymentRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Nâng cao hiểu biết về công nghệ tương ứng.
+```
+
+---
+
+### Lần sử dụng AI số 50
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 29/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Phân tích logic ngầm Instructor |
+| Phần việc liên quan | Requirement / Backend |
+| Mức độ sử dụng | Hỗ trợ ý tưởng |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Đọc toàn bộ dự án, với screen flow của instructor như thế này thì phần Non-UI Functional Requirements của Instructor module cần code những logic ngầm gì? Ví dụ Delete Account là chuyển trạng thái sang soft delete.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+AI phân tích và đề xuất: Soft Delete, Quản lý trạng thái Course (Draft/Publish), Logic Dashboard, Đổi mật khẩu.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+
+```text
+Áp dụng thiết kế Soft Delete bằng `isDeleted`, `deletedAt` cho Instructor và Course.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+
+```text
+Tự triển khai logic trong Spring Boot bằng Annotation `@SQLDelete` và `@Where` của Hibernate để tự động ẩn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/entity/Instructor.java |
+| Screenshot |  |
+| Kết quả chạy/test | Đã kiểm tra thành công |
+| Link video demo |  |
+| Ghi chú khác |  |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+Sinh viên/nhóm học được gì sau lần sử dụng AI này?
+
+```text
+Tránh bỏ sót nghiệp vụ, ứng dụng được các tính năng mạnh mẽ của Hibernate.
+```
+
+---
+
 ## 5. Bảng tổng hợp mức độ sử dụng AI
 
 Hoàn thành.
@@ -1629,5 +2849,5 @@ Nguyễn Văn Quang tự thực hiện toàn bộ chức năng với sự hỗ t
 ## 10. Cam kết học thuật
 
 | Đại diện sinh viên | Ngày xác nhận |
-|---|---|
-| Nguyễn Văn Quang | 14/06/2026 |
+|---|---------------|
+| Nguyễn Văn Quang | 29/06/2026    |

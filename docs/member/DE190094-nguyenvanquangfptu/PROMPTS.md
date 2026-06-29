@@ -2,10 +2,10 @@
 
 ## 1. Thông tin chung
 
-| Thông tin | Nội dung |
-|---|---|
+| Thông tin | Nội dung   |
+|---|------------|
 | Ngày bắt đầu | 2026-05-11 |
-| Ngày hoàn thành | 2026-06-14 |
+| Ngày hoàn thành | 2026-06-29 |
 
 ---
 
@@ -43,6 +43,27 @@
 | 28 | 07/06/2026 | Gemini | Query đếm số lượng theo nhóm | Trên màn hình Admin Dashboard, tôi muốn ... | Đề xuất viết hàm JPA Query: `SELECT new ... | Có | 9b0c1d2 |
 | 29 | 08/06/2026 | Antigravity | Tối ưu hiệu năng Query Tài chính | Chức năng Admin Financial Statistics tro... | Hướng dẫn viết query SQL SUM có điều kiệ... | Có | 3f4e5d6 |
 | 30 | 09/06/2026 | ChatGPT | Sử dụng Spring Cache | Sau khi tối ưu SQL Tài chính, tôi nhận t... | Giải thích cách dùng @EnableCaching ở lớ... | Có | 7a8b9c0 |
+
+| 31 | 14/06/2026 | Antigravity | Custom Annotation Validate | Trong Spring Boot, làm sao để tạo một custom annot... | Cung cấp mã nguồn class annotation @interface Vali... | Có | `src/main/java/com/app/validator/ValidPassword.java` |
+| 32 | 14/06/2026 | Antigravity | Upload file lên Cloudinary | Viết cho tôi một service trong Spring Boot sử dụng... | Hướng dẫn add dependency cloudinary-http44 và cung... | Có | `src/main/java/com/app/service/CloudinaryService.java` |
+| 33 | 15/06/2026 | Antigravity | Cấu hình CORS Spring Security | Tôi bị lỗi CORS preflight request bị block 401 Una... | Giải thích do Spring Security chặn OPTIONS request... | Có | `src/main/java/com/app/config/SecurityConfig.java` |
+| 34 | 16/06/2026 | Antigravity | Request Logging Filter | Cách tốt nhất để log toàn bộ HTTP Request (Method,... | So sánh Interceptor và Filter. Đề xuất dùng OncePe... | Có | `src/main/java/com/app/filter/LoggingFilter.java` |
+| 35 | 17/06/2026 | Antigravity | React Router Private Route | Tôi sử dụng React Router v6, làm sao để tạo một Pr... | Cung cấp code component <PrivateRoute> sử dụng <Na... | Có | `src/routes/PrivateRoute.jsx` |
+| 36 | 18/06/2026 | Antigravity | Cấu hình Swagger OpenAPI 3 | Dự án dùng Spring Boot 3, tôi muốn tích hợp Swagge... | Hướng dẫn thêm thư viện, cấu hình application.yml ... | Có | `src/main/java/com/app/config/OpenApiConfig.java` |
+| 37 | 19/06/2026 | Antigravity | Gửi Notification qua WebSocket | Cơ chế hoạt động của WebSocket với STOMP trong Spr... | Giải thích MessageBrokerRegistry, @EnableWebSocket... | Có | `src/main/java/com/app/config/WebSocketConfig.java` |
+| 38 | 20/06/2026 | Antigravity | Tối ưu Context API React | Khi state trong Context thay đổi, toàn bộ componen... | Khuyên tách Context ra làm 2: StateContext và Disp... | Có | `src/context/AuthContext.jsx` |
+| 39 | 21/06/2026 | Antigravity | Spring Data JPA Pagination | Viết API lấy danh sách khoá học, hỗ trợ phân trang... | Gợi ý truyền Pageable parameter mặc định qua @Page... | Có | `src/main/java/com/app/controller/CourseController.java` |
+| 40 | 22/06/2026 | Antigravity | Dockerize Spring Boot App | Viết file Dockerfile để build và run ứng dụng Spri... | Cung cấp Dockerfile chia thành 2 stage: `FROM mave... | Có | `backend/Dockerfile` |
+| 41 | 23/06/2026 | Antigravity | Cấu hình CI/CD GitHub Actions | Tạo một workflow GitHub Actions tự động chạy mvn t... | Cung cấp file YAML cấu hình actions/checkout, setu... | Có | `.github/workflows/ci.yml` |
+| 42 | 24/06/2026 | Antigravity | React Query Caching | Tại sao React Query lại tự động gọi lại API khi tô... | Giải thích cơ chế refetchOnWindowFocus và staleTim... | Có | `src/App.jsx` |
+| 43 | 25/06/2026 | Antigravity | MapStruct Mapping Lồng Nhau | Entity Course có List<Section>, Section có List<Le... | Hướng dẫn cấu hình @Mapper(uses = {SectionMapper.c... | Có | `src/main/java/com/app/mapper/CourseMapper.java` |
+| 44 | 26/06/2026 | Antigravity | Axios Interceptor JWT Expired | Viết Axios Interceptor ở Frontend để bắt lỗi 401 U... | Cung cấp code axios.interceptors.response.use với ... | Có | `src/utils/axiosConfig.js` |
+| 45 | 27/06/2026 | Antigravity | Export Excel với Apache POI | Làm sao dùng Apache POI tạo một file Excel báo cáo... | Cung cấp mã tạo XSSFWorkbook, định dạng CellStyle,... | Có | `src/main/java/com/app/controller/FinanceController.java` |
+| 46 | 28/06/2026 | Antigravity | Integration Test bằng Testcontainers | Muốn viết Integration Test cho Repository có tương... | Gợi ý cấu hình @Testcontainers, @Container MySQLCo... | Có | `src/test/java/com/app/repository/CourseRepositoryTest.java` |
+| 47 | 28/06/2026 | Antigravity | Redis Pub/Sub | Nếu hệ thống scale ra 2 server backend, WebSocket ... | Giải thích kiến trúc phân tán WebSocket. Khi có th... | Có | `src/main/java/com/app/config/RedisPubSubConfig.java` |
+| 48 | 29/06/2026 | Antigravity | Thiết kế Dashboard TailwindCSS | Cho tôi layout Dashboard chia làm các thẻ (Card) h... | Sinh mã HTML Tailwind với các component Grid, flex... | Có | `src/pages/instructor/Dashboard.jsx` |
+| 49 | 29/06/2026 | Antigravity | Native Query Thống Kê | Viết một Native Query trong JPA gom nhóm (GROUP BY... | Cung cấp câu query SQL dùng hàm MONTH(created_at),... | Có | `src/main/java/com/app/repository/PaymentRepository.java` |
+| 50 | 29/06/2026 | Antigravity | Phân tích logic ngầm Instructor | Đọc toàn bộ dự án, với screen flow của instructor ... | AI phân tích và đề xuất: Soft Delete, Quản lý trạn... | Có | `src/main/java/com/app/entity/Instructor.java` |
 
 ---
 
@@ -1816,8 +1837,1608 @@ Cấu hình TTL (Time to Live) cho cache nếu sử dụng nâng cao qua RedisCa
 Giảm tải hoàn toàn cho Database đối với dữ liệu cũ.
 ```
 
+### Prompt số 31
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 14/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Custom Annotation Validate |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Trong Spring Boot, làm sao để tạo một custom annotation @ValidPassword kiểm tra mật khẩu phải có chữ hoa, chữ thường và ký tự đặc biệt?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề custom annotation validate.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp mã nguồn class annotation @interface ValidPassword và class PasswordConstraintValidator implements ConstraintValidator.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Áp dụng vào trường password của RegisterRequestDTO.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Chỉnh sửa lại regex để cho phép thêm các ký tự đặc biệt theo yêu cầu dự án.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/validator/ValidPassword.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 32
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 14/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Upload file lên Cloudinary |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Viết cho tôi một service trong Spring Boot sử dụng SDK Cloudinary để upload file MultipartFile và trả về URL ảnh.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề upload file lên cloudinary.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Hướng dẫn add dependency cloudinary-http44 và cung cấp code CloudinaryService với phương thức upload(MultipartFile).
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Tích hợp vào module quản lý ảnh đại diện và video khoá học.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Thêm logic kiểm tra định dạng và dung lượng file trước khi đẩy lên Cloud.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/service/CloudinaryService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 33
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 15/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Cấu hình CORS Spring Security |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi debug |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tôi bị lỗi CORS preflight request bị block 401 Unauthorized dù đã thêm @CrossOrigin trên Controller. Spring Security 6 config như thế nào để fix?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề cấu hình cors spring security.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Giải thích do Spring Security chặn OPTIONS request. Gợi ý cấu hình CorsConfigurationSource trong SecurityFilterChain.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Cập nhật lại SecurityConfig.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Chỉ mở CORS cho port 5173 của frontend thay vì mở "*".
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/config/SecurityConfig.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 34
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 16/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Request Logging Filter |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ ý tưởng |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Cách tốt nhất để log toàn bộ HTTP Request (Method, URI, thời gian xử lý) trong Spring Boot là dùng Interceptor hay Filter?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề request logging filter.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+So sánh Interceptor và Filter. Đề xuất dùng OncePerRequestFilter vì nó đảm bảo chạy một lần và nằm ngoài DispatcherServlet.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Tạo LoggingFilter để ghi log thời gian xử lý API.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Lược bỏ log với các request lấy tài nguyên tĩnh (static resources).
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/filter/LoggingFilter.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 35
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 17/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | React Router Private Route |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Sinh chính nội dung |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tôi sử dụng React Router v6, làm sao để tạo một PrivateRoute chỉ cho phép Instructor truy cập vào trang Dashboard?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề react router private route.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp code component <PrivateRoute> sử dụng <Navigate> và Outlet để bọc các route yêu cầu xác thực và phân quyền.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Áp dụng cho các routes của Instructor và Admin.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Kết hợp lấy user context từ Redux store để check role thay vì localStorage.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/routes/PrivateRoute.jsx |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 36
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 18/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Cấu hình Swagger OpenAPI 3 |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Dự án dùng Spring Boot 3, tôi muốn tích hợp Swagger để test API. Cấu hình springdoc-openapi-starter-webmvc-ui như thế nào?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề cấu hình swagger openapi 3.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Hướng dẫn thêm thư viện, cấu hình application.yml và cách thêm JWT Auth button trên UI Swagger.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Tạo class OpenApiConfig định nghĩa cấu hình JWT scheme.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Viết thêm các annotation @Operation cho từng endpoint cho rõ ràng.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/config/OpenApiConfig.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 37
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 19/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Gửi Notification qua WebSocket |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi giải thích |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Cơ chế hoạt động của WebSocket với STOMP trong Spring Boot như thế nào? Làm sao đẩy thông báo khi khoá học được duyệt?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề gửi notification qua websocket.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Giải thích MessageBrokerRegistry, @EnableWebSocketMessageBroker và cách dùng SimpMessagingTemplate để convertAndSendToUser.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Thiết lập WebSocketConfig và thêm logic gửi noti vào Admin service.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Xử lý thêm bảo mật cho WebSocket endpoint (bắt buộc truyền token khi connect STOMP).
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/config/WebSocketConfig.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 38
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 20/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Tối ưu Context API React |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỏi tối ưu |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Khi state trong Context thay đổi, toàn bộ component con bị re-render. Cách khắc phục?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề tối ưu context api react.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Khuyên tách Context ra làm 2: StateContext và DispatchContext, và kết hợp useMemo, React.memo.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Refactor lại file AuthContext.jsx.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Sử dụng thêm useCallback cho các hàm dispatch dữ liệu.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/context/AuthContext.jsx |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 39
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 21/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Spring Data JPA Pagination |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ ý tưởng |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Viết API lấy danh sách khoá học, hỗ trợ phân trang (Pageable) và sort theo giá hoặc ngày tạo. Truyền parameter từ Controller sao cho chuẩn?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề spring data jpa pagination.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Gợi ý truyền Pageable parameter mặc định qua @PageableDefault và dùng Page<Course> trong Repository.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Áp dụng vào CourseController.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Viết một Custom DTO để wrap lại kết quả Page tránh lộ các cấu trúc thừa của Spring (trả về totalElements, totalPages).
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/controller/CourseController.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 40
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 22/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Dockerize Spring Boot App |
+| Phần việc liên quan | DevOps |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Viết file Dockerfile để build và run ứng dụng Spring Boot sử dụng multi-stage build (dùng Maven để build, JRE để chạy).
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề dockerize spring boot app.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp Dockerfile chia thành 2 stage: `FROM maven` để mvn clean package, `FROM eclipse-temurin` để java -jar.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Đặt Dockerfile vào gốc thư mục backend và build test.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Điều chỉnh lại version JDK 17 cho phù hợp với dự án.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | backend/Dockerfile |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 41
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 23/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Cấu hình CI/CD GitHub Actions |
+| Phần việc liên quan | DevOps |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tạo một workflow GitHub Actions tự động chạy mvn test mỗi khi có pull request vào nhánh main.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề cấu hình ci/cd github actions.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp file YAML cấu hình actions/checkout, setup-java, và chạy mvn test.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Đưa file vào thư mục .github/workflows/.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Thêm bước cache maven dependencies để tăng tốc quá trình build.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | .github/workflows/ci.yml |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 42
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 24/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | React Query Caching |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỏi giải thích |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tại sao React Query lại tự động gọi lại API khi tôi chuyển tab quay lại? Làm sao cấu hình staleTime hợp lý?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề react query caching.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Giải thích cơ chế refetchOnWindowFocus và staleTime. Khuyên cấu hình staleTime tuỳ độ động của dữ liệu.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Config QueryClient provider.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Set staleTime mặc định là 5 phút cho toàn cục, tắt refetchOnWindowFocus.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/App.jsx |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 43
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 25/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | MapStruct Mapping Lồng Nhau |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi debug |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Entity Course có List<Section>, Section có List<Lesson>. Dùng MapStruct thế nào để map Course sang CourseDetailDTO chứa đầy đủ các list này?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề mapstruct mapping lồng nhau.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Hướng dẫn cấu hình @Mapper(uses = {SectionMapper.class}) để MapStruct tự động delegate việc map mảng con.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Sửa lại CourseMapper.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Xử lý thêm field mapping thủ công bằng @Mapping cho các trường tên khác nhau.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/mapper/CourseMapper.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 44
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 26/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Axios Interceptor JWT Expired |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Sinh chính nội dung |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Viết Axios Interceptor ở Frontend để bắt lỗi 401 Unauthorized do token hết hạn, tự động gọi API refresh token và retry request cũ.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề axios interceptor jwt expired.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp code axios.interceptors.response.use với logic hàng đợi (queue) để chứa các request bị fail trong lúc đang refresh.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Áp dụng vào utils/axiosConfig.js.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Thêm logic tự động xoá token và redirect về /login nếu refresh token cũng hết hạn.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/utils/axiosConfig.js |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 45
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 27/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Export Excel với Apache POI |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỗ trợ một phần |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Làm sao dùng Apache POI tạo một file Excel báo cáo doanh thu có header in đậm, sau đó trả trực tiếp file qua response thay vì lưu xuống đĩa?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề export excel với apache poi.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp mã tạo XSSFWorkbook, định dạng CellStyle, và ghi ra ServletOutputStream (set header Content-Disposition).
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Tích hợp vào FinanceController.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Thêm logic tự động điều chỉnh độ rộng các cột cho đẹp.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/controller/FinanceController.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 46
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 28/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Integration Test bằng Testcontainers |
+| Phần việc liên quan | Testing |
+| Mức độ sử dụng | Hỏi ý tưởng |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Muốn viết Integration Test cho Repository có tương tác Database thật thay vì H2 (do dùng function MySQL riêng). Testcontainers tích hợp thế nào?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề integration test bằng testcontainers.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Gợi ý cấu hình @Testcontainers, @Container MySQLContainer, @DynamicPropertySource để override database url lúc chạy test.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Áp dụng vào thư mục test.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Cấu hình sử dụng image mysql:8.0.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/test/java/com/app/repository/CourseRepositoryTest.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 47
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 28/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Redis Pub/Sub |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi giải thích |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Nếu hệ thống scale ra 2 server backend, WebSocket message chỉ gửi được cho user kết nối vào đúng server đó. Dùng Redis pub/sub để giải quyết sao?
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề redis pub/sub.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Giải thích kiến trúc phân tán WebSocket. Khi có thông báo, Backend A push vào Redis, cả Backend A và B nhận event rồi mới đẩy qua WebSocket.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Thiết lập RedisMessageListenerContainer.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Chưa thực sự triển khai do server đang test là single node, nhưng cấu trúc đã sẵn sàng.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/config/RedisPubSubConfig.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 48
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 29/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Thiết kế Dashboard TailwindCSS |
+| Phần việc liên quan | Frontend |
+| Mức độ sử dụng | Hỗ trợ nhiều |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Cho tôi layout Dashboard chia làm các thẻ (Card) hiển thị thông số: Tổng khoá học, Số học viên, Doanh thu. Bố cục dạng grid 3 cột, màu chủ đạo slate-800.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề thiết kế dashboard tailwindcss.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Sinh mã HTML Tailwind với các component Grid, flexbox và icon.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Sử dụng cho Instructor Dashboard.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Thay đổi màu sắc các con số bằng màu green-500 và red-500 tùy tình trạng tăng giảm.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/pages/instructor/Dashboard.jsx |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 49
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 29/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Native Query Thống Kê |
+| Phần việc liên quan | Backend |
+| Mức độ sử dụng | Hỏi tối ưu |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Viết một Native Query trong JPA gom nhóm (GROUP BY) số tiền thanh toán theo từng tháng của một Instructor, trả về danh sách DTO.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Gặp khó khăn kỹ thuật trong lúc phát triển, cần AI hỗ trợ xử lý vấn đề native query thống kê.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+Cung cấp câu query SQL dùng hàm MONTH(created_at), SUM(amount) và annotation @Query(nativeQuery = true).
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Thêm vào PaymentRepository.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Dùng interface projection thay cho class DTO để Spring Data tự map kết quả.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/repository/PaymentRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
+### Prompt số 50
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 29/06/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích | Phân tích logic ngầm Instructor |
+| Phần việc liên quan | Requirement / Backend |
+| Mức độ sử dụng | Hỗ trợ ý tưởng |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Đọc toàn bộ dự án, với screen flow của instructor như thế này thì phần Non-UI Functional Requirements của Instructor module cần code những logic ngầm gì? Ví dụ Delete Account là chuyển trạng thái sang soft delete.
+```
+
+#### 5.2. Bối cảnh khi viết prompt
+
+Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
+
+```text
+Rà soát logic ngầm từ file screen flow để không thiếu sót.
+```
+
+#### 5.3. Kết quả AI trả về
+
+Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+
+```text
+AI phân tích và đề xuất: Soft Delete, Quản lý trạng thái Course (Draft/Publish), Logic Dashboard, Đổi mật khẩu.
+```
+
+#### 5.4. Kết quả đã áp dụng vào bài
+
+Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+
+```text
+Áp dụng thiết kế Soft Delete bằng `isDeleted`, `deletedAt` cho Instructor và Course.
+```
+
+#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+
+Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
+
+```text
+Tự triển khai logic trong Spring Boot bằng Annotation `@SQLDelete` và `@Where` của Hibernate để tự động ẩn.
+```
+
+#### 5.6. Đánh giá chất lượng prompt
+
+Đánh dấu các nhận xét phù hợp.
+
+- [x] Prompt rõ ràng
+- [x] Prompt có đủ bối cảnh
+- [ ] Prompt còn thiếu thông tin
+- [x] Prompt tạo ra kết quả tốt
+- [ ] Prompt tạo ra kết quả chưa phù hợp
+- [ ] Cần hỏi lại AI nhiều lần
+- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
+- [ ] Kết quả AI có lỗi hoặc chưa chính xác
+
+#### 5.7. Minh chứng liên quan
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | src/main/java/com/app/entity/Instructor.java |
+| Screenshot |  |
+| Kết quả chạy/test | Thành công |
+| Link tài liệu/báo cáo |  |
+| Ghi chú khác |  |
+
+#### 5.8. Ghi chú thêm
+
+```text
+Không có.
+```
+
+---
+
 ---
 
 ## 11. Cam kết sử dụng prompt minh bạch
 
-| Nguyễn Văn Quang | 14/06/2026 |
+| Nguyễn Văn Quang | 29/06/2026 |
