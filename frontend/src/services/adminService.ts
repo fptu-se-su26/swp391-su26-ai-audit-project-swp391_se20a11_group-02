@@ -256,6 +256,7 @@ export interface AdminProblem {
   solutions?: string;
   totalSubmissions: number;
   acceptedSubmissions: number;
+  isDeleted: boolean;
   tags?: string[];
   starterTemplates?: Record<string, string>;
 }

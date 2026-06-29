@@ -434,6 +434,10 @@ public class ProblemService {
     public AdminProblemResponse updateAdminProblem(Integer id, AdminProblemRequest request) {
         ProblemEntity problem = problemRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+                
+        if (!problem.getIsActive() && problem.getTotalTestcase() != null && problem.getTotalTestcase() > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
 
         problem.setTitle(request.getTitle());
         problem.setDescription(request.getDescription());
@@ -520,6 +524,10 @@ public class ProblemService {
         ProblemEntity problem = problemRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
+        if (!problem.getIsActive() && problem.getTotalTestcase() != null && problem.getTotalTestcase() > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
         try {
             problem.setProblemScope(ProblemScope.valueOf(scopeStr));
             problem.setUpdatedAt(Instant.now());
@@ -534,6 +542,14 @@ public class ProblemService {
     public AdminProblemResponse updateAdminProblemPublicStatus(Integer id, Boolean isPublic) {
         ProblemEntity problem = problemRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        if (!problem.getIsActive() && problem.getTotalTestcase() != null && problem.getTotalTestcase() > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        if (Boolean.TRUE.equals(isPublic) && (problem.getTotalTestcase() == null || problem.getTotalTestcase() == 0)) {
+            throw new AppException(ErrorCode.OJ_PROBLEM_MISSING_TESTCASE);
+        }
 
         problem.setIsPublic(isPublic);
         problem.setUpdatedAt(Instant.now());
@@ -561,6 +577,21 @@ public class ProblemService {
         ProblemEntity problem = problemRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
+        if (!problem.getIsActive() && problem.getTotalTestcase() != null && problem.getTotalTestcase() > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        // If the problem has submissions, perform a soft delete to preserve historical data
+        long submissionCount = problemSubmissionRepository.countByProblemId(id);
+        if (submissionCount > 0) {
+            problem.setIsPublic(false);
+            problem.setIsActive(false);
+            problem.setUpdatedAt(Instant.now());
+            problemRepository.save(problem);
+            return;
+        }
+
+        // Hard delete for problems with no submissions
         // Delete comments first due to lack of ON DELETE CASCADE
         problemCommentRepository.deleteByProblemId(problem.getId());
 
@@ -606,6 +637,7 @@ public class ProblemService {
                 .solutions(entity.getSolutions())
                 .totalSubmissions(entity.getTotalSubmission() != null ? entity.getTotalSubmission() : 0)
                 .acceptedSubmissions(entity.getTotalAccepted() != null ? entity.getTotalAccepted() : 0)
+                .isDeleted(!entity.getIsActive() && entity.getTotalTestcase() != null && entity.getTotalTestcase() > 0)
                 .tags(tags)
                 .starterTemplates(templates)
                 .build();
@@ -633,6 +665,10 @@ public class ProblemService {
     public List<AdminTestcaseResponse> saveProblemTestcases(Integer problemId, List<AdminTestcaseRequest> requests) {
         ProblemEntity problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
+
+        if (!problem.getIsActive() && problem.getTotalTestcase() != null && problem.getTotalTestcase() > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
 
         // Validate requests
         for (AdminTestcaseRequest req : requests) {
