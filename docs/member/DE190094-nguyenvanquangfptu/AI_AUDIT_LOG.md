@@ -13,7 +13,7 @@
 | MSSV / Danh sách MSSV | DE190094                                                       |
 | Giảng viên hướng dẫn | Lê Thiện Nhật Quang                                            |
 | Ngày bắt đầu | 2026-05-11                                                     |
-| Ngày hoàn thành | 2026-06-29                                                     |
+| Ngày hoàn thành | 2026-07-02                                                     |
 
 ## 2. Công cụ AI đã sử dụng
 
@@ -41,7 +41,11 @@
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Đóng vai là một Software Architect, tôi đang thực hiện dự án 'Integrated Coding Education & Competitive Programming Platform' cho môn học SWP391. Hệ thống có 3 tác nhân chính: Student, Instructor, Admin. Hãy hướng dẫn tôi cấu trúc chuẩn của một tài liệu SRS (Software Requirements Specification) theo chuẩn IEEE. Đồng thời, giải thích ngắn gọn lý thuyết biểu đồ Use Case trong UML và liệt kê danh sách các Use Case cốt lõi cần có cho từng tác nhân trong hệ thống này. Tôi cần một sườn tài liệu chi tiết để chia việc cho các thành viên trong nhóm.
+[Role] Đóng vai là một Software Architect, tôi đang thực hiện dự án 'Integrated Coding Education & Competitive Programming Platform' cho môn học SWP391
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Hệ thống có 3 tác nhân chính: Student, Instructor, Admin. Hãy hướng dẫn tôi cấu trúc chuẩn của một tài liệu SRS (Software Requirements Specification) theo chuẩn IEEE. Đồng thời, giải thích ngắn gọn lý thuyết biểu đồ Use Case trong UML và liệt kê danh sách các Use Case cốt lõi cần có cho từng tác nhân trong hệ thống này. Tôi cần một sườn tài liệu chi tiết để chia việc cho các thành viên trong nhóm.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -94,7 +98,11 @@ Rất hữu ích để bắt đầu dự án.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Dựa trên tài liệu SRS mà tôi đã có cho dự án thi đấu lập trình trực tuyến, tôi đang gặp khó khăn trong việc phân rã các Use Case của tác nhân 'Instructor'. Hiện tại Instructor có thể tạo khóa học, tạo bài tập (Problem), quản lý học sinh và xem thống kê. Làm sao để áp dụng các quan hệ <<include>> và <<extend>> một cách hợp lý cho Use Case 'Tạo bài tập' (Ví dụ: Thêm Testcase là bắt buộc hay tùy chọn)? Hãy vẽ mô tả bằng text cho biểu đồ Use Case này.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Dựa trên tài liệu SRS mà tôi đã có cho dự án thi đấu lập trình trực tuyến, tôi đang gặp khó khăn trong việc phân rã các Use Case của tác nhân 'Instructor'. Hiện tại Instructor có thể tạo khóa học, tạo bài tập (Problem), quản lý học sinh và xem thống kê. Làm sao để áp dụng các quan hệ <<include>> và <<extend>> một cách hợp lý cho Use Case 'Tạo bài tập' (Ví dụ: Thêm Testcase là bắt buộc hay tùy chọn)? Hãy vẽ mô tả bằng text cho biểu đồ Use Case này.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -147,7 +155,11 @@ Làm rõ được nghiệp vụ tạo Problem.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi đang tiến hành thiết kế cơ sở dữ liệu quan hệ (ERD) bằng MySQL cho website thi đấu lập trình. Các thực thể cốt lõi bao gồm: Users (học sinh, giảng viên), Problems (bài tập thuật toán), Submissions (lịch sử nộp bài), Contests (kỳ thi). Hãy thiết kế giúp tôi các bảng này, đảm bảo tuân thủ chuẩn hóa 3NF. Đặc biệt chú ý đến cách lưu trữ Testcases (một bài tập có nhiều testcase) và cách thiết lập khóa ngoại để không bị mồ côi dữ liệu khi xóa bài tập.
+[Role] Hãy đóng vai là một Database Architect dày dặn kinh nghiệm.
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Hãy thiết kế một lược đồ cơ sở dữ liệu (ERD) dạng text cho các tính năng cốt lõi này. Phân tích các mối quan hệ (1-n, n-n) giữa các thực thể chính.
+[Format] Trình bày cấu trúc các bảng dưới dạng Markdown Table bao gồm: Tên cột, Kiểu dữ liệu (chuẩn SQL), Khóa chính/Khóa ngoại, và Ghi chú.
+[Constraints] Giữ thiết kế ở mức độ cơ bản phù hợp với một đồ án môn học đại học, tối đa 8-10 bảng. Đặt tên bảng và cột theo chuẩn rút gọn còn khoảng 44 lần sử dụng AI thôi
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -200,7 +212,11 @@ Giảm thời gian nghĩ cấu trúc bảng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Dự án của tôi dự kiến sẽ cần lưu trữ hàng triệu bản ghi submission code từ sinh viên. Giữa MySQL và PostgreSQL, hệ quản trị cơ sở dữ liệu nào phù hợp hơn cho dự án Spring Boot này? Hãy so sánh chi tiết về hiệu năng đọc/ghi, khả năng hỗ trợ kiểu dữ liệu JSON (để lưu metadata kết quả chấm bài), và sự tương thích với Hibernate. Đưa ra lời khuyên cuối cùng cho một dự án đồ án đại học.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Dự án của tôi dự kiến sẽ cần lưu trữ hàng triệu bản ghi submission code từ sinh viên. Giữa MySQL và PostgreSQL, hệ quản trị cơ sở dữ liệu nào phù hợp hơn cho dự án Spring Boot này? Hãy so sánh chi tiết về hiệu năng đọc/ghi, khả năng hỗ trợ kiểu dữ liệu JSON (để lưu metadata kết quả chấm bài), và sự tương thích với Hibernate. Đưa ra lời khuyên cuối cùng cho một dự án đồ án đại học.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -253,7 +269,11 @@ Củng cố quyết định kỹ thuật.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Trong hệ thống chấm bài tự động, khi một mã nguồn (Submission) được gửi sang Judge0 API, nó sẽ trải qua nhiều giai đoạn. Hãy gợi ý cho tôi một Enum Java chứa tất cả các trạng thái (Status) có thể xảy ra của một bài nộp. Bao gồm cả các trạng thái lỗi như lỗi biên dịch (Compilation Error), quá thời gian (Time Limit Exceeded), quá bộ nhớ (Memory Limit), và lỗi server nội bộ. Giải thích ngắn gọn ý nghĩa từng trạng thái.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Trong hệ thống chấm bài tự động, khi một mã nguồn (Submission) được gửi sang Judge0 API, nó sẽ trải qua nhiều giai đoạn. Hãy gợi ý cho tôi một Enum Java chứa tất cả các trạng thái (Status) có thể xảy ra của một bài nộp. Bao gồm cả các trạng thái lỗi như lỗi biên dịch (Compilation Error), quá thời gian (Time Limit Exceeded), quá bộ nhớ (Memory Limit), và lỗi server nội bộ. Giải thích ngắn gọn ý nghĩa từng trạng thái.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -306,7 +326,11 @@ Copilot gợi ý rất chuẩn xác.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi đang xây dựng module xác thực cho hệ thống bằng Java Spring Boot 3 và Spring Security 6. Tôi muốn sử dụng JWT (JSON Web Token) cho việc xác thực. Hãy cung cấp cho tôi một class SecurityFilterChain hoàn chỉnh. Yêu cầu: Cấu hình Stateless Session (không dùng Cookie/Session), mở khóa public cho các endpoint đăng nhập/đăng ký (/api/auth/**), và bắt buộc quyền ADMIN cho các endpoint (/api/admin/**). Đồng thời cấu hình luôn CORS cho phép frontend từ localhost:3000 truy cập.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Tôi đang xây dựng module xác thực cho hệ thống bằng Java Spring Boot 3 và Spring Security 6. Tôi muốn sử dụng JWT (JSON Web Token) cho việc xác thực. Hãy cung cấp cho tôi một class SecurityFilterChain hoàn chỉnh. Yêu cầu: Cấu hình Stateless Session (không dùng Cookie/Session), mở khóa public cho các endpoint đăng nhập/đăng ký (/api/auth/**), và bắt buộc quyền ADMIN cho các endpoint (/api/admin/**). Đồng thời cấu hình luôn CORS cho phép frontend từ localhost:3000 truy cập.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -359,7 +383,11 @@ Code bảo mật phức tạp nên AI hỗ trợ rất tốt.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Hệ thống của tôi có chức năng cho phép người dùng upload file mã nguồn. Để phòng tránh các cuộc tấn công Path Traversal và XSS, hãy viết một biểu thức chính quy (Regex) và một hàm java.util.regex.Pattern để validate tên file. Yêu cầu bảo mật: Tên file không chứa khoảng trắng hoặc ký tự đặc biệt, chỉ chấp nhận chữ cái, số, dấu gạch ngang, và dấu gạch dưới. Độ dài tên file từ 1-50 ký tự. Phần mở rộng bắt buộc là một trong các định dạng: .java, .cpp, .c, hoặc .py. Hãy cung cấp vài test case đúng/sai.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Hệ thống của tôi có chức năng cho phép người dùng upload file mã nguồn. Để phòng tránh các cuộc tấn công Path Traversal và XSS, hãy viết một biểu thức chính quy (Regex) và một hàm java.util.regex.Pattern để validate tên file. Yêu cầu bảo mật: Tên file không chứa khoảng trắng hoặc ký tự đặc biệt, chỉ chấp nhận chữ cái, số, dấu gạch ngang, và dấu gạch dưới. Độ dài tên file từ 1-50 ký tự. Phần mở rộng bắt buộc là một trong các định dạng: .java, .cpp, .c, hoặc .py. Hãy cung cấp vài test case đúng/sai.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -412,7 +440,11 @@ Regex chạy đúng ngay lần đầu.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Hệ thống chấm code tự động của tôi đang đối mặt với rủi ro bị spam request nộp bài liên tục, dẫn đến quá tải server Judge0. Tôi muốn triển khai cơ chế Rate Limiting bảo vệ endpoint API `/api/submissions` viết bằng Spring Boot. Yêu cầu cấu hình: Mỗi User (định danh bằng UserID lấy từ JWT Token trong Spring SecurityContext) chỉ được phép nộp tối đa 5 lần trong mỗi 1 phút. Nếu vượt quá, trả về mã lỗi HTTP 429 Too Many Requests. Xin hãy cung cấp code cấu hình sử dụng thư viện Bucket4j và thiết lập HandlerInterceptorAdapter để chặn request.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Hệ thống chấm code tự động của tôi đang đối mặt với rủi ro bị spam request nộp bài liên tục, dẫn đến quá tải server Judge0. Tôi muốn triển khai cơ chế Rate Limiting bảo vệ endpoint API `/api/submissions` viết bằng Spring Boot. Yêu cầu cấu hình: Mỗi User (định danh bằng UserID lấy từ JWT Token trong Spring SecurityContext) chỉ được phép nộp tối đa 5 lần trong mỗi 1 phút. Nếu vượt quá, trả về mã lỗi HTTP 429 Too Many Requests. Xin hãy cung cấp code cấu hình sử dụng thư viện Bucket4j và thiết lập HandlerInterceptorAdapter để chặn request.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -465,7 +497,11 @@ Bảo vệ hệ thống khỏi spam cơ bản.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Trong dự án Spring Boot, tôi có Entity 'Problem' chứa rất nhiều trường và các List Entity con (như List<Testcase>). Tôi muốn chuyển đổi (mapping) Entity này sang 'ProblemResponseDTO' để trả về cho Frontend. Việc dùng phương thức getter/setter thủ công rất mất thời gian. Làm sao để sử dụng thư viện MapStruct để tự động hóa việc này? Hãy viết mẫu cho tôi một interface ProblemMapper sử dụng componentModel = "spring".
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Trong dự án Spring Boot, tôi có Entity 'Problem' chứa rất nhiều trường và các List Entity con (như List<Testcase>). Tôi muốn chuyển đổi (mapping) Entity này sang 'ProblemResponseDTO' để trả về cho Frontend. Việc dùng phương thức getter/setter thủ công rất mất thời gian. Làm sao để sử dụng thư viện MapStruct để tự động hóa việc này? Hãy viết mẫu cho tôi một interface ProblemMapper sử dụng componentModel = "spring".
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -518,7 +554,11 @@ Giảm boilerplate code đáng kể.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Khi có lỗi xảy ra trong ứng dụng Spring Boot (như lỗi EntityNotFound, lỗi Validation của DTO), server đang trả về một cục HTML báo lỗi 500 rất khó nhìn. Hướng dẫn tôi cách tạo một GlobalExceptionHandler bằng @RestControllerAdvice để gom tất cả các Exception lại. Yêu cầu: Định dạng JSON trả về phải bao gồm các trường: timestamp, status (mã HTTP), error (tên lỗi), và message (lời nhắn thân thiện). Viết mẫu hàm xử lý cho MethodArgumentNotValidException.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Khi có lỗi xảy ra trong ứng dụng Spring Boot (như lỗi EntityNotFound, lỗi Validation của DTO), server đang trả về một cục HTML báo lỗi 500 rất khó nhìn. Hướng dẫn tôi cách tạo một GlobalExceptionHandler bằng @RestControllerAdvice để gom tất cả các Exception lại. Yêu cầu: Định dạng JSON trả về phải bao gồm các trường: timestamp, status (mã HTTP), error (tên lỗi), và message (lời nhắn thân thiện). Viết mẫu hàm xử lý cho MethodArgumentNotValidException.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -571,7 +611,11 @@ Chuẩn hóa định dạng lỗi cho Frontend.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi đang xây dựng hệ thống backend bằng Java Spring Boot kết hợp MySQL, tích hợp với Judge0 API để chấm điểm mã nguồn. Tôi lo ngại về vấn đề hiệu năng (bottleneck) nếu có 1000 sinh viên nộp bài đồng thời trong kỳ thi, vì API Judge0 xử lý khá lâu (vài giây mỗi bài). Hãy thiết kế cho tôi kiến trúc hệ thống chịu tải cao (High Availability) giải quyết bài toán này. Liệu tôi có nên sử dụng Message Queue (như Redis, RabbitMQ) và cơ chế xử lý bất đồng bộ (Worker background) hay không? Hãy phân tích luồng dữ liệu.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Tôi đang xây dựng hệ thống backend bằng Java Spring Boot kết hợp MySQL, tích hợp với Judge0 API để chấm điểm mã nguồn. Tôi lo ngại về vấn đề hiệu năng (bottleneck) nếu có 1000 sinh viên nộp bài đồng thời trong kỳ thi, vì API Judge0 xử lý khá lâu (vài giây mỗi bài). Hãy thiết kế cho tôi kiến trúc hệ thống chịu tải cao (High Availability) giải quyết bài toán này. Liệu tôi có nên sử dụng Message Queue (như Redis, RabbitMQ) và cơ chế xử lý bất đồng bộ (Worker background) hay không? Hãy phân tích luồng dữ liệu.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -624,7 +668,11 @@ Kiến trúc thay đổi toàn bộ hệ thống backend.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Dựa trên kiến trúc xử lý bất đồng bộ, tôi quyết định sử dụng Redis List để làm Message Queue nhẹ nhàng trong Spring Boot. Làm cách nào để cấu hình RedisTemplate và viết code để một thread Producer đẩy Submission ID vào queue (opsForList().rightPush()), trong khi một bean @Service khác đóng vai trò Consumer sử dụng @Scheduled hoặc vòng lặp while(true) để liên tục leftPop() lấy ID ra xử lý mà không làm treo ứng dụng?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Dựa trên kiến trúc xử lý bất đồng bộ, tôi quyết định sử dụng Redis List để làm Message Queue nhẹ nhàng trong Spring Boot. Làm cách nào để cấu hình RedisTemplate và viết code để một thread Producer đẩy Submission ID vào queue (opsForList().rightPush()), trong khi một bean @Service khác đóng vai trò Consumer sử dụng @Scheduled hoặc vòng lặp while(true) để liên tục leftPop() lấy ID ra xử lý mà không làm treo ứng dụng?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -677,7 +725,11 @@ Xử lý thành công bài toán nghẽn cổ chai.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi cần tạo một payload JSON để gửi sang API tạo submission của Judge0. Payload này phải bao gồm: source_code (String base64), language_id (Integer), stdin (String base64), expected_output (String base64). Hãy sinh cho tôi một lớp Java Record hoặc DTO sử dụng Jackson annotation (@JsonProperty) để ánh xạ chính xác các trường này. Đồng thời viết một phương thức tiện ích encode chuỗi sang Base64 trong Java.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Tôi cần tạo một payload JSON để gửi sang API tạo submission của Judge0. Payload này phải bao gồm: source_code (String base64), language_id (Integer), stdin (String base64), expected_output (String base64). Hãy sinh cho tôi một lớp Java Record hoặc DTO sử dụng Jackson annotation (@JsonProperty) để ánh xạ chính xác các trường này. Đồng thời viết một phương thức tiện ích encode chuỗi sang Base64 trong Java.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -730,7 +782,11 @@ Giao tiếp với External API chính xác.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-API Judge0 cung cấp một tùy chọn `callback_url`. Khi nó chấm bài xong, nó sẽ gửi một HTTP PUT request chứa kết quả về server của tôi. Trong Spring Boot, làm sao để tôi định nghĩa một REST endpoint /api/judge0/callback nhận dữ liệu JSON này? Để đảm bảo bảo mật, làm sao tôi xác thực request này thực sự đến từ Judge0 chứ không phải hacker giả mạo (Gợi ý dùng token đính kèm trong URL query param)?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] API Judge0 cung cấp một tùy chọn `callback_url`. Khi nó chấm bài xong, nó sẽ gửi một HTTP PUT request chứa kết quả về server của tôi. Trong Spring Boot, làm sao để tôi định nghĩa một REST endpoint /api/judge0/callback nhận dữ liệu JSON này? Để đảm bảo bảo mật, làm sao tôi xác thực request này thực sự đến từ Judge0 chứ không phải hacker giả mạo (Gợi ý dùng token đính kèm trong URL query param)?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -783,7 +839,11 @@ Hoàn thiện luồng trả kết quả bất đồng bộ.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Để dễ dàng chạy thử ứng dụng ở máy local và triển khai lên server, tôi muốn docker hóa toàn bộ dự án. Hãy viết cho tôi một file `docker-compose.yml` gồm 3 services: 1. `mysql` (sử dụng image mysql:8.0, định nghĩa root password và database name). 2. `redis` (image redis:alpine). 3. `backend` (ứng dụng Spring Boot của tôi, build từ Dockerfile hiện tại, cần chờ mysql và redis khởi động xong trước khi chạy).
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Để dễ dàng chạy thử ứng dụng ở máy local và triển khai lên server, tôi muốn docker hóa toàn bộ dự án. Hãy viết cho tôi một file `docker-compose.yml` gồm 3 services: 1. `mysql` (sử dụng image mysql:8.0, định nghĩa root password và database name). 2. `redis` (image redis:alpine). 3. `backend` (ứng dụng Spring Boot của tôi, build từ Dockerfile hiện tại, cần chờ mysql và redis khởi động xong trước khi chạy).
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -836,7 +896,11 @@ Triển khai dự án nhanh chóng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Trong ứng dụng Spring Data JPA, tôi đang gặp lỗi cực kỳ khó chịu: `org.hibernate.LazyInitializationException: could not initialize proxy - no Session`. Lỗi này văng ra ở tầng Controller khi tôi gọi hàm getProblems() từ một thực thể Contest đã được load từ DB ở tầng Service. Quan hệ đang cấu hình là @OneToMany(fetch = FetchType.LAZY). Tôi KHÔNG muốn đổi sang EAGER vì dữ liệu Problem rất lớn. Hãy hướng dẫn tôi cách viết JPQL sử dụng từ khóa JOIN FETCH để khắc phục triệt để lỗi này.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Trong ứng dụng Spring Data JPA, tôi đang gặp lỗi cực kỳ khó chịu: `org.hibernate.LazyInitializationException: could not initialize proxy - no Session`. Lỗi này văng ra ở tầng Controller khi tôi gọi hàm getProblems() từ một thực thể Contest đã được load từ DB ở tầng Service. Quan hệ đang cấu hình là @OneToMany(fetch = FetchType.LAZY). Tôi KHÔNG muốn đổi sang EAGER vì dữ liệu Problem rất lớn. Hãy hướng dẫn tôi cách viết JPQL sử dụng từ khóa JOIN FETCH để khắc phục triệt để lỗi này.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -889,7 +953,11 @@ Sửa dứt điểm lỗi hệ thống.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Sau khi xử lý LazyException, tôi bật thuộc tính `spring.jpa.show-sql=true` và phát hiện ra lỗi N+1 Query. Khi tôi get danh sách 20 Contest, Hibernate tự động bắn thêm 20 câu lệnh SQL nữa để lấy danh sách Problems của từng Contest. Vấn đề này làm chậm server rất nhiều. Có cách nào trong Spring Data JPA (ví dụ sử dụng @EntityGraph hoặc default_batch_fetch_size) để lấy toàn bộ dữ liệu chỉ bằng 1 hoặc 2 câu lệnh SQL không?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Sau khi xử lý LazyException, tôi bật thuộc tính `spring.jpa.show-sql=true` và phát hiện ra lỗi N+1 Query. Khi tôi get danh sách 20 Contest, Hibernate tự động bắn thêm 20 câu lệnh SQL nữa để lấy danh sách Problems của từng Contest. Vấn đề này làm chậm server rất nhiều. Có cách nào trong Spring Data JPA (ví dụ sử dụng @EntityGraph hoặc default_batch_fetch_size) để lấy toàn bộ dữ liệu chỉ bằng 1 hoặc 2 câu lệnh SQL không?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -942,7 +1010,11 @@ Tối ưu hóa hiệu năng rõ rệt.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Dự án của tôi yêu cầu phải có Unit Test. Xin hãy tạo một class test mẫu sử dụng JUnit 5 (@ExtendWith(MockitoExtension.class)) để kiểm thử class SubmissionService. Hãy khởi tạo các Mock object cho SubmissionRepository và RedisTemplate. Đồng thời viết cấu trúc Arrange - Act - Assert cho một test case đơn giản nhất (ví dụ: lấy bài nộp theo ID thành công).
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Dự án của tôi yêu cầu phải có Unit Test. Xin hãy tạo một class test mẫu sử dụng JUnit 5 (@ExtendWith(MockitoExtension.class)) để kiểm thử class SubmissionService. Hãy khởi tạo các Mock object cho SubmissionRepository và RedisTemplate. Đồng thời viết cấu trúc Arrange - Act - Assert cho một test case đơn giản nhất (ví dụ: lấy bài nộp theo ID thành công).
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -995,7 +1067,11 @@ Nắm bắt được cách viết test Spring.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Khi tôi chạy Unit Test cho hàm submitCode(), tôi gặp lỗi NullPointerException. Nguyên nhân là vì Spring Data Redis sử dụng Fluent API: `redisTemplate.opsForList().rightPush(...)`. Mockito thông thường trả về null cho `opsForList()`, dẫn đến gọi `rightPush` bị lỗi. Làm cách nào để cấu hình Mockito stub đúng cơ chế chain method này trong JUnit 5?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Khi tôi chạy Unit Test cho hàm submitCode(), tôi gặp lỗi NullPointerException. Nguyên nhân là vì Spring Data Redis sử dụng Fluent API: `redisTemplate.opsForList().rightPush(...)`. Mockito thông thường trả về null cho `opsForList()`, dẫn đến gọi `rightPush` bị lỗi. Làm cách nào để cấu hình Mockito stub đúng cơ chế chain method này trong JUnit 5?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1048,7 +1124,11 @@ Một trick Mockito rất hay.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Trong ứng dụng Spring, khi tìm một User không tồn tại, service của tôi sẽ ném ra `ResourceNotFoundException("User not found")`. Làm cách nào để viết Unit Test trong JUnit 5 khẳng định (assert) rằng exception này THỰC SỰ bị ném ra khi gọi phương thức với tham số sai? Và làm sao để verify thông điệp lỗi (message) bên trong exception đó có khớp chữ 'User not found' hay không?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Trong ứng dụng Spring, khi tìm một User không tồn tại, service của tôi sẽ ném ra `ResourceNotFoundException("User not found")`. Làm cách nào để viết Unit Test trong JUnit 5 khẳng định (assert) rằng exception này THỰC SỰ bị ném ra khi gọi phương thức với tham số sai? Và làm sao để verify thông điệp lỗi (message) bên trong exception đó có khớp chữ 'User not found' hay không?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1101,7 +1181,11 @@ Bao phủ 100% các dòng code ném exception.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Chuyển sang phần Frontend. Tôi đang cần code một màn hình 'Instructor Dashboard' bằng React JS kết hợp Tailwind CSS. Hãy gợi ý cho tôi cấu trúc Component (JSX) hoàn chỉnh, bao gồm 1 Sidebar bên trái cố định (chứa menu điều hướng), 1 Header Navbar phía trên, và phần nội dung chính giữa (Main Content) sử dụng CSS Grid. Vui lòng thêm các class Tailwind để có giao diện hiện đại, chế độ sáng/tối (dark mode) và Responsive cho điện thoại.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Chuyển sang phần Frontend. Tôi đang cần code một màn hình 'Instructor Dashboard' bằng React JS kết hợp Tailwind CSS. Hãy gợi ý cho tôi cấu trúc Component (JSX) hoàn chỉnh, bao gồm 1 Sidebar bên trái cố định (chứa menu điều hướng), 1 Header Navbar phía trên, và phần nội dung chính giữa (Main Content) sử dụng CSS Grid. Vui lòng thêm các class Tailwind để có giao diện hiện đại, chế độ sáng/tối (dark mode) và Responsive cho điện thoại.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1154,7 +1238,11 @@ Layout khung UI vững chắc, đẹp mắt.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Trên Dashboard, tôi cần hiển thị một biểu đồ đường (Line chart) thể hiện doanh thu theo tháng. Do yêu cầu kỹ thuật, tôi không được phép sử dụng các thư viện như Chart.js hay Recharts mà phải TỰ VẼ bằng thẻ HTML SVG. Hãy hướng dẫn tôi cách tính toán tọa độ (x, y) từ mảng dữ liệu doanh thu, và dùng thẻ `<polyline>` hoặc `<path>` để nối các điểm đó lại thành biểu đồ. Cần có đoạn mã Javascript tính toán điểm Normalize.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Trên Dashboard, tôi cần hiển thị một biểu đồ đường (Line chart) thể hiện doanh thu theo tháng. Do yêu cầu kỹ thuật, tôi không được phép sử dụng các thư viện như Chart.js hay Recharts mà phải TỰ VẼ bằng thẻ HTML SVG. Hãy hướng dẫn tôi cách tính toán tọa độ (x, y) từ mảng dữ liệu doanh thu, và dùng thẻ `<polyline>` hoặc `<path>` để nối các điểm đó lại thành biểu đồ. Cần có đoạn mã Javascript tính toán điểm Normalize.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1207,7 +1295,11 @@ Hoàn thành yêu cầu kỹ thuật khó của đồ án.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Một vấn đề xảy ra với biểu đồ: Backend trả dữ liệu doanh thu là một mảng object `{ month: "2026-05", revenue: 500 }`. Tuy nhiên, nếu một tháng nào đó (vd 2026-04) Instructor không có giao dịch, DB sẽ không trả về dữ liệu của tháng đó. Điều này làm trục thời gian (trục hoành) của biểu đồ SVG bị đứt gãy. Hãy viết một hàm Javascript (chạy trên React) nhận vào số tháng (6 hoặc 12). Nó sẽ sinh ra danh sách n tháng gần nhất, sau đó map với dữ liệu API; tháng nào thiếu thì tự động đệm (padding) giá trị `revenue: 0` vào.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Một vấn đề xảy ra với biểu đồ: Backend trả dữ liệu doanh thu là một mảng object `{ month: "2026-05", revenue: 500 }`. Tuy nhiên, nếu một tháng nào đó (vd 2026-04) Instructor không có giao dịch, DB sẽ không trả về dữ liệu của tháng đó. Điều này làm trục thời gian (trục hoành) của biểu đồ SVG bị đứt gãy. Hãy viết một hàm Javascript (chạy trên React) nhận vào số tháng (6 hoặc 12). Nó sẽ sinh ra danh sách n tháng gần nhất, sau đó map với dữ liệu API; tháng nào thiếu thì tự động đệm (padding) giá trị `revenue: 0` vào.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1260,7 +1352,11 @@ Sửa lỗi logic hiển thị rất quan trọng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Để tăng tương tác trên Instructor Dashboard, tôi muốn thêm một Select Dropdown cho phép người dùng chọn xem dữ liệu tài chính trong khoảng '6 tháng qua', '12 tháng qua' hoặc 'Tất cả'. Làm sao để quản lý React State (useState) cho bộ lọc này? Khi người dùng thay đổi giá trị Dropdown, làm sao để gọi lại API (sử dụng useEffect) để load lại dữ liệu mà không gây ra vòng lặp vô hạn (infinite loop render)?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Để tăng tương tác trên Instructor Dashboard, tôi muốn thêm một Select Dropdown cho phép người dùng chọn xem dữ liệu tài chính trong khoảng '6 tháng qua', '12 tháng qua' hoặc 'Tất cả'. Làm sao để quản lý React State (useState) cho bộ lọc này? Khi người dùng thay đổi giá trị Dropdown, làm sao để gọi lại API (sử dụng useEffect) để load lại dữ liệu mà không gây ra vòng lặp vô hạn (infinite loop render)?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1313,7 +1409,11 @@ Quản lý React Hook đúng chuẩn.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Phần thống kê thẻ số lượng (Total Revenue, Total Students, Total Courses) đang được dàn trang 3 cột ngang trên màn hình Desktop. Khi tôi xem trên điện thoại di động (Mobile), nó bị tràn nội dung (overflow-x). Dựa vào các class của Tailwind CSS, làm sao để tự động chuyển layout này thành 1 cột dọc trên Mobile, 2 cột trên Tablet, và 3 cột trên Desktop? Hãy đưa ra chuỗi class grid đầy đủ.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Phần thống kê thẻ số lượng (Total Revenue, Total Students, Total Courses) đang được dàn trang 3 cột ngang trên màn hình Desktop. Khi tôi xem trên điện thoại di động (Mobile), nó bị tràn nội dung (overflow-x). Dựa vào các class của Tailwind CSS, làm sao để tự động chuyển layout này thành 1 cột dọc trên Mobile, 2 cột trên Tablet, và 3 cột trên Desktop? Hãy đưa ra chuỗi class grid đầy đủ.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1366,7 +1466,11 @@ Tailwind CSS làm Responsive cực nhàn.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tại trang Admin, tôi cần xây dựng màn hình 'Testcase Builder' để Admin tạo Bài tập thuật toán (Problem). Giao diện này phức tạp ở chỗ: Nó cần một Dynamic Form cho phép Admin ấn nút 'Add Testcase' để thêm động các trường nhập liệu (Input Data, Expected Output). Họ có thể thêm bao nhiêu testcase tùy ý, hoặc xóa bớt. Làm sao để quản lý state phức tạp này trong React? Có thư viện nào hỗ trợ mảng (Array) form tốt không, hãy hướng dẫn dùng Formik và FieldArray.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Tại trang Admin, tôi cần xây dựng màn hình 'Testcase Builder' để Admin tạo Bài tập thuật toán (Problem). Giao diện này phức tạp ở chỗ: Nó cần một Dynamic Form cho phép Admin ấn nút 'Add Testcase' để thêm động các trường nhập liệu (Input Data, Expected Output). Họ có thể thêm bao nhiêu testcase tùy ý, hoặc xóa bớt. Làm sao để quản lý state phức tạp này trong React? Có thư viện nào hỗ trợ mảng (Array) form tốt không, hãy hướng dẫn dùng Formik và FieldArray.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1419,7 +1523,11 @@ Giải pháp tốt nhất cho form động phức tạp.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Kết hợp với thư viện Formik ở trên, tôi muốn sử dụng thư viện Yup để validate toàn bộ dữ liệu trước khi bấm Submit tạo Problem. Yêu cầu schema: Tên bài tập không được để trống, điểm số (Score) phải từ 1 đến 100. Đặc biệt, đối với MẢNG các testcases, bắt buộc cả trường input và expected_output của từng testcase đều không được rỗng. Hãy viết đối tượng Yup Schema kiểm tra mảng lồng nhau (nested array) này.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Kết hợp với thư viện Formik ở trên, tôi muốn sử dụng thư viện Yup để validate toàn bộ dữ liệu trước khi bấm Submit tạo Problem. Yêu cầu schema: Tên bài tập không được để trống, điểm số (Score) phải từ 1 đến 100. Đặc biệt, đối với MẢNG các testcases, bắt buộc cả trường input và expected_output của từng testcase đều không được rỗng. Hãy viết đối tượng Yup Schema kiểm tra mảng lồng nhau (nested array) này.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1472,7 +1580,11 @@ Tự động trim() chuỗi đầu vào của testcase để tránh ký tự cá
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Trên màn hình Admin Dashboard, tôi muốn hiển thị một biểu đồ tròn thống kê số lượng bài tập (Problems) phân theo độ khó (Easy, Medium, Hard). Mặc dù tôi có thể fetch toàn bộ Problems về máy chủ Java và dùng list.stream() để đếm, nhưng cách đó tốn RAM và chậm. Thay vào đó, hãy viết cho tôi một câu lệnh SQL (hoặc JPQL cho Spring Data JPA) sử dụng mệnh đề GROUP BY để cơ sở dữ liệu đếm sẵn và chỉ trả về một danh sách DTO chứa (Độ khó, Số lượng).
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Trên màn hình Admin Dashboard, tôi muốn hiển thị một biểu đồ tròn thống kê số lượng bài tập (Problems) phân theo độ khó (Easy, Medium, Hard). Mặc dù tôi có thể fetch toàn bộ Problems về máy chủ Java và dùng list.stream() để đếm, nhưng cách đó tốn RAM và chậm. Thay vào đó, hãy viết cho tôi một câu lệnh SQL (hoặc JPQL cho Spring Data JPA) sử dụng mệnh đề GROUP BY để cơ sở dữ liệu đếm sẵn và chỉ trả về một danh sách DTO chứa (Độ khó, Số lượng).
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1525,7 +1637,11 @@ Tối ưu hóa tài nguyên server tốt.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Chức năng Admin Financial Statistics trong ứng dụng Spring Boot của tôi đang gặp vấn đề hiệu năng nghiêm trọng (Load báo cáo mất hơn 5 giây). Hiện tại tôi đang sử dụng JPA fetch toàn bộ bảng `Payments` (gồm chục nghìn bản ghi) ra Object Java, sau đó dùng Java Stream để filter tháng và cộng tổng doanh thu (Total Revenue). Việc này gây tràn RAM máy chủ và tạo ra N+1 Query. Xin hãy tư vấn cách đẩy phép tính toán tổng (Aggregate functions SUM) xuống trực tiếp Database SQL, và gợi ý tôi đánh Chỉ mục (Index) lên những cột nào để query nhanh hơn.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Chức năng Admin Financial Statistics trong ứng dụng Spring Boot của tôi đang gặp vấn đề hiệu năng nghiêm trọng (Load báo cáo mất hơn 5 giây). Hiện tại tôi đang sử dụng JPA fetch toàn bộ bảng `Payments` (gồm chục nghìn bản ghi) ra Object Java, sau đó dùng Java Stream để filter tháng và cộng tổng doanh thu (Total Revenue). Việc này gây tràn RAM máy chủ và tạo ra N+1 Query. Xin hãy tư vấn cách đẩy phép tính toán tổng (Aggregate functions SUM) xuống trực tiếp Database SQL, và gợi ý tôi đánh Chỉ mục (Index) lên những cột nào để query nhanh hơn.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1578,7 +1694,11 @@ Giảm thời gian load API tài chính từ 5s xuống 100ms.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Sau khi tối ưu SQL Tài chính, tôi nhận thấy dữ liệu doanh thu của các tháng cũ (Ví dụ: báo cáo tháng 1, 2, 3) là dữ liệu 'chết', không bao giờ thay đổi nữa. Tuy nhiên mỗi khi người dùng F5 xem lại, Database vẫn phải chạy lại câu lệnh SUM rất lãng phí. Hướng dẫn tôi cách cấu hình thư viện Caching (@Cacheable) có sẵn trong Spring Boot. Làm sao để lưu kết quả API thống kê tài chính của tháng X vào bộ nhớ RAM (ConcurrentMapCache), và làm sao để khóa (evict) bộ nhớ đệm này nếu cần thiết?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Sau khi tối ưu SQL Tài chính, tôi nhận thấy dữ liệu doanh thu của các tháng cũ (Ví dụ: báo cáo tháng 1, 2, 3) là dữ liệu 'chết', không bao giờ thay đổi nữa. Tuy nhiên mỗi khi người dùng F5 xem lại, Database vẫn phải chạy lại câu lệnh SUM rất lãng phí. Hướng dẫn tôi cách cấu hình thư viện Caching (@Cacheable) có sẵn trong Spring Boot. Làm sao để lưu kết quả API thống kê tài chính của tháng X vào bộ nhớ RAM (ConcurrentMapCache), và làm sao để khóa (evict) bộ nhớ đệm này nếu cần thiết?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1631,7 +1751,11 @@ Giảm tải hoàn toàn cho Database đối với dữ liệu cũ.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Trong Spring Boot, làm sao để tạo một custom annotation @ValidPassword kiểm tra mật khẩu phải có chữ hoa, chữ thường và ký tự đặc biệt?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Trong Spring Boot, làm sao để tạo một custom annotation @ValidPassword kiểm tra mật khẩu phải có chữ hoa, chữ thường và ký tự đặc biệt?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1692,7 +1816,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Viết cho tôi một service trong Spring Boot sử dụng SDK Cloudinary để upload file MultipartFile và trả về URL ảnh.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Viết cho tôi một service trong Spring Boot sử dụng SDK Cloudinary để upload file MultipartFile và trả về URL ảnh.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1753,7 +1881,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi bị lỗi CORS preflight request bị block 401 Unauthorized dù đã thêm @CrossOrigin trên Controller. Spring Security 6 config như thế nào để fix?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Tôi bị lỗi CORS preflight request bị block 401 Unauthorized dù đã thêm @CrossOrigin trên Controller. Spring Security 6 config như thế nào để fix?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1814,7 +1946,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Cách tốt nhất để log toàn bộ HTTP Request (Method, URI, thời gian xử lý) trong Spring Boot là dùng Interceptor hay Filter?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Cách tốt nhất để log toàn bộ HTTP Request (Method, URI, thời gian xử lý) trong Spring Boot là dùng Interceptor hay Filter?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1875,7 +2011,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tôi sử dụng React Router v6, làm sao để tạo một PrivateRoute chỉ cho phép Instructor truy cập vào trang Dashboard?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Tôi sử dụng React Router v6, làm sao để tạo một PrivateRoute chỉ cho phép Instructor truy cập vào trang Dashboard?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1936,7 +2076,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Dự án dùng Spring Boot 3, tôi muốn tích hợp Swagger để test API. Cấu hình springdoc-openapi-starter-webmvc-ui như thế nào?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Dự án dùng Spring Boot 3, tôi muốn tích hợp Swagger để test API. Cấu hình springdoc-openapi-starter-webmvc-ui như thế nào?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -1997,7 +2141,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Cơ chế hoạt động của WebSocket với STOMP trong Spring Boot như thế nào? Làm sao đẩy thông báo khi khoá học được duyệt?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Cơ chế hoạt động của WebSocket với STOMP trong Spring Boot như thế nào? Làm sao đẩy thông báo khi khoá học được duyệt?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2058,7 +2206,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Khi state trong Context thay đổi, toàn bộ component con bị re-render. Cách khắc phục?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Khi state trong Context thay đổi, toàn bộ component con bị re-render. Cách khắc phục?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2119,7 +2271,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Viết API lấy danh sách khoá học, hỗ trợ phân trang (Pageable) và sort theo giá hoặc ngày tạo. Truyền parameter từ Controller sao cho chuẩn?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Viết API lấy danh sách khoá học, hỗ trợ phân trang (Pageable) và sort theo giá hoặc ngày tạo. Truyền parameter từ Controller sao cho chuẩn?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2180,7 +2336,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Viết file Dockerfile để build và run ứng dụng Spring Boot sử dụng multi-stage build (dùng Maven để build, JRE để chạy).
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Viết file Dockerfile để build và run ứng dụng Spring Boot sử dụng multi-stage build (dùng Maven để build, JRE để chạy).
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2241,7 +2401,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tạo một workflow GitHub Actions tự động chạy mvn test mỗi khi có pull request vào nhánh main.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Tạo một workflow GitHub Actions tự động chạy mvn test mỗi khi có pull request vào nhánh main.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2302,7 +2466,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Tại sao React Query lại tự động gọi lại API khi tôi chuyển tab quay lại? Làm sao cấu hình staleTime hợp lý?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Tại sao React Query lại tự động gọi lại API khi tôi chuyển tab quay lại? Làm sao cấu hình staleTime hợp lý?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2363,7 +2531,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Entity Course có List<Section>, Section có List<Lesson>. Dùng MapStruct thế nào để map Course sang CourseDetailDTO chứa đầy đủ các list này?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Entity Course có List<Section>, Section có List<Lesson>. Dùng MapStruct thế nào để map Course sang CourseDetailDTO chứa đầy đủ các list này?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2424,7 +2596,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Viết Axios Interceptor ở Frontend để bắt lỗi 401 Unauthorized do token hết hạn, tự động gọi API refresh token và retry request cũ.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Viết Axios Interceptor ở Frontend để bắt lỗi 401 Unauthorized do token hết hạn, tự động gọi API refresh token và retry request cũ.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2485,7 +2661,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Làm sao dùng Apache POI tạo một file Excel báo cáo doanh thu có header in đậm, sau đó trả trực tiếp file qua response thay vì lưu xuống đĩa?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Làm sao dùng Apache POI tạo một file Excel báo cáo doanh thu có header in đậm, sau đó trả trực tiếp file qua response thay vì lưu xuống đĩa?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2546,7 +2726,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Muốn viết Integration Test cho Repository có tương tác Database thật thay vì H2 (do dùng function MySQL riêng). Testcontainers tích hợp thế nào?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Muốn viết Integration Test cho Repository có tương tác Database thật thay vì H2 (do dùng function MySQL riêng). Testcontainers tích hợp thế nào?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2607,7 +2791,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Nếu hệ thống scale ra 2 server backend, WebSocket message chỉ gửi được cho user kết nối vào đúng server đó. Dùng Redis pub/sub để giải quyết sao?
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Nếu hệ thống scale ra 2 server backend, WebSocket message chỉ gửi được cho user kết nối vào đúng server đó. Dùng Redis pub/sub để giải quyết sao?
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2668,7 +2856,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Cho tôi layout Dashboard chia làm các thẻ (Card) hiển thị thông số: Tổng khoá học, Số học viên, Doanh thu. Bố cục dạng grid 3 cột, màu chủ đạo slate-800.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Cho tôi layout Dashboard chia làm các thẻ (Card) hiển thị thông số: Tổng khoá học, Số học viên, Doanh thu. Bố cục dạng grid 3 cột, màu chủ đạo slate-800.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2729,7 +2921,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Viết một Native Query trong JPA gom nhóm (GROUP BY) số tiền thanh toán theo từng tháng của một Instructor, trả về danh sách DTO.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Viết một Native Query trong JPA gom nhóm (GROUP BY) số tiền thanh toán theo từng tháng của một Instructor, trả về danh sách DTO.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
@@ -2790,7 +2986,11 @@ Nâng cao hiểu biết về công nghệ tương ứng.
 #### 4.1. Prompt đã sử dụng
 
 ```text
-Đọc toàn bộ dự án, với screen flow của instructor như thế này thì phần Non-UI Functional Requirements của Instructor module cần code những logic ngầm gì? Ví dụ Delete Account là chuyển trạng thái sang soft delete.
+[Role] Software Engineer
+[Context] Tôi đang làm dự án 'Integrated Coding Education' cho môn học. Hệ thống có 3 actor (Student, Instructor, Admin) và tính năng cốt lõi là tạo khóa học, chấm điểm code tự động, và quản lý người dùng. Backend sử dụng Java Hibernate.
+[Task] Đọc toàn bộ dự án, với screen flow của instructor như thế này thì phần Non-UI Functional Requirements của Instructor module cần code những logic ngầm gì? Ví dụ Delete Account là chuyển trạng thái sang soft delete.
+[Format] Trình bày rõ ràng, giải thích ngắn gọn, liệt kê các phần quan trọng dưới dạng markdown.
+[Constraints] Giữ thiết kế và câu trả lời ở mức độ cơ bản phù hợp với một đồ án môn học đại học.
 ```
 
 #### 4.2. Kết quả AI gợi ý
