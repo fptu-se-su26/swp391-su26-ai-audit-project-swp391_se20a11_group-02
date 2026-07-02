@@ -19,6 +19,8 @@ public interface ProblemSubmissionRepository extends JpaRepository<ProblemSubmis
            "ORDER BY COUNT(ps) DESC")
     List<Object[]> findTopProblems(Pageable pageable);
     long countByUserIdAndProblemIdAndVerdict(Integer userId, Integer problemId, OjVerdict verdict);
+    
+    long countByProblemId(Integer problemId);
 
     List<ProblemSubmissionEntity> findByUserIdAndProblemId(Integer userId, Integer problemId);
 
