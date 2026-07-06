@@ -7,12 +7,13 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import { CodeEditor } from '../components/CodeEditor';
 import Editor from '@monaco-editor/react';
+import AiVisualizerPanel from '../components/AiVisualizerPanel';
 
 export const SolveProblem: React.FC = () => {
   const { user } = useApp();
   const { id } = useParams<{ id: string }>();
 
-  const [activeTab, setActiveTab] = useState<'description' | 'discussion' | 'solutions' | 'submissions' | 'result'>(() => {
+  const [activeTab, setActiveTab] = useState<'description' | 'discussion' | 'solutions' | 'submissions' | 'result' | 'ai-visualizer'>(() => {
     const savedTab = sessionStorage.getItem('solveProblemActiveTab');
     const savedId = sessionStorage.getItem('solveProblemActiveId');
     if (savedId === id && savedTab) {
@@ -416,7 +417,7 @@ export const SolveProblem: React.FC = () => {
       });
   };
 
-  const getTabClass = (tab: 'description' | 'discussion' | 'solutions' | 'submissions' | 'result') => {
+  const getTabClass = (tab: 'description' | 'discussion' | 'solutions' | 'submissions' | 'result' | 'ai-visualizer') => {
     return activeTab === tab
       ? "py-3 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap outline-none"
       : "py-3 text-sm font-medium text-text-muted hover:text-text-main whitespace-nowrap border-b-2 border-transparent outline-none";
@@ -544,6 +545,9 @@ export const SolveProblem: React.FC = () => {
             <button className={getTabClass('solutions')} onClick={() => setActiveTab('solutions')}>Solutions</button>
             <button className={getTabClass('submissions')} onClick={() => setActiveTab('submissions')}>Submissions</button>
             <button className={getTabClass('result')} onClick={() => setActiveTab('result')}>Test Result</button>
+            <button className={getTabClass('ai-visualizer')} onClick={() => setActiveTab('ai-visualizer')}>
+              <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">smart_toy</span> AI Tutor</span>
+            </button>
           </div>
 
           {/* Tab Contents */}
@@ -650,6 +654,19 @@ export const SolveProblem: React.FC = () => {
                     </details>
                   ));
                 })()}
+              </div>
+            )}
+
+            {/* AI Visualizer Tab */}
+            {activeTab === 'ai-visualizer' && problem && (
+              <div id="tab-ai-visualizer" className="block space-y-6">
+                <AiVisualizerPanel problemRequest={{
+                  title: problem.title,
+                  description: problem.description,
+                  constraints: problem.constraints,
+                  inputDescription: problem.inputDescription,
+                  outputDescription: problem.outputDescription
+                }} />
               </div>
             )}
 

@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -109,5 +110,5 @@ public class ProblemEntity {
     String starterTemplates;
 
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
-    java.util.List<ProblemTestcaseEntity> testcases = new java.util.ArrayList<>();
+    List<ProblemTestcaseEntity> testcases = new ArrayList<>();
 }
