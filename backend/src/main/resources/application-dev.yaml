@@ -16,7 +16,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/nonstopcoding}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:quang}
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 30
       minimum-idle: 10

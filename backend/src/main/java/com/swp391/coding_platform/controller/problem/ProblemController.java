@@ -54,7 +54,7 @@ public class ProblemController {
     // 2. Description API
     @GetMapping("/{id}/description")
     public ResponseEntity<ApiResponse<ProblemDescriptionResponse>> getProblemDescription(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal Jwt jwt) {
 
         Integer userId = null;
@@ -79,7 +79,7 @@ public class ProblemController {
     // 3. Discussion APIs
     @GetMapping("/{id}/discussion")
     public ResponseEntity<ApiResponse<List<ProblemCommentResponse>>> getDiscussion(
-            @PathVariable Integer id) {
+            @PathVariable("id") Integer id) {
 
         List<ProblemCommentResponse> result = problemService.getComments(id);
 
@@ -94,7 +94,7 @@ public class ProblemController {
 
     @PostMapping("/{id}/discussion")
     public ResponseEntity<ApiResponse<ProblemCommentResponse>> addDiscussionComment(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CreateCommentRequest request) {
 
@@ -120,7 +120,7 @@ public class ProblemController {
     // 4. Solution API
     @GetMapping("/{id}/solution")
     public ResponseEntity<ApiResponse<ProblemSolutionResponse>> getProblemSolution(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal Jwt jwt) {
 
         Integer userId = null;
@@ -144,7 +144,7 @@ public class ProblemController {
 
     @GetMapping("/{id}/submissions")
     public ResponseEntity<ApiResponse<List<ProblemSubmissionResponse>>> getSubmissions(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal Jwt jwt) {
 
         Integer userId = null;
