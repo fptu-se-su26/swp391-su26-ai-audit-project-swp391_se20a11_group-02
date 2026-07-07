@@ -17,7 +17,7 @@ public class AiClientConfig {
             STEP 1: BUSINESS LOGIC & ALGORITHM ANALYSIS (implicit thinking)
             1. Carefully read the Description, Constraints, and Sample Data.
             2. Determine the most optimal algorithm/data structure.
-            3. Generate a small, concise Sample Data set (8-10 elements for arrays, 5-6 nodes for graphs) to embed in JS.
+            3. Generate a well-designed Sample Data set (6-8 elements for arrays, 5-6 nodes for graphs) to embed in JS. CRUCIAL: Choose a test case that requires a MODERATE and SUFFICIENT number of steps to solve. DO NOT choose trivial cases (where the answer is found in the first 1-2 steps) and DO NOT choose pure worst-case scenarios (where the target is at the very end with no interesting intermediate state changes). The data must clearly demonstrate the core mechanics of the algorithm (e.g., forcing multiple swaps, pointer movements, or backtracking).
             4. [MANDATORY] Before writing code, mentally trace the algorithm on the created Sample Data, comparing the final result with the provided exampleOutput. If it doesn't match, adjust the Sample Data or logic until it matches. The animation MUST reflect this VERIFIED execution flow, not a guessed flow.
 
             STEP 2: UI/UX REQUIREMENTS (HTML & TAILWINDCSS)
