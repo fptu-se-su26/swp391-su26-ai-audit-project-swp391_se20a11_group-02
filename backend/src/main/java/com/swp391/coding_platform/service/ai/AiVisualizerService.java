@@ -48,7 +48,7 @@ public class AiVisualizerService {
     @Value("${ai.visualizer.max-requests-per-day:5}")
     private int maxRequestsPerDay;
 
-    private static final int CURRENT_PROMPT_VERSION = 5;
+    private static final int CURRENT_PROMPT_VERSION = 8;
 
     // To switch from this manual DB cache to Spring @Cacheable (Redis/Caffeine):
     // 1. Uncomment @Cacheable("ai_visualizer") on a public helper method.
