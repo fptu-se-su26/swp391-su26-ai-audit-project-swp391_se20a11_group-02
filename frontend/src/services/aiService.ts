@@ -24,5 +24,17 @@ export const aiService = {
       signal
     });
     return response;
+  },
+
+  async checkCache(problemId: string, signal?: AbortSignal) {
+    const response = await fetch(`${BASE_URL}/api/v1/ai/visualizer/${problemId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      signal
+    });
+    return response;
   }
 };

@@ -661,6 +661,7 @@ export const SolveProblem: React.FC = () => {
             {activeTab === 'ai-visualizer' && problem && (
               <div id="tab-ai-visualizer" className="block space-y-6">
                 <AiVisualizerPanel problemRequest={{
+                  problemId: id,
                   title: problem.title,
                   description: problem.description,
                   constraints: problem.constraints,

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useAiVisualizer } from '../hooks/useAiVisualizer';
 
 interface AiVisualizerPanelProps {
@@ -6,8 +6,14 @@ interface AiVisualizerPanelProps {
 }
 
 const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest }) => {
-    const { isLoading, data, error, jobStatus, generate, regenerate } = useAiVisualizer();
+    const { isLoading, data, error, jobStatus, generate, regenerate, checkCache } = useAiVisualizer();
     const iframeRef = useRef(null);
+
+    useEffect(() => {
+        if (problemRequest && problemRequest.problemId) {
+            checkCache(problemRequest.problemId);
+        }
+    }, [problemRequest?.problemId, checkCache]);
 
     const handleGenerate = () => {
         generate(problemRequest);

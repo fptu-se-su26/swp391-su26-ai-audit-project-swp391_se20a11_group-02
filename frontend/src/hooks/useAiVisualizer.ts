@@ -109,5 +109,23 @@ export const useAiVisualizer = () => {
         generate({ ...request, forceRegenerate: true });
     }, [generate]);
 
-    return { isLoading, data, error, jobStatus, generate, regenerate, cleanup };
+    const checkCache = useCallback(async (problemId: string) => {
+        try {
+            setIsLoading(true);
+            const response = await aiService.checkCache(problemId);
+            if (response.ok) {
+                const json = await response.json();
+                if (json.result) {
+                    setData(json.result);
+                    setJobStatus('success');
+                }
+            }
+        } catch (err) {
+            console.error('Failed to check cache', err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    return { isLoading, data, error, jobStatus, generate, regenerate, cleanup, checkCache };
 };

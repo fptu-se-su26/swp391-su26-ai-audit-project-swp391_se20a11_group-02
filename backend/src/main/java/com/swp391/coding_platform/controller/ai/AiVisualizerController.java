@@ -28,11 +28,10 @@ public class AiVisualizerController {
         // Validate scope via Service
         aiVisualizerService.validateProblemScope(request.getProblemId());
 
-        // Mocking user context for now. In reality, get from SecurityContext
-        String userId = "current-user-id";
+        String userId = aiVisualizerService.getCurrentUserId();
 
         // 1. Check cache synchronously first for fast return
-        Optional<AiVisualizerResponse> cached = aiVisualizerService.getCachedVisualizer(request.getProblemId(), request.isForceRegenerate());
+        Optional<AiVisualizerResponse> cached = aiVisualizerService.getCachedVisualizer(request.getProblemId(), userId, request.isForceRegenerate());
         if (cached.isPresent()) {
             return ResponseEntity.ok(ApiResponse.<AiVisualizerResponse>builder()
                     .status(HttpStatus.OK.value())
@@ -70,5 +69,30 @@ public class AiVisualizerController {
                 .result(asyncService.getJobStatus(jobId))
                 .timestamp(Instant.now().toString())
                 .build());
+    }
+
+    @GetMapping("/{problemId}")
+    public ResponseEntity<ApiResponse<AiVisualizerResponse>> getCachedVisualizer(@PathVariable("problemId") String problemId) {
+        String userId = aiVisualizerService.getCurrentUserId();
+
+        Optional<AiVisualizerResponse> cached = aiVisualizerService.getCachedVisualizer(problemId, userId, false);
+        
+        if (cached.isPresent()) {
+            return ResponseEntity.ok(ApiResponse.<AiVisualizerResponse>builder()
+                    .status(HttpStatus.OK.value())
+                    .code(2000)
+                    .message("Success (from cache)")
+                    .result(cached.get())
+                    .timestamp(Instant.now().toString())
+                    .build());
+        } else {
+            return ResponseEntity.ok(ApiResponse.<AiVisualizerResponse>builder()
+                    .status(HttpStatus.OK.value())
+                    .code(2000)
+                    .message("No cache found")
+                    .result(null)
+                    .timestamp(Instant.now().toString())
+                    .build());
+        }
     }
 }

@@ -7,11 +7,16 @@ import com.swp391.coding_platform.entity.problem.ProblemEntity;
 import com.swp391.coding_platform.entity.problem.ProblemVisualizerCache;
 import com.swp391.coding_platform.exception.ai.AiGenerationException;
 import com.swp391.coding_platform.exception.ai.RateLimitExceededException;
+import com.swp391.coding_platform.entity.user.UserEntity;
+import com.swp391.coding_platform.exception.AppException;
+import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.repository.problem.ProblemRepository;
 import com.swp391.coding_platform.repository.problem.ProblemVisualizerCacheRepository;
+import com.swp391.coding_platform.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -34,6 +39,7 @@ public class AiVisualizerService {
     private final PromptSanitizerService sanitizerService;
     private final ProblemVisualizerCacheRepository cacheRepository;
     private final ProblemRepository problemRepository;
+    private final UserRepository userRepository;
     
     // In-memory rate limiting: {userId_date -> count}
     private final ConcurrentHashMap<String, AtomicInteger> userRateLimits = new ConcurrentHashMap<>();
@@ -56,11 +62,18 @@ public class AiVisualizerService {
         }
     }
 
-    public Optional<AiVisualizerResponse> getCachedVisualizer(String problemId, boolean forceRegenerate) {
+    public String getCurrentUserId() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return String.valueOf(user.getId());
+    }
+
+    public Optional<AiVisualizerResponse> getCachedVisualizer(String problemId, String userId, boolean forceRegenerate) {
         if (!forceRegenerate) {
-            Optional<ProblemVisualizerCache> cached = cacheRepository.findByProblemIdAndPromptVersion(problemId, CURRENT_PROMPT_VERSION);
+            Optional<ProblemVisualizerCache> cached = cacheRepository.findByProblemIdAndUserIdAndPromptVersion(problemId, userId, CURRENT_PROMPT_VERSION);
             if (cached.isPresent()) {
-                log.info("Cache hit for problemId: {}", problemId);
+                log.info("Cache hit for problemId: {} and userId: {}", problemId, userId);
                 return Optional.of(buildResponseFromCache(cached.get()));
             }
         }
@@ -71,7 +84,7 @@ public class AiVisualizerService {
         String problemId = request.getProblemId();
         
         // 1. Check DB Cache first
-        Optional<AiVisualizerResponse> cached = getCachedVisualizer(problemId, request.isForceRegenerate());
+        Optional<AiVisualizerResponse> cached = getCachedVisualizer(problemId, userId, request.isForceRegenerate());
         if (cached.isPresent()) {
             return cached.get();
         }
@@ -86,7 +99,7 @@ public class AiVisualizerService {
         AiVisualizerResponse response = callAiAndParse(userPrompt);
 
         // 5. Save to DB Cache
-        saveToCache(problemId, response);
+        saveToCache(problemId, userId, response);
 
         return response;
     }
@@ -176,16 +189,22 @@ public class AiVisualizerService {
         );
     }
 
-    private void saveToCache(String problemId, AiVisualizerResponse response) {
+    private void saveToCache(String problemId, String userId, AiVisualizerResponse response) {
         if (problemId == null || problemId.isEmpty()) return;
-        ProblemVisualizerCache cacheEntity = ProblemVisualizerCache.builder()
+        
+        Optional<ProblemVisualizerCache> existing = cacheRepository.findByProblemIdAndUserIdAndPromptVersion(problemId, userId, CURRENT_PROMPT_VERSION);
+        
+        ProblemVisualizerCache cacheEntity = existing.orElseGet(() -> ProblemVisualizerCache.builder()
                 .problemId(problemId)
-                .detectedAlgorithm(response.getDetectedAlgorithm())
-                .timeComplexity(response.getTimeComplexity())
-                .htmlContent(response.getHtmlContent())
-                .generatedAt(Instant.now())
+                .userId(userId)
                 .promptVersion(CURRENT_PROMPT_VERSION)
-                .build();
+                .build());
+                
+        cacheEntity.setDetectedAlgorithm(response.getDetectedAlgorithm());
+        cacheEntity.setTimeComplexity(response.getTimeComplexity());
+        cacheEntity.setHtmlContent(response.getHtmlContent());
+        cacheEntity.setGeneratedAt(Instant.now());
+        
         cacheRepository.save(cacheEntity);
     }
 
