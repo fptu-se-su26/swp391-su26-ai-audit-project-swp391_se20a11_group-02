@@ -86,15 +86,18 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
                         </div>
                         <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2 text-sm">
-                                <label htmlFor="speedSlider" className="text-gray-400">Speed:</label>
-                                <input 
-                                    id="speedSlider"
-                                    type="range" 
-                                    min="50" max="2000" step="50" defaultValue="500" 
+                                <label htmlFor="speedSelect" className="text-gray-400">Speed:</label>
+                                <select 
+                                    id="speedSelect"
                                     onChange={handleSpeedChange} 
-                                    className="accent-blue-500"
-                                    style={{ direction: 'rtl' }} // Reverse direction for speed mapping
-                                />
+                                    defaultValue="500"
+                                    className="bg-gray-800 text-white border border-gray-600 rounded px-2 py-1 outline-none focus:border-blue-500"
+                                >
+                                    <option value="1000">0.5x</option>
+                                    <option value="500">1x (Normal)</option>
+                                    <option value="333">1.5x</option>
+                                    <option value="250">2x</option>
+                                </select>
                             </div>
                             <button
                                 onClick={handleRegenerate}
