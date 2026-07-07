@@ -42,11 +42,16 @@ public class AiVisualizerAsyncService {
                     
             log.info("Async job {} completed successfully", jobId);
         } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            if (errorMsg != null && (errorMsg.contains("429") || errorMsg.contains("Quota exceeded") || errorMsg.contains("RESOURCE_EXHAUSTED"))) {
+                errorMsg = "The AI service is currently overloaded or under maintenance due to high traffic. Please try again in a few minutes.";
+            }
+            
             log.error("Async job {} failed: {}", jobId, e.getMessage());
             jobStore.put(jobId, JobStatusResponse.builder()
                     .jobId(jobId)
                     .status(JobState.FAILED)
-                    .errorMessage(e.getMessage())
+                    .errorMessage(errorMsg)
                     .build());
         }
     }

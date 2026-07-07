@@ -25,10 +25,10 @@ public class ProblemVisualizerCache {
     @Column(name = "problem_id", nullable = false)
     private String problemId;
 
-    @Column(name = "detected_algorithm")
+    @Column(name = "detected_algorithm", columnDefinition = "TEXT")
     private String detectedAlgorithm;
 
-    @Column(name = "time_complexity")
+    @Column(name = "time_complexity", columnDefinition = "TEXT")
     private String timeComplexity;
 
     @Column(name = "html_content", columnDefinition = "TEXT")

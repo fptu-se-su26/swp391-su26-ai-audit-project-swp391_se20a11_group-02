@@ -112,4 +112,6 @@ ai:
   gemini-api-key: ${GEMINI_API_KEY}
   gemini-model: ${GEMINI_MODEL:gemini-2.5-flash}
   openai-api-key: ${OPENAI_API_KEY:}
+  visualizer:
+    max-requests-per-day: 100
 

@@ -90,13 +90,12 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
                                 <select 
                                     id="speedSelect"
                                     onChange={handleSpeedChange} 
-                                    defaultValue="500"
+                                    defaultValue="1000"
                                     className="bg-gray-800 text-white border border-gray-600 rounded px-2 py-1 outline-none focus:border-blue-500"
                                 >
-                                    <option value="1000">0.5x</option>
-                                    <option value="500">1x (Normal)</option>
-                                    <option value="333">1.5x</option>
-                                    <option value="250">2x</option>
+                                    <option value="2000">0.25x</option>
+                                    <option value="1000">0.5x (Default)</option>
+                                    <option value="500">1x</option>
                                 </select>
                             </div>
                             <button
@@ -108,7 +107,7 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
                         </div>
                     </div>
 
-                    <div className="w-full h-[600px] border-none rounded-lg bg-gray-900 overflow-hidden relative shadow-inner">
+                    <div className="w-full h-[calc(100vh-220px)] min-h-[600px] border-none rounded-lg bg-gray-900 overflow-hidden relative shadow-inner">
                         <iframe
                             ref={iframeRef}
                             srcDoc={data.htmlContent}
