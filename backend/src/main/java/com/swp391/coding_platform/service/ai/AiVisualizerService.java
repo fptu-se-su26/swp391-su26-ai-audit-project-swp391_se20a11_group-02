@@ -48,7 +48,7 @@ public class AiVisualizerService {
     @Value("${ai.visualizer.max-requests-per-day:5}")
     private int maxRequestsPerDay;
 
-    private static final int CURRENT_PROMPT_VERSION = 8;
+    private static final int CURRENT_PROMPT_VERSION = 9;
 
     // To switch from this manual DB cache to Spring @Cacheable (Redis/Caffeine):
     // 1. Uncomment @Cacheable("ai_visualizer") on a public helper method.
@@ -96,7 +96,7 @@ public class AiVisualizerService {
         // 2. Check Rate Limit
         checkRateLimit(userId);
 
-        // 3. Prepare prompt
+        // 3. Validate user input and Prepare prompt
         String userPrompt = buildUserPrompt(request);
 
         // 4. Call AI & Parse with Retry
@@ -133,6 +133,12 @@ public class AiVisualizerService {
     }
 
     private AiVisualizerResponse parseAndValidate(String rawContent) {
+        String errorMsg = extractWithDelimiter(rawContent, "###ERROR_START###", "###ERROR_END###");
+        if (!errorMsg.isEmpty()) {
+            String reason = errorMsg.startsWith("INVALID:") ? errorMsg.substring(8).trim() : errorMsg.trim();
+            throw new AiGenerationException("Input không hợp lệ: " + reason);
+        }
+
         String algo = extractWithDelimiter(rawContent, "###ALGORITHM_START###", "###ALGORITHM_END###");
         String complexity = extractWithDelimiter(rawContent, "###COMPLEXITY_START###", "###COMPLEXITY_END###");
         String html = extractWithDelimiter(rawContent, "###HTML_START###", "###HTML_END###");
@@ -184,18 +190,28 @@ public class AiVisualizerService {
 
     private String buildUserPrompt(AiVisualizerRequest request) {
         String safeDesc = sanitizerService.sanitizeAndTruncate(request.getDescription());
+        
+        String inputToUse = request.getExampleInput();
+        String outputToUse = request.getExampleOutput();
+        
+        if (request.getUserInput() != null && !request.getUserInput().trim().isEmpty()) {
+            inputToUse = request.getUserInput().trim();
+            outputToUse = "(AI tự tính toán theo Input của người dùng)";
+        }
+        
         return String.format(
             "Tên bài toán: %s\\n" +
             "Mô tả: %s\\n" +
             "Ràng buộc: %s\\n" +
-            "Input mẫu: %s\\n" +
-            "Output mẫu: %s\\n" +
+            "Input mô phỏng: %s\\n" +
+            "Output mô phỏng: %s\\n" +
             "Gợi ý: %s",
             request.getTitle(), safeDesc, request.getConstraints(), 
-            request.getExampleInput(), request.getExampleOutput(), 
+            inputToUse, outputToUse, 
             request.getHint() != null ? request.getHint() : "Không có"
         );
     }
+
 
     private void saveToCache(String problemId, String userId, AiVisualizerResponse response) {
         if (problemId == null || problemId.isEmpty()) return;

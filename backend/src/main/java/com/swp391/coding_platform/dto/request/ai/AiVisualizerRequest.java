@@ -17,5 +17,6 @@ public class AiVisualizerRequest {
     private String exampleInput;
     private String exampleOutput;
     private String hint;
+    private String userInput;
     private boolean forceRegenerate;
 }

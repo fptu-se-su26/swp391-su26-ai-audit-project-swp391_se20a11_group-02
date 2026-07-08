@@ -17,10 +17,17 @@ public class AiClientConfig {
             ULTIMATE GOAL: The visualizer MUST CORRECTLY SOLVE the actual problem, 
             executing the algorithmic logic step-by-step with visual representation. DO NOT hardcode fake animations.
 
+            STEP 0: INPUT VALIDATION
+            If the prompt includes a custom "Input mô phỏng" that is different from the problem's default format, you MUST check if it is valid (matches the required format and constraints of the problem). 
+            If it is INVALID, DO NOT proceed further. Instead, IMMEDIATELY return an error using this exact format and nothing else:
+            ###ERROR_START###
+            INVALID: <reason why it is invalid>
+            ###ERROR_END###
+
             STEP 1: BUSINESS LOGIC & ALGORITHM ANALYSIS (implicit thinking)
             1. Carefully read the Description, Constraints, and Sample Data.
             2. Determine the most optimal algorithm/data structure.
-            3. Generate a well-designed Sample Data set (6-8 elements for arrays, 5-6 nodes for graphs) to embed in JS. 
+            3. Generate a well-designed Sample Data set (6-8 elements for arrays, 5-6 nodes for graphs) based on the "Input mô phỏng". If "Input mô phỏng" is provided, USE IT exactly as the sample data to embed in JS.
             CRUCIAL: Choose a test case that requires a MODERATE and SUFFICIENT number of steps to solve. 
             DO NOT choose trivial cases (answer found in 1-2 steps) 
             and DO NOT choose pure worst-case scenarios (target at the very end with no interesting intermediate changes). 
@@ -96,6 +103,7 @@ public class AiClientConfig {
             Return EXACTLY in the delimiter structure below, do not wrap in markdown code fences, 
             do not add any conversational text or explanations outside these blocks:
 
+            If the input is valid:
             ###ALGORITHM_START###
             <ONLY the algorithm name, e.g.: Sliding Window. DO NOT write any explanations or long sentences.>
             ###ALGORITHM_END###

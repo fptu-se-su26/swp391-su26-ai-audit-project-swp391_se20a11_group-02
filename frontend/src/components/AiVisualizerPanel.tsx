@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useAiVisualizer } from '../hooks/useAiVisualizer';
 
 interface AiVisualizerPanelProps {
@@ -8,6 +8,7 @@ interface AiVisualizerPanelProps {
 const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest }) => {
     const { isLoading, data, error, jobStatus, generate, regenerate, checkCache } = useAiVisualizer();
     const iframeRef = useRef(null);
+    const [userInput, setUserInput] = useState<string>('');
 
     useEffect(() => {
         if (problemRequest && problemRequest.problemId) {
@@ -16,11 +17,11 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
     }, [problemRequest?.problemId, checkCache]);
 
     const handleGenerate = () => {
-        generate(problemRequest);
+        generate({ ...problemRequest, userInput });
     };
 
     const handleRegenerate = () => {
-        regenerate(problemRequest);
+        regenerate({ ...problemRequest, userInput });
     };
 
     const handleSpeedChange = (e: any) => {
@@ -33,17 +34,43 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
 
     return (
         <div className="p-4 bg-gray-800 rounded-xl shadow-lg text-white">
-            {!isLoading && !data && !error && (
-                <div className="flex flex-col items-center justify-center p-8 space-y-4">
-                    <p className="text-gray-300 text-center max-w-md">
-                        Want to see how this algorithm works? AI can analyze and simulate it step-by-step for you.
-                    </p>
+            {!isLoading && !data && (
+                <div className="flex flex-col items-center justify-center p-8 space-y-6">
+                    <div className="text-center max-w-md space-y-2">
+                        <p className="text-gray-300">
+                            Want to see how this algorithm works? AI can analyze and simulate it step-by-step for you.
+                        </p>
+                        <p className="text-sm text-gray-400">
+                            (Optional) You can provide your own input below for the AI to simulate, otherwise it will use the problem's default example input.
+                        </p>
+                    </div>
+                    
+                    <div className="w-full max-w-md">
+                        <label htmlFor="userInput" className="block text-sm font-medium text-gray-400 mb-1">
+                            Custom Input (Optional)
+                        </label>
+                        <textarea
+                            id="userInput"
+                            rows={3}
+                            className="w-full bg-gray-900 text-gray-200 border border-gray-600 rounded-lg p-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-600 transition"
+                            placeholder="Enter your custom input here..."
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                        />
+                    </div>
+
+                    {error && (
+                        <div className="w-full max-w-md p-4 border border-red-500 bg-red-900/20 rounded-lg text-red-400 text-sm text-center">
+                            {error}
+                        </div>
+                    )}
+
                     <button
                         onClick={handleGenerate}
                         disabled={isLoading}
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-all shadow-md flex items-center space-x-2"
                     >
-                        <span>🤖 Ask AI to Simulate Algorithm</span>
+                        <span>{error ? '🔄 Try Again' : '🤖 Ask AI to Simulate Algorithm'}</span>
                     </button>
                 </div>
             )}
@@ -56,17 +83,7 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
                 </div>
             )}
 
-            {error && !isLoading && (
-                <div className="flex flex-col items-center p-8 space-y-4 border border-red-500 bg-red-900/20 rounded-lg">
-                    <p className="text-red-400 text-lg text-center font-medium">{error}</p>
-                    <button
-                        onClick={handleGenerate}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-semibold transition"
-                    >
-                        Try again
-                    </button>
-                </div>
-            )}
+
 
             {data && !isLoading && (
                 <div className="flex flex-col space-y-4">
