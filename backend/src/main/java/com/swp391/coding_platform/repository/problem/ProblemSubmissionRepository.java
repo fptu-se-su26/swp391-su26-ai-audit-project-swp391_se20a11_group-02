@@ -13,9 +13,10 @@ import java.util.List;
 
 @Repository
 public interface ProblemSubmissionRepository extends JpaRepository<ProblemSubmissionEntity, Integer> {
-    @Query("SELECT p.title, p.difficulty, COUNT(ps) FROM ProblemSubmissionEntity ps " +
+    @Query("SELECT pv.title, pv.difficulty, COUNT(ps) FROM ProblemSubmissionEntity ps " +
            "JOIN ps.problem p " +
-           "GROUP BY p.title, p.difficulty " +
+           "JOIN p.currentVersion pv " +
+           "GROUP BY pv.title, pv.difficulty " +
            "ORDER BY COUNT(ps) DESC")
     List<Object[]> findTopProblems(Pageable pageable);
     long countByUserIdAndProblemIdAndVerdict(Integer userId, Integer problemId, OjVerdict verdict);
