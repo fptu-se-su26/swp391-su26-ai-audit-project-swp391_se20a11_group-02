@@ -115,12 +115,21 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
                                     <option value="500">1x</option>
                                 </select>
                             </div>
-                            <button
-                                onClick={handleRegenerate}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition"
-                            >
-                                🔄 Generate another simulation
-                            </button>
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="text"
+                                    placeholder="New custom input (optional)..."
+                                    className="bg-gray-900 text-gray-200 border border-gray-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 w-48 transition-colors"
+                                    value={userInput}
+                                    onChange={(e) => setUserInput(e.target.value)}
+                                />
+                                <button
+                                    onClick={handleRegenerate}
+                                    className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-semibold transition whitespace-nowrap"
+                                >
+                                    🔄 Regenerate
+                                </button>
+                            </div>
                         </div>
                     </div>
 
