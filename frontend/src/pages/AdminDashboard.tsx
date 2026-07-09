@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import DiffViewer from '../components/common/DiffViewer';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { adminService } from '../services/adminService';
 import { fetchCourseCurriculum, fetchLearningLessonDetail } from '../services/courseService';
@@ -197,6 +198,41 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'problems' | 'contest' | 'instructor' | 'users' | 'financial' | 'problems-create' | 'problems-edit'>(getTabFromUrl(tab));
+
+  // --- Problem History State ---
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [problemVersions, setProblemVersions] = useState<any[]>([]);
+  const [selectedVersionForDiff, setSelectedVersionForDiff] = useState<any>(null);
+  const [historyProblemId, setHistoryProblemId] = useState<number | null>(null);
+  const [selectedProblemForView, setSelectedProblemForView] = useState<AdminProblem | null>(null);
+
+  const handleViewProblemHistory = async (problemId: number) => {
+    try {
+      const versions = await adminService.getProblemVersions(problemId);
+      setProblemVersions(versions);
+      setHistoryProblemId(problemId);
+      setShowHistoryModal(true);
+    } catch (error) {
+      showGlobalToast("Failed to fetch problem history", "error");
+    }
+  };
+
+  const handleRollbackProblemVersion = async (problemId: number, versionId: number) => {
+    try {
+      await adminService.rollbackProblemVersion(problemId, versionId);
+      showGlobalToast("Problem rolled back successfully", "success");
+      
+      // Refresh the history
+      const versions = await adminService.getProblemVersions(problemId);
+      setProblemVersions(versions);
+      
+      // Refresh main table
+      loadData();
+    } catch (error) {
+      showGlobalToast("Failed to rollback problem", "error");
+    }
+  };
+  // -----------------------------
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // States for API data
@@ -232,7 +268,7 @@ export const AdminDashboard: React.FC = () => {
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
   const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
-  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared' | 'draft'>('repository');
+  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared' | 'draft' | 'deleted'>('repository');
   const [problemPage, setProblemPage] = useState(1);
   const [selectedProblems, setSelectedProblems] = useState<number[]>([]);
   const [testcasesList, setTestcasesList] = useState<Omit<AdminProblemTestcase, 'id'>[]>([]);
@@ -1036,6 +1072,23 @@ export const AdminDashboard: React.FC = () => {
     navigate('/admin/problems-create');
   };
 
+  const handleCloneProblem = async (problemId: number) => {
+    triggerConfirm(
+      "Clone Problem",
+      "Are you sure you want to clone this problem? This will create a duplicate copy with all its testcases.",
+      async () => {
+        try {
+          await adminService.cloneProblem(problemId);
+          showGlobalToast("Problem cloned successfully", "success");
+          loadData();
+        } catch (err: any) {
+          showGlobalToast('Failed to clone problem: ' + (err.message || 'Unknown error'), "error");
+        }
+      }
+    );
+  };
+
+
   const handleEditProblemClick = (p: AdminProblem) => {
     navigate(`/admin/problems-edit/${p.id}`, { state: { problem: p } });
   };
@@ -1431,15 +1484,17 @@ export const AdminDashboard: React.FC = () => {
 
       let matchesSubTab = false;
       if (problemSubTab === 'repository') {
-        matchesSubTab = true; // All problems
+        matchesSubTab = !p.isDeleted; // Only show non-deleted in ALL problems
       } else if (problemSubTab === 'draft') {
-        matchesSubTab = !p.isPublic;
+        matchesSubTab = !p.isPublic && !p.isDeleted;
+      } else if (problemSubTab === 'deleted') {
+        matchesSubTab = p.isDeleted;
       } else if (problemSubTab === 'practice') {
-        matchesSubTab = p.problemScope === 'PRACTICE' && p.isPublic;
+        matchesSubTab = p.problemScope === 'PRACTICE' && p.isPublic && !p.isDeleted;
       } else if (problemSubTab === 'contest') {
-        matchesSubTab = p.problemScope === 'CONTEST' && p.isPublic;
+        matchesSubTab = p.problemScope === 'CONTEST' && p.isPublic && !p.isDeleted;
       } else if (problemSubTab === 'shared') {
-        matchesSubTab = p.problemScope === 'SHARED' && p.isPublic;
+        matchesSubTab = p.problemScope === 'SHARED' && p.isPublic && !p.isDeleted;
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -3830,7 +3885,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">folder_open</span>
-                    All Problems ({problems.length})
+                    All Problems ({problems.filter(p => !p.isDeleted).length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('practice')}
@@ -3840,7 +3895,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">terminal</span>
-                    Practice Problems ({problems.filter(p => p.problemScope === 'PRACTICE' && p.isPublic).length})
+                    Practice Problems ({problems.filter(p => p.problemScope === 'PRACTICE' && p.isPublic && !p.isDeleted).length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('contest')}
@@ -3850,7 +3905,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
-                    Contest Problems ({problems.filter(p => p.problemScope === 'CONTEST' && p.isPublic).length})
+                    Contest Problems ({problems.filter(p => p.problemScope === 'CONTEST' && p.isPublic && !p.isDeleted).length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('shared')}
@@ -3860,7 +3915,7 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">share</span>
-                    Shared Problems ({problems.filter(p => p.problemScope === 'SHARED' && p.isPublic).length})
+                    Shared Problems ({problems.filter(p => p.problemScope === 'SHARED' && p.isPublic && !p.isDeleted).length})
                   </button>
                   <button
                     onClick={() => setProblemSubTab('draft')}
@@ -3870,7 +3925,17 @@ export const AdminDashboard: React.FC = () => {
                       }`}
                   >
                     <span className="material-symbols-outlined text-[16px]">edit_document</span>
-                    Draft Problems ({problems.filter(p => !p.isPublic).length})
+                    Draft Problems ({problems.filter(p => !p.isPublic && !p.isDeleted).length})
+                  </button>
+                  <button
+                    onClick={() => setProblemSubTab('deleted')}
+                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'deleted'
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-slate-500 hover:text-red-500'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    Deleted Problems ({problems.filter(p => p.isDeleted).length})
                   </button>
                 </div>
 
@@ -3919,34 +3984,35 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-                <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
-                  <div className="overflow-x-auto">
+                <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-visible ambient-shadow">
+                  <div className="overflow-x-auto min-h-[280px]">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
-                          <th className="py-4 px-6 w-12 text-center">
+                          <th className="py-4 px-3 w-12 text-center">
                             <input 
                               type="checkbox" 
                               className="w-4 h-4 rounded text-brand-blue border-slate-300 focus:ring-brand-blue"
-                              checked={paginatedProblems.length > 0 && selectedProblems.length === paginatedProblems.length}
+                              disabled={paginatedProblems.every(p => p.isDeleted)}
+                              checked={paginatedProblems.filter(p => !p.isDeleted).length > 0 && selectedProblems.length === paginatedProblems.filter(p => !p.isDeleted).length}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedProblems(paginatedProblems.map(p => p.id));
+                                  setSelectedProblems(paginatedProblems.filter(p => !p.isDeleted).map(p => p.id));
                                 } else {
                                   setSelectedProblems([]);
                                 }
                               }}
                             />
                           </th>
-                          <th className="py-4 px-6">ID</th>
-                          <th className="py-4 px-6">Title</th>
-                          <th className="py-4 px-6">Difficulty</th>
-                          <th className="py-4 px-6 text-right">Submissions</th>
-                          <th className="py-4 px-6 text-right">Accepted Rate</th>
-                          <th className="py-4 px-6 text-center">Testcases</th>
-                          <th className="py-4 px-6 text-center">Scope</th>
-                          <th className="py-4 px-6 text-center">Status</th>
-                          <th className="py-4 px-6 text-center">Actions</th>
+                          <th className="py-4 px-3">ID</th>
+                          <th className="py-4 px-3">Title</th>
+                          <th className="py-4 px-3">Difficulty</th>
+                          <th className="py-4 px-3 text-right">Submissions</th>
+                          <th className="py-4 px-3 text-right">Accepted Rate</th>
+                          <th className="py-4 px-3 text-center">Testcases</th>
+                          <th className="py-4 px-3 text-center">Scope</th>
+                          <th className="py-4 px-3 text-center">Status</th>
+                          <th className="py-4 px-3 text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="text-xs font-semibold text-slate-700 divide-y divide-slate-100">
@@ -3958,10 +4024,11 @@ export const AdminDashboard: React.FC = () => {
 
                           return (
                             <tr key={p.id} className={`hover:bg-slate-50/50 transition-colors ${selectedProblems.includes(p.id) ? 'bg-blue-50/30' : ''}`}>
-                              <td className="py-4 px-6 text-center">
+                              <td className="py-4 px-3 text-center">
                                 <input 
                                   type="checkbox" 
                                   className="w-4 h-4 rounded text-brand-blue border-slate-300 focus:ring-brand-blue"
+                                  disabled={p.isDeleted}
                                   checked={selectedProblems.includes(p.id)}
                                   onChange={(e) => {
                                     if (e.target.checked) {
@@ -3972,17 +4039,17 @@ export const AdminDashboard: React.FC = () => {
                                   }}
                                 />
                               </td>
-                              <td className="py-4 px-6 text-brand-blue font-bold">#{p.id}</td>
-                              <td className="py-4 px-6 font-bold text-slate-900">{p.title}</td>
-                              <td className="py-4 px-6">
+                              <td className="py-4 px-3 text-brand-blue font-bold">#{p.id}</td>
+                              <td className="py-4 px-3 font-bold text-slate-900">{p.title}</td>
+                              <td className="py-4 px-3">
                                 <span className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] ${p.difficulty === 'EASY' ? 'bg-emerald-50 text-emerald-600' :
                                   p.difficulty === 'MEDIUM' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'
                                   }`}>{p.difficulty}</span>
                               </td>
-                              <td className="py-4 px-6 text-right font-mono font-bold text-slate-600">
+                              <td className="py-4 px-3 text-right font-mono font-bold text-slate-600">
                                 {totalSubs.toLocaleString()}
                               </td>
-                              <td className="py-4 px-6 text-right font-mono font-bold text-slate-800">
+                              <td className="py-4 px-3 text-right font-mono font-bold text-slate-800">
                                 <div className="flex flex-col items-end gap-1.5">
                                   <span>{acceptedRate}%</span>
                                   <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
@@ -3993,14 +4060,15 @@ export const AdminDashboard: React.FC = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-4 px-6 text-center">
+                              <td className="py-4 px-3 text-center">
                                 <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold border border-slate-200">
                                   {p.totalTestcases || 0}
                                 </span>
                               </td>
-                              <td className="py-4 px-6 text-center">
+                              <td className="py-4 px-3 text-center">
                                 <select
                                   value={p.problemScope}
+                                  disabled={p.isDeleted}
                                   onChange={(e) => {
                                     const newScope = e.target.value as any;
                                     triggerConfirm(
@@ -4009,7 +4077,9 @@ export const AdminDashboard: React.FC = () => {
                                       () => handleUpdateProblemScope(p.id, newScope)
                                     );
                                   }}
-                                  className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${p.problemScope === 'PRACTICE'
+                                  className={`border rounded-lg pl-2.5 pr-8 py-1 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${
+                                    p.isDeleted ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-70' :
+                                    p.problemScope === 'PRACTICE'
                                     ? 'bg-green-50 text-green-600 border-green-200'
                                     : p.problemScope === 'CONTEST'
                                       ? 'bg-blue-50 text-blue-600 border-blue-200'
@@ -4021,7 +4091,7 @@ export const AdminDashboard: React.FC = () => {
                                   <option value="SHARED" className="bg-white text-orange-600 font-bold">Share</option>
                                 </select>
                               </td>
-                              <td className="py-4 px-6 text-center">
+                              <td className="py-4 px-3 text-center">
                                 {p.isDeleted ? (
                                   <span className="inline-block border rounded-lg px-2.5 py-1 text-xs font-bold bg-red-50 border-red-200 text-red-600">
                                     DELETED
@@ -4051,9 +4121,17 @@ export const AdminDashboard: React.FC = () => {
                                   </select>
                                 )}
                               </td>
-                              <td className="py-4 px-6 text-center">
+                              <td className="py-4 px-3 text-center">
                                 {p.isDeleted ? (
-                                  <span className="text-slate-400 text-xs italic font-semibold">Archived</span>
+                                  <div className="flex items-center justify-center gap-2">
+                                    <button
+                                      onClick={() => setSelectedProblemForView(p)}
+                                      className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                      title="View Problem Details"
+                                    >
+                                      <span className="material-symbols-outlined text-[14px]">visibility</span> View
+                                    </button>
+                                  </div>
                                 ) : (
                                   <div className="flex items-center justify-center gap-2">
                                     <button
@@ -4062,12 +4140,35 @@ export const AdminDashboard: React.FC = () => {
                                     >
                                       <span className="material-symbols-outlined text-[14px]">edit</span> Edit
                                     </button>
-                                    <button
-                                      onClick={() => handleDeleteProblemClick(p.id)}
-                                      className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-[14px]">delete</span> Delete
-                                    </button>
+                                    
+                                    <div className="relative group">
+                                      <button className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold p-1 rounded-lg transition-all flex items-center shadow-sm border-none cursor-pointer">
+                                        <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                                      </button>
+                                      
+                                      {/* Dropdown Menu */}
+                                      <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-xl shadow-lg border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col overflow-hidden">
+                                        <button
+                                          onClick={() => handleViewProblemHistory(p.id)}
+                                          className="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 hover:text-indigo-600 font-bold text-left transition-colors w-full border-none cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-[14px]">history</span> History
+                                        </button>
+                                        <button
+                                          onClick={() => handleCloneProblem(p.id)}
+                                          className="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 hover:text-teal-600 font-bold text-left transition-colors w-full border-none cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-[14px]">content_copy</span> Clone
+                                        </button>
+                                        <div className="h-px bg-slate-100 w-full m-0"></div>
+                                        <button
+                                          onClick={() => handleDeleteProblemClick(p.id)}
+                                          className="flex items-center gap-2 px-3 py-2 text-xs text-rose-500 hover:bg-rose-50 font-bold text-left transition-colors w-full border-none cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-[14px]">delete</span> Delete
+                                        </button>
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
                               </td>
@@ -5322,6 +5423,115 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* ================= MODAL: VIEW DELETED PROBLEM DETAILS ================= */}
+      {selectedProblemForView && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedProblemForView(null)}></div>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col relative z-10 animate-fade-in-up border border-slate-200 overflow-hidden">
+            {/* Header */}
+            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center text-slate-500">
+                  <span className="material-symbols-outlined">description</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-800 tracking-tight">Problem Details</h2>
+                  <p className="text-sm font-semibold text-slate-500 mt-0.5">Read-only view for archived problem</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedProblemForView(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 hover:text-slate-900 transition-colors cursor-pointer border-none"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+            
+            {/* Content */}
+            <div className="p-8 overflow-y-auto flex-1 bg-white custom-scrollbar text-left">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                {/* Main Content */}
+                <div className="md:col-span-2 space-y-8">
+                  <div>
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Title</h3>
+                    <div className="text-xl font-bold text-slate-800">{selectedProblemForView.title}</div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Description</h3>
+                    <div className="prose prose-sm prose-slate max-w-none text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100" dangerouslySetInnerHTML={{ __html: selectedProblemForView.description || 'No description provided.' }} />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Input Format</h3>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">{selectedProblemForView.inputDescription || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Output Format</h3>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700 whitespace-pre-wrap">{selectedProblemForView.outputDescription || 'N/A'}</div>
+                    </div>
+                  </div>
+                  
+                  {selectedProblemForView.constraints && (
+                    <div>
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Constraints</h3>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700 whitespace-pre-wrap font-mono text-xs">{selectedProblemForView.constraints}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sidebar Details */}
+                <div className="space-y-6 bg-slate-50 p-6 rounded-2xl border border-slate-100 h-fit">
+                  <div>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Status</h3>
+                    <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black bg-rose-50 text-rose-500 border border-rose-100">
+                      DELETED / ARCHIVED
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Difficulty</h3>
+                    <div className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black ${
+                      selectedProblemForView.difficulty === 'EASY' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                      selectedProblemForView.difficulty === 'MEDIUM' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                      selectedProblemForView.difficulty === 'HARD' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                      'bg-slate-50 text-slate-600 border border-slate-200'
+                    }`}>
+                      {selectedProblemForView.difficulty || 'UNKNOWN'}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Scope</h3>
+                    <div className="text-sm font-bold text-slate-700 capitalize">{selectedProblemForView.problemScope?.toLowerCase() || 'Practice'}</div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Limits</h3>
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-slate-400">timer</span> {selectedProblemForView.timeLimitMs} ms
+                    </div>
+                    <div className="text-sm font-bold text-slate-700 flex items-center gap-2 mt-1">
+                      <span className="material-symbols-outlined text-[16px] text-slate-400">memory</span> {selectedProblemForView.memoryLimitKb} KB
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Created At</h3>
+                    <div className="text-sm font-bold text-slate-700">
+                      {selectedProblemForView.createdAt ? new Date(selectedProblemForView.createdAt).toLocaleString() : 'Unknown'}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ================= MODAL: STATUS CHANGE CONFIRMATION ================= */}
       {statusConfirmTarget && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
@@ -5547,6 +5757,147 @@ export const AdminDashboard: React.FC = () => {
               >
                 Close Report
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Diff Modal */}
+      {selectedVersionForDiff && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedVersionForDiff(null)}></div>
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border border-white/20 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+              <div>
+                <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-indigo-500 icon-fill text-3xl">compare_arrows</span>
+                  So sánh phiên bản
+                </h3>
+                <p className="text-slate-500 text-sm mt-1 font-medium">So sánh v{selectedVersionForDiff.versionNumber} với phiên bản hiện hành (v{problemVersions[0]?.versionNumber})</p>
+              </div>
+              <button 
+                onClick={() => setSelectedVersionForDiff(null)}
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none bg-transparent cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+            
+            <div className="p-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50">
+              <h4 className="font-bold text-slate-800 mb-2">Tiêu đề (Title)</h4>
+              <DiffViewer oldText={selectedVersionForDiff.title} newText={problemVersions[0]?.title} mode="words" />
+              
+              <h4 className="font-bold text-slate-800 mb-2 mt-6">Mô tả (Description)</h4>
+              <DiffViewer oldText={selectedVersionForDiff.description} newText={problemVersions[0]?.description} mode="words" />
+
+              <h4 className="font-bold text-slate-800 mb-2 mt-6">Input / Output</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs text-slate-500 block mb-1">Input Description</span>
+                  <DiffViewer oldText={selectedVersionForDiff.inputDescription} newText={problemVersions[0]?.inputDescription} mode="words" />
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 block mb-1">Output Description</span>
+                  <DiffViewer oldText={selectedVersionForDiff.outputDescription} newText={problemVersions[0]?.outputDescription} mode="words" />
+                </div>
+              </div>
+              
+              <h4 className="font-bold text-slate-800 mb-2 mt-6">Giới hạn (Limits)</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs text-slate-500 block mb-1">Time Limit (ms)</span>
+                  <DiffViewer oldText={String(selectedVersionForDiff.timeLimitMs || '')} newText={String(problemVersions[0]?.timeLimitMs || '')} mode="words" />
+                </div>
+                <div>
+                  <span className="text-xs text-slate-500 block mb-1">Memory Limit (KB)</span>
+                  <DiffViewer oldText={String(selectedVersionForDiff.memoryLimitKb || '')} newText={String(problemVersions[0]?.memoryLimitKb || '')} mode="words" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Problem History Modal */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => { setShowHistoryModal(false); setSelectedVersionForDiff(null); }}></div>
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-white/20 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+              <div>
+                <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-indigo-500 icon-fill text-3xl">history</span>
+                  Problem Version History
+                </h3>
+                <p className="text-slate-500 text-sm mt-1 font-medium">Problem ID: {historyProblemId}</p>
+              </div>
+              <button 
+                onClick={() => { setShowHistoryModal(false); setSelectedVersionForDiff(null); }}
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none bg-transparent cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+            
+            <div className="p-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50">
+              {problemVersions.length === 0 ? (
+                <div className="text-center py-12">
+                  <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">history_toggle_off</span>
+                  <p className="text-slate-500 font-medium">No version history found for this problem.</p>
+                </div>
+              ) : (
+                <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+                  {problemVersions.map((version, index) => (
+                    <div key={version.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-indigo-100 text-indigo-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                        <span className="font-bold text-sm">v{version.versionNumber}</span>
+                      </div>
+                      
+                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-lg text-slate-800">{version.title}</h4>
+                          <span className="text-xs font-semibold px-2 py-1 bg-slate-100 text-slate-600 rounded-lg">
+                            {new Date(version.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-y-2 gap-x-4 mt-4 text-sm">
+                          <div className="flex flex-col">
+                            <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Difficulty</span>
+                            <span className="font-medium text-slate-700">{version.difficulty}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Limits</span>
+                            <span className="font-medium text-slate-700">{version.timeLimitMs}ms / {version.memoryLimitKb}KB</span>
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-slate-100">
+                          <div className="text-sm text-slate-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: version.description }} />
+                          <div className="flex justify-end gap-2 mt-4">
+                            {index !== 0 && historyProblemId && (
+                              <>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); setSelectedVersionForDiff(version); }}
+                                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">compare_arrows</span>
+                                  So sánh
+                                </button>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleRollbackProblemVersion(historyProblemId, version.id); }}
+                                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">history</span>
+                                  Khôi phục
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

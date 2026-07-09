@@ -24,7 +24,8 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProblemController {
 
-    ProblemService problemService;
+    UserProblemService userProblemService;
+    ProblemCommentService problemCommentService;
     ProblemSubmissionService problemSubmissionService;
 
     // 1. Problem List API
@@ -40,7 +41,7 @@ public class ProblemController {
             }
         }
 
-        List<ProblemListItemResponse> result = problemService.getProblems(userId);
+        List<ProblemListItemResponse> result = userProblemService.getProblems(userId);
 
         return ResponseEntity.ok(ApiResponse.<List<ProblemListItemResponse>>builder()
                 .status(200)
@@ -65,7 +66,7 @@ public class ProblemController {
             }
         }
 
-        ProblemDescriptionResponse result = problemService.getProblemDescription(id, userId);
+        ProblemDescriptionResponse result = userProblemService.getProblemDescription(id, userId);
 
         return ResponseEntity.ok(ApiResponse.<ProblemDescriptionResponse>builder()
                 .status(200)
@@ -81,7 +82,7 @@ public class ProblemController {
     public ResponseEntity<ApiResponse<List<ProblemCommentResponse>>> getDiscussion(
             @PathVariable("id") Integer id) {
 
-        List<ProblemCommentResponse> result = problemService.getComments(id);
+        List<ProblemCommentResponse> result = problemCommentService.getComments(id);
 
         return ResponseEntity.ok(ApiResponse.<List<ProblemCommentResponse>>builder()
                 .status(200)
@@ -106,7 +107,7 @@ public class ProblemController {
             }
         }
 
-        ProblemCommentResponse result = problemService.addComment(id, userId, request);
+        ProblemCommentResponse result = problemCommentService.addComment(id, userId, request);
 
         return ResponseEntity.ok(ApiResponse.<ProblemCommentResponse>builder()
                 .status(200)
@@ -131,7 +132,7 @@ public class ProblemController {
             }
         }
 
-        ProblemSolutionResponse result = problemService.getProblemSolution(id, userId);
+        ProblemSolutionResponse result = userProblemService.getProblemSolution(id, userId);
 
         return ResponseEntity.ok(ApiResponse.<ProblemSolutionResponse>builder()
                 .status(200)

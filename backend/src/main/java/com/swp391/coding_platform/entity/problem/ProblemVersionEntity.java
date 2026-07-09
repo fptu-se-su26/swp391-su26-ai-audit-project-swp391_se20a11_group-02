@@ -86,6 +86,7 @@ public class ProblemVersionEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     Instant createdAt = Instant.now();
 
+    @Builder.Default
     @OneToMany(mappedBy = "problemVersion", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProblemTestcaseEntity> testcases = new ArrayList<>();
 }

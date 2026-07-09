@@ -1,5 +1,6 @@
 package com.swp391.coding_platform.entity.problem;
 
+import com.swp391.coding_platform.entity.enums.ProblemScope;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -56,10 +57,19 @@ public class ProblemEntity {
     @Column(name = "score", nullable = false, precision = 10, scale = 2)
     BigDecimal score = new BigDecimal("100.00");
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "problem_scope")
+    ProblemScope problemScope;
+
+    @Builder.Default
+    @Column(name = "is_public", nullable = false)
+    Boolean isPublic = false;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "current_version_id")
     ProblemVersionEntity currentVersion;
 
+    @Builder.Default
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProblemVersionEntity> versions = new ArrayList<>();
 }

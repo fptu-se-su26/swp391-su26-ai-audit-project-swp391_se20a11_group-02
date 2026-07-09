@@ -298,9 +298,9 @@ public class ContestService {
 
             return ContestProblemResponse.builder()
                     .problemId(problem.getId())
-                    .title(problem.getTitle())
+                    .title(problem.getCurrentVersion().getTitle())
                     .orderIndex(cp.getOrderIndex())
-                    .difficulty(problem.getDifficulty() != null ? problem.getDifficulty().name() : "MEDIUM")
+                    .difficulty(problem.getCurrentVersion().getDifficulty() != null ? problem.getCurrentVersion().getDifficulty().name() : "MEDIUM")
                     .totalSubmission(problem.getTotalSubmission())
                     .totalAccepted(problem.getTotalAccepted())
                     .status(status)
@@ -512,6 +512,7 @@ public class ContestService {
         ContestProblemEntity cp = ContestProblemEntity.builder()
                 .contest(contest)
                 .problem(problem)
+                .problemVersion(problem.getCurrentVersion())
                 .orderIndex(request.getOrderIndex())
                 .build();
 
@@ -606,7 +607,7 @@ public class ContestService {
                     .displayName(s.getUser().getDisplayname() != null ? s.getUser().getDisplayname() : s.getUser().getUsername())
                     .problemLabel(label)
                     .problemId(s.getProblem().getId())
-                    .problemTitle(s.getProblem().getTitle())
+                    .problemTitle(s.getProblem().getCurrentVersion().getTitle())
                     .status(subStatus)
                     .lang(langStr)
                     .runtime(runtimeStr)
@@ -649,7 +650,7 @@ public class ContestService {
         List<ProblemTagMappingEntity> mappings = problemTagMappingRepository.findByProblemId(problemId);
         List<String> tags = mappings.stream().map(m -> m.getTag().getName()).toList();
 
-        Map<String, String> templates = generateTemplates(problem.getTitle());
+        Map<String, String> templates = generateTemplates(problem.getCurrentVersion().getTitle());
 
         String attemptStatus = "unsolved";
         String sourceCode = null;
@@ -682,8 +683,8 @@ public class ContestService {
         }
 
         String difficultyStr = "Medium";
-        if (problem.getDifficulty() != null) {
-            String name = problem.getDifficulty().name();
+        if (problem.getCurrentVersion().getDifficulty() != null) {
+            String name = problem.getCurrentVersion().getDifficulty().name();
             difficultyStr = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
         }
 
@@ -698,14 +699,14 @@ public class ContestService {
 
         return ContestProblemDetailResponse.builder()
                 .id(problem.getId())
-                .title(problem.getTitle())
+                .title(problem.getCurrentVersion().getTitle())
                 .difficulty(difficultyStr)
-                .description(problem.getDescription())
-                .inputDescription(problem.getInputDescription())
-                .outputDescription(problem.getOutputDescription())
-                .constraints(problem.getConstraints())
-                .exampleInput(problem.getExampleInput())
-                .exampleOutput(problem.getExampleOutput())
+                .description(problem.getCurrentVersion().getDescription())
+                .inputDescription(problem.getCurrentVersion().getInputDescription())
+                .outputDescription(problem.getCurrentVersion().getOutputDescription())
+                .constraints(problem.getCurrentVersion().getConstraints())
+                .exampleInput(problem.getCurrentVersion().getExampleInput())
+                .exampleOutput(problem.getCurrentVersion().getExampleOutput())
                 .tags(tags)
                 .templates(templates)
                 .status(attemptStatus)
@@ -714,8 +715,8 @@ public class ContestService {
                 .sourceCode(sourceCode)
                 .languageId(languageId)
                 .problemLabel(String.valueOf(labelChar))
-                .timeLimitMs(problem.getTimeLimitMs())
-                .memoryLimitKb(problem.getMemoryLimitKb())
+                .timeLimitMs(problem.getCurrentVersion().getTimeLimitMs())
+                .memoryLimitKb(problem.getCurrentVersion().getMemoryLimitKb())
                 .build();
     }
 
