@@ -65,11 +65,30 @@ public class ProblemEntity {
     @Column(name = "is_public", nullable = false)
     Boolean isPublic = false;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "current_version_id")
-    ProblemVersionEntity currentVersion;
-
     @Builder.Default
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProblemVersionEntity> versions = new ArrayList<>();
+
+    public ProblemVersionEntity getCurrentVersion() {
+        if (versions == null) return null;
+        return versions.stream()
+                .filter(ProblemVersionEntity::getIsActive)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void setCurrentVersion(ProblemVersionEntity version) {
+        if (this.versions == null) {
+            this.versions = new ArrayList<>();
+        }
+        for (ProblemVersionEntity v : this.versions) {
+            v.setIsActive(false);
+        }
+        if (version != null) {
+            version.setIsActive(true);
+            if (!this.versions.contains(version)) {
+                this.versions.add(version);
+            }
+        }
+    }
 }

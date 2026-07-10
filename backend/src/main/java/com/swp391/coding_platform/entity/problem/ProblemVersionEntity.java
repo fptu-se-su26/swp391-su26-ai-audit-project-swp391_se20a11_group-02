@@ -76,6 +76,10 @@ public class ProblemVersionEntity {
     @Column(name = "is_public", nullable = false)
     Boolean isPublic = false;
 
+    @Builder.Default
+    @Column(name = "is_active", nullable = false)
+    Boolean isActive = false;
+
     @Column(name = "solutions", columnDefinition = "TEXT")
     String solutions;
 

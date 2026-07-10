@@ -7,6 +7,7 @@ import com.swp391.coding_platform.dto.judge0.Judge0TokenResponse;
 import com.swp391.coding_platform.dto.request.OjSubmissionRequest;
 import com.swp391.coding_platform.dto.response.OjSubmissionInitialResponse;
 import com.swp391.coding_platform.dto.response.OjWebSocketMessage;
+import com.swp391.coding_platform.entity.enums.ContestStatus;
 import com.swp391.coding_platform.entity.enums.OjVerdict;
 import com.swp391.coding_platform.entity.problem.ProblemEntity;
 import com.swp391.coding_platform.entity.problem.ProblemSubmissionDetailEntity;
@@ -93,8 +94,8 @@ public class Judge0Service {
 
             // Tính toán contest status dựa trên thời gian thực
             Instant now = Instant.now();
-            boolean isOngoing = contest.getStatus() != com.swp391.coding_platform.entity.enums.ContestStatus.DRAFT
-                    && contest.getStatus() != com.swp391.coding_platform.entity.enums.ContestStatus.DELETED
+            boolean isOngoing = contest.getStatus() != ContestStatus.DRAFT
+                    && contest.getStatus() != ContestStatus.DELETED
                     && !now.isBefore(contest.getStartTime())
                     && !now.isAfter(contest.getEndTime());
 

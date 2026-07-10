@@ -96,7 +96,7 @@ export const useAiVisualizer = () => {
             } else {
                 throw new Error('Đã xảy ra lỗi không xác định.');
             }
-        } catch (err) {
+        } catch (err: any) {
             if (err.name !== 'AbortError') {
                 setError(err.message);
                 setJobStatus('error');
