@@ -202,14 +202,20 @@ export const AdminDashboard: React.FC = () => {
   // --- Problem History State ---
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [problemVersions, setProblemVersions] = useState<any[]>([]);
-  const [selectedVersionForDiff, setSelectedVersionForDiff] = useState<any>(null);
+  const [selectedVersionIndexForDiff, setSelectedVersionIndexForDiff] = useState<number | null>(null);
+  
+  const formatTestcases = (testcases?: any[]) => {
+    if (!testcases || testcases.length === 0) return 'No testcases available';
+    return testcases.map((tc, idx) => `Testcase ${idx + 1}:\nInput:\n${tc.inputData}\nExpected Output:\n${tc.expectedOutput}`).join('\n\n');
+  };
+
   const [historyProblemId, setHistoryProblemId] = useState<number | null>(null);
   const [selectedProblemForView, setSelectedProblemForView] = useState<AdminProblem | null>(null);
 
   const handleViewProblemHistory = async (problemId: number) => {
     try {
       const versions = await adminService.getProblemVersions(problemId);
-      setProblemVersions(versions);
+      setProblemVersions(versions.sort((a: any, b: any) => b.versionNumber - a.versionNumber));
       setHistoryProblemId(problemId);
       setShowHistoryModal(true);
     } catch (error) {
@@ -224,7 +230,7 @@ export const AdminDashboard: React.FC = () => {
       
       // Refresh the history
       const versions = await adminService.getProblemVersions(problemId);
-      setProblemVersions(versions);
+      setProblemVersions(versions.sort((a: any, b: any) => b.versionNumber - a.versionNumber));
       
       // Refresh main table
       loadData();
@@ -5763,20 +5769,21 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {/* Diff Modal */}
-      {selectedVersionForDiff && (
+      {/* Diff Modal */}
+      {selectedVersionIndexForDiff !== null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedVersionForDiff(null)}></div>
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedVersionIndexForDiff(null)}></div>
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border border-white/20 animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center px-8 py-6 border-b border-slate-100 bg-slate-50/50">
               <div>
                 <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
                   <span className="material-symbols-outlined text-indigo-500 icon-fill text-3xl">compare_arrows</span>
-                  So sánh phiên bản
+                  Compare Versions
                 </h3>
-                <p className="text-slate-500 text-sm mt-1 font-medium">So sánh v{selectedVersionForDiff.versionNumber} với phiên bản hiện hành (v{problemVersions[0]?.versionNumber})</p>
+                <p className="text-slate-500 text-sm mt-1 font-medium">Compare v{problemVersions[selectedVersionIndexForDiff + 1]?.versionNumber} with newer version (v{problemVersions[selectedVersionIndexForDiff]?.versionNumber})</p>
               </div>
               <button 
-                onClick={() => setSelectedVersionForDiff(null)}
+                onClick={() => setSelectedVersionIndexForDiff(null)}
                 className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none bg-transparent cursor-pointer"
               >
                 <span className="material-symbols-outlined text-2xl">close</span>
@@ -5784,35 +5791,42 @@ export const AdminDashboard: React.FC = () => {
             </div>
             
             <div className="p-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50">
-              <h4 className="font-bold text-slate-800 mb-2">Tiêu đề (Title)</h4>
-              <DiffViewer oldText={selectedVersionForDiff.title} newText={problemVersions[0]?.title} mode="words" />
+              <h4 className="font-bold text-slate-800 mb-2">Title</h4>
+              <DiffViewer oldText={problemVersions[selectedVersionIndexForDiff + 1]?.title} newText={problemVersions[selectedVersionIndexForDiff]?.title} mode="words" />
               
-              <h4 className="font-bold text-slate-800 mb-2 mt-6">Mô tả (Description)</h4>
-              <DiffViewer oldText={selectedVersionForDiff.description} newText={problemVersions[0]?.description} mode="words" />
+              <h4 className="font-bold text-slate-800 mb-2 mt-6">Description</h4>
+              <DiffViewer oldText={problemVersions[selectedVersionIndexForDiff + 1]?.description} newText={problemVersions[selectedVersionIndexForDiff]?.description} mode="words" />
 
               <h4 className="font-bold text-slate-800 mb-2 mt-6">Input / Output</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-xs text-slate-500 block mb-1">Input Description</span>
-                  <DiffViewer oldText={selectedVersionForDiff.inputDescription} newText={problemVersions[0]?.inputDescription} mode="words" />
+                  <DiffViewer oldText={problemVersions[selectedVersionIndexForDiff + 1]?.inputDescription} newText={problemVersions[selectedVersionIndexForDiff]?.inputDescription} mode="words" />
                 </div>
                 <div>
                   <span className="text-xs text-slate-500 block mb-1">Output Description</span>
-                  <DiffViewer oldText={selectedVersionForDiff.outputDescription} newText={problemVersions[0]?.outputDescription} mode="words" />
+                  <DiffViewer oldText={problemVersions[selectedVersionIndexForDiff + 1]?.outputDescription} newText={problemVersions[selectedVersionIndexForDiff]?.outputDescription} mode="words" />
                 </div>
               </div>
               
-              <h4 className="font-bold text-slate-800 mb-2 mt-6">Giới hạn (Limits)</h4>
+              <h4 className="font-bold text-slate-800 mb-2 mt-6">Limits</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-xs text-slate-500 block mb-1">Time Limit (ms)</span>
-                  <DiffViewer oldText={String(selectedVersionForDiff.timeLimitMs || '')} newText={String(problemVersions[0]?.timeLimitMs || '')} mode="words" />
+                  <DiffViewer oldText={String(problemVersions[selectedVersionIndexForDiff + 1]?.timeLimitMs || '')} newText={String(problemVersions[selectedVersionIndexForDiff]?.timeLimitMs || '')} mode="words" />
                 </div>
                 <div>
                   <span className="text-xs text-slate-500 block mb-1">Memory Limit (KB)</span>
-                  <DiffViewer oldText={String(selectedVersionForDiff.memoryLimitKb || '')} newText={String(problemVersions[0]?.memoryLimitKb || '')} mode="words" />
+                  <DiffViewer oldText={String(problemVersions[selectedVersionIndexForDiff + 1]?.memoryLimitKb || '')} newText={String(problemVersions[selectedVersionIndexForDiff]?.memoryLimitKb || '')} mode="words" />
                 </div>
               </div>
+
+              <h4 className="font-bold text-slate-800 mb-2 mt-6">Testcases</h4>
+              <DiffViewer 
+                oldText={formatTestcases(problemVersions[selectedVersionIndexForDiff + 1]?.testcases)} 
+                newText={formatTestcases(problemVersions[selectedVersionIndexForDiff]?.testcases)} 
+                mode="words" 
+              />
             </div>
           </div>
         </div>
@@ -5821,7 +5835,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Problem History Modal */}
       {showHistoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => { setShowHistoryModal(false); setSelectedVersionForDiff(null); }}></div>
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => { setShowHistoryModal(false); setSelectedVersionIndexForDiff(null); }}></div>
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-white/20 animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center px-8 py-6 border-b border-slate-100 bg-slate-50/50">
               <div>
@@ -5832,7 +5846,7 @@ export const AdminDashboard: React.FC = () => {
                 <p className="text-slate-500 text-sm mt-1 font-medium">Problem ID: {historyProblemId}</p>
               </div>
               <button 
-                onClick={() => { setShowHistoryModal(false); setSelectedVersionForDiff(null); }}
+                onClick={() => { setShowHistoryModal(false); setSelectedVersionIndexForDiff(null); }}
                 className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none bg-transparent cursor-pointer"
               >
                 <span className="material-symbols-outlined text-2xl">close</span>
@@ -5847,7 +5861,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-                  {problemVersions.map((version, index) => (
+                  {problemVersions.slice(0, 3).map((version, index) => (
                     <div key={version.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                       <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-indigo-100 text-indigo-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
                         <span className="font-bold text-sm">v{version.versionNumber}</span>
@@ -5873,22 +5887,26 @@ export const AdminDashboard: React.FC = () => {
                         <div className="mt-4 pt-4 border-t border-slate-100">
                           <div className="text-sm text-slate-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: version.description }} />
                           <div className="flex justify-end gap-2 mt-4">
-                            {index !== 0 && historyProblemId && (
+                            {historyProblemId && (
                               <>
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); setSelectedVersionForDiff(version); }}
-                                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
-                                >
-                                  <span className="material-symbols-outlined text-[14px]">compare_arrows</span>
-                                  So sánh
-                                </button>
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); handleRollbackProblemVersion(historyProblemId, version.id); }}
-                                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
-                                >
-                                  <span className="material-symbols-outlined text-[14px]">history</span>
-                                  Khôi phục
-                                </button>
+                                {problemVersions[index + 1] && (
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); setSelectedVersionIndexForDiff(index); }}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">compare_arrows</span>
+                                    Compare with v{problemVersions[index + 1].versionNumber}
+                                  </button>
+                                )}
+                                {index !== 0 && (
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); handleRollbackProblemVersion(historyProblemId, version.id); }}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">history</span>
+                                    Restore to v{version.versionNumber}
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>
