@@ -45,6 +45,14 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
+  ai:
+    openai:
+      api-key: ${GEMINI_API_KEY}
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai/
+      chat:
+        options:
+          model: gemini-2.5-flash
+
 
 jwt:
   signer-key: ${JWT_SIGNER_KEY}
@@ -104,4 +112,6 @@ ai:
   gemini-api-key: ${GEMINI_API_KEY}
   gemini-model: ${GEMINI_MODEL:gemini-2.5-flash}
   openai-api-key: ${OPENAI_API_KEY:}
+  visualizer:
+    max-requests-per-day: 100
 
