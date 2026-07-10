@@ -122,10 +122,6 @@ public class UserProblemService {
                 log.warn("Failed to parse starter templates for problem {}: {}", id, e.getMessage());
             }
         }
-        if (templates.isEmpty()) {
-            templates = generateTemplates(problem.getCurrentVersion().getTitle());
-        }
-
         String status = "unsolved";
         String sourceCode = null;
         Integer languageId = null;
@@ -208,17 +204,4 @@ public class UserProblemService {
                 .build();
     }
 
-    private java.util.Map<String, String> generateTemplates(String title) {
-        java.util.Map<String, String> templates = new java.util.HashMap<>();
-        if (title.toLowerCase().contains("two sum")) {
-            templates.put("Java", "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Write your code here\n        return new int[0];\n    }\n}");
-            templates.put("Python", "class Solution:\n    def twoSum(self, nums: java.util.List<Integer>, target: int) -> java.util.List<Integer>:\n        # Write your code here\n        pass");
-            templates.put("C++", "class Solution {\npublic:\n    std::vector<int> twoSum(std::vector<int>& nums, int target) {\n        // Write your code here\n        return {};\n    }\n};");
-        } else {
-            templates.put("Java", "class Solution {\n    public void solve() {\n        // Write your code here\n    }\n}");
-            templates.put("Python", "class Solution:\n    def solve(self):\n        # Write your code here\n        pass");
-            templates.put("C++", "class Solution {\npublic:\n    void solve() {\n        // Write your code here\n    }\n};");
-        }
-        return templates;
-    }
 }

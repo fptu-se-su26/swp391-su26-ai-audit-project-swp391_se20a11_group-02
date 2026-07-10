@@ -25,4 +25,5 @@ public class ProblemVersionResponse {
     Integer memoryLimitKb;
     String solutions;
     String createdAt;
+    java.util.List<AdminTestcaseResponse> testcases;
 }
