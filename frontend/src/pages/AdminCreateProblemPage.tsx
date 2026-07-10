@@ -163,7 +163,8 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
         score: newProbScore,
         solutions: newProbSolutions.trim(),
         tags: newProbTags,
-        starterTemplates
+        starterTemplates,
+        isDeleted: false
       });
 
       if (testcasesList.length > 0) {
@@ -174,6 +175,9 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
             orderIndex: idx + 1
           }));
           await adminService.saveProblemTestcases(newProb.id, tcsToSave);
+          if (newProbIsPublic) {
+            await adminService.updateProblemPublicStatus(newProb.id, true);
+          }
         } catch (tcError) {
           showGlobalToast("Problem created, but failed to save testcases.", "error");
         }
@@ -230,7 +234,8 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
         score: newProbScore,
         solutions: newProbSolutions.trim(),
         tags: newProbTags,
-        starterTemplates
+        starterTemplates,
+        isDeleted: false
       });
 
       try {
@@ -240,6 +245,9 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
           orderIndex: idx + 1
         }));
         await adminService.saveProblemTestcases(editingProblemId, tcsToSave);
+        if (newProbIsPublic) {
+          await adminService.updateProblemPublicStatus(editingProblemId, true);
+        }
       } catch (tcError) {
         showGlobalToast("Problem metadata updated, but failed to save testcases.", "error");
       }

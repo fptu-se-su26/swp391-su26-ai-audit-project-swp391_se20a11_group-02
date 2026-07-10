@@ -647,6 +647,23 @@ let mockActivityLogs: ActivityLog[] = [
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const adminService = {
+  cloneProblem: async (problemId: number) => {
+    try {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include' // or 'include' based on authentication mechanism, let's use default if omitted
+      });
+      if (!response.ok) {
+        throw new Error('Failed to clone problem');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error cloning problem:', error);
+      throw error;
+    }
+  },
+
   // Statistics
   async getDashboardStats(): Promise<AdminDashboardStats> {
     try {
@@ -986,6 +1003,30 @@ export const adminService = {
     if (!response.ok) {
       throw new Error('Failed to delete problem');
     }
+  },
+
+  async getProblemVersions(problemId: number): Promise<any[]> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/versions`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch problem versions');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async rollbackProblemVersion(problemId: number, versionId: number): Promise<any> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/rollback/${versionId}`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to rollback problem version');
+    }
+    const data = await response.json();
+    return data.result;
   },
 
   async getTags(): Promise<{ id: number; name: string; slug: string }[]> {
