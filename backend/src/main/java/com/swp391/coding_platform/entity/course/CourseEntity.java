@@ -35,8 +35,6 @@ public class CourseEntity {
     @Column(name = "thumbnail_url", length = 255)
     String thumbnailUrl;
 
-    @Column(name = "text_audio", columnDefinition = "TEXT")
-    String textAudio;
 
     @Column(name = "short_description", nullable = false, length = 255)
     String shortDescription;

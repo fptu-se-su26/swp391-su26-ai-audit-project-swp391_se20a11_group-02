@@ -1127,9 +1127,17 @@ export const InstructorDashboard: React.FC = () => {
   const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
 
   const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+  const [courseSubTab, setCourseSubTab] = useState<'published' | 'review' | 'draft' | 'rejected'>('published');
+
+  // Tab-specific loading states
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [loadingGeneralRevenue, setLoadingGeneralRevenue] = useState(false);
+  const [loadingFilteredRevenue, setLoadingFilteredRevenue] = useState(false);
+  const [loadingTrendData, setLoadingTrendData] = useState(false);
 
   useEffect(() => {
     const fetchInstructorCourses = async () => {
+      setLoadingCourses(true);
       try {
         const coursesData = await instructorService.getCourses();
         if (coursesData && coursesData.length > 0) {
@@ -1141,6 +1149,8 @@ export const InstructorDashboard: React.FC = () => {
       } catch (error) {
         console.error('Failed to fetch instructor courses:', error);
         setInstructorCourses([]);
+      } finally {
+        setLoadingCourses(false);
       }
     };
 
@@ -1153,14 +1163,15 @@ export const InstructorDashboard: React.FC = () => {
       }
     };
 
-    if (user) {
+    if (user && (activeTab === 'dashboard' || activeTab === 'my-courses' || activeTab === 'edit-course')) {
       fetchInstructorCourses();
       fetchCategories();
     }
-  }, [user]);
+  }, [user, activeTab, courseSubTab]);
 
   useEffect(() => {
     const fetchGeneralRevenueData = async () => {
+      setLoadingGeneralRevenue(true);
       try {
         const [recentRegs, payoutLogs, chartData, lifetimeSummary] = await Promise.all([
           instructorService.getRecentRegistrations(),
@@ -1174,16 +1185,19 @@ export const InstructorDashboard: React.FC = () => {
         setLifetimeGrossRevenue(lifetimeSummary?.totalGrossRevenue || 0);
       } catch (err) {
         console.error("Failed to load general revenue data:", err);
+      } finally {
+        setLoadingGeneralRevenue(false);
       }
     };
 
-    if (user) {
+    if (user && (activeTab === 'dashboard' || activeTab === 'revenue')) {
       fetchGeneralRevenueData();
     }
-  }, [user]);
+  }, [user, activeTab]);
 
   useEffect(() => {
     const fetchFilteredRevenueData = async () => {
+      setLoadingFilteredRevenue(true);
       try {
         const [summary, sales, breakdown] = await Promise.all([
           instructorService.getRevenueSummary(revenueFilter, appliedStartDate, appliedEndDate),
@@ -1198,16 +1212,19 @@ export const InstructorDashboard: React.FC = () => {
         setBreakdownPage(1);
       } catch (err) {
         console.error("Failed to load filtered revenue data:", err);
+      } finally {
+        setLoadingFilteredRevenue(false);
       }
     };
 
-    if (user) {
+    if (user && activeTab === 'revenue') {
       fetchFilteredRevenueData();
     }
-  }, [user, revenueFilter, appliedStartDate, appliedEndDate]);
+  }, [user, activeTab, revenueFilter, appliedStartDate, appliedEndDate]);
 
   useEffect(() => {
     const fetchTrendData = async () => {
+      setLoadingTrendData(true);
       try {
         const trendRes = await instructorService.getCourseRegistrations(trendTimeframe);
         setCourseRegistrationsState(trendRes?.courseRegistrations || []);
@@ -1215,15 +1232,17 @@ export const InstructorDashboard: React.FC = () => {
         setCourseRegPage(1);
       } catch (err) {
         console.error("Failed to load trend data:", err);
+      } finally {
+        setLoadingTrendData(false);
       }
     };
 
-    if (user) {
+    if (user && activeTab === 'revenue') {
       fetchTrendData();
     }
-  }, [user, trendTimeframe]);
+  }, [user, activeTab, trendTimeframe]);
 
-  const [courseSubTab, setCourseSubTab] = useState<'published' | 'review' | 'draft' | 'rejected'>('published');
+
 
   // Derive stats
   const totalCourses = instructorCourses.length;
@@ -1828,6 +1847,14 @@ export const InstructorDashboard: React.FC = () => {
   const [selectedFailedPayout, setSelectedFailedPayout] = useState<PayoutHistoryItem | null>(null);
   const [isAllPayoutsModalOpen, setIsAllPayoutsModalOpen] = useState<boolean>(false);
   const [enrollmentPage, setEnrollmentPage] = useState<number>(1);
+  const [payoutPage, setPayoutPage] = useState<number>(1);
+
+  const PAYOUTS_PER_PAGE = 3;
+  const totalPayoutPages = Math.ceil(payoutHistory.length / PAYOUTS_PER_PAGE);
+  const displayedPayoutHistory = payoutHistory.slice(
+    (payoutPage - 1) * PAYOUTS_PER_PAGE,
+    payoutPage * PAYOUTS_PER_PAGE
+  );
 
   const displayedTakeHome = totalActualTakeHome;
   const earningsBreakdown = courseBreakdown;
@@ -2143,7 +2170,7 @@ export const InstructorDashboard: React.FC = () => {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs md:text-sm font-semibold transition-all duration-200 justify-center md:justify-start shadow-md shadow-primary/20"
           >
             <span className="material-symbols-outlined text-[20px] shrink-0">swap_horiz</span>
-            <span className="sidebar-footer-text whitespace-nowrap">Student View</span>
+            <span className="sidebar-footer-text whitespace-nowrap">Customer View</span>
           </Link>
 
           {/* Instructor User Identity */}
@@ -2189,8 +2216,14 @@ export const InstructorDashboard: React.FC = () => {
                   {/* ================= TAB: DASHBOARD ================= */}
             {activeTab === 'dashboard' && (
               <div id="tab-dashboard" className="tab-content flex flex-col gap-8">
-                
-                {/* Header Banner */}
+                {loadingCourses || loadingGeneralRevenue ? (
+                  <div className="flex flex-col items-center justify-center py-32 gap-4 bg-white rounded-3xl border border-slate-200/50 shadow-sm w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                    <p className="text-slate-500 font-semibold text-sm animate-pulse">Loading dashboard analytics...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Header Banner */}
                 <div className="relative overflow-hidden bg-gradient-to-r from-brand-blue to-[#1c3d73] rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                   {/* Decorative glowing gradient blur elements */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
@@ -2209,12 +2242,7 @@ export const InstructorDashboard: React.FC = () => {
 
                   {/* Quick Action Buttons */}
                   <div className="relative z-10 flex flex-wrap gap-2.5 shrink-0 w-full md:w-auto">
-                    <button
-                      onClick={() => setIsCreateCourseOpen(true)}
-                      className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all duration-200 shadow-md shadow-primary/20 hover:scale-[1.02]"
-                    >
-                      <span className="material-symbols-outlined text-sm font-bold">add</span> Create Course
-                    </button>
+
                     <a
                       href="#my-courses"
                       className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-bold transition-all duration-200 border border-white/10 hover:scale-[1.02]"
@@ -2757,7 +2785,7 @@ export const InstructorDashboard: React.FC = () => {
                         topPerformingCourses.map((c) => (
                           <div 
                             key={c.id} 
-                            onClick={() => openSyllabusEditor(c)}
+                            onClick={() => handleOpenStatistics(c)}
                             className="group flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-2xl border border-slate-100 hover:border-primary/20 hover:bg-[#fff9f6]/30 transition-all duration-300 cursor-pointer"
                           >
                             {/* Left course mini-banner */}
@@ -2800,7 +2828,7 @@ export const InstructorDashboard: React.FC = () => {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedCourseForStats(c);
+                                  handleOpenStatistics(c);
                                 }}
                                 className="w-8 h-8 rounded-full border border-slate-200 hover:border-primary/45 hover:bg-[#fff9f6] text-slate-400 hover:text-primary transition-all flex items-center justify-center cursor-pointer bg-transparent outline-none mt-1"
                                 title="View Course Statistics"
@@ -3009,7 +3037,8 @@ export const InstructorDashboard: React.FC = () => {
                   </div>
 
                 </div>
-
+                  </>
+                )}
               </div>
             )}
 
@@ -3139,7 +3168,13 @@ export const InstructorDashboard: React.FC = () => {
                 </div>
 
                 {/* Courses Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="courses-container">
+                {loadingCourses ? (
+                  <div className="flex flex-col items-center justify-center py-32 gap-4 bg-white rounded-3xl border border-slate-200/50 shadow-sm w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                    <p className="text-slate-500 font-semibold text-sm animate-pulse">Loading your courses...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="courses-container">
                   {filteredAndSortedCourses.length === 0 ? (
                     <div className="col-span-full py-12 text-center bg-surface border border-dashed border-slate-200 rounded-2xl">
                       <span className="material-symbols-outlined text-slate-400 text-5xl mb-3">inbox</span>
@@ -3326,8 +3361,7 @@ export const InstructorDashboard: React.FC = () => {
                     ))
                   )}
                 </div>
-
-
+                )}
               </div>
             )}
 
@@ -3336,8 +3370,14 @@ export const InstructorDashboard: React.FC = () => {
             {/* ================= TAB: REVENUE ================= */}
             {activeTab === 'revenue' && (
               <div id="tab-revenue" className="tab-content flex flex-col gap-8 animate-fade-in pb-12">
-                
-                {/* Header Section */}
+                {loadingGeneralRevenue || loadingFilteredRevenue || loadingTrendData ? (
+                  <div className="flex flex-col items-center justify-center py-32 gap-4 bg-white rounded-3xl border border-slate-200/50 shadow-sm w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                    <p className="text-slate-500 font-semibold text-sm animate-pulse">Loading revenue analytics...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Header Section */}
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                   <div>
                     <div className="inline-flex items-center gap-1.5 bg-[#fce2d3] border border-primary/20 px-3 py-1 rounded-full text-primary font-bold text-xs uppercase tracking-wider mb-2.5 shadow-sm">
@@ -4049,6 +4089,9 @@ export const InstructorDashboard: React.FC = () => {
                     <div>
                       <h3 className="font-display font-black text-sm text-brand-blue uppercase tracking-wider">Monthly Payout History Log</h3>
                       <p className="text-xs text-text-muted mt-0.5">Automated monthly payout logs processed and credited to your registered bank account.</p>
+                      <div className="mt-2 inline-block px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-brand-blue font-bold text-xs">
+                        Showing {displayedPayoutHistory.length} of {payoutHistory.length} transactions
+                      </div>
                     </div>
                     {/* Quick System Payout Badge */}
                     <div className="bg-[#e8f0fe] border border-blue-200 px-3.5 py-2.5 rounded-2xl flex items-center gap-2.5 shrink-0 shadow-sm">
@@ -4073,7 +4116,7 @@ export const InstructorDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                        {payoutHistory.slice(0, 3).map((item) => (
+                        {displayedPayoutHistory.map((item) => (
                           <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                             <td className="py-3.5 px-4 font-bold text-brand-blue">{item.payoutPeriod}</td>
                             <td className="py-3.5 px-4 text-right text-slate-900 font-bold">
@@ -4112,16 +4155,39 @@ export const InstructorDashboard: React.FC = () => {
                     </table>
                   </div>
 
-                  {/* View All Payouts Button */}
-                  {payoutHistory.length > 3 && (
-                    <div className="flex justify-center mt-5 pt-3 border-t border-slate-100">
+                  {/* Pagination Controls */}
+                  {totalPayoutPages > 1 && (
+                    <div className="flex items-center justify-between mt-5 pt-3 border-t border-slate-100">
                       <button
                         type="button"
-                        onClick={() => setIsAllPayoutsModalOpen(true)}
-                        className="px-5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-brand-blue font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                        onClick={() => setPayoutPage(prev => Math.max(prev - 1, 1))}
+                        disabled={payoutPage === 1}
+                        className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
+                          payoutPage === 1
+                            ? 'bg-slate-50 text-slate-350 border border-slate-100 cursor-not-allowed'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-blue active:scale-90 shadow-sm'
+                        }`}
+                        title="Previous page"
                       >
-                        <span className="material-symbols-outlined text-base">history</span>
-                        View All Automatic Payouts
+                        <span className="material-symbols-outlined text-[16px] font-bold">chevron_left</span>
+                      </button>
+
+                      <span className="text-[10px] font-extrabold text-slate-500 select-none">
+                        {payoutPage} / {totalPayoutPages}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setPayoutPage(prev => Math.min(prev + 1, totalPayoutPages))}
+                        disabled={payoutPage === totalPayoutPages}
+                        className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all ${
+                          payoutPage === totalPayoutPages
+                            ? 'bg-slate-50 text-slate-350 border border-slate-100 cursor-not-allowed'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-blue active:scale-90 shadow-sm'
+                        }`}
+                        title="Next page"
+                      >
+                        <span className="material-symbols-outlined text-[16px] font-bold">chevron_right</span>
                       </button>
                     </div>
                   )}
@@ -4258,6 +4324,8 @@ export const InstructorDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             )}
@@ -4995,14 +5063,14 @@ export const InstructorDashboard: React.FC = () => {
                              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
                            </div>
                            <div className="flex flex-col mt-0.5">
-                             <h4 className="text-sm font-black text-brand-blue tracking-tight">Lesson Locked (Pending Review)</h4>
-                             <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">This lesson is currently inactive and waiting for admin approval. You can view the contents but cannot make edits.</p>
+                             <h4 className="text-sm font-black text-brand-blue tracking-tight">Lesson Rejected / Inactive</h4>
+                             <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">This lesson has been rejected by AI or is inactive. You can update the content and click "Save" to trigger AI re-check.</p>
                            </div>
                         </div>
                       </div>
                     )}
                     
-                    <div className={instructorCourses.find(c => c.id === workspaceCourseId)?.status === 'published' && selectedItem.type === 'lesson' && activeLesson?.status === 'INACTIVE' ? 'pointer-events-none opacity-80 grayscale-[10%] select-none' : ''}>
+                    <div>
                       {/* TAB 1: Overview */}
                       {editorTab === 'overview' && (
                         <div className="flex flex-col gap-5">
