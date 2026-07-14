@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/lessons/{lessonId}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/contests", "/contests/banner", "/contests/{contestId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/problems").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/rankings").permitAll()
                         .requestMatchers("/online-judge/problems/practice").permitAll()
 
                         // 4. Các API Webhook / Callback từ hệ thống bên thứ 3
