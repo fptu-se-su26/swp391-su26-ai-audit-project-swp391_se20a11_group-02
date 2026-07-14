@@ -480,6 +480,7 @@ public class InstructorCourseService {
 
                                 problemEntity = problemRepository.save(problemEntity);
 
+                                lpEntity.setProblem(problemEntity);
                                 lpEntity.setProblemVersion(problemEntity.getCurrentVersion());
                                 lpEntity.setOrderIndex(k + 1);
 
