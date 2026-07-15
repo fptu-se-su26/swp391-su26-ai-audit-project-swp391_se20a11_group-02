@@ -1,12 +1,11 @@
 package com.swp391.coding_platform.service.instructor;
 
 import com.swp391.coding_platform.dto.response.AdminInstructorResponse;
-import com.swp391.coding_platform.dto.response.CourseBreakdownItem;
 import com.swp391.coding_platform.dto.response.InstructorRevenueSummary;
-import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.instructor.InstructorEntity;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.exception.AppException;
+import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.repository.course.CourseRepository;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
 import com.swp391.coding_platform.repository.instructor.InstructorRepository;
@@ -19,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -73,9 +71,21 @@ class InstructorServiceTest {
 
         when(instructorRepository.findByUserId(userId)).thenReturn(Optional.of(instructor));
 
-        assertThrows(AppException.class, () -> {
+        AppException ex = assertThrows(AppException.class, () -> {
             instructorService.getRevenueSummary(userId, "all", null, null);
         });
+        assertEquals(ErrorCode.ACCESS_DENIED, ex.getErrorCode());
+    }
+
+    @Test
+    void getRevenueSummary_InstructorNotFound_ShouldThrowException() {
+        Integer userId = 999;
+        when(instructorRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class, () -> {
+            instructorService.getRevenueSummary(userId, "all", null, null);
+        });
+        assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 
     @Test
@@ -111,5 +121,16 @@ class InstructorServiceTest {
 
         assertEquals("SUSPENDED", response.getStatus());
         verify(instructorRepository).save(inst);
+    }
+
+    @Test
+    void updateInstructorStatus_InstructorNotFound_ShouldThrowException() {
+        Integer instId = 999;
+        when(instructorRepository.findById(instId)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class, () -> {
+            instructorService.updateInstructorStatus(instId, "SUSPENDED");
+        });
+        assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 }

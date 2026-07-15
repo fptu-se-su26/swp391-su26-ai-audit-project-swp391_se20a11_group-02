@@ -3,11 +3,16 @@ package com.swp391.coding_platform.service.course;
 import com.swp391.coding_platform.dto.request.CourseSearchRequest;
 import com.swp391.coding_platform.dto.response.CourseDetailResponse;
 import com.swp391.coding_platform.dto.response.CourseListItemResponse;
+import com.swp391.coding_platform.dto.response.CurriculumChapterResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.entity.course.CourseEntity;
 import com.swp391.coding_platform.entity.enums.CourseStatus;
+import com.swp391.coding_platform.entity.instructor.InstructorEntity;
+import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.exception.AppException;
+import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
+import com.swp391.coding_platform.repository.course.ChapterRepository;
 import com.swp391.coding_platform.repository.course.CourseRepository;
 import com.swp391.coding_platform.repository.course.EnrollmentRepository;
 import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
@@ -44,6 +49,9 @@ class CourseServiceTest {
     @Mock
     private EnrollmentRepository enrollmentRepository;
 
+    @Mock
+    private ChapterRepository chapterRepository;
+
     @InjectMocks
     private CourseService courseService;
 
@@ -74,6 +82,51 @@ class CourseServiceTest {
     void getCourseDetail_CourseNotFound_ShouldThrowException() {
         when(courseRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(AppException.class, () -> courseService.getCourseDetail(1L, 1L));
+        AppException ex = assertThrows(AppException.class, () -> courseService.getCourseDetail(1L, 1L));
+        assertEquals(ErrorCode.COURSE_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void getCourseDetail_CourseNotApprovedAndNotOwnerOrAdmin_ShouldThrowException() {
+        // Setup mock User & Instructor
+        UserEntity user = UserEntity.builder().id(99).username("another").build();
+        InstructorEntity instructor = InstructorEntity.builder().user(user).build();
+
+        CourseEntity course = CourseEntity.builder()
+                .id(1L)
+                .status(CourseStatus.DRAFTS)
+                .instructor(instructor)
+                .build();
+
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+
+        // Request detail from user 1L (who is not the owner 99L and not admin)
+        AppException ex = assertThrows(AppException.class, () -> courseService.getCourseDetail(1L, 1L));
+        assertEquals(ErrorCode.COURSE_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void getCourseCurriculum_CourseNotFound_ShouldThrowException() {
+        when(courseRepository.findById(1L)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class, () -> courseService.getCourseCurriculum(1L, 1L));
+        assertEquals(ErrorCode.COURSE_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void getCourseCurriculum_CourseNotApproved_ShouldThrowException() {
+        UserEntity user = UserEntity.builder().id(99).username("another").build();
+        InstructorEntity instructor = InstructorEntity.builder().user(user).build();
+
+        CourseEntity course = CourseEntity.builder()
+                .id(1L)
+                .status(CourseStatus.DRAFTS)
+                .instructor(instructor)
+                .build();
+
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+
+        AppException ex = assertThrows(AppException.class, () -> courseService.getCourseCurriculum(1L, 1L));
+        assertEquals(ErrorCode.COURSE_NOT_FOUND, ex.getErrorCode());
     }
 }

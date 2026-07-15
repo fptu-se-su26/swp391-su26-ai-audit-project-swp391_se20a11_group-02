@@ -146,4 +146,28 @@ class PaymentServiceTest {
         assertEquals(new BigDecimal("150.00"), wallet.getBalance());
         verify(walletRepository, times(1)).save(wallet);
     }
+
+    @Test
+    void handlePayOSWebhook_InvalidSignature_ThrowsException() throws Exception {
+        ObjectNode payload = new ObjectMapper().createObjectNode();
+        // Mock verification using lenient to prevent UnnecessaryStubbingException
+        lenient().when(payOS.verifyPaymentWebhookData(any(Webhook.class))).thenThrow(new RuntimeException("Signature invalid"));
+
+        AppException ex = assertThrows(AppException.class, () -> paymentService.handlePayOSWebhook(payload));
+        assertEquals(ErrorCode.UNCATEGORIZED_EXCEPTION, ex.getErrorCode());
+    }
+
+    @Test
+    void handlePayOSWebhook_TransactionNotFound_ThrowsException() throws Exception {
+        ObjectNode payload = new ObjectMapper().createObjectNode();
+        WebhookData data = mock(WebhookData.class);
+        lenient().when(data.getCode()).thenReturn("00");
+        lenient().when(data.getOrderCode()).thenReturn(123456L);
+
+        lenient().when(payOS.verifyPaymentWebhookData(any(Webhook.class))).thenReturn(data);
+        lenient().when(paymentTransactionRepository.findByTransactionCode(anyString())).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class, () -> paymentService.handlePayOSWebhook(payload));
+        assertEquals(ErrorCode.UNCATEGORIZED_EXCEPTION, ex.getErrorCode());
+    }
 }

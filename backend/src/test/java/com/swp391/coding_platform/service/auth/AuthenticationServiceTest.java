@@ -1,12 +1,14 @@
 package com.swp391.coding_platform.service.auth;
 
 import com.swp391.coding_platform.dto.request.AuthenticationRequest;
+import com.swp391.coding_platform.dto.request.GoogleLoginRequest;
 import com.swp391.coding_platform.dto.request.RegisterRequest;
 import com.swp391.coding_platform.dto.response.AuthenticationResponse;
 import com.swp391.coding_platform.entity.auth.RoleEntity;
 import com.swp391.coding_platform.entity.enums.RoleName;
 import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.exception.AppException;
+import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.UserMapper;
 import com.swp391.coding_platform.repository.auth.InvalidatedTokenRepository;
 import com.swp391.coding_platform.repository.auth.RoleRepository;
@@ -23,7 +25,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,7 +87,17 @@ class AuthenticationServiceTest {
         when(userRepository.findByUsernameWithWallet("testuser")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrongpassword", "hashed_password")).thenReturn(false);
 
-        assertThrows(AppException.class, () -> authenticationService.login(request));
+        AppException ex = assertThrows(AppException.class, () -> authenticationService.login(request));
+        assertEquals(ErrorCode.INVALID_USERNAME_OR_PASSWORD, ex.getErrorCode());
+    }
+
+    @Test
+    void login_UsernameNotFound_ThrowsAppException() {
+        AuthenticationRequest request = new AuthenticationRequest("notfound", "password");
+        when(userRepository.findByUsernameWithWallet("notfound")).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class, () -> authenticationService.login(request));
+        assertEquals(ErrorCode.INVALID_USERNAME_OR_PASSWORD, ex.getErrorCode());
     }
 
     @Test
@@ -111,5 +122,42 @@ class AuthenticationServiceTest {
 
         assertNotNull(response);
         verify(userRepository, times(1)).save(any(UserEntity.class));
+    }
+
+    @Test
+    void register_UsernameAlreadyExists_ThrowsAppException() {
+        RegisterRequest request = new RegisterRequest("existinguser", "password", "password", "Name", "email@test.com");
+        when(userRepository.existsByUsername("existinguser")).thenReturn(true);
+
+        AppException ex = assertThrows(AppException.class, () -> authenticationService.register(request));
+        assertEquals(ErrorCode.USERNAME_ALREADY_EXISTS, ex.getErrorCode());
+    }
+
+    @Test
+    void register_PasswordNotMatch_ThrowsAppException() {
+        RegisterRequest request = new RegisterRequest("user", "password", "different", "Name", "email@test.com");
+        when(userRepository.existsByUsername("user")).thenReturn(false);
+
+        AppException ex = assertThrows(AppException.class, () -> authenticationService.register(request));
+        assertEquals(ErrorCode.PASSWORD_NOT_MATCH, ex.getErrorCode());
+    }
+
+    @Test
+    void register_EmailAlreadyExists_ThrowsAppException() {
+        RegisterRequest request = new RegisterRequest("user", "password", "password", "Name", "existing@test.com");
+        when(userRepository.existsByUsername("user")).thenReturn(false);
+        when(userRepository.existsByEmail("existing@test.com")).thenReturn(true);
+
+        AppException ex = assertThrows(AppException.class, () -> authenticationService.register(request));
+        assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS, ex.getErrorCode());
+    }
+
+    @Test
+    void googleLogin_InvalidIdToken_ThrowsAppException() {
+        GoogleLoginRequest request = new GoogleLoginRequest("invalid_token");
+        // Verify token will throw because verifier or NetHttpTransport is mock/not set up or idToken verify returns null.
+        // It falls into the try-catch block and throws UNAUTHENTICATED.
+        AppException ex = assertThrows(AppException.class, () -> authenticationService.googleLogin(request));
+        assertEquals(ErrorCode.UNAUTHENTICATED, ex.getErrorCode());
     }
 }

@@ -149,4 +149,32 @@ class Judge0ServiceTest {
         AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
         assertEquals(ErrorCode.OJ_PROBLEM_NOT_FOUND, ex.getErrorCode());
     }
+
+    @Test
+    void submitCode_tokenListMismatch_ThrowsAppException() {
+        OjSubmissionRequest request = new OjSubmissionRequest();
+        request.setProblemId(1);
+        request.setLanguageId(71);
+        request.setSourceCode("print(sum(map(int, input().split())))");
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
+        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndex(1)).thenReturn(List.of(mockTestcase));
+        // Return empty token list (should mismatch 1 testcase)
+        when(judge0ClientService.sendBatchSubmission(any(Judge0BatchRequest.class))).thenReturn(Collections.emptyList());
+
+        AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
+        assertEquals(ErrorCode.JUDGE0_SUBMISSION_FAILED, ex.getErrorCode());
+    }
+
+    @Test
+    void processJudge0Callback_SubmissionDetailNotFound_ThrowsAppException() {
+        Judge0CallbackPayload payload = new Judge0CallbackPayload();
+        payload.setToken("invalid-token");
+
+        when(problemSubmissionDetailRepository.findByTokenWithSubmissionAndProblem("invalid-token")).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class, () -> judge0Service.processJudge0Callback(payload));
+        assertEquals(ErrorCode.JUDGE0_SUBMISSION_FAILED, ex.getErrorCode());
+    }
 }
