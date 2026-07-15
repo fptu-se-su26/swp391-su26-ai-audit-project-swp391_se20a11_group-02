@@ -41,3 +41,4 @@ class CategoryRepositoryTest {
         assertNotNull(results);
     }
 }
+

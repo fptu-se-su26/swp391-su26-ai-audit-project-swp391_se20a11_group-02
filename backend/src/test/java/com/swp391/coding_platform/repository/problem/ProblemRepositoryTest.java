@@ -38,6 +38,9 @@ class ProblemRepositoryTest {
 
         com.swp391.coding_platform.entity.problem.ProblemVersionEntity version1 = com.swp391.coding_platform.entity.problem.ProblemVersionEntity.builder()
                 .title("Public Problem")
+                .description("Public description")
+                .versionNumber(1)
+                .problemScope(ProblemScope.PRACTICE)
                 .isActive(true)
                 .build();
         ProblemEntity publicProblem = ProblemEntity.builder()
@@ -51,6 +54,9 @@ class ProblemRepositoryTest {
         
         com.swp391.coding_platform.entity.problem.ProblemVersionEntity version2 = com.swp391.coding_platform.entity.problem.ProblemVersionEntity.builder()
                 .title("Private Problem")
+                .description("Private description")
+                .versionNumber(1)
+                .problemScope(ProblemScope.PRACTICE)
                 .isActive(true)
                 .build();
         ProblemEntity privateProblem = ProblemEntity.builder()
@@ -84,6 +90,9 @@ class ProblemRepositoryTest {
 
         com.swp391.coding_platform.entity.problem.ProblemVersionEntity version1 = com.swp391.coding_platform.entity.problem.ProblemVersionEntity.builder()
                 .title("Matching")
+                .description("Matching desc")
+                .versionNumber(1)
+                .problemScope(ProblemScope.PRACTICE)
                 .isActive(true)
                 .build();
         ProblemEntity matching = ProblemEntity.builder()
@@ -98,6 +107,9 @@ class ProblemRepositoryTest {
 
         com.swp391.coding_platform.entity.problem.ProblemVersionEntity version2 = com.swp391.coding_platform.entity.problem.ProblemVersionEntity.builder()
                 .title("Not Active")
+                .description("Not active desc")
+                .versionNumber(1)
+                .problemScope(ProblemScope.PRACTICE)
                 .isActive(true)
                 .build();
         ProblemEntity notActive = ProblemEntity.builder()
@@ -119,4 +131,53 @@ class ProblemRepositoryTest {
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getCurrentVersion().getTitle()).isEqualTo("Matching");
     }
+
+    @Test
+    void incrementTotalSubmission_Success() {
+        com.swp391.coding_platform.entity.user.UserEntity user = com.swp391.coding_platform.entity.user.UserEntity.builder()
+                .username("test_submission")
+                .email("sub@example.com")
+                .passwordHash("hash")
+                .displayname("testuser")
+                .build();
+        entityManager.persist(user);
+
+        ProblemEntity problem = ProblemEntity.builder()
+                .createdBy(user)
+                .totalSubmission(10)
+                .build();
+        entityManager.persist(problem);
+        entityManager.flush();
+
+        problemRepository.incrementTotalSubmission(problem.getId());
+        entityManager.clear();
+
+        ProblemEntity updated = entityManager.find(ProblemEntity.class, problem.getId());
+        assertThat(updated.getTotalSubmission()).isEqualTo(11);
+    }
+
+    @Test
+    void incrementTotalAccepted_Success() {
+        com.swp391.coding_platform.entity.user.UserEntity user = com.swp391.coding_platform.entity.user.UserEntity.builder()
+                .username("test_accepted")
+                .email("acc@example.com")
+                .passwordHash("hash")
+                .displayname("testuser")
+                .build();
+        entityManager.persist(user);
+
+        ProblemEntity problem = ProblemEntity.builder()
+                .createdBy(user)
+                .totalAccepted(5)
+                .build();
+        entityManager.persist(problem);
+        entityManager.flush();
+
+        problemRepository.incrementTotalAccepted(problem.getId());
+        entityManager.clear();
+
+        ProblemEntity updated = entityManager.find(ProblemEntity.class, problem.getId());
+        assertThat(updated.getTotalAccepted()).isEqualTo(6);
+    }
 }
+

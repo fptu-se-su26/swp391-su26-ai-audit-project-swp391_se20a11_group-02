@@ -53,24 +53,28 @@ class UserRepositoryTest {
         assertFalse(exists);
     }
 
+    @Autowired
+    private org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager entityManager;
+
     @Test
     void incrementUserScore_Success() {
         UserEntity user = new UserEntity();
-        user.setUsername("testuser");
-        user.setEmail("test@test.com");
-        user.setDisplayname("Test User");
+        user.setUsername("testuser_score");
+        user.setEmail("testscore@test.com");
+        user.setDisplayname("Test Score User");
         user.setScore(10);
         UserEntity savedUser = userRepository.save(user);
+        
+        entityManager.flush();
 
         userRepository.incrementUserScore(savedUser.getId(), 5);
 
         // We need to flush and clear to see the updated value in db since it's a modifying query
-        userRepository.flush();
+        entityManager.clear();
         
         // Find again
         UserEntity updatedUser = userRepository.findById(savedUser.getId()).get();
-        // Since we are not doing entityManager.clear(), the L1 cache might return the old entity.
-        // Wait, @Modifying query goes straight to DB. We should use entityManager to verify or just assert if cache is flushed. 
-        // Actually, to make it perfectly safe, just use native queries test or ignore score increment if it is complex.
+        assertEquals(15, updatedUser.getScore());
     }
 }
+

@@ -39,3 +39,4 @@ class InvalidatedTokenRepositoryTest {
         assertFalse(exists);
     }
 }
+

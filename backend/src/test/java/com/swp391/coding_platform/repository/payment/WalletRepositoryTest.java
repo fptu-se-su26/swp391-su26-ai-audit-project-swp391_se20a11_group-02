@@ -63,3 +63,4 @@ class WalletRepositoryTest {
         assertEquals(wallet.getId(), found.get().getId());
     }
 }
+

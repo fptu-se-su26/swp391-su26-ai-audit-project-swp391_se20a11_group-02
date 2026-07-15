@@ -34,12 +34,22 @@ class LessonProgressRepositoryTest {
         UserEntity user = new UserEntity();
         user.setEmail("test@test.com");
         user.setUsername("testuser");
-        user.setPasswordHash("hash");
+        user.setPasswordHash("hash"); user.setDisplayname("test");
         user = entityManager.persistAndFlush(user);
+
+        com.swp391.coding_platform.entity.instructor.InstructorEntity instructor = new com.swp391.coding_platform.entity.instructor.InstructorEntity();
+        instructor.setUser(user);
+        instructor.setFullName("Inst");
+        instructor.setMajor("CS");
+        entityManager.persistAndFlush(instructor);
 
         // Setup Course
         CourseEntity course = new CourseEntity();
         course.setTitle("Course Test");
+        course.setShortDescription("short");
+        course.setLongDescription("long");
+        course.setType("PAID");
+        course.setInstructor(instructor);
         course.setPrice(java.math.BigDecimal.valueOf(100.0));
         course = entityManager.persistAndFlush(course);
 
@@ -67,11 +77,21 @@ class LessonProgressRepositoryTest {
         UserEntity user = new UserEntity();
         user.setEmail("test2@test.com");
         user.setUsername("testuser2");
-        user.setPasswordHash("hash");
+        user.setPasswordHash("hash"); user.setDisplayname("test");
         user = entityManager.persistAndFlush(user);
+
+        com.swp391.coding_platform.entity.instructor.InstructorEntity instructor = new com.swp391.coding_platform.entity.instructor.InstructorEntity();
+        instructor.setUser(user);
+        instructor.setFullName("Inst");
+        instructor.setMajor("CS");
+        entityManager.persistAndFlush(instructor);
 
         CourseEntity course = new CourseEntity();
         course.setTitle("Course Test 2");
+        course.setShortDescription("short");
+        course.setLongDescription("long");
+        course.setType("PAID");
+        course.setInstructor(instructor);
         course.setPrice(java.math.BigDecimal.valueOf(100.0));
         course = entityManager.persistAndFlush(course);
 
@@ -85,3 +105,4 @@ class LessonProgressRepositoryTest {
         assertFalse(lessonProgressRepository.existsByLessonIdAndUserId(40, user.getId()));
     }
 }
+

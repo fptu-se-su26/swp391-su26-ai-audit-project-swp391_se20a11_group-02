@@ -39,6 +39,9 @@ class ProblemSubmissionRepositoryTest {
 
         com.swp391.coding_platform.entity.problem.ProblemVersionEntity version = com.swp391.coding_platform.entity.problem.ProblemVersionEntity.builder()
                 .title("Test Problem")
+                .description("Test description")
+                .versionNumber(1)
+                .problemScope(com.swp391.coding_platform.entity.enums.ProblemScope.PRACTICE)
                 .isActive(true)
                 .build();
 
@@ -52,6 +55,9 @@ class ProblemSubmissionRepositoryTest {
         ProblemSubmissionEntity submission = ProblemSubmissionEntity.builder()
                 .user(user)
                 .problem(problem)
+                .problemVersion(version)
+                .languageId(71) // Python or whatever
+                .sourceCode("print('hello')")
                 .verdict(OjVerdict.ACCEPTED)
                 .build();
         entityManager.persist(submission);
@@ -64,3 +70,4 @@ class ProblemSubmissionRepositoryTest {
         assertThat(results.get(0).getVerdict()).isEqualTo(OjVerdict.ACCEPTED);
     }
 }
+

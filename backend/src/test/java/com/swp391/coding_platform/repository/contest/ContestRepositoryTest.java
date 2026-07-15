@@ -2,6 +2,7 @@ package com.swp391.coding_platform.repository.contest;
 
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.enums.ContestStatus;
+import com.swp391.coding_platform.entity.user.UserEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -32,11 +33,19 @@ class ContestRepositoryTest {
     void findUpcomingContests_shouldReturnCorrectContest() {
         Instant now = Instant.now();
         
+        UserEntity user = new UserEntity();
+        user.setUsername("contestuser");
+        user.setDisplayname("Contest User");
+        user.setEmail("contest@example.com");
+        entityManager.persist(user);
+
         ContestEntity upcomingContest = ContestEntity.builder()
                 .title("Upcoming Contest")
                 .status(ContestStatus.PUBLISHED)
                 .startTime(now.plus(1, ChronoUnit.HOURS))
                 .endTime(now.plus(3, ChronoUnit.HOURS))
+                .durations(120)
+                .createdBy(user)
                 .build();
         entityManager.persist(upcomingContest);
 
@@ -45,6 +54,8 @@ class ContestRepositoryTest {
                 .status(ContestStatus.PUBLISHED)
                 .startTime(now.minus(3, ChronoUnit.HOURS))
                 .endTime(now.minus(1, ChronoUnit.HOURS))
+                .durations(120)
+                .createdBy(user)
                 .build();
         entityManager.persist(endedContest);
         
@@ -56,3 +67,4 @@ class ContestRepositoryTest {
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("Upcoming Contest");
     }
 }
+

@@ -35,11 +35,21 @@ class CompletedLessonCountRepositoryTest {
         UserEntity user = new UserEntity();
         user.setEmail("count@test.com");
         user.setUsername("countuser");
-        user.setPasswordHash("hash");
+        user.setPasswordHash("hash"); user.setDisplayname("test");
         user = entityManager.persistAndFlush(user);
+
+        com.swp391.coding_platform.entity.instructor.InstructorEntity instructor = new com.swp391.coding_platform.entity.instructor.InstructorEntity();
+        instructor.setUser(user);
+        instructor.setFullName("Inst");
+        instructor.setMajor("CS");
+        entityManager.persistAndFlush(instructor);
 
         CourseEntity course = new CourseEntity();
         course.setTitle("Course Count Test");
+        course.setShortDescription("short");
+        course.setLongDescription("long");
+        course.setType("PAID");
+        course.setInstructor(instructor);
         course.setPrice(java.math.BigDecimal.valueOf(100.0));
         course = entityManager.persistAndFlush(course);
 
@@ -59,16 +69,30 @@ class CompletedLessonCountRepositoryTest {
         UserEntity user = new UserEntity();
         user.setEmail("count2@test.com");
         user.setUsername("countuser2");
-        user.setPasswordHash("hash");
+        user.setPasswordHash("hash"); user.setDisplayname("test");
         user = entityManager.persistAndFlush(user);
+
+        com.swp391.coding_platform.entity.instructor.InstructorEntity instructor = new com.swp391.coding_platform.entity.instructor.InstructorEntity();
+        instructor.setUser(user);
+        instructor.setFullName("Inst");
+        instructor.setMajor("CS");
+        entityManager.persistAndFlush(instructor);
 
         CourseEntity course1 = new CourseEntity();
         course1.setTitle("Course 1");
+        course1.setShortDescription("short");
+        course1.setLongDescription("long");
+        course1.setType("PAID");
+        course1.setInstructor(instructor);
         course1.setPrice(java.math.BigDecimal.valueOf(100.0));
         course1 = entityManager.persistAndFlush(course1);
 
         CourseEntity course2 = new CourseEntity();
         course2.setTitle("Course 2");
+        course2.setShortDescription("short");
+        course2.setLongDescription("long");
+        course2.setType("PAID");
+        course2.setInstructor(instructor);
         course2.setPrice(java.math.BigDecimal.valueOf(100.0));
         course2 = entityManager.persistAndFlush(course2);
 
@@ -88,11 +112,21 @@ class CompletedLessonCountRepositoryTest {
         UserEntity user = new UserEntity();
         user.setEmail("count3@test.com");
         user.setUsername("countuser3");
-        user.setPasswordHash("hash");
+        user.setPasswordHash("hash"); user.setDisplayname("test");
         user = entityManager.persistAndFlush(user);
+
+        com.swp391.coding_platform.entity.instructor.InstructorEntity instructor = new com.swp391.coding_platform.entity.instructor.InstructorEntity();
+        instructor.setUser(user);
+        instructor.setFullName("Inst");
+        instructor.setMajor("CS");
+        entityManager.persistAndFlush(instructor);
 
         CourseEntity course = new CourseEntity();
         course.setTitle("Course 3");
+        course.setShortDescription("short");
+        course.setLongDescription("long");
+        course.setType("PAID");
+        course.setInstructor(instructor);
         course.setPrice(java.math.BigDecimal.valueOf(100.0));
         course = entityManager.persistAndFlush(course);
 
@@ -111,3 +145,4 @@ class CompletedLessonCountRepositoryTest {
         assertEquals(3, newCount);
     }
 }
+

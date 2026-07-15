@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import com.swp391.coding_platform.TestcontainersConfiguration;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
@@ -21,14 +22,32 @@ import static org.junit.jupiter.api.Assertions.*;
 class CourseRepositoryTest {
 
     @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
     private CourseRepository courseRepository;
 
     @Test
     void testSaveAndFindCourse() {
+        com.swp391.coding_platform.entity.user.UserEntity user = new com.swp391.coding_platform.entity.user.UserEntity();
+        user.setUsername("courseuser");
+        user.setDisplayname("Course User");
+        user.setEmail("course@example.com");
+        entityManager.persist(user);
+
+        com.swp391.coding_platform.entity.instructor.InstructorEntity instructor = new com.swp391.coding_platform.entity.instructor.InstructorEntity();
+        instructor.setUser(user);
+        instructor.setFullName("Instructor Fullname");
+        instructor.setMajor("Computer Science");
+        entityManager.persist(instructor);
+
         CourseEntity course = new CourseEntity();
         course.setTitle("Hibernate Test Course");
+        course.setShortDescription("Short desc");
+        course.setLongDescription("Long desc");
         course.setPrice(BigDecimal.TEN);
         course.setType("PAID");
+        course.setInstructor(instructor);
 
         CourseEntity saved = courseRepository.save(course);
 
@@ -44,3 +63,4 @@ class CourseRepositoryTest {
         assertNotNull(topCourses);
     }
 }
+

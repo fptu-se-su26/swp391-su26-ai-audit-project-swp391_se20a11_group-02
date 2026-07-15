@@ -15,8 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 
 
+import com.swp391.coding_platform.entity.enums.UserStatus;
+
 @SpringBootTest
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
+@org.springframework.context.annotation.Import(com.swp391.coding_platform.TestcontainersConfiguration.class)
 public class ContestIntegrationTest {
 
     static {
@@ -56,6 +59,8 @@ public class ContestIntegrationTest {
                 user.setUsername("testuser");
                 user.setEmail("test@test.com");
                 user.setPasswordHash("hash");
+                user.setStatus(UserStatus.ACTIVE);
+                user.setDisplayname("Test User");
                 user = userRepository.save(user);
             }
 
