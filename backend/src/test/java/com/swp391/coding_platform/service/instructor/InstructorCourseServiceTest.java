@@ -1,18 +1,26 @@
 package com.swp391.coding_platform.service.instructor;
 
 import com.swp391.coding_platform.dto.request.InstructorCourseCreateRequest;
-import com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse;
-import com.swp391.coding_platform.dto.response.InstructorCourseResponse;
-import com.swp391.coding_platform.entity.course.CourseEntity;
-import com.swp391.coding_platform.entity.enums.CourseStatus;
-import com.swp391.coding_platform.entity.enums.InstructorStatus;
+import com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest;
+import com.swp391.coding_platform.dto.request.TestcaseGeneratorRequest;
+import com.swp391.coding_platform.dto.judge0.Judge0CallbackPayload;
+import com.swp391.coding_platform.dto.response.*;
+import com.swp391.coding_platform.entity.course.*;
+import com.swp391.coding_platform.entity.enums.*;
 import com.swp391.coding_platform.entity.instructor.InstructorEntity;
+import com.swp391.coding_platform.entity.progress.CompletedLessonsCountEntity;
+import com.swp391.coding_platform.entity.user.UserEntity;
 import com.swp391.coding_platform.exception.AppException;
 import com.swp391.coding_platform.exception.ErrorCode;
 import com.swp391.coding_platform.mapper.CourseMapper;
+import com.swp391.coding_platform.repository.course.ChapterRepository;
 import com.swp391.coding_platform.repository.course.CourseRepository;
+import com.swp391.coding_platform.repository.course.EnrollmentRepository;
+import com.swp391.coding_platform.repository.course.LessonRepository;
 import com.swp391.coding_platform.repository.instructor.InstructorRepository;
 import com.swp391.coding_platform.repository.category.CategoryRepository;
+import com.swp391.coding_platform.repository.progress.CompletedLessonCountRepository;
+import com.swp391.coding_platform.service.judge0.Judge0ClientService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,9 +29,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,6 +55,21 @@ class InstructorCourseServiceTest {
 
     @Mock
     private CourseMapper courseMapper;
+
+    @Mock
+    private ChapterRepository chapterRepository;
+
+    @Mock
+    private LessonRepository lessonRepository;
+
+    @Mock
+    private EnrollmentRepository enrollmentRepository;
+
+    @Mock
+    private CompletedLessonCountRepository completedLessonCountRepository;
+
+    @Mock
+    private Judge0ClientService judge0ClientService;
 
     @InjectMocks
     private InstructorCourseService instructorCourseService;
@@ -197,5 +221,88 @@ class InstructorCourseServiceTest {
 
         AppException ex = assertThrows(AppException.class, () -> instructorCourseService.submitCourseForReview(1, 10L));
         assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
+    void updateCourse_Success() {
+        InstructorEntity instructor = InstructorEntity.builder().id(1).status(InstructorStatus.ACTIVE).build();
+        CourseEntity course = CourseEntity.builder()
+                .id(10L)
+                .title("Old Title")
+                .status(CourseStatus.DRAFTS)
+                .type("FREE")
+                .price(BigDecimal.ZERO)
+                .chapters(new ArrayList<>())
+                .build();
+
+        when(instructorRepository.findByUserId(1)).thenReturn(Optional.of(instructor));
+        when(courseRepository.findByIdAndInstructorId(10L, 1)).thenReturn(Optional.of(course));
+        when(courseRepository.save(any(CourseEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+        InstructorCourseUpdateRequest req = new InstructorCourseUpdateRequest();
+        req.setTitle("Updated Title");
+        req.setIsFree(false);
+        req.setPrice(BigDecimal.valueOf(150000));
+        req.setChapters(Collections.emptyList());
+
+        InstructorCourseResponse res = instructorCourseService.updateCourse(1, 10L, req);
+
+        assertNotNull(res);
+        assertEquals("Updated Title", course.getTitle());
+        assertEquals(BigDecimal.valueOf(150000), course.getPrice());
+        assertEquals("PAID", course.getType());
+    }
+
+    @Test
+    void getCourseStatistics_Success() {
+        InstructorEntity instructor = InstructorEntity.builder().id(1).status(InstructorStatus.ACTIVE).build();
+        CourseEntity course = CourseEntity.builder()
+                .id(10L)
+                .price(BigDecimal.valueOf(100000))
+                .totalEnrolled(5)
+                .totalLessons(10)
+                .averageRating(4.8)
+                .totalReviews(2)
+                .build();
+
+        UserEntity student = UserEntity.builder().id(100).displayname("Alice").email("alice@test.com").build();
+        EnrollmentEntity enrollment = EnrollmentEntity.builder().user(student).build();
+        CompletedLessonsCountEntity progress = CompletedLessonsCountEntity.builder()
+                .user(student)
+                .completedLessonsCount(5)
+                .build();
+
+        when(instructorRepository.findByUserId(1)).thenReturn(Optional.of(instructor));
+        when(courseRepository.findByIdAndInstructorId(10L, 1)).thenReturn(Optional.of(course));
+        when(enrollmentRepository.findByCourseId(10L)).thenReturn(List.of(enrollment));
+        when(completedLessonCountRepository.findByCourseId(10L)).thenReturn(List.of(progress));
+
+        CourseStatisticResponse res = instructorCourseService.getCourseStatistics(1, 10L);
+
+        assertNotNull(res);
+        assertEquals(5, res.getTotalEnrollments());
+        assertEquals(0, BigDecimal.valueOf(500000).compareTo(res.getTotalRevenue()));
+        assertEquals(50.0, res.getAverageCompletionRate());
+        assertEquals(1, res.getStudents().size());
+        assertEquals("Alice", res.getStudents().get(0).getFullName());
+    }
+
+    @Test
+    void generateTestcases_Success() {
+        TestcaseGeneratorRequest req = new TestcaseGeneratorRequest("python", "print('INPUT:\\n1\\nOUTPUT:\\n2')");
+        Judge0CallbackPayload payload = new Judge0CallbackPayload();
+        Judge0CallbackPayload.Judge0Status status = new Judge0CallbackPayload.Judge0Status();
+        status.setId(3);
+        payload.setStatus(status);
+        payload.setStdout("INPUT:\n1\nOUTPUT:\n2\n---TESTCASE---");
+
+        when(judge0ClientService.submitSynchronous(eq(71), anyString())).thenReturn(payload);
+
+        List<InstructorCourseUpdateRequest.TestcaseDto> list = instructorCourseService.generateTestcases(req);
+
+        assertNotNull(list);
+        assertEquals(1, list.size());
+        assertEquals("1", list.get(0).getInput());
+        assertEquals("2", list.get(0).getOutput());
     }
 }

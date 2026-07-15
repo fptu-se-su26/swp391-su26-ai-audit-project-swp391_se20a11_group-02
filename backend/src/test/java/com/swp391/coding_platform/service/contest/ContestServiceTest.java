@@ -2,7 +2,8 @@ package com.swp391.coding_platform.service.contest;
 
 import com.swp391.coding_platform.dto.request.AdminContestRequest;
 import com.swp391.coding_platform.dto.request.ContestRegisterRequest;
-import com.swp391.coding_platform.dto.response.AdminContestResponse;
+import com.swp391.coding_platform.dto.request.ContestSearchRequest;
+import com.swp391.coding_platform.dto.response.*;
 import com.swp391.coding_platform.entity.contest.ContestEntity;
 import com.swp391.coding_platform.entity.contest.ContestParticipantEntity;
 import com.swp391.coding_platform.entity.enums.ContestStatus;
@@ -23,14 +24,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +65,6 @@ public class ContestServiceTest {
 
     @Test
     void testUpdateAdminContest_Ongoing_CoreFieldsLock() {
-        // Arrange
         Integer contestId = 1;
         Instant startTime = Instant.now().minus(1, ChronoUnit.HOURS);
         Instant endTime = Instant.now().plus(2, ChronoUnit.HOURS);
@@ -84,7 +88,6 @@ public class ContestServiceTest {
         request.setStartTime(startTime);
         request.setEndTime(endTime.plus(1, ChronoUnit.HOURS));
 
-        // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> {
             contestService.updateAdminContest(contestId, request);
         });
@@ -95,7 +98,6 @@ public class ContestServiceTest {
 
     @Test
     void testUpdateAdminContest_Ongoing_AllowedFieldsOnly() {
-        // Arrange
         Integer contestId = 1;
         Instant startTime = Instant.now().minus(1, ChronoUnit.HOURS);
         Instant endTime = Instant.now().plus(2, ChronoUnit.HOURS);
@@ -121,10 +123,8 @@ public class ContestServiceTest {
         request.setStartTime(startTime);
         request.setEndTime(endTime);
 
-        // Act
         AdminContestResponse response = contestService.updateAdminContest(contestId, request);
 
-        // Assert
         assertNotNull(response);
         assertEquals("Updated Title", response.getTitle());
         assertEquals("Updated Title", contest.getTitle());
@@ -134,7 +134,6 @@ public class ContestServiceTest {
 
     @Test
     void testDeleteAdminContest_Ongoing_ShouldThrow() {
-        // Arrange
         Integer contestId = 1;
         Instant startTime = Instant.now().minus(1, ChronoUnit.HOURS);
         Instant endTime = Instant.now().plus(2, ChronoUnit.HOURS);
@@ -148,7 +147,6 @@ public class ContestServiceTest {
 
         when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
 
-        // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> {
             contestService.deleteAdminContest(contestId);
         });
@@ -159,7 +157,6 @@ public class ContestServiceTest {
 
     @Test
     void testDeleteAdminContest_Draft_ShouldSucceed() {
-        // Arrange
         Integer contestId = 1;
         Instant startTime = Instant.now().plus(1, ChronoUnit.HOURS);
         Instant endTime = Instant.now().plus(2, ChronoUnit.HOURS);
@@ -173,17 +170,14 @@ public class ContestServiceTest {
 
         when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
 
-        // Act
         contestService.deleteAdminContest(contestId);
 
-        // Assert
         assertEquals(ContestStatus.DELETED, contest.getStatus());
         verify(contestRepository, times(1)).save(contest);
     }
 
     @Test
     void testPublishAdminContest_Draft_ShouldSucceed() {
-        // Arrange
         Integer contestId = 1;
         ContestEntity contest = ContestEntity.builder()
                 .id(contestId)
@@ -196,10 +190,8 @@ public class ContestServiceTest {
         when(contestMapper.toAdminContestResponse(any(ContestEntity.class)))
                 .thenReturn(AdminContestResponse.builder().id(contestId).databaseStatus("PUBLISHED").build());
 
-        // Act
         AdminContestResponse response = contestService.publishAdminContest(contestId);
 
-        // Assert
         assertNotNull(response);
         assertEquals(ContestStatus.PUBLISHED, contest.getStatus());
         verify(contestRepository, times(1)).save(contest);
@@ -207,7 +199,6 @@ public class ContestServiceTest {
 
     @Test
     void testRestoreAdminContest_Deleted_ShouldSucceed() {
-        // Arrange
         Integer contestId = 1;
         ContestEntity contest = ContestEntity.builder()
                 .id(contestId)
@@ -220,10 +211,8 @@ public class ContestServiceTest {
         when(contestMapper.toAdminContestResponse(any(ContestEntity.class)))
                 .thenReturn(AdminContestResponse.builder().id(contestId).isDeleted(false).build());
 
-        // Act
         AdminContestResponse response = contestService.restoreAdminContest(contestId);
 
-        // Assert
         assertNotNull(response);
         assertEquals(ContestStatus.DRAFT, contest.getStatus());
         verify(contestRepository, times(1)).save(contest);
@@ -231,7 +220,6 @@ public class ContestServiceTest {
 
     @Test
     void testHardDeleteAdminContest_DraftWithSubmissions_ShouldThrow() {
-        // Arrange
         Integer contestId = 1;
         ContestEntity contest = ContestEntity.builder()
                 .id(contestId)
@@ -243,7 +231,6 @@ public class ContestServiceTest {
         when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
         when(problemSubmissionRepository.countByContestId(contestId)).thenReturn(5L);
 
-        // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> {
             contestService.hardDeleteAdminContest(contestId);
         });
@@ -254,7 +241,6 @@ public class ContestServiceTest {
 
     @Test
     void testHardDeleteAdminContest_DraftWithoutSubmissions_ShouldSucceed() {
-        // Arrange
         Integer contestId = 1;
         ContestEntity contest = ContestEntity.builder()
                 .id(contestId)
@@ -266,10 +252,8 @@ public class ContestServiceTest {
         when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
         when(problemSubmissionRepository.countByContestId(contestId)).thenReturn(0L);
 
-        // Act
         contestService.hardDeleteAdminContest(contestId);
 
-        // Assert
         verify(contestParticipantRepository, times(1)).deleteByContestId(contestId);
         verify(contestProblemRepository, times(1)).deleteByContestId(contestId);
         verify(contestRepository, times(1)).delete(contest);
@@ -311,7 +295,7 @@ public class ContestServiceTest {
         ContestEntity contest = ContestEntity.builder()
                 .id(1)
                 .startTime(Instant.now().minus(2, ChronoUnit.HOURS))
-                .endTime(Instant.now().minus(1, ChronoUnit.HOURS)) // Ended
+                .endTime(Instant.now().minus(1, ChronoUnit.HOURS))
                 .status(ContestStatus.PUBLISHED)
                 .build();
 
@@ -332,7 +316,7 @@ public class ContestServiceTest {
                 .startTime(Instant.now().plus(1, ChronoUnit.HOURS))
                 .endTime(Instant.now().plus(2, ChronoUnit.HOURS))
                 .status(ContestStatus.PUBLISHED)
-                .passwordHash("hashed_password") // Private contest
+                .passwordHash("hashed_password")
                 .build();
 
         when(userRepository.findById(1)).thenReturn(Optional.of(user));
@@ -346,5 +330,62 @@ public class ContestServiceTest {
             contestService.registerForContest(1, 1, request);
         });
         assertEquals(ErrorCode.CONTEST_PASSWORD_INVALID, ex.getErrorCode());
+    }
+
+    @Test
+    void getContests_Success() {
+        ContestSearchRequest request = new ContestSearchRequest();
+        request.setPage(0);
+        request.setSize(10);
+        request.setSearch("Math");
+
+        ContestEntity contest = ContestEntity.builder().id(1).status(ContestStatus.PUBLISHED).startTime(Instant.now()).endTime(Instant.now()).build();
+        Object[] row = new Object[]{contest, 5L, 2L};
+
+        Page<Object[]> page = new PageImpl<Object[]>(Collections.singletonList(row));
+        when(contestRepository.searchContestsWithStats(eq("Math"), anyString(), any(Instant.class), anyString(), any(Pageable.class)))
+                .thenReturn(page);
+        when(contestMapper.toContestResponse(contest)).thenReturn(new ContestResponse());
+
+        PageResponse<ContestResponse> res = contestService.getContests(request, 1);
+
+        assertNotNull(res);
+        assertEquals(1, res.getContent().size());
+    }
+
+    @Test
+    void getBannerContest_Success() {
+        ContestEntity contest = ContestEntity.builder().id(1).status(ContestStatus.PUBLISHED).startTime(Instant.now()).endTime(Instant.now()).build();
+        Page<ContestEntity> page = new PageImpl<>(List.of(contest));
+
+        when(contestRepository.findUpcomingContests(any(Instant.class), any(Pageable.class))).thenReturn(page);
+        when(contestRepository.countParticipants(1)).thenReturn(10L);
+        when(contestRepository.countProblems(1)).thenReturn(3L);
+        when(contestRepository.isUserRegistered(1, 2)).thenReturn(true);
+        when(contestMapper.toContestResponse(contest)).thenReturn(new ContestResponse());
+
+        ContestResponse res = contestService.getBannerContest(2);
+
+        assertNotNull(res);
+        assertTrue(res.getIsUserRegistered());
+        assertEquals(10, res.getParticipantCount());
+    }
+
+    @Test
+    void getUserStats_Success() {
+        UserEntity user = UserEntity.builder().id(1).displayname("Alice").avatarurl("avatar.png").score(1500).build();
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+        when(userRepository.getUserRanking(1)).thenReturn(5);
+        when(userRepository.count()).thenReturn(100L);
+        when(contestRepository.countUserContests(1)).thenReturn(3L);
+        when(problemSubmissionRepository.findByUserId(1)).thenReturn(Collections.emptyList());
+
+        ContestUserStatsResponse res = contestService.getUserStats(1);
+
+        assertNotNull(res);
+        assertEquals("Alice", res.getDisplayName());
+        assertEquals(5, res.getRank());
+        assertEquals(1500, res.getScore());
     }
 }
