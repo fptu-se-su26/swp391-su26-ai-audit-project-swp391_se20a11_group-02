@@ -7,6 +7,8 @@ import com.swp391.coding_platform.dto.judge0.Judge0CallbackPayload.Judge0Status;
 import com.swp391.coding_platform.dto.judge0.Judge0TokenResponse;
 import com.swp391.coding_platform.dto.request.OjSubmissionRequest;
 import com.swp391.coding_platform.dto.response.OjSubmissionInitialResponse;
+import com.swp391.coding_platform.entity.contest.ContestEntity;
+import com.swp391.coding_platform.entity.enums.ContestStatus;
 import com.swp391.coding_platform.entity.enums.OjVerdict;
 import com.swp391.coding_platform.entity.problem.ProblemEntity;
 import com.swp391.coding_platform.entity.problem.ProblemSubmissionDetailEntity;
@@ -33,7 +35,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +45,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,6 +91,8 @@ class Judge0ServiceTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(judge0Service, "webhookBaseUrl", "http://localhost:8080");
+
         mockUser = UserEntity.builder().id(1).status(com.swp391.coding_platform.entity.enums.UserStatus.ACTIVE).build();
         
         com.swp391.coding_platform.entity.problem.ProblemVersionEntity mockVersion = com.swp391.coding_platform.entity.problem.ProblemVersionEntity.builder()
@@ -103,6 +111,8 @@ class Judge0ServiceTest {
         
         mockTestcase = ProblemTestcaseEntity.builder().id(1).inputData("1 2").expectedOutput("3").build();
     }
+
+    // ======================== submitCode ========================
 
     @Test
     void submitCode_success() {
@@ -160,12 +170,122 @@ class Judge0ServiceTest {
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
         when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndex(1)).thenReturn(List.of(mockTestcase));
-        // Return empty token list (should mismatch 1 testcase)
         when(judge0ClientService.sendBatchSubmission(any(Judge0BatchRequest.class))).thenReturn(Collections.emptyList());
 
         AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
         assertEquals(ErrorCode.JUDGE0_SUBMISSION_FAILED, ex.getErrorCode());
     }
+
+    @Test
+    void submitCode_withContestId_ContestNotFound_ThrowsAppException() {
+        OjSubmissionRequest request = new OjSubmissionRequest();
+        request.setProblemId(1);
+        request.setContestId(99);
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
+        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(contestRepository.findById(99)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
+        assertEquals(ErrorCode.CONTEST_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void submitCode_withContestId_ContestNotOngoing_ThrowsAppException() {
+        OjSubmissionRequest request = new OjSubmissionRequest();
+        request.setProblemId(1);
+        request.setContestId(99);
+
+        ContestEntity contest = ContestEntity.builder()
+                .id(99)
+                .status(ContestStatus.DRAFT)
+                .startTime(Instant.now().plusSeconds(3600)) // not started yet
+                .endTime(Instant.now().plusSeconds(7200))
+                .build();
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
+        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(contestRepository.findById(99)).thenReturn(Optional.of(contest));
+
+        AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
+        assertEquals(ErrorCode.CONTEST_SUBMISSION_NOT_ALLOWED, ex.getErrorCode());
+    }
+
+    @Test
+    void submitCode_withContestId_UserNotRegistered_ThrowsAppException() {
+        OjSubmissionRequest request = new OjSubmissionRequest();
+        request.setProblemId(1);
+        request.setContestId(99);
+
+        ContestEntity contest = ContestEntity.builder()
+                .id(99)
+                .status(ContestStatus.PUBLISHED)
+                .startTime(Instant.now().minusSeconds(3600)) // already started
+                .endTime(Instant.now().plusSeconds(3600))   // not ended yet
+                .build();
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
+        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(contestRepository.findById(99)).thenReturn(Optional.of(contest));
+        when(contestRepository.isUserRegistered(99, 1)).thenReturn(false);
+
+        AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
+        assertEquals(ErrorCode.CONTEST_NOT_JOINED, ex.getErrorCode());
+    }
+
+    @Test
+    void submitCode_withContestId_ProblemNotInContest_ThrowsAppException() {
+        OjSubmissionRequest request = new OjSubmissionRequest();
+        request.setProblemId(1);
+        request.setContestId(99);
+
+        ContestEntity contest = ContestEntity.builder()
+                .id(99)
+                .status(ContestStatus.PUBLISHED)
+                .startTime(Instant.now().minusSeconds(3600))
+                .endTime(Instant.now().plusSeconds(3600))
+                .build();
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
+        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(contestRepository.findById(99)).thenReturn(Optional.of(contest));
+        when(contestRepository.isUserRegistered(99, 1)).thenReturn(true);
+        when(contestProblemRepository.existsByContestIdAndProblemId(99, 1)).thenReturn(false);
+
+        AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
+        assertEquals(ErrorCode.OJ_PROBLEM_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void submitCode_withLessonId_ProblemNotInLesson_ThrowsAppException() {
+        OjSubmissionRequest request = new OjSubmissionRequest();
+        request.setProblemId(1);
+        request.setLessonId(55);
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
+        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(lessonProblemRepository.existsByLessonIdAndProblemId(55, 1)).thenReturn(false);
+
+        AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
+        assertEquals(ErrorCode.OJ_PROBLEM_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void submitCode_emptyTestcaseList_ThrowsAppException() {
+        OjSubmissionRequest request = new OjSubmissionRequest();
+        request.setProblemId(1);
+        request.setLanguageId(71);
+        request.setSourceCode("code");
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
+        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndex(1)).thenReturn(Collections.emptyList());
+
+        AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
+        assertEquals(ErrorCode.TESTCASE_NOT_FOUND, ex.getErrorCode());
+    }
+
+    // ======================== processJudge0Callback ========================
 
     @Test
     void processJudge0Callback_SubmissionDetailNotFound_ThrowsAppException() {
@@ -176,5 +296,98 @@ class Judge0ServiceTest {
 
         AppException ex = assertThrows(AppException.class, () -> judge0Service.processJudge0Callback(payload));
         assertEquals(ErrorCode.JUDGE0_SUBMISSION_FAILED, ex.getErrorCode());
+    }
+
+    @Test
+    void processJudge0Callback_AcceptedVerdict_ShouldUpdateDetailAndCheckCompletion() {
+        Judge0CallbackPayload payload = buildCallbackPayload("token-1", 3, null); // status 3 = AC
+
+        ProblemEntity problem = ProblemEntity.builder().id(1).isPublic(true).build();
+        UserEntity user = UserEntity.builder().id(1).build();
+
+        ProblemSubmissionEntity submission = ProblemSubmissionEntity.builder()
+                .id(10)
+                .problem(problem)
+                .user(user)
+                .verdict(OjVerdict.PENDING)
+                .build();
+
+        ProblemSubmissionDetailEntity detail = ProblemSubmissionDetailEntity.builder()
+                .id(1)
+                .token("token-1")
+                .submission(submission)
+                .verdict(OjVerdict.PENDING)
+                .build();
+
+        when(problemSubmissionDetailRepository.findByTokenWithSubmissionAndProblem("token-1"))
+                .thenReturn(Optional.of(detail));
+        when(problemSubmissionDetailRepository.countBySubmissionId(10)).thenReturn(1L);
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(anyString())).thenReturn(1L);
+        when(stringRedisTemplate.hasKey(anyString())).thenReturn(false);
+        when(problemSubmissionDetailRepository.findFirstBySubmissionIdAndVerdictNotOrderByTestcaseOrderIndexAsc(anyInt(), any()))
+                .thenReturn(Optional.empty());
+        // findMaxStatsBySubmissionId returns empty → throws SUBMISSION_NOT_FOUND, but that's OK for this test scope
+        when(problemSubmissionDetailRepository.findMaxStatsBySubmissionId(anyInt()))
+                .thenReturn(Optional.empty());
+
+        // Will throw SUBMISSION_NOT_FOUND due to empty maxStats - that's acceptable for testing verdict mapping
+        assertThrows(AppException.class, () -> judge0Service.processJudge0Callback(payload));
+
+        verify(problemSubmissionDetailRepository).save(detail);
+        assertEquals(OjVerdict.ACCEPTED, detail.getVerdict());
+    }
+
+    @Test
+    void processJudge0Callback_WrongAnswerVerdict_ShouldMarkWA() {
+        Judge0CallbackPayload payload = buildCallbackPayload("token-2", 4, null); // status 4 = WA
+
+        ProblemEntity problem = ProblemEntity.builder().id(1).isPublic(true).build();
+        UserEntity user = UserEntity.builder().id(1).build();
+
+        ProblemSubmissionEntity submission = ProblemSubmissionEntity.builder()
+                .id(11)
+                .problem(problem)
+                .user(user)
+                .verdict(OjVerdict.PENDING)
+                .build();
+
+        ProblemSubmissionDetailEntity detail = ProblemSubmissionDetailEntity.builder()
+                .id(2)
+                .token("token-2")
+                .submission(submission)
+                .verdict(OjVerdict.PENDING)
+                .build();
+
+        when(problemSubmissionDetailRepository.findByTokenWithSubmissionAndProblem("token-2"))
+                .thenReturn(Optional.of(detail));
+        when(problemSubmissionDetailRepository.countBySubmissionId(11)).thenReturn(1L);
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(anyString())).thenReturn(1L);
+        when(stringRedisTemplate.hasKey(anyString())).thenReturn(false);
+        when(problemSubmissionDetailRepository.findFirstBySubmissionIdAndVerdictNotOrderByTestcaseOrderIndexAsc(anyInt(), any()))
+                .thenReturn(Optional.of(detail));
+        when(problemSubmissionDetailRepository.findMaxStatsBySubmissionId(anyInt()))
+                .thenReturn(Optional.empty());
+
+        // Will throw SUBMISSION_NOT_FOUND due to empty maxStats
+        assertThrows(AppException.class, () -> judge0Service.processJudge0Callback(payload));
+
+        verify(problemSubmissionDetailRepository).save(detail);
+        assertEquals(OjVerdict.WRONG_ANSWER, detail.getVerdict());
+    }
+
+    // ======================== HELPER ========================
+
+    private Judge0CallbackPayload buildCallbackPayload(String token, int statusId, String time) {
+        Judge0CallbackPayload payload = new Judge0CallbackPayload();
+        payload.setToken(token);
+        payload.setTime(time);
+        payload.setMemory(null);
+
+        Judge0Status status = new Judge0Status();
+        status.setId(statusId);
+        payload.setStatus(status);
+        return payload;
     }
 }

@@ -28,10 +28,13 @@ import vn.payos.type.WebhookData;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,6 +85,8 @@ class PaymentServiceTest {
         transaction.setStatus(StatusTransaction.PENDING);
     }
 
+    // ======================== getUserBalance ========================
+
     @Test
     void getUserBalance_UserHasWallet_ReturnsBalance() {
         when(walletRepository.findByUserId(1)).thenReturn(Optional.of(wallet));
@@ -99,6 +104,8 @@ class PaymentServiceTest {
 
         assertEquals(BigDecimal.ZERO, balance);
     }
+
+    // ======================== cancelPayment ========================
 
     @Test
     void cancelPayment_ValidRequest_CancelsPayment() throws Exception {
@@ -128,6 +135,28 @@ class PaymentServiceTest {
     }
 
     @Test
+    void cancelPayment_TransactionAlreadyCancelled_ShouldReturnEarly() {
+        // Transaction is already CANCELLED → the method should return early without calling PayOS
+        transaction.setStatus(StatusTransaction.CANCELLED);
+        when(paymentTransactionRepository.findByTransactionCode("123456")).thenReturn(Optional.of(transaction));
+
+        assertDoesNotThrow(() -> paymentService.cancelPayment(1, "123456"));
+        // Should not attempt to save or call PayOS again
+        verify(paymentTransactionRepository, never()).save(any());
+    }
+
+    @Test
+    void cancelPayment_TransactionAlreadySuccess_ShouldReturnEarly() {
+        transaction.setStatus(StatusTransaction.SUCCESS);
+        when(paymentTransactionRepository.findByTransactionCode("123456")).thenReturn(Optional.of(transaction));
+
+        assertDoesNotThrow(() -> paymentService.cancelPayment(1, "123456"));
+        verify(paymentTransactionRepository, never()).save(any());
+    }
+
+    // ======================== reconcilePendingTransactions ========================
+
+    @Test
     void reconcilePendingTransactions_PaidTransaction_ProcessesPayment() throws Exception {
         when(paymentTransactionRepository.findByStatusAndCreatedAtBefore(eq(StatusTransaction.PENDING), any(Instant.class)))
                 .thenReturn(Collections.singletonList(transaction));
@@ -148,9 +177,79 @@ class PaymentServiceTest {
     }
 
     @Test
+    void reconcilePendingTransactions_CancelledTransaction_ShouldUpdateStatusToCancelled() throws Exception {
+        when(paymentTransactionRepository.findByStatusAndCreatedAtBefore(eq(StatusTransaction.PENDING), any(Instant.class)))
+                .thenReturn(Collections.singletonList(transaction));
+
+        PaymentLinkData payosData = mock(PaymentLinkData.class);
+        when(payosData.getStatus()).thenReturn("CANCELLED");
+        when(payOS.getPaymentLinkInformation(123456L)).thenReturn(payosData);
+
+        paymentService.reconcilePendingTransactions();
+
+        assertEquals(StatusTransaction.CANCELLED, transaction.getStatus());
+        verify(paymentTransactionRepository, times(1)).save(transaction);
+        verify(walletTransactionRepository, never()).save(any()); // no wallet credit for cancelled
+    }
+
+    @Test
+    void reconcilePendingTransactions_ExpiredTransaction_ShouldUpdateStatusToCancelled() throws Exception {
+        when(paymentTransactionRepository.findByStatusAndCreatedAtBefore(eq(StatusTransaction.PENDING), any(Instant.class)))
+                .thenReturn(Collections.singletonList(transaction));
+
+        PaymentLinkData payosData = mock(PaymentLinkData.class);
+        when(payosData.getStatus()).thenReturn("EXPIRED");
+        when(payOS.getPaymentLinkInformation(123456L)).thenReturn(payosData);
+
+        paymentService.reconcilePendingTransactions();
+
+        assertEquals(StatusTransaction.CANCELLED, transaction.getStatus());
+        verify(paymentTransactionRepository, times(1)).save(transaction);
+    }
+
+    @Test
+    void reconcilePendingTransactions_NoPendingTransactions_ShouldDoNothing() {
+        when(paymentTransactionRepository.findByStatusAndCreatedAtBefore(eq(StatusTransaction.PENDING), any(Instant.class)))
+                .thenReturn(Collections.emptyList());
+
+        assertDoesNotThrow(() -> paymentService.reconcilePendingTransactions());
+        verifyNoInteractions(payOS);
+    }
+
+    @Test
+    void reconcilePendingTransactions_ExceptionPerTransaction_ShouldContinueProcessing() throws Exception {
+        // Two transactions, first throws exception, second is normal
+        PaymentTransactionEntity tx2 = new PaymentTransactionEntity();
+        tx2.setId(2);
+        tx2.setWallet(wallet);
+        tx2.setTransactionCode("654321");
+        tx2.setAmount(new BigDecimal("20.00"));
+        tx2.setType(PaymentType.DEPOSIT);
+        tx2.setStatus(StatusTransaction.PENDING);
+
+        when(paymentTransactionRepository.findByStatusAndCreatedAtBefore(eq(StatusTransaction.PENDING), any(Instant.class)))
+                .thenReturn(List.of(transaction, tx2));
+
+        // First transaction throws
+        when(payOS.getPaymentLinkInformation(123456L)).thenThrow(new RuntimeException("PayOS error"));
+        // Second transaction succeeds
+        PaymentLinkData payosData = mock(PaymentLinkData.class);
+        when(payosData.getStatus()).thenReturn("PAID");
+        when(payOS.getPaymentLinkInformation(654321L)).thenReturn(payosData);
+        when(walletRepository.findByUserIdWithLock(1)).thenReturn(Optional.of(wallet));
+
+        // Should not throw despite exception on first tx
+        assertDoesNotThrow(() -> paymentService.reconcilePendingTransactions());
+
+        // Second transaction should still be processed
+        assertEquals(StatusTransaction.SUCCESS, tx2.getStatus());
+    }
+
+    // ======================== handlePayOSWebhook ========================
+
+    @Test
     void handlePayOSWebhook_InvalidSignature_ThrowsException() throws Exception {
         ObjectNode payload = new ObjectMapper().createObjectNode();
-        // Mock verification using lenient to prevent UnnecessaryStubbingException
         lenient().when(payOS.verifyPaymentWebhookData(any(Webhook.class))).thenThrow(new RuntimeException("Signature invalid"));
 
         AppException ex = assertThrows(AppException.class, () -> paymentService.handlePayOSWebhook(payload));
