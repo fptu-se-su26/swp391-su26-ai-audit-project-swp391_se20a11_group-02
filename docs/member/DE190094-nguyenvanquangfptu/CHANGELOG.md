@@ -19,17 +19,17 @@ Nguyên tắc ghi changelog:
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Repository URL |  |
-| Ngày bắt đầu |  |
-| Ngày hoàn thành |  |
+| Môn học | Software Development Project |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | SUMMER 2026 |
+| Tên bài tập / Project | Integrated Coding Education & Competitive Programming Platform |
+| Tên sinh viên / Nhóm | Nguyễn Văn Quang - Group 2 |
+| MSSV / Danh sách MSSV | DE190094 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Repository URL | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02 |
+| Ngày bắt đầu | 2026-05-11 |
+| Ngày hoàn thành | 2026-07-09 |
 
 ---
 
@@ -37,12 +37,12 @@ Nguyên tắc ghi changelog:
 
 | Phiên bản/Giai đoạn | Thời gian | Nội dung chính | Trạng thái |
 |---|---|---|---|
-| Phase 01 |  | Khởi tạo project | Not Started / In Progress / Completed |
-| Phase 02 |  | Phân tích yêu cầu | Not Started / In Progress / Completed |
-| Phase 03 |  | Thiết kế hệ thống | Not Started / In Progress / Completed |
-| Phase 04 |  | Implementation | Not Started / In Progress / Completed |
-| Phase 05 |  | Testing & Debug | Not Started / In Progress / Completed |
-| Phase 06 |  | Hoàn thiện báo cáo và demo | Not Started / In Progress / Completed |
+| Phase 01 | 11/05/2026 - 15/05/2026 | Khởi tạo project và phân chia công việc | Completed |
+| Phase 02 | 15/05/2026 - 25/05/2026 | Phân tích yêu cầu module Problem, Instructor Revenue, Admin Dashboard | Completed |
+| Phase 03 | 25/05/2026 - 10/06/2026 | Thiết kế hệ thống (Problem Versioning, API Decoupling) | Completed |
+| Phase 04 | 10/06/2026 - 25/06/2026 | Implementation: Phát triển chức năng Problem, Revenue & Admin Stats | Completed |
+| Phase 05 | 25/06/2026 - 05/07/2026 | Testing & Debug: Sửa lỗi hiển thị, tối ưu API, fix form validation | Completed |
+| Phase 06 | 05/07/2026 - 09/07/2026 | Hoàn thiện báo cáo, nhật ký AI và demo | Completed |
 
 ---
 
@@ -51,52 +51,36 @@ Nguyên tắc ghi changelog:
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+11/05/2026 - 15/05/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Tạo repository
-- [ ] Tạo cấu trúc thư mục project
-- [ ] Tạo file README.md
-- [ ] Tạo thư mục `docs/`
-- [ ] Tạo file `AI_AUDIT_LOG.md`
-- [ ] Tạo file `PROMPTS.md`
-- [ ] Tạo file `REFLECTION.md`
-- [ ] Tạo file `CHANGELOG.md`
-- [ ] Khởi tạo source code ban đầu
-- [ ] Cài đặt thư viện/công cụ cần thiết
-- [ ] Cấu hình môi trường chạy project
+- [x] Nhận phân công các module: Problem Management, Instructor Dashboard, Admin Financial Stats.
+- [x] Khởi tạo thư mục cá nhân `docs/member/DE190094-nguyenvanquangfptu`.
+- [x] Tạo file `AI_AUDIT_LOG.md`, `PROMPTS.md`, `REFLECTION.md`, `CHANGELOG.md`.
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Khởi tạo cấu trúc file nhật ký và changelog | Nguyễn Văn Quang | docs/member/DE190094-nguyenvanquangfptu | Commit log |
 
 ## AI có hỗ trợ không?
 
 - [ ] Có
-- [ ] Không
-
-Nếu có, mô tả AI đã hỗ trợ phần nào:
-
-```text
-Viết tại đây...
-```
+- [x] Không
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+Commit: docs: update AI Audit Log
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+N/A
 ```
 
 ---
@@ -106,51 +90,31 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+15/05/2026 - 25/05/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Xác định problem statement
-- [ ] Xác định user roles
-- [ ] Viết user stories
-- [ ] Viết use cases
-- [ ] Xác định functional requirements
-- [ ] Xác định non-functional requirements
-- [ ] Xác định business rules
-- [ ] Xác định acceptance criteria
-- [ ] Review yêu cầu với giảng viên/nhóm
-- [ ] Chỉnh sửa yêu cầu sau feedback
+- [x] Phân tích yêu cầu cho module Quản lý bài tập (Problem Management) của Admin.
+- [x] Phân tích chỉ số tài chính (Financial Statistics) cho Instructor Dashboard và Admin Dashboard.
+- [x] Xác định các biểu đồ cần thiết: Doanh thu theo tháng, Lịch sử bán khóa học, Biểu đồ đăng ký học viên.
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Lập danh sách các chỉ số cần đo lường cho Instructor Revenue | Nguyễn Văn Quang | docs/ |  |
+| 2 | Xác định yêu cầu cho Problem Testcase Builder | Nguyễn Văn Quang | docs/ |  |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
-
-## Ghi chú
-
-```text
-Viết tại đây...
+AI tư vấn về các chỉ số (metrics) quan trọng cần có cho một dashboard của giảng viên như: Gross/Net revenue, Registration Trend, Course Breakdown.
 ```
 
 ---
@@ -160,51 +124,30 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+25/05/2026 - 10/06/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Thiết kế kiến trúc tổng quan
-- [ ] Thiết kế database/ERD
-- [ ] Thiết kế API
-- [ ] Thiết kế giao diện/wireframe
-- [ ] Thiết kế flow xử lý
-- [ ] Thiết kế class diagram
-- [ ] Thiết kế sequence diagram
-- [ ] Thiết kế security/authorization flow
-- [ ] Review thiết kế
-- [ ] Chỉnh sửa thiết kế sau feedback
+- [x] Thiết kế DB cho Problem Versioning (phiên bản hóa bài tập).
+- [x] Thiết kế kiến trúc chia nhỏ API (API Decoupling) cho các bảng thống kê để tải trang nhanh hơn.
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Thiết kế cấu trúc bảng lưu trữ các version của Problem | Nguyễn Văn Quang | ERD | Commit: feat(problem): implement Problem Versioning entities |
+| 2 | Thiết kế phân rã (split) monolithic API thành micro-endpoints cho Admin Finance | Nguyễn Văn Quang | API Specs | Commit: refactor(admin-finance): split monolithic financial API... |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
-
-## Ghi chú
-
-```text
-Viết tại đây...
+AI đề xuất phương án "Problem Versioning entities" để lưu lịch sử thay đổi bài tập, và gợi ý việc tách API Monolithic thành nhiều micro-endpoints để sử dụng Promise.all ở Frontend.
 ```
 
 ---
@@ -214,33 +157,24 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-11/06/2026 - 13/06/2026
+10/06/2026 - 25/06/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Tạo project structure
-- [ ] Cài đặt database connection
-- [x] Xây dựng backend
-- [x] Xây dựng frontend
-- [ ] Xây dựng authentication/authorization
-- [x] Xử lý CRUD
-- [ ] Xử lý validation
-- [x] Tích hợp API
-- [ ] Xử lý upload/download file
-- [x] Xử lý lỗi
-- [x] Tối ưu giao diện
-- [ ] Cập nhật README hướng dẫn chạy
+- [x] Phát triển Frontend & Backend cho quản lý Problem (Testcase builder, UI form).
+- [x] Phát triển toàn diện Instructor Revenue Dashboard (Summary, Sales history, Course Breakdown, Monthly chart).
+- [x] Phát triển Admin Financial Dashboard (Dynamic database queries, parallel data fetching).
+- [x] Cập nhật giao diện Problem Solve UI.
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 | Tạo controller, request DTOs và response DTOs phục vụ tính năng CRUD Contest của Admin | Nguyễn Duy Phương | AdminContestController, request/response DTOs | Commit feature/DE190416-CRUD-Contest |
-| 2 | Loại bỏ cột status tĩnh trong database và thực thể ContestEntity, thay bằng flag is_cancelled để phục vụ tính toán trạng thái Contest động | Nguyễn Duy Phương | init.sql, contest_seed.sql, ContestEntity | Commit feature/DE190416-CRUD-Contest |
-| 3 | Tái cấu trúc logic đếm active contest và CRUD Contest động dựa trên mốc thời gian so với Instant.now() ở tầng Service | Nguyễn Duy Phương | ContestService, AdminDashboardService | Commit feature/DE190416-CRUD-Contest |
-| 4 | Xây dựng API và các query JPA lấy danh sách bài nộp của Contest phân quyền theo vai trò (User chỉ thấy bài nộp của mình, Admin thấy toàn bộ) | Nguyễn Duy Phương | ContestRepository, ProblemSubmissionRepository, ContestController, ContestSubmissionResponse | Commit feature/DE190416-CRUD-Contest |
-| 5 | Tích hợp frontend: ẩn spotlight banner trống, khóa đăng ký contest đã kết thúc và hiển thị danh sách bài nộp thật từ backend | Nguyễn Duy Phương | Contests.tsx, Layout.tsx, ContestSubmissions.tsx | Commit feature/DE190416-CRUD-Contest |
+| 1 | Tích hợp DB, xây dựng Testcase Builder và hoàn thiện giao diện Problem | Nguyễn Văn Quang | admin-problems | Commit: feat(admin-problems): implement database integration, testcase builder |
+| 2 | Xây dựng Instructor Revenue: Revenue Summary, Sales History, Course Breakdown, Monthly Chart | Nguyễn Văn Quang | instructor-revenue | Commit: feat(instructor-revenue): implement comprehensive instructor revenue dashboard features |
+| 3 | Tích hợp biểu đồ SVG tự động tính toán cho Revenue Dashboard | Nguyễn Văn Quang | instructor-dashboard | Commit: feat(instructor-dashboard): integrate database revenue analytics |
+| 4 | Phân tách monolithic API và sử dụng Promise.all để tăng tốc độ tải trang Admin Stats | Nguyễn Văn Quang | admin-dashboard | Commit: perf(admin-dashboard): optimize financial stats fetching |
 
 ## AI có hỗ trợ không?
 
@@ -250,19 +184,7 @@ Viết tại đây...
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-AI hỗ trợ phân tích thiết kế dynamic status thay thế DB static column, viết các câu lệnh JPQL so sánh thời gian thực, viết khung mapping dữ liệu DTO và sinh các component hooks để fetch submissions thật ở frontend.
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Commit trên nhánh feature/DE190416-CRUD-Contest
-```
-
-## Ghi chú
-
-```text
-Đảm bảo đồng bộ hóa múi giờ hệ thống khi tính toán thời gian bắt đầu và kết thúc của kỳ thi.
+AI sinh code boilerplate để fetch dữ liệu bằng Promise.all, hỗ trợ tính toán grid width và mapping điểm (points) cho SVG chart của biểu đồ doanh thu.
 ```
 
 ---
@@ -272,45 +194,30 @@ Commit trên nhánh feature/DE190416-CRUD-Contest
 ## Ngày thực hiện
 
 ```text
-13/06/2026
+25/06/2026 - 05/07/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Viết test case
-- [x] Chạy test chức năng chính
-- [x] Kiểm tra output
-- [ ] Kiểm tra validation
-- [x] Kiểm tra lỗi giao diện
-- [x] Kiểm tra lỗi database
-- [x] Kiểm tra phân quyền
-- [ ] Kiểm tra bảo mật cơ bản
-- [x] Fix bug
-- [x] Chạy lại sau khi fix bug
-- [x] Ghi nhận kết quả test
+- [x] Sửa lỗi tự động thay đổi Scope/Visibility của Problem khi thêm testcase.
+- [x] Cập nhật Validation form Admin Problem (bắt lỗi thiếu testcase, limit...).
+- [x] Dọn dẹp unused imports (imports rác) ở Dashboard components.
 
 ## Danh sách lỗi đã xử lý
 
 | STT | Lỗi phát hiện | Nguyên nhân | Cách xử lý | Trạng thái |
 |---:|---|---|---|---|
-| 1 | Lỗi SQL Type Binding Mismatch trên PostgreSQL khi lọc Contest theo enum | PostgreSQL không thể so sánh trực tiếp VARCHAR với custom ENUM của Hibernate | Thay đổi thiết kế từ DB static status column sang dynamic status tính tại runtime | Fixed |
-| 2 | Spotlight Banner hiển thị dữ liệu cứng trống rỗng khi không có contest mới | Component bannerContest ở frontend không kiểm tra null, tự render tiêu đề mẫu | Thêm khối check {bannerContest && ( ... )} bao quanh banner để ẩn hoàn toàn nếu null | Fixed |
-| 3 | Lỗi biên dịch TypeScript ở frontend do code cũ của Layout.tsx | Có các biến unused variables (appealReasonText, authService...) do tính năng cũ để lại | Comment out các biến dư thừa và dọn dẹp import để vượt qua strict check | Fixed |
-| 4 | Lỗi bỏ qua khóa đăng ký khi contest đã kết thúc | Form đăng ký ở sidebar vẫn cho phép click nộp password sau khi kỳ thi đã đóng | Thêm check status === 'ENDED' để render UI thông báo Registration Closed tĩnh | Fixed |
+| 1 | Problem bị đổi scope sang public tự động khi thêm testcase mới | Cấu hình default parameter trong entity bị sai lệch lúc update | Sửa logic cập nhật entity để giữ nguyên `isPublic` state. | Fixed |
+| 2 | Lỗi thiếu trường thông tin nhưng form Problem vẫn cho submit | Form validation lỏng lẻo | Thêm dấu * bắt buộc, bổ sung thông báo lỗi cụ thể cho từng trường (Title, Limits...). | Fixed |
+| 3 | Tỉ lệ Acceptance Rate không tự cập nhật sau khi nộp bài | Component không refetch lại dữ liệu problem | Sửa đổi logic để gọi lại API refetch thông tin sau mỗi submission. | Fixed |
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 | Fix lỗi biên dịch và các import chưa sử dụng | Nguyễn Duy Phương | Layout.tsx | Commit feature/DE190416-CRUD-Contest |
-| 2 | Sửa logic đếm active contest và dynamic status check | Nguyễn Duy Phương | ContestService.java, ContestRepository.java | Commit feature/DE190416-CRUD-Contest |
-| 3 | Test phân quyền user và admin đối với Contest Submissions API | Nguyễn Duy Phương | ContestController.java | Commit feature/DE190416-CRUD-Contest |
-| 4 | Tái cấu trúc database: loại bỏ cột `is_deleted`, thay bằng cột `status` chứa enum `DRAFT`, `PUBLISHED`, `DELETED` | Nguyễn Duy Phương | `init.sql`, `ContestEntity.java`, `ContestStatus.java` | Commit feature/de190416-contest-status-refactoring |
-| 5 | Triển khai logic tính toán trạng thái động (`UPCOMING`, `ONGOING`, `ENDED`) tại runtime | Nguyễn Duy Phương | `ContestService.java`, `ContestRepository.java` | Commit feature/de190416-contest-status-refactoring |
-| 6 | Bổ sung cơ chế soft delete, khôi phục và xóa cứng kỳ thi an toàn (chỉ khi số lượng bài nộp bằng 0) | Nguyễn Duy Phương | `ContestService.java`, `AdminDashboard.tsx` | Commit feature/de190416-contest-status-refactoring |
-| 7 | Đồng bộ đưa bài tập liên quan về scope `PRACTICE` và trạng thái `isPublic = false` (Draft) khi xóa kỳ thi hoặc rút bài khỏi kỳ thi | Nguyễn Duy Phương | `ContestService.java` | Commit feature/de190416-contest-status-refactoring |
-| 8 | Thiết lập các API lấy chi tiết bài tập phòng thi và lịch sử nộp bài của phòng thi | Nguyễn Duy Phương | problemService.ts | Commit [DE190416] feat: connect contest problem solve UI to backend APIs |
-| 9 | Xây dựng giao diện kéo giãn Contest Problem Solve và kết nối real-time WebSocket chấm bài thi | Nguyễn Duy Phương | ContestProblemSolve.tsx | Commit [DE190416] feat: connect contest problem solve UI to backend APIs |
+| 1 | Thêm asterisk(*) vào các nhãn bắt buộc, làm rõ thông báo lỗi form Problem | Nguyễn Văn Quang | admin-problem | Commit: feat(admin, problem): enhance problem form validation |
+| 2 | Sửa lỗi auto-change problem scope/visibility sang public | Nguyễn Văn Quang | admin-problem | Commit: fix(admin-problem): stop auto-changing problem scope... |
+| 3 | Dọn dẹp import rác ở AdminDashboardService | Nguyễn Văn Quang | admin-dashboard | Commit: chore(admin-dashboard): update dashboard components |
 
 ## AI có hỗ trợ không?
 
@@ -320,19 +227,7 @@ Commit trên nhánh feature/DE190416-CRUD-Contest
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-AI hỗ trợ rà soát compiler logs của frontend và backend, gợi ý các giải pháp fix bug và test chức năng phân quyền.
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Commit trên nhánh feature/DE190416-CRUD-Contest
-```
-
-## Ghi chú
-
-```text
-Sử dụng cmd.exe để build sản phẩm thay cho PowerShell để tránh lỗi Execution Policy trên Windows.
+AI giúp định vị nhanh các lỗi validation, viết các regex kiểm tra và tối ưu cấu trúc hàm AdminDashboardService.
 ```
 
 ---
@@ -342,106 +237,68 @@ Sử dụng cmd.exe để build sản phẩm thay cho PowerShell để tránh l�
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+05/07/2026 - 09/07/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Hoàn thiện source code
-- [ ] Hoàn thiện README.md
-- [ ] Hoàn thiện report
-- [ ] Hoàn thiện slide
-- [ ] Hoàn thiện video demo
-- [ ] Kiểm tra lại `AI_AUDIT_LOG.md`
-- [ ] Kiểm tra lại `PROMPTS.md`
-- [ ] Hoàn thiện `REFLECTION.md`
-- [ ] Kiểm tra lại `CHANGELOG.md`
-- [ ] Đóng gói bài nộp
+- [x] Hoàn thiện `AI_AUDIT_LOG.md` và `PROMPTS.md`.
+- [x] Cập nhật `CHANGELOG.md` cho các commit cá nhân.
+- [x] Viết `REFLECTION.md` tự đánh giá quá trình học tập.
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Viết nội dung AI Audit Log và Prompts | Nguyễn Văn Quang | docs/ | Commit: Update AI_Audit_Log and Prompts |
+| 2 | Rewrite lại CHANGELOG.md và REFLECTION.md dựa trên commit thật | Nguyễn Văn Quang | docs/ |  |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
-
-## Ghi chú
-
-```text
-Viết tại đây...
+AI hỗ trợ định dạng lại file Markdown, rà soát lịch sử git để tổng hợp log.
 ```
 
 ---
 
-# 4. Tổng kết thay đổi cuối project
+## 4. Tổng kết thay đổi cuối project
 
-## 4.1. Các chức năng đã hoàn thành
+### 4.1. Các chức năng đã hoàn thành
 
 | STT | Chức năng | Trạng thái | Minh chứng | Ghi chú |
 |---:|---|---|---|---|
-| 1 |  | Completed / Partial / Not Completed |  |  |
-| 2 |  | Completed / Partial / Not Completed |  |  |
-| 3 |  | Completed / Partial / Not Completed |  |  |
-| 4 |  | Completed / Partial / Not Completed |  |  |
-| 5 |  | Completed / Partial / Not Completed |  |  |
+| 1 | Quản lý Problem & Testcase Builder | Completed | Commit: feat(admin-problems) | Có validation, versioning |
+| 2 | Instructor Revenue Dashboard | Completed | Commit: feat(instructor-revenue) | Biểu đồ SVG, bộ lọc thời gian |
+| 3 | Admin Financial Stats | Completed | Commit: feat(admin-financial) | Tối ưu bằng Promise.all |
 
----
-
-## 4.2. Các chức năng chưa hoàn thành
-
-| STT | Chức năng | Lý do chưa hoàn thành | Hướng cải thiện |
-|---:|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-
----
-
-## 4.3. Tổng hợp AI hỗ trợ trong project
+### 4.2. Tổng hợp AI hỗ trợ trong project
 
 | Hạng mục | AI có hỗ trợ không? | Mức độ hỗ trợ | Ghi chú |
 |---|---|---|---|
-| Requirement | Có / Không | Ít / Trung bình / Nhiều |  |
-| Design | Có / Không | Ít / Trung bình / Nhiều |  |
-| Database | Có / Không | Ít / Trung bình / Nhiều |  |
-| Coding | Có / Không | Ít / Trung bình / Nhiều |  |
-| Debug | Có / Không | Ít / Trung bình / Nhiều |  |
-| Testing | Có / Không | Ít / Trung bình / Nhiều |  |
-| Report | Có / Không | Ít / Trung bình / Nhiều |  |
-| Presentation | Có / Không | Ít / Trung bình / Nhiều |  |
+| Requirement | Có | Trung bình | Gợi ý các metric dashboard |
+| Design | Có | Trung bình | Gợi ý schema Problem Versioning |
+| Coding | Có | Nhiều | boilerplate code, tính toán biểu đồ SVG, Promise.all |
+| Debug | Có | Trung bình | Fix validation, scope thay đổi ngoài ý muốn |
+| Report | Có | Nhiều | Sinh format Markdown báo cáo |
 
----
-
-## 4.4. Bài học rút ra
+### 4.3. Bài học rút ra
 
 ```text
-Viết tại đây...
+1. Hiệu suất API: Nhận ra tác hại của Monolithic API khi load lượng data lớn (thống kê). Việc tách nhỏ thành micro-endpoints kết hợp gọi song song bằng Promise.all cải thiện đáng kể UX.
+2. Form Validation: Không bao giờ tin tưởng hoàn toàn vào dữ liệu đầu vào. Phải validate chặt chẽ (Testcase, constraints) để tránh lỗi runtime lúc thi đấu.
+3. Sử dụng AI hiệu quả: AI rất giỏi trong việc xử lý thuật toán tính toán (vd: tính tọa độ điểm vẽ SVG line chart), tiết kiệm rất nhiều thời gian so với tính thủ công.
 ```
 
----
-
-## 4.5. Hướng cải thiện tiếp theo
+### 4.4. Hướng cải thiện tiếp theo
 
 ```text
-Viết tại đây...
+1. Ứng dụng cache (Redis) cho các dashboard thống kê để giảm tải database vì các số liệu tài chính không nhất thiết phải real-time đến từng giây.
+2. Cải tiến Testcase Builder có giao diện kéo thả trực quan hơn thay vì nhập text.
 ```
 
 ---
@@ -452,4 +309,4 @@ Sinh viên/nhóm cam kết rằng nội dung changelog phản ánh đúng các t
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Nguyễn Văn Quang | 09/07/2026 |

@@ -59,6 +59,14 @@ public class ApplicationInitConfig {
                 log.warn("Không thể hoàn tất khởi tạo hoặc đồng bộ bảng course_embeddings: {}", e.getMessage());
             }
 
+            // Đồng bộ enum status_transaction nếu thiếu giá trị CANCELLED
+            try {
+                jdbcTemplate.execute("ALTER TYPE status_transaction ADD VALUE 'CANCELLED'");
+                log.info("Đã thêm CANCELLED vào enum status_transaction thành công.");
+            } catch (Exception e) {
+                log.info("Giá trị CANCELLED đã tồn tại trong enum status_transaction hoặc enum chưa được tạo.");
+            }
+
             // Setup role ADMIN first
             RoleEntity adminRole = roleRepository.findByName(RoleName.ADMIN)
                     .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.ADMIN).build()));

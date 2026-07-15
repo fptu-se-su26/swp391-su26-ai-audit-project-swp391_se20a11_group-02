@@ -21,8 +21,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/lessons/{lessonId}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/contests", "/contests/banner", "/contests/{contestId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/problems").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/rankings").permitAll()
                         .requestMatchers("/online-judge/problems/practice").permitAll()
 
                         // 4. Các API Webhook / Callback từ hệ thống bên thứ 3
