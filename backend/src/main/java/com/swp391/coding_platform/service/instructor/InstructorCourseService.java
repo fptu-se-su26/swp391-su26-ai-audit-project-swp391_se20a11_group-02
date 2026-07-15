@@ -69,6 +69,10 @@ public class InstructorCourseService {
     public InstructorCourseResponse createCourse(Integer userId, InstructorCourseCreateRequest request) {
         InstructorEntity instructor = getInstructorByUserId(userId);
         
+        if (courseRepository.existsByTitle(request.getTitle())) {
+            throw new AppException(ErrorCode.COURSE_TITLE_ALREADY_EXISTS);
+        }
+        
         CourseEntity newCourse = CourseEntity.builder()
                 .instructor(instructor)
                 .title(request.getTitle())
@@ -279,7 +283,12 @@ public class InstructorCourseService {
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
 
         // Update all editable fields
-        if (request.getTitle() != null) course.setTitle(request.getTitle());
+        if (request.getTitle() != null && !request.getTitle().equals(course.getTitle())) {
+            if (courseRepository.existsByTitleAndIdNot(request.getTitle(), courseId)) {
+                throw new AppException(ErrorCode.COURSE_TITLE_ALREADY_EXISTS);
+            }
+            course.setTitle(request.getTitle());
+        }
         if (request.getShortDescription() != null) course.setShortDescription(request.getShortDescription());
         if (request.getLongDescription() != null) course.setLongDescription(request.getLongDescription());
         if (request.getThumbnailUrl() != null) course.setThumbnailUrl(request.getThumbnailUrl());
@@ -490,7 +499,7 @@ public class InstructorCourseService {
                             // Identify lesson problems to delete
                             java.util.List<com.swp391.coding_platform.entity.course.LessonProblemEntity> lpToRemove = new java.util.ArrayList<>(existingExercises);
                             lpToRemove.removeAll(updatedExercises);
-                            lessonProblemRepository.deleteAll(lpToRemove);
+                            // orphanRemoval = true will handle deletion
 
                             lesEntity.getLessonProblems().clear();
                             lesEntity.getLessonProblems().addAll(updatedExercises);
@@ -588,7 +597,7 @@ public class InstructorCourseService {
                     // Identify lessons to delete
                     java.util.List<com.swp391.coding_platform.entity.course.LessonEntity> lessonsToRemove = new java.util.ArrayList<>(existingLessons);
                     lessonsToRemove.removeAll(updatedLessons);
-                    lessonRepository.deleteAll(lessonsToRemove);
+                    // orphanRemoval = true will handle deletion
 
                     chEntity.getLessons().clear();
                     chEntity.getLessons().addAll(updatedLessons);
@@ -600,7 +609,7 @@ public class InstructorCourseService {
             // Identify chapters to delete
             java.util.List<com.swp391.coding_platform.entity.course.ChapterEntity> chaptersToRemove = new java.util.ArrayList<>(existingChapters);
             chaptersToRemove.removeAll(updatedChapters);
-            chapterRepository.deleteAll(chaptersToRemove);
+            // orphanRemoval = true will handle deletion
 
             course.getChapters().clear();
             course.getChapters().addAll(updatedChapters);
