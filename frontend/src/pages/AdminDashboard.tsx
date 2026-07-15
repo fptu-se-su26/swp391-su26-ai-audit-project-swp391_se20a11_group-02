@@ -307,6 +307,7 @@ export const AdminDashboard: React.FC = () => {
 
   // Modal / review panel states
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
+  const [selectedInstructorDetail, setSelectedInstructorDetail] = useState<AdminInstructor | null>(null);
   const [isCreateProblemOpen, setIsCreateProblemOpen] = useState(false);
   const [isEditProblemOpen, setIsEditProblemOpen] = useState(false);
   const [editingProblemId, setEditingProblemId] = useState<number | null>(null);
@@ -579,6 +580,7 @@ export const AdminDashboard: React.FC = () => {
     }
     setReviewContestProblemId(null);
     setSelectedUserDetail(null);
+    setSelectedInstructorDetail(null);
     setIsCreateProblemOpen(false);
     setIsEditProblemOpen(false);
     setEditingProblemId(null);
@@ -1064,6 +1066,9 @@ export const AdminDashboard: React.FC = () => {
       } else {
         const updated = await adminService.setInstructorStatus(id, newStatus as 'ACTIVE' | 'SUSPENDED');
         setInstructors(prev => prev.map(ins => ins.id === id ? updated : ins));
+        if (selectedInstructorDetail?.id === id) {
+          setSelectedInstructorDetail(updated);
+        }
       }
       setStatusConfirmTarget(null);
       showGlobalToast(`${type === 'USER' ? 'User' : 'Instructor'} status successfully updated to ${newStatus}`, "success");
@@ -4467,7 +4472,12 @@ export const AdminDashboard: React.FC = () => {
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-3">
                                 <img src={`https://ui-avatars.com/api/?name=${ins.fullName}&background=F36F21&color=fff`} className="w-8 h-8 rounded-full object-cover border border-slate-100" alt="" />
-                                <span className="font-bold text-slate-900">{ins.fullName}</span>
+                                <button
+                                  onClick={() => setSelectedInstructorDetail(ins)}
+                                  className="font-bold text-slate-900 hover:text-primary hover:underline bg-transparent border-none p-0 cursor-pointer text-left"
+                                >
+                                  {ins.fullName}
+                                </button>
                               </div>
                             </td>
                             <td className="py-4 px-6 text-slate-500 font-extrabold">{ins.major}</td>
@@ -4485,21 +4495,29 @@ export const AdminDashboard: React.FC = () => {
                               </span>
                             </td>
                             <td className="py-4 px-6 text-right">
-                              {ins.status === 'SUSPENDED' ? (
+                              <div className="flex justify-end gap-3 items-center">
                                 <button
-                                  onClick={() => handleInstructorStatusChange(ins.id, 'ACTIVE')}
-                                  className="text-emerald-600 hover:text-emerald-800 hover:underline bg-transparent border-none cursor-pointer font-bold"
+                                  onClick={() => setSelectedInstructorDetail(ins)}
+                                  className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer border-none"
                                 >
-                                  Activate
+                                  View
                                 </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleInstructorStatusChange(ins.id, 'SUSPENDED')}
-                                  className="text-red-500 hover:text-red-700 hover:underline bg-transparent border-none cursor-pointer font-bold"
-                                >
-                                  Suspend
-                                </button>
-                              )}
+                                {ins.status === 'SUSPENDED' ? (
+                                  <button
+                                    onClick={() => handleInstructorStatusChange(ins.id, 'ACTIVE')}
+                                    className="text-emerald-600 hover:text-emerald-800 hover:underline bg-transparent border-none cursor-pointer font-bold text-xs"
+                                  >
+                                    Activate
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleInstructorStatusChange(ins.id, 'SUSPENDED')}
+                                    className="text-red-500 hover:text-red-700 hover:underline bg-transparent border-none cursor-pointer font-bold text-xs"
+                                  >
+                                    Suspend
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -4575,34 +4593,51 @@ export const AdminDashboard: React.FC = () => {
                                 title={u.isOnline ? 'Online' : 'Offline'}
                               ></span>
                             </td>
-                            <td className="py-4 px-6 font-bold text-slate-900">{u.name}</td>
+                            <td className="py-4 px-6">
+                              <button
+                                onClick={() => setSelectedUserDetail(u)}
+                                className="font-bold text-slate-900 hover:text-primary hover:underline bg-transparent border-none p-0 cursor-pointer text-left"
+                              >
+                                {u.name}
+                              </button>
+                            </td>
                             <td className="py-4 px-6">{u.email}</td>
                             <td className="py-4 px-6">{new Date(u.registerDate).toLocaleDateString()}</td>
                             <td className="py-4 px-6 font-bold text-slate-800">{u.balance.toLocaleString()} ₫</td>
                             <td className="py-4 px-6 text-emerald-600 font-bold">+{u.totalDeposited.toLocaleString()} ₫</td>
                             <td className="py-4 px-6">
-                              <select
-                                value={u.status}
-                                onChange={(e) => handleUserStatusChange(u.id, e.target.value as 'ACTIVE' | 'LOCKED')}
-                                className={`border rounded-lg pl-2.5 pr-8 py-1.5 text-xs font-bold focus:ring-0 outline-none cursor-pointer ${
-                                  u.status === 'ACTIVE'
-                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                    : 'bg-red-50 text-red-600 border-red-200'
-                                }`}
-                              >
-                                <option value="ACTIVE" className="bg-white text-emerald-600 font-bold">ACTIVE</option>
-                                <option value="LOCKED" className="bg-white text-red-600 font-bold">LOCKED</option>
-                              </select>
+                              <span className={`inline-block font-bold rounded-lg px-2.5 py-1 text-[11px] border ${
+                                u.status === 'ACTIVE'
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200/30'
+                                  : 'bg-red-50 text-red-500 border-red-200/30'
+                              }`}>
+                                {u.status}
+                              </span>
                             </td>
                             <td className="py-4 px-6 text-right">
-                              {u.status === 'LOCKED' && (
+                              <div className="flex justify-end gap-2">
                                 <button
-                                  onClick={() => handleUserStatusChange(u.id, 'ACTIVE')}
-                                  className="text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm cursor-pointer border-none"
+                                  onClick={() => setSelectedUserDetail(u)}
+                                  className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer border-none"
                                 >
-                                  Unlock
+                                  View
                                 </button>
-                              )}
+                                {u.status === 'LOCKED' ? (
+                                  <button
+                                    onClick={() => handleUserStatusChange(u.id, 'ACTIVE')}
+                                    className="text-xs bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer border-none"
+                                  >
+                                    Unlock
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleUserStatusChange(u.id, 'LOCKED')}
+                                    className="text-xs bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer border-none"
+                                  >
+                                    Lock
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -5189,6 +5224,79 @@ export const AdminDashboard: React.FC = () => {
                 ))}
                 {selectedUserDetail.purchasedCourses.length === 0 && (
                   <p className="text-xs text-text-muted italic bg-slate-50 p-4 rounded-xl text-center">This user has not purchased any courses yet.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* ================= MODAL: INSTRUCTOR DETAILS VIEW ================= */}
+      {selectedInstructorDetail && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface rounded-2xl border border-slate-200/50 shadow-2xl max-w-lg w-full p-6 animate-fade-in text-left bg-white">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">Instructor Profile</span>
+                <h3 className="font-display font-black text-xl text-brand-blue mt-1.5">{selectedInstructorDetail.fullName}</h3>
+                <p className="text-xs text-primary font-bold mt-0.5">{selectedInstructorDetail.major}</p>
+              </div>
+              <button onClick={() => setSelectedInstructorDetail(null)} className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors border-none bg-transparent cursor-pointer">close</button>
+            </div>
+
+            <div className="flex flex-col gap-4 text-xs">
+              <div className="flex flex-col gap-1">
+                <span className="font-bold text-text-muted uppercase text-[10px]">Biography / Introduction</span>
+                <p className="bg-slate-50 border border-slate-100 p-3 rounded-xl text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
+                  {selectedInstructorDetail.bio || "No biography provided."}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl">
+                  <span className="block text-[10px] text-text-muted font-bold uppercase">Courses</span>
+                  <span className="block text-base font-black text-slate-900 mt-1">{selectedInstructorDetail.coursesCount}</span>
+                </div>
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl">
+                  <span className="block text-[10px] text-text-muted font-bold uppercase">Rating</span>
+                  <span className="block text-base font-black text-orange-500 mt-1">★ {selectedInstructorDetail.rating}</span>
+                </div>
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl">
+                  <span className="block text-[10px] text-text-muted font-bold uppercase">Students</span>
+                  <span className="block text-base font-black text-slate-900 mt-1">{selectedInstructorDetail.studentsCount}</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center bg-slate-50 border border-slate-100 p-3 rounded-xl">
+                <div>
+                  <span className="block text-[10px] text-text-muted font-bold uppercase">Account Status</span>
+                  <span className={`inline-block font-bold rounded-lg px-2.5 py-0.5 text-[11px] border mt-1 ${
+                    selectedInstructorDetail.status === 'ACTIVE'
+                      ? 'bg-emerald-50 text-emerald-600 border-emerald-200/30'
+                      : 'bg-red-50 text-red-500 border-red-200/30'
+                  }`}>
+                    {selectedInstructorDetail.status === 'ACTIVE' ? 'Active' : 'Suspended'}
+                  </span>
+                </div>
+                {selectedInstructorDetail.status === 'SUSPENDED' ? (
+                  <button
+                    onClick={() => {
+                      handleInstructorStatusChange(selectedInstructorDetail.id, 'ACTIVE');
+                    }}
+                    className="text-xs bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer border-none animate-fade-in"
+                  >
+                    Activate
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleInstructorStatusChange(selectedInstructorDetail.id, 'SUSPENDED');
+                    }}
+                    className="text-xs bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer border-none animate-fade-in"
+                  >
+                    Suspend
+                  </button>
                 )}
               </div>
             </div>
