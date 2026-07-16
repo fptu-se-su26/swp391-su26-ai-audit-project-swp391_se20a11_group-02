@@ -12,6 +12,7 @@ test.describe('Contest Problem Solving Flow', () => {
   });
 
   test('should enter ongoing contest, select problem and submit code successfully', async ({ page }) => {
+    test.setTimeout(90000); // 90 seconds timeout due to slowMo: 2000
     const contestId = '99';
     const problemId = '9901';
 
