@@ -12,6 +12,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@fontsource/material-symbols-outlined": "^5.2.45",
     "@monaco-editor/react": "^4.7.0",
     "@react-oauth/google": "^0.13.5",
     "@stomp/stompjs": "^7.3.0",
