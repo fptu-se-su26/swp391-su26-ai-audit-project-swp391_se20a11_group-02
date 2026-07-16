@@ -12,6 +12,7 @@ test.describe('Wallet Deposit & Course Checkout Flow', () => {
   });
 
   test('should mock wallet balance and complete checkout successfully', async ({ page }) => {
+    test.setTimeout(90000); // 90 seconds timeout due to slowMo: 2000
     // 1. Clean cart first
     await page.goto('/shopping-cart');
     
