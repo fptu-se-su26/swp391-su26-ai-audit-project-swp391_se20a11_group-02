@@ -37,12 +37,12 @@ test.describe('Authentication Flow', () => {
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/dashboard/);
 
-    // Profile dropdown interaction in the header
-    const avatar = page.locator('header img[alt="User Avatar"]');
-    await expect(avatar).toBeVisible();
+    // Profile dropdown container in the header (has class 'group')
+    const avatarContainer = page.locator('header div.group').first();
+    await expect(avatarContainer).toBeVisible();
 
-    // Click avatar to open dropdown
-    await avatar.click();
+    // Hover over the avatar container to trigger CSS group-hover and reveal dropdown
+    await avatarContainer.hover();
 
     // Select Logout button
     const logoutBtn = page.locator('button:has-text("Logout")');
