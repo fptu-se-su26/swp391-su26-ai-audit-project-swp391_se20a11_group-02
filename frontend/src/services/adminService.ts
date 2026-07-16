@@ -1076,17 +1076,29 @@ export const adminService = {
   },
 
   // Contests
-  async getContests(): Promise<AdminContest[]> {
+  async getContests(page: number = 0, size: number = 10, tab: string = 'active', status: string = 'ALL'): Promise<PageResponse<AdminContest>> {
     try {
-      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(
+        `${BASE_URL}/admin/contests?page=${page}&size=${size}&tab=${tab}&status=${status}`,
+        { credentials: 'include' }
+      );
       if (response.ok) {
         const data = await response.json();
-        return data.result || [];
+        return data.result || { content: [], totalPages: 0, totalElements: 0, page: 0, size: 10, numberOfElements: 0, first: true, last: true };
       }
     } catch (err) {
       console.warn("Failed to get Contests from backend:", err);
     }
-    return [];
+    return { content: [], totalPages: 0, totalElements: 0, page: 0, size: 10, numberOfElements: 0, first: true, last: true };
+  },
+
+  async getContestById(contestId: number): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch contest details');
+    }
+    const data = await response.json();
+    return data.result;
   },
 
   async createContest(contest: Omit<AdminContest, 'id' | 'status' | 'participantCount' | 'submissionCount' | 'averageScore'>): Promise<AdminContest> {

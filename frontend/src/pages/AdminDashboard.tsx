@@ -288,6 +288,10 @@ export const AdminDashboard: React.FC = () => {
   const problemsPerPage = 10;
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'DELETED'>('ALL');
   const [contestSubTab, setContestSubTab] = useState<'active' | 'trash'>('active');
+  const [contestPage, setContestPage] = useState(1);
+  const [contestSize, setContestSize] = useState(10);
+  const [totalContestPages, setTotalContestPages] = useState(0);
+  const [totalContestsCount, setTotalContestsCount] = useState(0);
 
   useEffect(() => {
     setProblemPage(1);
@@ -686,8 +690,16 @@ export const AdminDashboard: React.FC = () => {
         setProblems(probsRes || []);
         setAllTags(tagsRes || []);
       } else if (activeTab === 'contest') {
-        const contestsRes = await adminService.getContests().catch(err => { console.error("Failed to load contests:", err); return []; });
-        setContests(contestsRes || []);
+        const contestsRes = await adminService.getContests(contestPage - 1, contestSize, contestSubTab, contestStatusFilter).catch(err => { console.error("Failed to load contests:", err); return null; });
+        if (contestsRes) {
+          setContests(contestsRes.content || []);
+          setTotalContestPages(contestsRes.totalPages || 0);
+          setTotalContestsCount(contestsRes.totalElements || 0);
+        } else {
+          setContests([]);
+          setTotalContestPages(0);
+          setTotalContestsCount(0);
+        }
       } else if (activeTab === 'instructor') {
         const instsRes = await adminService.getInstructors().catch(err => { console.error("Failed to load instructors:", err); return []; });
         setInstructors(instsRes || []);
@@ -715,7 +727,7 @@ export const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, [activeTab, courseFilter]);
+  }, [activeTab, courseFilter, contestPage, contestSubTab, contestStatusFilter]);
 
   const exportFinancialDataToCSV = () => {
     if (filteredFinancialData.length === 0) {
@@ -1302,7 +1314,7 @@ export const AdminDashboard: React.FC = () => {
         password: newContestPassword.trim() || undefined
       });
 
-      setContests(prev => [...prev, newContest]);
+      await loadData();
       setIsCreateContestOpen(false);
 
       // Reset form
@@ -1420,7 +1432,7 @@ export const AdminDashboard: React.FC = () => {
   const handleRestoreContest = async (id: number) => {
     try {
       const updated = await adminService.restoreContest(id);
-      setContests(prev => prev.map(c => c.id === id ? updated : c));
+      await loadData();
       if (reviewingContest && reviewingContest.id === id) {
         setReviewingContest(updated);
       }
@@ -1433,11 +1445,14 @@ export const AdminDashboard: React.FC = () => {
   const handleDeleteContest = async (id: number) => {
     try {
       await adminService.deleteContest(id);
-      const updatedContests = await adminService.getContests();
-      setContests(updatedContests);
+      await loadData();
       if (reviewingContest && reviewingContest.id === id) {
-        const found = updatedContests.find(c => c.id === id);
-        if (found) setReviewingContest(found);
+        try {
+          const updated = await adminService.getContestById(id);
+          setReviewingContest(updated);
+        } catch (err) {
+          setReviewingContest(null);
+        }
       }
       showGlobalToast("Contest moved to trash successfully!", "success");
     } catch (error: any) {
@@ -1448,7 +1463,7 @@ export const AdminDashboard: React.FC = () => {
   const handleHardDeleteContest = async (id: number) => {
     try {
       await adminService.hardDeleteContest(id);
-      setContests(prev => prev.filter(c => c.id !== id));
+      await loadData();
       if (reviewingContest && reviewingContest.id === id) {
         setReviewingContest(null);
         setReviewContestProblemId(null);
@@ -1512,22 +1527,13 @@ export const AdminDashboard: React.FC = () => {
     });
   }, [problems, problemSearch, problemDifficultyFilter, problemScopeFilter, problemSubTab]);
 
-  const filteredContests = useMemo(() => {
-    let list = contests;
-    if (contestSubTab === 'trash') {
-      list = contests.filter(c => c.status === 'DELETED');
-    } else {
-      list = contests.filter(c => c.status !== 'DELETED');
-      if (contestStatusFilter !== 'ALL') {
-        list = list.filter(c => c.status === contestStatusFilter);
-      }
-    }
-    return list;
-  }, [contests, contestStatusFilter, contestSubTab]);
+  const filteredContests = contests;
 
   const totalProblemPages = Math.ceil(filteredProblems.length / problemsPerPage);
   const safeProblemPage = Math.min(problemPage, Math.max(1, totalProblemPages));
   const paginatedProblems = filteredProblems.slice((safeProblemPage - 1) * problemsPerPage, safeProblemPage * problemsPerPage);
+
+  const safeContestPage = Math.min(contestPage, Math.max(1, totalContestPages));
 
   // Auth checking context (Only allow role == ADMIN, or default username admin, let's keep it safe)
   // const isAdmin = useMemo(() => {
@@ -2284,11 +2290,13 @@ export const AdminDashboard: React.FC = () => {
                 {(reviewingContest.status === 'DRAFT' || reviewingContest.status === 'UPCOMING') && (
                   <button
                     onClick={() => {
-                      if (window.confirm("Are you sure you want to move this contest to trash?")) {
-                        handleDeleteContest(reviewingContest.id);
-                      }
+                      triggerConfirm(
+                        "Move Contest to Trash",
+                        "Are you sure you want to move this contest to trash?",
+                        () => handleDeleteContest(reviewingContest.id)
+                      );
                     }}
-                    className="flex items-center gap-1.5 text-xs text-white font-bold bg-red-500 hover:bg-red-655 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-white font-bold bg-red-500 hover:bg-red-600 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">delete</span>
                     Delete
@@ -2300,9 +2308,11 @@ export const AdminDashboard: React.FC = () => {
                   reviewingContest.submissionCount === 0 ? (
                     <button
                       onClick={() => {
-                        if (window.confirm("Are you sure you want to permanently delete this contest? This cannot be undone.")) {
-                          handleHardDeleteContest(reviewingContest.id);
-                        }
+                        triggerConfirm(
+                          "Permanently Delete Contest",
+                          "Are you sure you want to permanently delete this contest? This action is irreversible.",
+                          () => handleHardDeleteContest(reviewingContest.id)
+                        );
                       }}
                       className="flex items-center gap-1.5 text-xs text-white font-bold bg-red-600 hover:bg-red-700 border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
                     >
@@ -4261,6 +4271,7 @@ export const AdminDashboard: React.FC = () => {
                         onClick={() => {
                           setContestSubTab('active');
                           setContestStatusFilter('ALL');
+                          setContestPage(1);
                         }}
                         className={`pb-2 text-xs font-bold transition-all px-2 cursor-pointer border-b-2 ${
                           contestSubTab === 'active' ? 'border-primary text-primary font-black' : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -4272,12 +4283,13 @@ export const AdminDashboard: React.FC = () => {
                         onClick={() => {
                           setContestSubTab('trash');
                           setContestStatusFilter('ALL');
+                          setContestPage(1);
                         }}
                         className={`pb-2 text-xs font-bold transition-all px-2 cursor-pointer border-b-2 ${
                           contestSubTab === 'trash' ? 'border-primary text-primary font-black' : 'border-transparent text-slate-400 hover:text-slate-600'
                         }`}
                       >
-                        Thùng rác (Trash)
+                        Trash
                       </button>
                     </div>
                   </div>
@@ -4286,7 +4298,10 @@ export const AdminDashboard: React.FC = () => {
                     {contestSubTab === 'active' && (
                       <select
                         value={contestStatusFilter}
-                        onChange={(e) => setContestStatusFilter(e.target.value as any)}
+                        onChange={(e) => {
+                          setContestStatusFilter(e.target.value as any);
+                          setContestPage(1);
+                        }}
                         className="text-xs bg-surface border border-slate-200 rounded-xl pl-3 pr-8 py-1.5 focus:ring-primary focus:border-primary cursor-pointer"
                       >
                         <option value="ALL">All Status</option>
@@ -4367,7 +4382,13 @@ export const AdminDashboard: React.FC = () => {
                                     </button>
                                     {(c.status === 'UPCOMING' || c.status === 'DRAFT') && (
                                       <button
-                                        onClick={() => handleDeleteContest(c.id)}
+                                        onClick={() => {
+                                          triggerConfirm(
+                                            "Move Contest to Trash",
+                                            "Are you sure you want to move this contest to trash?",
+                                            () => handleDeleteContest(c.id)
+                                          );
+                                        }}
                                         className="bg-red-500 hover:bg-red-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
                                       >
                                         Delete
@@ -4385,9 +4406,11 @@ export const AdminDashboard: React.FC = () => {
                                     {c.submissionCount === 0 ? (
                                       <button
                                         onClick={() => {
-                                          if (window.confirm("Are you sure you want to permanently delete this contest? This cannot be undone.")) {
-                                            handleHardDeleteContest(c.id);
-                                          }
+                                          triggerConfirm(
+                                            "Permanently Delete Contest",
+                                            "Are you sure you want to permanently delete this contest? This action is irreversible.",
+                                            () => handleHardDeleteContest(c.id)
+                                          );
                                         }}
                                         className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
                                       >
@@ -4416,6 +4439,59 @@ export const AdminDashboard: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Pagination Controls */}
+                  {totalContestPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                      <span className="text-xs font-semibold text-slate-500">
+                        Showing {(safeContestPage - 1) * contestSize + 1} to {Math.min(safeContestPage * contestSize, totalContestsCount)} of {totalContestsCount} entries
+                      </span>
+                      <div className="flex gap-1">
+                        <button 
+                          onClick={() => setContestPage(p => Math.max(1, p - 1))}
+                          disabled={safeContestPage === 1}
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-white disabled:opacity-50 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
+                        
+                        <div className="flex gap-1">
+                          {Array.from({ length: Math.min(5, totalContestPages) }).map((_, i) => {
+                            let pageNum = i + 1;
+                            if (totalContestPages > 5) {
+                              let startPage = Math.max(1, safeContestPage - 2);
+                              let endPage = Math.min(totalContestPages, startPage + 4);
+                              if (endPage - startPage < 4) {
+                                startPage = Math.max(1, endPage - 4);
+                              }
+                              pageNum = startPage + i;
+                            }
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setContestPage(pageNum)}
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                                  safeContestPage === pageNum 
+                                    ? 'bg-brand-blue text-white shadow-sm' 
+                                    : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        
+                        <button 
+                          onClick={() => setContestPage(p => Math.min(totalContestPages, p + 1))}
+                          disabled={safeContestPage === totalContestPages}
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-white disabled:opacity-50 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -61,4 +61,25 @@ public interface ContestRepository extends JpaRepository<ContestEntity, Integer>
            "(SELECT AVG(ps.score) FROM ProblemSubmissionEntity ps WHERE ps.contest.id = c.id) " +
            "FROM ContestEntity c ORDER BY c.createdAt DESC")
     List<Object[]> getAdminContestsWithStats();
+
+    @Query("SELECT c, " +
+           "(SELECT COUNT(p) FROM ContestParticipantEntity p WHERE p.contest.id = c.id), " +
+           "(SELECT COUNT(cp) FROM ContestProblemEntity cp WHERE cp.contest.id = c.id), " +
+           "(SELECT COUNT(ps) FROM ProblemSubmissionEntity ps WHERE ps.contest.id = c.id), " +
+           "(SELECT AVG(ps.score) FROM ProblemSubmissionEntity ps WHERE ps.contest.id = c.id) " +
+           "FROM ContestEntity c WHERE " +
+           "(:showDeleted = true AND c.status = com.swp391.coding_platform.entity.enums.ContestStatus.DELETED) OR " +
+           "(:showDeleted = false AND c.status <> com.swp391.coding_platform.entity.enums.ContestStatus.DELETED AND " +
+           "  (:statusFilter = 'ALL' OR " +
+           "   (:statusFilter = 'DRAFT' AND c.status = com.swp391.coding_platform.entity.enums.ContestStatus.DRAFT) OR " +
+           "   (:statusFilter = 'UPCOMING' AND c.status = com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED AND c.startTime > :now) OR " +
+           "   (:statusFilter = 'ONGOING' AND c.status = com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED AND c.startTime <= :now AND c.endTime >= :now) OR " +
+           "   (:statusFilter = 'ENDED' AND c.status = com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED AND c.endTime < :now)" +
+           "  )" +
+           ")")
+    Page<Object[]> getAdminContestsWithStatsPaginated(
+            @Param("showDeleted") boolean showDeleted,
+            @Param("statusFilter") String statusFilter,
+            @Param("now") java.time.Instant now,
+            Pageable pageable);
 }
