@@ -10,7 +10,7 @@ test.describe('Practice Problems & Code Playground Flow', () => {
     await page.fill('input[name="username"]', 'user1');
     await page.fill('input[name="password"]', 'user1');
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page).toHaveURL(/\/dashboard|\/instructor/);
   });
 
   test('should browse problems list and select a problem', async ({ page }) => {

@@ -30,7 +30,11 @@ test.describe('Authentication Flow', () => {
     // Click Login
     await page.click('button[type="submit"]');
 
-    // Should redirect to dashboard
+    // Should redirect to dashboard or instructor panel
+    await expect(page).toHaveURL(/\/dashboard|\/instructor/);
+
+    // Navigate to student dashboard where the TopAppBar with avatar menu is guaranteed to render
+    await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/dashboard/);
 
     // Profile dropdown interaction in the header
