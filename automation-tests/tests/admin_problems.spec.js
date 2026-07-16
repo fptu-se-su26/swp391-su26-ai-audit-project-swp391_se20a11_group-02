@@ -12,6 +12,7 @@ test.describe('Admin Programming Problem Creation Flow', () => {
   });
 
   test('should navigate to creation page and submit a new coding problem', async ({ page }) => {
+    test.setTimeout(90000); // 90 seconds timeout due to slowMo: 2000
     // 1. Go to Admin Problems Management
     await page.goto('/admin/problems');
 
