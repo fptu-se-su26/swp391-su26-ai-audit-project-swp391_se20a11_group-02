@@ -196,7 +196,7 @@ class UserProblemServiceTest {
 
     @Test
     void getProblemDescription_notFound_throwsException() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.empty());
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.empty());
 
         AppException ex = assertThrows(AppException.class, () -> userProblemService.getProblemDescription(1, 1));
         assertEquals(ErrorCode.OJ_PROBLEM_NOT_FOUND, ex.getErrorCode());
@@ -204,7 +204,7 @@ class UserProblemServiceTest {
 
     @Test
     void getProblemDescription_userIdNull_success() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTagMappingRepository.findByProblemId(1)).thenReturn(Collections.emptyList());
 
         ProblemDescriptionResponse result = userProblemService.getProblemDescription(1, null);
@@ -220,7 +220,7 @@ class UserProblemServiceTest {
     @Test
     void getProblemDescription_invalidTemplatesJson_ShouldHandleException() {
         mockVersion.setStarterTemplates("invalid json content");
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTagMappingRepository.findByProblemId(1)).thenReturn(Collections.emptyList());
 
         ProblemDescriptionResponse result = userProblemService.getProblemDescription(1, null);
@@ -231,7 +231,7 @@ class UserProblemServiceTest {
 
     @Test
     void getProblemDescription_userHasAcceptedSubmission_returnsSolvedAndSource() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTagMappingRepository.findByProblemId(1)).thenReturn(Collections.emptyList());
 
         ProblemSubmissionEntity s1 = ProblemSubmissionEntity.builder()
@@ -260,7 +260,7 @@ class UserProblemServiceTest {
 
     @Test
     void getProblemDescription_userHasOnlyFailedSubmission_returnsAttemptedAndLatestSource() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTagMappingRepository.findByProblemId(1)).thenReturn(Collections.emptyList());
 
         ProblemSubmissionEntity s1 = ProblemSubmissionEntity.builder()
@@ -291,7 +291,7 @@ class UserProblemServiceTest {
     void getProblemDescription_noSubmissions_acceptanceZero() {
         mockProblem.setTotalSubmission(0);
         mockProblem.setTotalAccepted(0); // Explicitly zero totalAccepted to match expected totalSolved in test
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTagMappingRepository.findByProblemId(1)).thenReturn(Collections.emptyList());
 
         ProblemDescriptionResponse result = userProblemService.getProblemDescription(1, 1);
@@ -311,7 +311,7 @@ class UserProblemServiceTest {
 
     @Test
     void getProblemSolution_notFound_throwsNotFound() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.empty());
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.empty());
 
         AppException ex = assertThrows(AppException.class, () -> userProblemService.getProblemSolution(1, 1));
         assertEquals(ErrorCode.OJ_PROBLEM_NOT_FOUND, ex.getErrorCode());
@@ -319,7 +319,7 @@ class UserProblemServiceTest {
 
     @Test
     void getProblemSolution_notSolvedByUser_throwsLocked() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemSubmissionRepository.findByUserIdAndProblemId(1, 1)).thenReturn(Collections.emptyList());
 
         AppException ex = assertThrows(AppException.class, () -> userProblemService.getProblemSolution(1, 1));
@@ -329,7 +329,7 @@ class UserProblemServiceTest {
     @Test
     void getProblemSolution_solvedButBlankSolution_returnsDefaultPlaceholder() {
         mockVersion.setSolutions(null);
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
 
         ProblemSubmissionEntity sub = ProblemSubmissionEntity.builder()
                 .verdict(OjVerdict.ACCEPTED)
@@ -344,7 +344,36 @@ class UserProblemServiceTest {
 
     @Test
     void getProblemSolution_solvedWithSolution_returnsSolutionCode() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
+
+        ProblemSubmissionEntity sub = ProblemSubmissionEntity.builder()
+                .verdict(OjVerdict.ACCEPTED)
+                .build();
+        when(problemSubmissionRepository.findByUserIdAndProblemId(1, 1)).thenReturn(List.of(sub));
+
+        ProblemSolutionResponse result = userProblemService.getProblemSolution(1, 1);
+
+        assertNotNull(result);
+        assertEquals("def solve():\n    return 42", result.getSolutionCode());
+    }
+
+    @Test
+    void getProblemDescription_nonPublicProblem_success() {
+        mockProblem.setIsPublic(false);
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemTagMappingRepository.findByProblemId(1)).thenReturn(Collections.emptyList());
+
+        ProblemDescriptionResponse result = userProblemService.getProblemDescription(1, null);
+
+        assertNotNull(result);
+        assertEquals("Test Problem", result.getTitle());
+        assertEquals("unsolved", result.getStatus());
+    }
+
+    @Test
+    void getProblemSolution_nonPublicProblem_returnsSolutionCode() {
+        mockProblem.setIsPublic(false);
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
 
         ProblemSubmissionEntity sub = ProblemSubmissionEntity.builder()
                 .verdict(OjVerdict.ACCEPTED)
