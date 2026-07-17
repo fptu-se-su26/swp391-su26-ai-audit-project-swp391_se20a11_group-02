@@ -11,7 +11,13 @@ import com.swp391.coding_platform.repository.contest.ContestProblemRepository;
 import com.swp391.coding_platform.configuration.RabbitMQConfig;
 import com.swp391.coding_platform.dto.message.ContestRankingDbUpdateMessage;
 import com.swp391.coding_platform.repository.contest.ContestRepository;
+import com.swp391.coding_platform.repository.contest.ContestRankingRepository;
+import com.swp391.coding_platform.repository.contest.ContestProblemAttemptRepository;
+import com.swp391.coding_platform.entity.contest.ContestRankingEntity;
+import com.swp391.coding_platform.entity.contest.ContestProblemAttemptEntity;
 import com.swp391.coding_platform.repository.user.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,6 +44,9 @@ public class ContestRankingService {
     ContestProblemRepository contestProblemRepository;
     UserRepository userRepository;
     RabbitTemplate rabbitTemplate;
+    ContestRankingRepository contestRankingRepository;
+    ContestProblemAttemptRepository contestProblemAttemptRepository;
+    ObjectMapper objectMapper;
 
     @Transactional
     public ContestScoreboardResponse updateContestRanking(SubmissionJudgedEvent event) {
@@ -164,10 +173,25 @@ public class ContestRankingService {
     }
 
     public ContestScoreboardResponse getScoreboard(Integer contestId, boolean isLive) {
+        ContestEntity contest = contestRepository.findById(contestId).orElse(null);
+        if (contest != null && contest.getFinalScoreboardSnapshot() != null) {
+            try {
+                List<TeamRow> rows = objectMapper.readValue(
+                        contest.getFinalScoreboardSnapshot(),
+                        new TypeReference<List<TeamRow>>() {}
+                );
+                return ContestScoreboardResponse.builder()
+                        .contestId(contestId)
+                        .rows(rows)
+                        .build();
+            } catch (Exception e) {
+                log.error("Failed to parse scoreboard snapshot for contest {}", contestId, e);
+            }
+        }
+
         // Tự động giải băng nếu contest đã kết thúc
         boolean finalLive = isLive;
         if (!finalLive) {
-            ContestEntity contest = contestRepository.findById(contestId).orElse(null);
             if (contest != null && Instant.now().isAfter(contest.getEndTime())) {
                 finalLive = true;
             }
@@ -175,14 +199,15 @@ public class ContestRankingService {
 
         String zsetKey = "contest:scoreboard:" + contestId + (finalLive ? ":live" : ":public");
 
-        Set<ZSetOperations.TypedTuple<String>> rankedMembers = stringRedisTemplate.opsForZSet()
-                .reverseRangeWithScores(zsetKey, 0, -1);
+        Set<ZSetOperations.TypedTuple<String>> rankedMembers = null;
+        try {
+            rankedMembers = stringRedisTemplate.opsForZSet().reverseRangeWithScores(zsetKey, 0, -1);
+        } catch (Exception e) {
+            log.warn("Failed to read ZSET from Redis for contest {}. Falling back to DB.", contestId, e);
+        }
 
         if (rankedMembers == null || rankedMembers.isEmpty()) {
-            return ContestScoreboardResponse.builder()
-                    .contestId(contestId)
-                    .rows(Collections.emptyList())
-                    .build();
+            return getScoreboardFromDb(contestId);
         }
 
         List<ContestProblemEntity> contestProblems = contestProblemRepository.findByContestIdWithProblem(contestId);
@@ -286,5 +311,109 @@ public class ContestRankingService {
         long mins = (totalSecs % 3600) / 60;
         long secs = totalSecs % 60;
         return String.format("%d:%02d:%02d", hrs, mins, secs);
+    }
+
+    public ContestScoreboardResponse getScoreboardFromDb(Integer contestId) {
+        log.info("[FALLBACK] Rebuilding scoreboard from DB for contest {}", contestId);
+        List<ContestRankingEntity> rankings = contestRankingRepository
+                .findByContestIdOrderByProblemsSolvedDescTotalPenaltyAscUpdatedAtAsc(contestId);
+
+        List<ContestProblemEntity> contestProblems = contestProblemRepository.findByContestIdWithProblem(contestId);
+        contestProblems.sort(Comparator.comparing(ContestProblemEntity::getOrderIndex));
+
+        // Xác định người đầu tiên giải được (First Solver) cho mỗi bài toán trong contest từ DB
+        List<ContestProblemAttemptEntity> solvedAttempts = contestProblemAttemptRepository
+                .findSolvedAttemptsByContestId(contestId);
+
+        // Key: problemId, Value: userId của người giải đầu tiên
+        Map<Integer, Integer> firstSolverMap = new HashMap<>();
+        Map<Integer, Integer> minSolvedTimeMap = new HashMap<>(); // Key: problemId, Value: min time in seconds
+
+        for (ContestProblemAttemptEntity attempt : solvedAttempts) {
+            Integer problemId = attempt.getProblem().getId();
+            Integer solvedAt = attempt.getSolvedAtSeconds();
+            if (solvedAt != null) {
+                Integer currentMin = minSolvedTimeMap.get(problemId);
+                if (currentMin == null || solvedAt < currentMin) {
+                    minSolvedTimeMap.put(problemId, solvedAt);
+                    firstSolverMap.put(problemId, attempt.getUser().getId());
+                }
+            }
+        }
+
+        List<TeamRow> rows = new ArrayList<>();
+        int rank = 1;
+
+        for (ContestRankingEntity r : rankings) {
+            Integer userId = r.getUser().getId();
+            String name = r.getUser().getUsername();
+            String displayName = r.getUser().getDisplayname() != null ? r.getUser().getDisplayname() : r.getUser().getUsername();
+            String affiliation = "Participant";
+            int solved = r.getProblemsSolved();
+            int penaltyMinutes = r.getTotalPenalty();
+
+            // Lấy tất cả attempts của user này
+            List<ContestProblemAttemptEntity> userAttempts = contestProblemAttemptRepository
+                    .findByContestIdAndUserId(contestId, userId);
+            Map<Integer, ContestProblemAttemptEntity> attemptMap = userAttempts.stream()
+                    .collect(Collectors.toMap(a -> a.getProblem().getId(), a -> a));
+
+            Map<String, ProblemSummary> submissionsMap = new HashMap<>();
+            int totalAttempts = 0;
+
+            for (ContestProblemEntity cp : contestProblems) {
+                String label = String.valueOf((char) ('A' + cp.getOrderIndex()));
+                ContestProblemAttemptEntity attempt = attemptMap.get(cp.getProblem().getId());
+
+                int isAc = 0;
+                int wrongAttempts = 0;
+                Integer acTimeSec = 0;
+
+                if (attempt != null) {
+                    isAc = attempt.getIsSolved() ? 1 : 0;
+                    wrongAttempts = attempt.getFailedAttemptsCount();
+                    acTimeSec = attempt.getSolvedAtSeconds();
+                }
+
+                totalAttempts += wrongAttempts + isAc;
+
+                String status = "unattempted";
+                if (isAc == 1) {
+                    Integer firstSolverId = firstSolverMap.get(cp.getProblem().getId());
+                    if (userId.equals(firstSolverId)) {
+                        status = "first_solve";
+                    } else {
+                        status = "accepted";
+                    }
+                } else if (wrongAttempts > 0) {
+                    status = "failed";
+                }
+
+                String timeStr = isAc == 1 && acTimeSec != null ? formatElapsed(acTimeSec * 1000) : null;
+
+                submissionsMap.put(label, ProblemSummary.builder()
+                        .time(timeStr)
+                        .penalty(wrongAttempts)
+                        .status(status)
+                        .build());
+            }
+
+            rows.add(TeamRow.builder()
+                    .rank(rank++)
+                    .userId(userId)
+                    .name(name)
+                    .displayName(displayName)
+                    .affiliation(affiliation)
+                    .solved(solved)
+                    .totalAttempts(totalAttempts)
+                    .totalPenalty(penaltyMinutes)
+                    .submissions(submissionsMap)
+                    .build());
+        }
+
+        return ContestScoreboardResponse.builder()
+                .contestId(contestId)
+                .rows(rows)
+                .build();
     }
 }
