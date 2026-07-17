@@ -354,3 +354,7 @@ Sinh viên/nhóm hiểu rằng:
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
 | Nguyễn Duy Phương | 16/06/2026 |
+
+
+## Cập nhật suy ngẫm (Sau 100 lần tương tác AI)
+Qua hơn 100 lần sử dụng AI (ChatGPT, Gemini, Copilot, Antigravity), nhóm nhận thấy AI là trợ thủ đắc lực giúp tăng tốc 70% thời gian code boilerplate và debug. Tuy nhiên, rủi ro lớn nhất là AI thỉnh thoảng cung cấp code lỗi thời (deprecated), đặc biệt với Spring Security 6. Sinh viên bắt buộc phải đọc hiểu từng dòng code, kiểm chứng thông qua Unit Test thay vì copy-paste mù quáng để duy trì kiến trúc bền vững cho hệ thống.
