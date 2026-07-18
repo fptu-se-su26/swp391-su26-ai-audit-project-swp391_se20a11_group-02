@@ -274,7 +274,8 @@ export const instructorService = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update course');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to update course');
     }
 
     const data = await response.json();

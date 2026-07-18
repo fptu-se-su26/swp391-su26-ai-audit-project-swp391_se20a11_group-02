@@ -243,7 +243,7 @@ export interface AdminProblem {
   exampleInput: string;
   exampleOutput: string;
   hint: string;
-  problemScope: 'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE';
+  problemScope: 'LESSON' | 'CONTEST' | 'PRACTICE';
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   isActive: boolean;
   createdBy: number;
@@ -939,7 +939,7 @@ export const adminService = {
     return data.result;
   },
 
-  async updateProblemScope(problemId: number, problemScope: 'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE'): Promise<AdminProblem> {
+  async updateProblemScope(problemId: number, problemScope: 'LESSON' | 'CONTEST' | 'PRACTICE'): Promise<AdminProblem> {
     const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/scope`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

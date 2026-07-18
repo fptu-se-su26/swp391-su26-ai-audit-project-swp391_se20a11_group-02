@@ -40,7 +40,7 @@ public class ChapterEntity {
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt = Instant.now();
 
-    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     List<LessonEntity> lessons;
 }

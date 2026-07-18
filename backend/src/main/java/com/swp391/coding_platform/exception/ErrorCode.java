@@ -46,6 +46,7 @@ public enum ErrorCode {
     COURSE_NOT_FOUND(3000, "Course not found", HttpStatus.NOT_FOUND),
     COURSE_INACTIVE(3001, "Course is not active", HttpStatus.BAD_REQUEST),
     COURSE_IS_NOT_FREE(3002, "Course is not free", HttpStatus.BAD_REQUEST),
+    COURSE_TITLE_ALREADY_EXISTS(3003, "Course title already exists", HttpStatus.CONFLICT),
     LESSON_NOT_FOUND(3200, "Lesson not found", HttpStatus.NOT_FOUND),
     LESSON_INACTIVE(3201, "Lesson is inactive and cannot be edited", HttpStatus.FORBIDDEN),
     ACCESS_DENIED_COURSE(3300, "Cannot access course", HttpStatus.CONFLICT),
