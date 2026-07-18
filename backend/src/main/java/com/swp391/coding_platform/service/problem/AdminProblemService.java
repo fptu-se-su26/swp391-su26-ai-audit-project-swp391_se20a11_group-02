@@ -64,7 +64,7 @@ public class AdminProblemService {
 
     public List<AdminProblemResponse> getAdminProblems() {
         return problemRepository.findByProblemScopeIn(
-                List.of(ProblemScope.CONTEST, ProblemScope.PRACTICE, ProblemScope.SHARED)
+                List.of(ProblemScope.CONTEST, ProblemScope.PRACTICE)
         ).stream()
                 .map(this::mapToAdminResponse)
                 .toList();

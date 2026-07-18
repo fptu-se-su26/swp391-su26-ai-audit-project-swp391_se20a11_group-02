@@ -40,7 +40,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
   const [newProbExampleInput, setNewProbExampleInput] = useState('');
   const [newProbExampleOutput, setNewProbExampleOutput] = useState('');
   const [newProbHints, setNewProbHints] = useState<string[]>(['']);
-  const [newProbScope, setNewProbScope] = useState<'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE'>('PRACTICE');
+  const [newProbScope, setNewProbScope] = useState<'LESSON' | 'CONTEST' | 'PRACTICE'>('PRACTICE');
   const [newProbDifficulty, setNewProbDifficulty] = useState<'EASY' | 'MEDIUM' | 'HARD'>('MEDIUM');
   const [newProbScore, setNewProbScore] = useState(100);
   const [newProbTimeLimit, setNewProbTimeLimit] = useState(2000);
@@ -357,7 +357,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Scope</label>
                   <div className="flex p-1 bg-slate-100/80 rounded-xl border border-slate-200/50 shadow-inner">
-                    {['PRACTICE', 'CONTEST', 'SHARED'].map(sc => {
+                    {['PRACTICE', 'CONTEST'].map(sc => {
                       const isSelected = newProbScope === sc;
                       return (
                         <label key={sc} className={`flex-1 flex items-center justify-center py-2 rounded-lg cursor-pointer transition-all duration-300 text-[13px] font-bold tracking-wide ${isSelected ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>

@@ -47,7 +47,7 @@ public class UserProblemService {
 
     public List<ProblemListItemResponse> getProblems(Integer userId) {
         List<ProblemEntity> problems = problemRepository.findByProblemScopeInAndIsActiveTrueAndIsPublicTrue(
-                List.of(ProblemScope.PRACTICE, ProblemScope.SHARED)
+                List.of(ProblemScope.PRACTICE)
         );
 
         if (problems.isEmpty()) {

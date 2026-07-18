@@ -273,8 +273,8 @@ export const AdminDashboard: React.FC = () => {
   const [instStatusFilter, setInstStatusFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
-  const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
-  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared' | 'draft' | 'deleted'>('repository');
+  const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST'>('ALL');
+  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'draft' | 'deleted'>('repository');
   const [problemPage, setProblemPage] = useState(1);
   const [selectedProblems, setSelectedProblems] = useState<number[]>([]);
   const [testcasesList, setTestcasesList] = useState<Omit<AdminProblemTestcase, 'id'>[]>([]);
@@ -1199,8 +1199,6 @@ export const AdminDashboard: React.FC = () => {
         setProblemSubTab('practice');
       } else if (scope === 'CONTEST') {
         setProblemSubTab('contest');
-      } else if (scope === 'SHARED') {
-        setProblemSubTab('shared');
       }
 
       setIsTestcaseModalOpen(false);
@@ -1504,8 +1502,6 @@ export const AdminDashboard: React.FC = () => {
         matchesSubTab = p.problemScope === 'PRACTICE' && p.isPublic && !p.isDeleted;
       } else if (problemSubTab === 'contest') {
         matchesSubTab = p.problemScope === 'CONTEST' && p.isPublic && !p.isDeleted;
-      } else if (problemSubTab === 'shared') {
-        matchesSubTab = p.problemScope === 'SHARED' && p.isPublic && !p.isDeleted;
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -3875,7 +3871,6 @@ export const AdminDashboard: React.FC = () => {
                       <option value="ALL">All Scopes</option>
                       <option value="PRACTICE">Practice</option>
                       <option value="CONTEST">Contest</option>
-                      <option value="SHARED">Share</option>
                     </select>
                     <button
                       onClick={handleCreateProblemClick}
@@ -3918,16 +3913,7 @@ export const AdminDashboard: React.FC = () => {
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
                     Contest Problems ({problems.filter(p => p.problemScope === 'CONTEST' && p.isPublic && !p.isDeleted).length})
                   </button>
-                  <button
-                    onClick={() => setProblemSubTab('shared')}
-                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'shared'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-slate-500 hover:text-primary'
-                      }`}
-                  >
-                    <span className="material-symbols-outlined text-[16px]">share</span>
-                    Shared Problems ({problems.filter(p => p.problemScope === 'SHARED' && p.isPublic && !p.isDeleted).length})
-                  </button>
+
                   <button
                     onClick={() => setProblemSubTab('draft')}
                     className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'draft'
@@ -4094,12 +4080,11 @@ export const AdminDashboard: React.FC = () => {
                                     ? 'bg-green-50 text-green-600 border-green-200'
                                     : p.problemScope === 'CONTEST'
                                       ? 'bg-blue-50 text-blue-600 border-blue-200'
-                                      : 'bg-orange-50 text-orange-600 border-orange-200'
+                                      : 'bg-slate-50 text-slate-600 border-slate-200'
                                     }`}
                                 >
                                   <option value="PRACTICE" className="bg-white text-green-600 font-bold">Practice</option>
                                   <option value="CONTEST" className="bg-white text-blue-600 font-bold">Contest</option>
-                                  <option value="SHARED" className="bg-white text-orange-600 font-bold">Share</option>
                                 </select>
                               </td>
                               <td className="py-4 px-3 text-center">
