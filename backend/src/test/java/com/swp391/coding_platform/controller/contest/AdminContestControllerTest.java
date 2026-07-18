@@ -5,6 +5,7 @@ import com.swp391.coding_platform.dto.request.AdminContestProblemRequest;
 import com.swp391.coding_platform.dto.request.AdminContestRequest;
 import com.swp391.coding_platform.dto.response.AdminContestProblemResponse;
 import com.swp391.coding_platform.dto.response.AdminContestResponse;
+import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.repository.user.UserDailyActivityRepository;
 import com.swp391.coding_platform.service.contest.ContestService;
 import org.junit.jupiter.api.Test;
@@ -56,13 +57,21 @@ class AdminContestControllerTest {
                 .status("PUBLISHED")
                 .build();
 
-        when(contestService.getAdminContests()).thenReturn(Collections.singletonList(response));
+        PageResponse<AdminContestResponse> pageResponse = PageResponse.<AdminContestResponse>builder()
+                .content(Collections.singletonList(response))
+                .page(0)
+                .size(10)
+                .totalElements(1L)
+                .totalPages(1)
+                .build();
+
+        when(contestService.getAdminContests(anyInt(), anyInt(), anyString(), anyString())).thenReturn(pageResponse);
 
         mockMvc.perform(get("/admin/contests"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(1000))
-                .andExpect(jsonPath("$.result[0].id").value(1))
-                .andExpect(jsonPath("$.result[0].title").value("Admin Contest"));
+                .andExpect(jsonPath("$.result.content[0].id").value(1))
+                .andExpect(jsonPath("$.result.content[0].title").value("Admin Contest"));
     }
 
     @Test

@@ -309,10 +309,14 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminContestResponse> getAdminContests() {
-        List<Object[]> results = contestRepository.getAdminContestsWithStats();
+    public PageResponse<AdminContestResponse> getAdminContests(int page, int size, String tab, String statusFilter) {
+        boolean showDeleted = "trash".equalsIgnoreCase(tab);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Instant now = Instant.now();
-        return results.stream().map(array -> {
+        
+        Page<Object[]> pageResult = contestRepository.getAdminContestsWithStatsPaginated(showDeleted, statusFilter, now, pageable);
+        
+        Page<AdminContestResponse> responsePage = pageResult.map(array -> {
             ContestEntity entity = (ContestEntity) array[0];
             Long partCount = (Long) array[1];
             Long probCount = (Long) array[2];
@@ -326,7 +330,9 @@ public class ContestService {
             response.setSubmissionCount(subCount != null ? subCount.intValue() : 0);
             response.setAverageScore(avgScore != null ? avgScore : 0.0);
             return response;
-        }).collect(Collectors.toList());
+        });
+
+        return PageResponse.from(responsePage);
     }
 
     @Transactional(readOnly = true)
