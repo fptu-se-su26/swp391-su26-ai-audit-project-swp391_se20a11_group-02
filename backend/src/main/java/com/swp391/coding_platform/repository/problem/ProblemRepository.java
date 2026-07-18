@@ -20,6 +20,7 @@ public interface ProblemRepository extends JpaRepository<ProblemEntity, Integer>
     List<ProblemEntity> findByProblemScopeInAndIsActiveTrueAndIsPublicTrue(Collection<ProblemScope> scopes);
     List<ProblemEntity> findByProblemScopeIn(Collection<ProblemScope> scopes);
     Optional<ProblemEntity> findByIdAndIsActiveTrueAndIsPublicTrue(Integer id);
+    Optional<ProblemEntity> findByIdAndIsActiveTrue(Integer id);
 
     @Transactional
     @Modifying

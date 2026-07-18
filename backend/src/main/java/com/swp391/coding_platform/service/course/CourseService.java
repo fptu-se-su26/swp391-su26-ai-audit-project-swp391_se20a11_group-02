@@ -40,6 +40,7 @@ import com.swp391.coding_platform.repository.course.LessonCommentRepository;
 import com.swp391.coding_platform.repository.course.LessonRepository;
 import com.swp391.coding_platform.repository.course.LessonProblemRepository;
 import com.swp391.coding_platform.repository.course.QuizRepository;
+import com.swp391.coding_platform.repository.problem.ProblemSubmissionRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +72,7 @@ public class CourseService {
     LessonProblemRepository lessonProblemRepository;
     QuizRepository quizRepository;
     QuizService quizService;
+    ProblemSubmissionRepository problemSubmissionRepository;
 
     public CourseService(
             CourseRepository courseRepository,
@@ -85,7 +87,8 @@ public class CourseService {
             LessonRepository lessonRepository,
             LessonProblemRepository lessonProblemRepository,
             QuizRepository quizRepository,
-            QuizService quizService
+            QuizService quizService,
+            ProblemSubmissionRepository problemSubmissionRepository
     ) {
         this.courseRepository = courseRepository;
         this.courseMapper = courseMapper;
@@ -100,6 +103,7 @@ public class CourseService {
         this.lessonProblemRepository = lessonProblemRepository;
         this.quizRepository = quizRepository;
         this.quizService = quizService;
+        this.problemSubmissionRepository = problemSubmissionRepository;
     }
 
     public PageResponse<CourseListItemResponse> getCourseList(Long userId, CourseSearchRequest searchRequest, Pageable pageable) {
@@ -402,12 +406,37 @@ public class CourseService {
         // Fetch coding problems linked to this lesson
         List<com.swp391.coding_platform.entity.course.LessonProblemEntity> lessonProblems = 
                 lessonProblemRepository.findByLessonIdOrderByOrderIndexAsc(lessonId);
+                
+        List<Integer> problemIds = lessonProblems.stream()
+                .map(lp -> lp.getProblem().getId())
+                .toList();
+
+        Map<Integer, List<com.swp391.coding_platform.entity.problem.ProblemSubmissionEntity>> tempSubmissionsByProblemId = new HashMap<>();
+        if (userId != null && !problemIds.isEmpty()) {
+            List<com.swp391.coding_platform.entity.problem.ProblemSubmissionEntity> userSubmissions = 
+                    problemSubmissionRepository.findByUserIdAndProblemIdIn(userId.intValue(), problemIds);
+            tempSubmissionsByProblemId = userSubmissions.stream()
+                    .collect(Collectors.groupingBy(s -> s.getProblem().getId()));
+        }
+        final var finalSubmissionsByProblemId = tempSubmissionsByProblemId;
+
         List<com.swp391.coding_platform.dto.response.ProblemListItemResponse> problemResponses = lessonProblems.stream()
                 .map(lp -> {
                     var problem = lp.getProblem();
                     String diff = problem.getCurrentVersion().getDifficulty() != null 
                             ? problem.getCurrentVersion().getDifficulty().name().substring(0, 1).toUpperCase() + problem.getCurrentVersion().getDifficulty().name().substring(1).toLowerCase()
                             : "Medium";
+                    
+                    boolean isSolved = false;
+                    String status = "unsolved";
+                    if (userId != null) {
+                        List<com.swp391.coding_platform.entity.problem.ProblemSubmissionEntity> subs = finalSubmissionsByProblemId.getOrDefault(problem.getId(), Collections.emptyList());
+                        if (!subs.isEmpty()) {
+                            isSolved = subs.stream().anyMatch(s -> s.getVerdict() == com.swp391.coding_platform.entity.enums.OjVerdict.ACCEPTED);
+                            status = isSolved ? "solved" : "attempted";
+                        }
+                    }
+
                     return com.swp391.coding_platform.dto.response.ProblemListItemResponse.builder()
                             .id(problem.getId())
                             .title(problem.getCurrentVersion().getTitle())
@@ -415,8 +444,8 @@ public class CourseService {
                             .score(problem.getScore() != null ? problem.getScore().intValue() : 0)
                             .totalSubmission(problem.getTotalSubmission() != null ? problem.getTotalSubmission() : 0)
                             .totalAccepted(problem.getTotalAccepted() != null ? problem.getTotalAccepted() : 0)
-                            .isSolved(false)
-                            .status("unsolved")
+                            .isSolved(isSolved)
+                            .status(status)
                             .build();
                 })
                 .toList();
