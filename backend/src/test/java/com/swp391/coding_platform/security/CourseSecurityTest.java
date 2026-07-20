@@ -244,7 +244,7 @@ class CourseSecurityTest {
         mockSecurityContext(USER_ID, "ROLE_USER");
         ProblemEntity problem = new ProblemEntity();
         problem.setIsPublic(false);
-        problem.setProblemScope(ProblemScope.SHARED);
+        problem.setProblemScope(ProblemScope.LESSON);
         when(problemRepository.findById(40)).thenReturn(Optional.of(problem));
         when(enrollmentRepository.isUserEnrolledByProblemId(USER_ID, PROBLEM_ID)).thenReturn(true);
 
@@ -269,7 +269,7 @@ class CourseSecurityTest {
         mockSecurityContext(USER_ID, "ROLE_INSTRUCTOR");
         ProblemEntity problem = new ProblemEntity();
         problem.setIsPublic(false);
-        problem.setProblemScope(ProblemScope.SHARED);
+        problem.setProblemScope(ProblemScope.LESSON);
         UserEntity creator = new UserEntity();
         creator.setId(1);
         problem.setCreatedBy(creator);
@@ -286,7 +286,7 @@ class CourseSecurityTest {
         mockSecurityContext(USER_ID, "ROLE_USER");
         ProblemEntity problem = new ProblemEntity();
         problem.setIsPublic(false);
-        problem.setProblemScope(ProblemScope.SHARED);
+        problem.setProblemScope(ProblemScope.LESSON);
         UserEntity creator = new UserEntity();
         creator.setId(2);
         problem.setCreatedBy(creator);
