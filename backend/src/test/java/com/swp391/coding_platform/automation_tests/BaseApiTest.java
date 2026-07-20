@@ -36,6 +36,7 @@ public abstract class BaseApiTest {
                             }
                         });
             }
+            RestAssured.filters(new io.restassured.filter.log.RequestLoggingFilter(), new io.restassured.filter.log.ResponseLoggingFilter());
         } catch (Exception e) {
             System.err.println("Failed to load .env file in tests: " + e.getMessage());
         }
