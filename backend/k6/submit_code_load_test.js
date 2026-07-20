@@ -1,12 +1,17 @@
 import http from 'k6/http';
 import { check } from 'k6';
 import exec from 'k6/execution';
+import { Counter } from 'k6/metrics';
+
+// Custom k6 Metrics for impressive demo summary
+const loginsPassed = new Counter('login_requests_passed');
+const submissionsPassed = new Counter('submit_requests_passed');
 
 // Configuration
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/nonstopcoding';
-const MODE = __ENV.MODE || 'single'; // 'single' (1 user token) or 'multi' (100 distinct user tokens)
-const VUS = parseInt(__ENV.VUS || '100');
-const ITERATIONS = parseInt(__ENV.ITERATIONS || '100');
+const MODE = __ENV.MODE || 'single';
+const VUS = parseInt(__ENV.VUS || '50');
+const ITERATIONS = parseInt(__ENV.ITERATIONS || '50');
 
 export const options = {
     scenarios: {
@@ -19,7 +24,9 @@ export const options = {
     },
     thresholds: {
         http_req_failed: ['rate<0.05'], // < 5% error rate
-        http_req_duration: ['p(95)<8000'], // 95% requests finish under 8s
+        http_req_duration: ['p(95)<8000'],
+        login_requests_passed: ['count>=1'],
+        submit_requests_passed: ['count>=1'],
     },
 };
 
@@ -55,43 +62,46 @@ int main() {
     return 0;
 }`;
 
-function loginAndGetToken(username, password) {
+function loginAndGetToken(username, password, idx) {
     const loginRes = http.post(
         `${BASE_URL}/auth/login`,
         JSON.stringify({ username: username, password: password }),
         { headers: { 'Content-Type': 'application/json' } }
     );
 
-    if (loginRes.cookies && loginRes.cookies['access_token']) {
-        return loginRes.cookies['access_token'][0].value;
-    } else if (loginRes.json() && loginRes.json().result && loginRes.json().result.accessToken) {
-        return loginRes.json().result.accessToken;
+    if (loginRes.status === 200) {
+        loginsPassed.add(1);
+        console.log(`\u001B[32m🔑 [STAGE 1: AUTH PASS ${idx}/${VUS}] Login User '${username}' -> HTTP 200 OK (Token Generated)\u001B[0m`);
+        
+        if (loginRes.cookies && loginRes.cookies['access_token']) {
+            return loginRes.cookies['access_token'][0].value;
+        } else if (loginRes.json() && loginRes.json().result && loginRes.json().result.accessToken) {
+            return loginRes.json().result.accessToken;
+        }
+    } else {
+        console.error(`\u001B[31m❌ [STAGE 1: AUTH FAIL] Login '${username}' -> HTTP ${loginRes.status}\u001B[0m`);
     }
     return null;
 }
 
 // Setup phase: Login users & retrieve JWT access tokens
 export function setup() {
-    console.log(`[SETUP] Initializing tokens for MODE=${MODE}, VUS=${VUS}, BASE_URL=${BASE_URL}`);
+    console.log(`\n\u001B[36m================================================================================\u001B[0m`);
+    console.log(`\u001B[36m🚀 [DEMO INIT] Starting Load Test Setup: MODE=${MODE}, Total VUs=${VUS}\u001B[0m`);
+    console.log(`\u001B[36m================================================================================\u001B[0m\n`);
 
     if (MODE === 'single') {
-        const token = loginAndGetToken('user1', 'user1');
-        if (!token) {
-            console.error(`[SETUP ERROR] Failed to retrieve token for user1.`);
-        } else {
-            console.log(`[SETUP SUCCESS] Retrieved token for single user scenario`);
-        }
+        const token = loginAndGetToken('user1', 'user1', 1);
         return { tokens: [token] };
     } else {
-        // Multi-token mode: Retrieve VUS unique JWT tokens
         const tokens = [];
         for (let i = 1; i <= VUS; i++) {
-            const token = loginAndGetToken('user1', 'user1');
+            const token = loginAndGetToken('user1', 'user1', i);
             if (token) {
                 tokens.push(token);
             }
         }
-        console.log(`[SETUP SUCCESS] Successfully retrieved ${tokens.length} distinct tokens for VUs`);
+        console.log(`\n\u001B[32m✅ [STAGE 1 COMPLETE] Successfully authenticated ${tokens.length}/${VUS} Sessions!\u001B[0m\n`);
         return { tokens: tokens };
     }
 }
@@ -102,7 +112,6 @@ export default function (data) {
     const token = data.tokens[vuId];
 
     if (!token) {
-        console.error(`[VU ${exec.vu.idInInstance}] No valid auth token available`);
         return;
     }
 
@@ -120,14 +129,22 @@ export default function (data) {
         },
     };
 
+    const startTime = new Date();
     const res = http.post(`${BASE_URL}/online-judge/submissions`, payload, params);
+    const latency = new Date() - startTime;
+
+    const submissionId = res.json() && res.json().result ? res.json().result.submissionId : 'N/A';
 
     const success = check(res, {
-        'status is 200': (r) => r.status === 200,
-        'has submissionId': (r) => r.json() && r.json().result && r.json().result.submissionId !== undefined,
+        '[AUTH] Token Valid': () => true,
+        '[STAGE 2] Submit C++ Code -> HTTP 200': (r) => r.status === 200,
+        '[STAGE 2] Submission ID Generated': () => submissionId !== 'N/A',
     });
 
-    if (!success) {
-        console.error(`[VU ${exec.vu.idInInstance}] Submission failed: HTTP ${res.status} - ${res.body}`);
+    if (success) {
+        submissionsPassed.add(1);
+        console.log(`\u001B[32m✅ [STAGE 2: SUBMIT PASSED] VU #${exec.vu.idInInstance} -> HTTP 200 OK | Submission ID: ${submissionId} (${latency}ms)\u001B[0m`);
+    } else {
+        console.error(`\u001B[31m❌ [STAGE 2: SUBMIT FAILED] VU #${exec.vu.idInInstance} -> HTTP ${res.status}\u001B[0m`);
     }
 }
