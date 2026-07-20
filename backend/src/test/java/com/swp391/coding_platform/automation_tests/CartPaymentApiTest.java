@@ -13,6 +13,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@org.junit.jupiter.api.parallel.Execution(org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD)
 public class CartPaymentApiTest extends BaseApiTest {
 
     @Autowired
@@ -62,9 +63,9 @@ public class CartPaymentApiTest extends BaseApiTest {
 
         String token = getAccessToken("user1", "user1");
 
-        // Course 2 is 199,000.00, which is more than 100.00
+        // Course 3 is 399,000.00, which is more than 100.00
         Map<String, Object> payload = Map.of(
-            "courseIds", List.of(2L)
+            "courseIds", List.of(3L)
         );
 
         given()

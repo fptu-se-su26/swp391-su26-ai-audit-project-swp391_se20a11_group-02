@@ -36,7 +36,6 @@ public abstract class BaseApiTest {
                             }
                         });
             }
-            RestAssured.filters(new BeautifulApiLogger());
         } catch (Exception e) {
             System.err.println("Failed to load .env file in tests: " + e.getMessage());
         }
@@ -106,6 +105,7 @@ public abstract class BaseApiTest {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
         RestAssured.basePath = "/nonstopcoding";
+        RestAssured.replaceFiltersWith(new BeautifulApiLogger());
 
         if (judge0ClientService != null) {
             org.mockito.Mockito.when(judge0ClientService.sendBatchSubmission(org.mockito.Mockito.any()))
