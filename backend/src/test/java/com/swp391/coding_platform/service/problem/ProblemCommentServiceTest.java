@@ -41,7 +41,7 @@ class ProblemCommentServiceTest {
 
     @Test
     void getComments_ProblemNotFound_ThrowsAppException() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.empty());
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.empty());
 
         AppException exception = assertThrows(AppException.class, () -> problemCommentService.getComments(1));
         assertEquals(ErrorCode.OJ_PROBLEM_NOT_FOUND, exception.getErrorCode());
@@ -50,7 +50,7 @@ class ProblemCommentServiceTest {
     @Test
     void getComments_Success() {
         ProblemEntity problem = mock(ProblemEntity.class);
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(problem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(problem));
 
         ProblemCommentEntity comment = mock(ProblemCommentEntity.class);
         UserEntity user = mock(UserEntity.class);
@@ -81,7 +81,7 @@ class ProblemCommentServiceTest {
         request.setContent("New comment");
 
         ProblemEntity problem = mock(ProblemEntity.class);
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(problem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(problem));
 
         UserEntity user = mock(UserEntity.class);
         when(user.getUsername()).thenReturn("testUser");
