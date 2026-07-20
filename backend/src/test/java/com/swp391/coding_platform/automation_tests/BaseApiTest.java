@@ -44,11 +44,30 @@ public abstract class BaseApiTest {
     @LocalServerPort
     protected int port;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    protected com.swp391.coding_platform.service.judge0.Judge0ClientService judge0ClientService;
+
     @BeforeEach
     public void setUp() {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";
         RestAssured.basePath = "/nonstopcoding";
+
+        if (judge0ClientService != null) {
+            org.mockito.Mockito.when(judge0ClientService.sendBatchSubmission(org.mockito.Mockito.any()))
+                .thenAnswer(invocation -> {
+                    com.swp391.coding_platform.dto.judge0.Judge0BatchRequest batchReq = invocation.getArgument(0);
+                    java.util.List<com.swp391.coding_platform.dto.judge0.Judge0TokenResponse> mockTokens = new java.util.ArrayList<>();
+                    if (batchReq != null && batchReq.getSubmissions() != null) {
+                        for (int i = 0; i < batchReq.getSubmissions().size(); i++) {
+                            com.swp391.coding_platform.dto.judge0.Judge0TokenResponse resp = new com.swp391.coding_platform.dto.judge0.Judge0TokenResponse();
+                            resp.setToken("mock-token-" + System.currentTimeMillis() + "-" + i);
+                            mockTokens.add(resp);
+                        }
+                    }
+                    return mockTokens;
+                });
+        }
     }
 
     protected String getAccessToken(String username, String password) {
@@ -56,10 +75,10 @@ public abstract class BaseApiTest {
                 .contentType("application/json")
                 .body(Map.of("username", username, "password", password))
                 .when()
-                .post("/api/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(200)
                 .extract()
-                .path("result.accessToken");
+                .cookie("access_token");
     }
 }

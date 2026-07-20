@@ -2,21 +2,21 @@ INSERT INTO public.roles(id, name) VALUES (1, 'ADMIN') ON CONFLICT DO NOTHING;
 INSERT INTO public.roles(id, name) VALUES (2, 'USER') ON CONFLICT DO NOTHING;
 INSERT INTO public.roles(id, name) VALUES (3, 'INSTRUCTOR') ON CONFLICT DO NOTHING;
 
-INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(1, 0, NOW(), 'Admin', 'admin@gmail.com', '$2a$10$mtWiYIk5zYd6l0u2p5vrQe2SKYkOyiT2tsCI1uoEb2/mjNZtZwEc2', 'ACTIVE', 'admin') ON CONFLICT DO NOTHING;
+INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(1, 0, NOW(), 'Admin', 'admin@gmail.com', '$2a$10$erBBTFYX8jJIV1ysJd7XneVRtu1AdlxODeUo.on618.ZB3lNF0UHm', 'ACTIVE', 'admin') ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles(role_id, user_id) VALUES(1, 1) ON CONFLICT DO NOTHING;
 
-INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(2, 0, NOW(), 'User One', 'user1@example.com', '$2a$10$WYm5EVh5xiZz2T6fknkYeuXuONmqKPHTBP.VROKpcn/.ohy6tTc.i', 'ACTIVE', 'user1') ON CONFLICT DO NOTHING;
+INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(2, 0, NOW(), 'User One', 'user1@example.com', '$2a$10$bdiMFwCMZ0H1ARTVmCK2rOT1aEmxIqkCWXBHj0KHa231TEOY4OtQ.', 'ACTIVE', 'user1') ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles(role_id, user_id) VALUES(2, 2) ON CONFLICT DO NOTHING;
 INSERT INTO public.wallets(id, balance, user_id, updated_at, status) VALUES(1, 2000000.00, 2, NOW(), 'ACTIVE') ON CONFLICT DO NOTHING;
 
-INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(3, 0, NOW(), 'Instructor One', 'instructor1@example.com', '$2a$10$mtWiYIk5zYd6l0u2p5vrQe2SKYkOyiT2tsCI1uoEb2/mjNZtZwEc2', 'ACTIVE', 'instructor1') ON CONFLICT DO NOTHING;
-INSERT INTO public.user_roles(role_id, user_id) VALUES(2, 3) ON CONFLICT DO NOTHING;
+INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(3, 0, NOW(), 'Instructor One', 'instructor1@example.com', '$2a$10$Cww7qP4u36S1..CFZth/HOXFqjLMZOAuhZmHS9tl5B75pHTSLpPXO', 'ACTIVE', 'instructor1') ON CONFLICT DO NOTHING;
+INSERT INTO public.user_roles(role_id, user_id) VALUES(3, 3) ON CONFLICT DO NOTHING;
 INSERT INTO public.instructors(id, hired_by_admin, user_id, created_at, bio, full_name, major, status) VALUES(1, true, 3, NOW(), 'Senior instructor.', 'Instructor One', 'Software Engineering', 'ACTIVE') ON CONFLICT DO NOTHING;
 
 INSERT INTO public.categories(id, created_at, updated_at, description, name) VALUES(1, NOW(), NOW(), 'Description', 'Algorithms') ON CONFLICT DO NOTHING;
 INSERT INTO public.categories(id, created_at, updated_at, description, name) VALUES(2, NOW(), NOW(), 'Description', 'Web Development') ON CONFLICT DO NOTHING;
 
-INSERT INTO public.courses(id, average_rating, instructor_id, price, total_enrolled, total_lessons, total_quizzes, total_reviews, total_videos, created_at, updated_at, type, short_description, long_description, status, title, thumbnail_url, course_highlight, technology_tool, target_audience, prerequisites, what_you_learn, completion_benefits) VALUES(1, 4.5, 1, 0.0, 0, 6, 0, 0, NOW(), NOW(), 'FREE', 'Learn Big O, arrays, trees, and dynamic programming.', 'Mastering Data Structures & Algorithms is designed to help you ace your coding interviews and write efficient code.', 'APPROVED', 'Mastering Data Structures & Algorithms', 'http://example.com/thumb.jpg', 'Highlight', 'Tools', 'Audience', 'Prereqs', 'Learn', 'Benefits') ON CONFLICT DO NOTHING;
+INSERT INTO public.courses(id, average_rating, instructor_id, price, total_enrolled, total_lessons, total_quizzes, total_reviews, total_videos, created_at, updated_at, type, short_description, long_description, status, title, thumbnail_url, course_highlight, technology_tool, target_audience, prerequisites, what_you_learn, completion_benefits) VALUES(1, 4.5, 1, 0.0, 0, 6, 0, 0, 0, NOW(), NOW(), 'FREE', 'Learn Big O, arrays, trees, and dynamic programming.', 'Mastering Data Structures & Algorithms is designed to help you ace your coding interviews and write efficient code.', 'APPROVED', 'Mastering Data Structures & Algorithms', 'http://example.com/thumb.jpg', 'Highlight', 'Tools', 'Audience', 'Prereqs', 'Learn', 'Benefits') ON CONFLICT DO NOTHING;
 INSERT INTO public.course_category_mappings(category_id, course_id) VALUES(1, 1) ON CONFLICT DO NOTHING;
 INSERT INTO public.chapters(id, order_index, course_id, created_at, updated_at, title) VALUES(1, 1, 1, NOW(), NOW(), 'Chapter 1') ON CONFLICT DO NOTHING;
 INSERT INTO public.lessons(id, chapter_id, is_trial, order_index, created_at, updated_at, status, theory_content, title, video_url, text_audio) VALUES(1, 1, true, 1, NOW(), NOW(), 'ACTIVE', 'Theory', 'Lesson 1', 'http://video.com', 'Audio') ON CONFLICT DO NOTHING;
@@ -27,7 +27,7 @@ INSERT INTO public.lessons(id, chapter_id, is_trial, order_index, created_at, up
 INSERT INTO public.chapters(id, order_index, course_id, created_at, updated_at, title) VALUES(3, 3, 1, NOW(), NOW(), 'Chapter 3') ON CONFLICT DO NOTHING;
 INSERT INTO public.lessons(id, chapter_id, is_trial, order_index, created_at, updated_at, status, theory_content, title, video_url, text_audio) VALUES(5, 3, false, 1, NOW(), NOW(), 'ACTIVE', 'Theory', 'Lesson 1', 'http://video.com', 'Audio') ON CONFLICT DO NOTHING;
 INSERT INTO public.lessons(id, chapter_id, is_trial, order_index, created_at, updated_at, status, theory_content, title, video_url, text_audio) VALUES(6, 3, false, 2, NOW(), NOW(), 'ACTIVE', 'Theory', 'Lesson 2', 'http://video.com', 'Audio') ON CONFLICT DO NOTHING;
-INSERT INTO public.courses(id, average_rating, instructor_id, price, total_enrolled, total_lessons, total_quizzes, total_reviews, total_videos, created_at, updated_at, type, short_description, long_description, status, title, thumbnail_url, course_highlight, technology_tool, target_audience, prerequisites, what_you_learn, completion_benefits) VALUES(2, 4.5, 1, 199000.0, 0, 6, 0, 0, NOW(), NOW(), 'PAID', 'Build responsive websites with React, Node.js, Express, and PostgreSQL.', 'This comprehensive course takes you from absolute beginner to professional full stack web developer.', 'APPROVED', 'Full Stack Web Development with React & Node.js', 'http://example.com/thumb.jpg', 'Highlight', 'Tools', 'Audience', 'Prereqs', 'Learn', 'Benefits') ON CONFLICT DO NOTHING;
+INSERT INTO public.courses(id, average_rating, instructor_id, price, total_enrolled, total_lessons, total_quizzes, total_reviews, total_videos, created_at, updated_at, type, short_description, long_description, status, title, thumbnail_url, course_highlight, technology_tool, target_audience, prerequisites, what_you_learn, completion_benefits) VALUES(2, 4.5, 1, 199000.0, 0, 6, 0, 0, 0, NOW(), NOW(), 'PAID', 'Build responsive websites with React, Node.js, Express, and PostgreSQL.', 'This comprehensive course takes you from absolute beginner to professional full stack web developer.', 'APPROVED', 'Full Stack Web Development with React & Node.js', 'http://example.com/thumb.jpg', 'Highlight', 'Tools', 'Audience', 'Prereqs', 'Learn', 'Benefits') ON CONFLICT DO NOTHING;
 INSERT INTO public.course_category_mappings(category_id, course_id) VALUES(2, 2) ON CONFLICT DO NOTHING;
 INSERT INTO public.chapters(id, order_index, course_id, created_at, updated_at, title) VALUES(4, 1, 2, NOW(), NOW(), 'Chapter 1') ON CONFLICT DO NOTHING;
 INSERT INTO public.lessons(id, chapter_id, is_trial, order_index, created_at, updated_at, status, theory_content, title, video_url, text_audio) VALUES(7, 4, true, 1, NOW(), NOW(), 'ACTIVE', 'Theory', 'Lesson 1', 'http://video.com', 'Audio') ON CONFLICT DO NOTHING;
@@ -39,14 +39,14 @@ INSERT INTO public.chapters(id, order_index, course_id, created_at, updated_at, 
 INSERT INTO public.lessons(id, chapter_id, is_trial, order_index, created_at, updated_at, status, theory_content, title, video_url, text_audio) VALUES(11, 6, false, 1, NOW(), NOW(), 'ACTIVE', 'Theory', 'Lesson 1', 'http://video.com', 'Audio') ON CONFLICT DO NOTHING;
 INSERT INTO public.lessons(id, chapter_id, is_trial, order_index, created_at, updated_at, status, theory_content, title, video_url, text_audio) VALUES(12, 6, false, 2, NOW(), NOW(), 'ACTIVE', 'Theory', 'Lesson 2', 'http://video.com', 'Audio') ON CONFLICT DO NOTHING;
 
-INSERT INTO public.problem_tags(id, name) VALUES(1, 'Arrays') ON CONFLICT DO NOTHING;
-INSERT INTO public.problem_tags(id, name) VALUES(2, 'Hash Map') ON CONFLICT DO NOTHING;
-INSERT INTO public.problem_tags(id, name) VALUES(3, 'Math') ON CONFLICT DO NOTHING;
-INSERT INTO public.problem_tags(id, name) VALUES(4, 'String') ON CONFLICT DO NOTHING;
-INSERT INTO public.problem_tags(id, name) VALUES(5, 'Dynamic Programming') ON CONFLICT DO NOTHING;
-INSERT INTO public.problem_tags(id, name) VALUES(6, 'Two Pointers') ON CONFLICT DO NOTHING;
-INSERT INTO public.problem_tags(id, name) VALUES(7, 'Sorting') ON CONFLICT DO NOTHING;
-INSERT INTO public.problem_tags(id, name) VALUES(8, 'Binary Search') ON CONFLICT DO NOTHING;
+INSERT INTO public.problem_tags(id, created_at, updated_at, name, slug) VALUES(1, NOW(), NOW(), 'Arrays', 'arrays') ON CONFLICT DO NOTHING;
+INSERT INTO public.problem_tags(id, created_at, updated_at, name, slug) VALUES(2, NOW(), NOW(), 'Hash Map', 'hash-map') ON CONFLICT DO NOTHING;
+INSERT INTO public.problem_tags(id, created_at, updated_at, name, slug) VALUES(3, NOW(), NOW(), 'Math', 'math') ON CONFLICT DO NOTHING;
+INSERT INTO public.problem_tags(id, created_at, updated_at, name, slug) VALUES(4, NOW(), NOW(), 'String', 'string') ON CONFLICT DO NOTHING;
+INSERT INTO public.problem_tags(id, created_at, updated_at, name, slug) VALUES(5, NOW(), NOW(), 'Dynamic Programming', 'dynamic-programming') ON CONFLICT DO NOTHING;
+INSERT INTO public.problem_tags(id, created_at, updated_at, name, slug) VALUES(6, NOW(), NOW(), 'Two Pointers', 'two-pointers') ON CONFLICT DO NOTHING;
+INSERT INTO public.problem_tags(id, created_at, updated_at, name, slug) VALUES(7, NOW(), NOW(), 'Sorting', 'sorting') ON CONFLICT DO NOTHING;
+INSERT INTO public.problem_tags(id, created_at, updated_at, name, slug) VALUES(8, NOW(), NOW(), 'Binary Search', 'binary-search') ON CONFLICT DO NOTHING;
 
 INSERT INTO public.contest(id, created_by, durations, created_at, start_time, end_time, updated_at, description, scoring_rule, status, title) VALUES(1, 1, 10800, NOW(), NOW() - INTERVAL '1 hour', NOW() + INTERVAL '2 hours', NOW(), 'SWP391 Contest', 'ICPC', 'PUBLISHED', 'SWP391 Grand Coding Contest') ON CONFLICT DO NOTHING;
 
@@ -356,3 +356,17 @@ INSERT INTO public.problem_testcases(id, order_index, problem_version_id, expect
 INSERT INTO public.problem_testcases(id, order_index, problem_version_id, expected_output, input_data) VALUES(98, 8, 10, '45', '3 9 3 4 7 2 12 6') ON CONFLICT DO NOTHING;
 INSERT INTO public.problem_testcases(id, order_index, problem_version_id, expected_output, input_data) VALUES(99, 9, 10, '25', '10 9 8 7 6 5 4 3 2 1') ON CONFLICT DO NOTHING;
 INSERT INTO public.problem_testcases(id, order_index, problem_version_id, expected_output, input_data) VALUES(100, 10, 10, '25', '1 2 3 4 5 6 7 8 9 10') ON CONFLICT DO NOTHING;
+
+-- Reset PostgreSQL sequences
+SELECT setval('contest_id_seq', COALESCE((SELECT MAX(id) FROM public.contest), 1));
+SELECT setval('courses_id_seq', COALESCE((SELECT MAX(id) FROM public.courses), 1));
+SELECT setval('chapters_id_seq', COALESCE((SELECT MAX(id) FROM public.chapters), 1));
+SELECT setval('lessons_id_seq', COALESCE((SELECT MAX(id) FROM public.lessons), 1));
+SELECT setval('problems_id_seq', COALESCE((SELECT MAX(id) FROM public.problems), 1));
+SELECT setval('problem_versions_id_seq', COALESCE((SELECT MAX(id) FROM public.problem_versions), 1));
+SELECT setval('problem_testcases_id_seq', COALESCE((SELECT MAX(id) FROM public.problem_testcases), 1));
+SELECT setval('users_id_seq', COALESCE((SELECT MAX(id) FROM public.users), 1));
+SELECT setval('instructors_id_seq', COALESCE((SELECT MAX(id) FROM public.instructors), 1));
+SELECT setval('categories_id_seq', COALESCE((SELECT MAX(id) FROM public.categories), 1));
+SELECT setval('problem_tags_id_seq', COALESCE((SELECT MAX(id) FROM public.problem_tags), 1));
+SELECT setval('wallets_id_seq', COALESCE((SELECT MAX(id) FROM public.wallets), 1));
