@@ -1,5 +1,9 @@
 server:
   port: 8080
+  tomcat:
+    threads:
+      max: 500
+      min-spare: 50
   servlet:
     context-path: /nonstopcoding
 
@@ -18,7 +22,7 @@ spring:
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD}
     hikari:
-      maximum-pool-size: 100
+      maximum-pool-size: 50
       minimum-idle: 10
       idle-timeout: 30000
       connection-timeout: 30000
