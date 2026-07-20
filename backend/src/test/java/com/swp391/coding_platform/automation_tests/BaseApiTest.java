@@ -36,9 +36,62 @@ public abstract class BaseApiTest {
                             }
                         });
             }
-            RestAssured.filters(new io.restassured.filter.log.RequestLoggingFilter(), new io.restassured.filter.log.ResponseLoggingFilter());
+            RestAssured.filters(new BeautifulApiLogger());
         } catch (Exception e) {
             System.err.println("Failed to load .env file in tests: " + e.getMessage());
+        }
+    }
+
+    private static class BeautifulApiLogger implements io.restassured.filter.Filter {
+        private static final com.fasterxml.jackson.databind.ObjectMapper prettyMapper =
+                new com.fasterxml.jackson.databind.ObjectMapper()
+                        .enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
+
+        @Override
+        public io.restassured.response.Response filter(
+                io.restassured.specification.FilterableRequestSpecification requestSpec,
+                io.restassured.specification.FilterableResponseSpecification responseSpec,
+                io.restassured.filter.FilterContext ctx) {
+
+            String method = requestSpec.getMethod();
+            String uri = requestSpec.getURI();
+
+            System.out.println("\n\u001B[36m================================================================================");
+            System.out.println("🚀 [API REQUEST] " + method + " " + uri);
+            if (requestSpec.getBody() != null) {
+                String bodyStr = requestSpec.getBody().toString();
+                System.out.println("\u001B[33m📥 Payload:\u001B[0m");
+                System.out.println(formatJson(bodyStr));
+            }
+
+            long startTime = System.currentTimeMillis();
+            io.restassured.response.Response response = ctx.next(requestSpec, responseSpec);
+            long elapsedTime = System.currentTimeMillis() - startTime;
+
+            int statusCode = response.getStatusCode();
+            String color = statusCode >= 200 && statusCode < 300 ? "\u001B[32m" : (statusCode >= 400 ? "\u001B[31m" : "\u001B[33m");
+
+            System.out.println("\u001B[36m--------------------------------------------------------------------------------");
+            System.out.println(color + "🏁 [API RESPONSE] Status: " + statusCode + " (" + elapsedTime + "ms)\u001B[0m");
+            if (response.getBody() != null) {
+                String respBody = response.getBody().asString();
+                if (respBody != null && !respBody.isBlank()) {
+                    System.out.println("\u001B[35m📤 Response Body:\u001B[0m");
+                    System.out.println(formatJson(respBody));
+                }
+            }
+            System.out.println("\u001B[36m==============================================================================\u001B[0m\n");
+
+            return response;
+        }
+
+        private String formatJson(String jsonStr) {
+            try {
+                Object obj = prettyMapper.readValue(jsonStr, Object.class);
+                return prettyMapper.writeValueAsString(obj);
+            } catch (Exception e) {
+                return jsonStr;
+            }
         }
     }
 
