@@ -1,0 +1,24 @@
+# Stage 1: Build
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+WORKDIR /app
+
+# Sao chép pom.xml để tải dependencies trước (tận dụng cache Docker)
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Sao chép mã nguồn và build dự án
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
+
+# Sao chép file jar được build từ stage trước
+COPY --from=build /app/target/coding-platform-0.0.1-SNAPSHOT.jar app.jar
+
+# Khai báo port ứng dụng chạy trong container
+EXPOSE 8080
+
+# Chạy ứng dụng Spring Boot
+ENTRYPOINT ["java", "-jar", "app.jar"]
