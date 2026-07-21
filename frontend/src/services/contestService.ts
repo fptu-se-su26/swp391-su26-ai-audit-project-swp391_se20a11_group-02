@@ -46,7 +46,7 @@ export const getPastContests = async (): Promise<Contest[]> => {
   return mockContests.filter(c => c.status === 'past');
 };
 
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface MyContestStats {
   totalContests: number;

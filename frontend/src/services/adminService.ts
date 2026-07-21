@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 // Helper: tự động refresh token khi gặp 401, rồi retry lại request (có queue để tránh race condition khi gọi nhiều API song song)
 let isRefreshing = false;

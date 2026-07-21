@@ -263,7 +263,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
     setGenerateError(null);
     setGenerateLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/nonstopcoding/instructor/testcases/generate', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/instructor/testcases/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

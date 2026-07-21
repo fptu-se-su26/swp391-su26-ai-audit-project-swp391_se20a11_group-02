@@ -34,7 +34,7 @@ export const ContestSubmissions: React.FC = () => {
       setLoadingSubmissions(true);
       setErrorSubmissions(null);
       try {
-        const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contest.id}/submissions`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contest.id}/submissions`, {
           credentials: 'include',
         });
         const data = await response.json();

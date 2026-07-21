@@ -529,7 +529,7 @@ export const AdminDashboard: React.FC = () => {
         fetchContestRanking(reviewingContest.id);
         
         // Add SSE for realtime scoreboard updates
-        eventSource = new EventSource(`http://localhost:8080/nonstopcoding/api/v1/contests/${reviewingContest.id}/scoreboard/stream`, { withCredentials: true });
+        eventSource = new EventSource(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/api/v1/contests/${reviewingContest.id}/scoreboard/stream`, { withCredentials: true });
         
         eventSource.addEventListener('scoreboard-update', (event: any) => {
           try {
