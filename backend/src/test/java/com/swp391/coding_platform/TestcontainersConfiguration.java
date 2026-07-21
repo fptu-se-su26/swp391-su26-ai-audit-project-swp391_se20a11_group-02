@@ -13,4 +13,9 @@ public class TestcontainersConfiguration {
     public PostgreSQLContainer<?> postgresContainer() {
         return new PostgreSQLContainer<>("postgres:15-alpine");
     }
+
+    @Bean
+    public org.springframework.mail.javamail.JavaMailSender javaMailSender() {
+        return org.mockito.Mockito.mock(org.springframework.mail.javamail.JavaMailSender.class);
+    }
 }

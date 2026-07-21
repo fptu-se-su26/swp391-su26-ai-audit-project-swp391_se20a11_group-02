@@ -72,7 +72,7 @@ services:
   judge0-workers:
     image: judge0/judge0:1.13.1
     container_name: judge0_workers
-    profiles: ["judge0"] # <-- Gắn nhãn profile
+    #profiles: ["judge0"] # <-- Gắn nhãn profile
     command: ["./scripts/workers"]
     volumes:
       - ./judge0.conf:/judge0.conf:ro
@@ -83,7 +83,7 @@ services:
   judge0-db:
     image: postgres:16.2
     container_name: judge0_db
-    profiles: ["judge0"] # <-- Gắn nhãn profile
+    #profiles: ["judge0"] # <-- Gắn nhãn profile
     env_file: judge0.conf
     volumes:
       - judge0_postgres_data:/var/lib/postgresql/data/
@@ -93,7 +93,7 @@ services:
   judge0-redis:
     image: redis:7.2.4
     container_name: judge0_redis
-    profiles: ["judge0"] # <-- Gắn nhãn profile
+    #profiles: ["judge0"] # <-- Gắn nhãn profile
     command: [
       "bash", "-c",
       'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
