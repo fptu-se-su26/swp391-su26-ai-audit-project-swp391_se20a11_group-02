@@ -325,7 +325,7 @@ AI đề xuất giải pháp kiến trúc dynamic status tính toán tại runti
 #### 5.4. Kết quả đã áp dụng vào bài
 
 ```text
-Cập nhật init.sql, contest_seed.sql để đồng bộ cơ sở dữ liệu. Refactor ContestEntity, ContestRepository, ContestService, ContestController ở backend và các component Contests.tsx, Layout.tsx, ContestSubmissions.tsx ở frontend.
+Cập nhật schema-only.sql, contest_seed.sql để đồng bộ cơ sở dữ liệu. Refactor ContestEntity, ContestRepository, ContestService, ContestController ở backend và các component Contests.tsx, Layout.tsx, ContestSubmissions.tsx ở frontend.
 ```
 
 #### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
