@@ -17,19 +17,30 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = InstructorCourseController.class)
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mockito;
 
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+
+@WebMvcTest(controllers = InstructorCourseController.class)
+@Execution(ExecutionMode.SAME_THREAD)
 public class InstructorCourseControllerTest {
 
     @Autowired
@@ -53,7 +64,7 @@ public class InstructorCourseControllerTest {
     @Test
     void getCourses_ReturnsCourses_WhenAuthenticated() throws Exception {
         InstructorCourseResponse response = new InstructorCourseResponse();
-        when(instructorCourseService.getCourses(1)).thenReturn(List.of(response));
+        when(instructorCourseService.getCourses(eq(1))).thenReturn(List.of(response));
 
         mockMvc.perform(get("/instructor/courses")
                         .with(jwt().jwt(builder -> builder.claim("userId", 1))))
@@ -85,7 +96,7 @@ public class InstructorCourseControllerTest {
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image".getBytes());
         CloudinaryResponse response = new CloudinaryResponse("url", "public_id");
 
-        when(cloudinaryService.uploadFile(any(), eq("courses"))).thenReturn(response);
+        doReturn(response).when(cloudinaryService).uploadFile(any(), any());
 
         mockMvc.perform(multipart("/instructor/upload")
                         .file(file)
@@ -100,7 +111,7 @@ public class InstructorCourseControllerTest {
     @Test
     void getCourseDetail_ReturnsCourseDetail() throws Exception {
         InstructorCourseDetailResponse response = new InstructorCourseDetailResponse();
-        when(instructorCourseService.getCourseDetail(1, 100L)).thenReturn(response);
+        when(instructorCourseService.getCourseDetail(eq(1), eq(100L))).thenReturn(response);
 
         mockMvc.perform(get("/instructor/courses/100")
                         .with(jwt().jwt(builder -> builder.claim("userId", 1))))
@@ -160,7 +171,7 @@ public class InstructorCourseControllerTest {
     @Test
     void getCourseStatistics_ReturnsStatistics() throws Exception {
         CourseStatisticResponse response = new CourseStatisticResponse();
-        when(instructorCourseService.getCourseStatistics(1, 100L)).thenReturn(response);
+        when(instructorCourseService.getCourseStatistics(eq(1), eq(100L))).thenReturn(response);
 
         mockMvc.perform(get("/instructor/courses/100/statistics")
                         .with(jwt().jwt(builder -> builder.claim("userId", 1))))

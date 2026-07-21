@@ -5,7 +5,7 @@ INSERT INTO public.roles(id, name) VALUES (3, 'INSTRUCTOR') ON CONFLICT DO NOTHI
 INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(1, 0, NOW(), 'Admin', 'admin@gmail.com', '$2a$10$erBBTFYX8jJIV1ysJd7XneVRtu1AdlxODeUo.on618.ZB3lNF0UHm', 'ACTIVE', 'admin') ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles(role_id, user_id) VALUES(1, 1) ON CONFLICT DO NOTHING;
 
-INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(2, 0, NOW(), 'User One', 'user1@example.com', '$2a$10$bdiMFwCMZ0H1ARTVmCK2rOT1aEmxIqkCWXBHj0KHa231TEOY4OtQ.', 'ACTIVE', 'user1') ON CONFLICT DO NOTHING;
+INSERT INTO public.users(id, score, created_at, displayname, email, password_hash, status, username) VALUES(2, 0, NOW(), 'User One', 'user1@example.com', '$2a$10$erBBTFYX8jJIV1ysJd7XneVRtu1AdlxODeUo.on618.ZB3lNF0UHm', 'ACTIVE', 'user1') ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles(role_id, user_id) VALUES(2, 2) ON CONFLICT DO NOTHING;
 INSERT INTO public.wallets(id, balance, user_id, updated_at, status) VALUES(1, 2000000.00, 2, NOW(), 'ACTIVE') ON CONFLICT DO NOTHING;
 

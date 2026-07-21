@@ -22,8 +22,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(CourseModerationTestController.class)
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+
+@WebMvcTest(controllers = CourseModerationTestController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Execution(ExecutionMode.SAME_THREAD)
 class CourseModerationTestControllerTest {
 
     @MockBean
@@ -66,7 +70,7 @@ class CourseModerationTestControllerTest {
                 .status("PASSED")
                 .build();
 
-        when(reportRepository.findByCourseId(courseId)).thenReturn(Optional.of(report));
+        doReturn(Optional.of(report)).when(reportRepository).findByCourseId(courseId);
 
         mockMvc.perform(get("/api/moderation/report/{courseId}", courseId))
                 .andExpect(status().isOk())
@@ -81,7 +85,7 @@ class CourseModerationTestControllerTest {
     void testGetModerationReport_NotFound() throws Exception {
         Long courseId = 1L;
 
-        when(reportRepository.findByCourseId(courseId)).thenReturn(Optional.empty());
+        doReturn(Optional.empty()).when(reportRepository).findByCourseId(courseId);
 
         mockMvc.perform(get("/api/moderation/report/{courseId}", courseId))
                 .andExpect(status().isNotFound())
