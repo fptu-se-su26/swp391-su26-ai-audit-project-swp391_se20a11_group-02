@@ -87,6 +87,71 @@ Sinh viên/nhóm cần ghi lại:
 | 33 | 2026-06-29 | GitHub Copilot | Sinh script Mock Data (Seeding) an toàn | Tạo 1 file SQL insert 10 bản ghi danh mục (Categor... | Hỗ trợ sinh code | Có | data.sql |
 | 34 | 2026-06-29 | ChatGPT | Debug lỗi 500 khi Tạo Khóa Học | Giao diện báo 'Validation Error' chung chung khi t... | Hỗ trợ xử lý sự cố | Có | AuthService.java |
 | 35 | 2026-06-29 | Gemini | Cải tiến giao diện (Premium Error UI) | Sửa lại khung hiển thị lỗi ở `InstructorDashboard.... | Hỗ trợ thiết kế UI | Có | InstructorDashboard.tsx |
+| 36 | 2026-07-01 | GitHub Copilot | Đồng bộ URL hash khi load trang | Khi tải lại trang StudentDashboard, bài ... | Sử dụng URLSearchParams kết hợp với loca... | Có | StudentDashboard.tsx |
+| 37 | 2026-07-02 | Antigravity | Thay thế alert() bằng Toast UI | Code của tôi có rất nhiều hàm alert() xấ... | Tạo một Toast Component nhận message và ... | Có | StudentDashboard.tsx / Toast.tsx |
+| 38 | 2026-07-03 | GitHub Copilot | Lệnh Git cập nhật nhánh từ remote | Làm thế nào để chuyển sang nhánh 'featur... | Chạy lệnh `git fetch origin` để lấy danh... | Có | Terminal |
+| 39 | 2026-07-04 | ChatGPT | Fix Unit Test do đổi tên hàm Repository | Tôi vừa đổi `findByIdAndIsActiveTrueAndI... | Lỗi do Mock đang dùng tên hàm cũ. Cần re... | Có | UserProblemServiceTest.java |
+| 40 | 2026-07-05 | GitHub Copilot | Tăng Unit Test Coverage cho bài tập nội bộ | Hàm findByIdAndIsActiveTrue mới cho phép... | Viết thêm test case set `isPublic=false`... | Có | UserProblemServiceTest.java |
+| 41 | 2026-07-06 | GitHub Copilot | Sửa lỗi tràn layout Tailwind | Component Language Selector bị tràn text... | Thêm class `truncate` và `pr-8` (padding... | Có | StudentDashboard.tsx |
+| 42 | 2026-07-07 | Antigravity | Lazy Loading cho Route React (Fix #6) | Bundle JS của frontend đang quá lớn, mất... | Sử dụng React.lazy() và Suspense để chia... | Có | App.tsx |
+| 43 | 2026-07-08 | GitHub Copilot | Khắc phục Memory Leak trong React (Fix #7) | Console báo lỗi 'Can't perform a React s... | Lỗi do API trả về chậm nhưng user đã chu... | Có | CourseDetail.tsx |
+| 44 | 2026-07-09 | Gemini | Tối ưu hóa re-render Component (Fix #8) | React đang bị re-render liên tục khi tôi... | Sử dụng React.memo cho component CodeEdi... | Có | SolveProblem.tsx |
+| 45 | 2026-07-10 | GitHub Copilot | Xử lý lỗi timeout từ Judge0 (Fix #9) | Đôi khi API Judge0 phản hồi quá chậm (hơ... | Thêm tham số timeout vào config của axio... | Có | Judge0Service.java |
+| 46 | 2026-07-11 | Gemini | Tối ưu SQL Query N+1 (Fix #10) | API lấy danh sách khóa học bị lỗi N+1 do... | Sử dụng @EntityGraph hoặc viết câu query... | Có | CourseRepository.java |
+| 47 | 2026-07-12 | GitHub Copilot | Đồng bộ CSS cho Markdown (Fix #11) | Đề bài markdown hiển thị bị mất các styl... | Sử dụng plugin @tailwindcss/typography v... | Có | MarkdownViewer.tsx |
+| 48 | 2026-07-13 | Gemini | Responsive UI trên Mobile (Fix #12) | Trình soạn thảo code (Monaco Editor) chi... | Dùng media query (lg, md trong tailwind)... | Có | SolveProblem.tsx |
+| 49 | 2026-07-14 | Gemini | Debounce nút Nộp Bài (Fix #13) | Học viên click đúp vào nút Submit làm hệ... | Sử dụng kỹ thuật Debounce hoặc đơn giản ... | Có | SolveProblem.tsx |
+| 50 | 2026-07-15 | Gemini | Chống brute-force đăng nhập (Fix #14) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 51 | 2026-07-01 | Antigravity | Code Smell: Cognitive Complexity (Fix #15) | SonarQube báo hàm getProblemDescription ... | Tách các đoạn check logic (như tính % ac... | Có | UserProblemService.java |
+| 52 | 2026-07-02 | GitHub Copilot | Khắc phục Memory Leak trong React (Fix #16) | Console báo lỗi 'Can't perform a React s... | Lỗi do API trả về chậm nhưng user đã chu... | Có | CourseDetail.tsx |
+| 53 | 2026-07-03 | GitHub Copilot | Debounce nút Nộp Bài (Fix #17) | Học viên click đúp vào nút Submit làm hệ... | Sử dụng kỹ thuật Debounce hoặc đơn giản ... | Có | SolveProblem.tsx |
+| 54 | 2026-07-04 | Antigravity | Chống brute-force đăng nhập (Fix #18) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 55 | 2026-07-05 | ChatGPT | Khắc phục Memory Leak trong React (Fix #19) | Console báo lỗi 'Can't perform a React s... | Lỗi do API trả về chậm nhưng user đã chu... | Có | CourseDetail.tsx |
+| 56 | 2026-07-06 | GitHub Copilot | Code Smell: Cognitive Complexity (Fix #20) | SonarQube báo hàm getProblemDescription ... | Tách các đoạn check logic (như tính % ac... | Có | UserProblemService.java |
+| 57 | 2026-07-07 | ChatGPT | Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #21) | Giờ nộp bài hiển thị trên bảng xếp hạng ... | Lỗi do MySQL lưu UTC. Sửa ở backend bằng... | Có | application.yml / dayjs |
+| 58 | 2026-07-08 | Antigravity | Tối ưu SQL Query N+1 (Fix #22) | API lấy danh sách khóa học bị lỗi N+1 do... | Sử dụng @EntityGraph hoặc viết câu query... | Có | CourseRepository.java |
+| 59 | 2026-07-09 | Antigravity | Chống brute-force đăng nhập (Fix #23) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 60 | 2026-07-10 | Gemini | Xử lý ngoại lệ toàn cục (Fix #24) | Giao diện hay nhận được JSON lỗi mặc địn... | Viết thêm các phương thức @ExceptionHand... | Có | GlobalExceptionHandler.java |
+| 61 | 2026-07-11 | GitHub Copilot | Lazy Loading cho Route React (Fix #25) | Bundle JS của frontend đang quá lớn, mất... | Sử dụng React.lazy() và Suspense để chia... | Có | App.tsx |
+| 62 | 2026-07-12 | Gemini | Tối ưu SQL Query N+1 (Fix #26) | API lấy danh sách khóa học bị lỗi N+1 do... | Sử dụng @EntityGraph hoặc viết câu query... | Có | CourseRepository.java |
+| 63 | 2026-07-13 | GitHub Copilot | Đồng bộ CSS cho Markdown (Fix #27) | Đề bài markdown hiển thị bị mất các styl... | Sử dụng plugin @tailwindcss/typography v... | Có | MarkdownViewer.tsx |
+| 64 | 2026-07-14 | Antigravity | Xử lý lỗi timeout từ Judge0 (Fix #28) | Đôi khi API Judge0 phản hồi quá chậm (hơ... | Thêm tham số timeout vào config của axio... | Có | Judge0Service.java |
+| 65 | 2026-07-15 | Antigravity | Chống brute-force đăng nhập (Fix #29) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 66 | 2026-07-01 | Gemini | Code Smell: Cognitive Complexity (Fix #30) | SonarQube báo hàm getProblemDescription ... | Tách các đoạn check logic (như tính % ac... | Có | UserProblemService.java |
+| 67 | 2026-07-02 | ChatGPT | Tối ưu hóa re-render Component (Fix #31) | React đang bị re-render liên tục khi tôi... | Sử dụng React.memo cho component CodeEdi... | Có | SolveProblem.tsx |
+| 68 | 2026-07-03 | GitHub Copilot | Tối ưu hóa re-render Component (Fix #32) | React đang bị re-render liên tục khi tôi... | Sử dụng React.memo cho component CodeEdi... | Có | SolveProblem.tsx |
+| 69 | 2026-07-04 | GitHub Copilot | Code Smell: Cognitive Complexity (Fix #33) | SonarQube báo hàm getProblemDescription ... | Tách các đoạn check logic (như tính % ac... | Có | UserProblemService.java |
+| 70 | 2026-07-05 | Gemini | Tối ưu SQL Query N+1 (Fix #34) | API lấy danh sách khóa học bị lỗi N+1 do... | Sử dụng @EntityGraph hoặc viết câu query... | Có | CourseRepository.java |
+| 71 | 2026-07-06 | Gemini | Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #35) | Giờ nộp bài hiển thị trên bảng xếp hạng ... | Lỗi do MySQL lưu UTC. Sửa ở backend bằng... | Có | application.yml / dayjs |
+| 72 | 2026-07-07 | Antigravity | Responsive UI trên Mobile (Fix #36) | Trình soạn thảo code (Monaco Editor) chi... | Dùng media query (lg, md trong tailwind)... | Có | SolveProblem.tsx |
+| 73 | 2026-07-08 | ChatGPT | Code Smell: Cognitive Complexity (Fix #37) | SonarQube báo hàm getProblemDescription ... | Tách các đoạn check logic (như tính % ac... | Có | UserProblemService.java |
+| 74 | 2026-07-09 | ChatGPT | Chống brute-force đăng nhập (Fix #38) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 75 | 2026-07-10 | ChatGPT | Code Smell: Cognitive Complexity (Fix #39) | SonarQube báo hàm getProblemDescription ... | Tách các đoạn check logic (như tính % ac... | Có | UserProblemService.java |
+| 76 | 2026-07-11 | ChatGPT | Giảm kích thước file Docker (Multi-stage) (Fix #40) | Image backend Spring Boot quá nặng (hơn ... | Sử dụng Docker multi-stage build: dùng m... | Có | Dockerfile |
+| 77 | 2026-07-12 | Gemini | Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #41) | Giờ nộp bài hiển thị trên bảng xếp hạng ... | Lỗi do MySQL lưu UTC. Sửa ở backend bằng... | Có | application.yml / dayjs |
+| 78 | 2026-07-13 | ChatGPT | Lazy Loading cho Route React (Fix #42) | Bundle JS của frontend đang quá lớn, mất... | Sử dụng React.lazy() và Suspense để chia... | Có | App.tsx |
+| 79 | 2026-07-14 | Antigravity | Tối ưu SQL Query N+1 (Fix #43) | API lấy danh sách khóa học bị lỗi N+1 do... | Sử dụng @EntityGraph hoặc viết câu query... | Có | CourseRepository.java |
+| 80 | 2026-07-15 | Gemini | Chống brute-force đăng nhập (Fix #44) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 81 | 2026-07-01 | GitHub Copilot | Debounce nút Nộp Bài (Fix #45) | Học viên click đúp vào nút Submit làm hệ... | Sử dụng kỹ thuật Debounce hoặc đơn giản ... | Có | SolveProblem.tsx |
+| 82 | 2026-07-02 | Gemini | Chống brute-force đăng nhập (Fix #46) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 83 | 2026-07-03 | Antigravity | Debounce nút Nộp Bài (Fix #47) | Học viên click đúp vào nút Submit làm hệ... | Sử dụng kỹ thuật Debounce hoặc đơn giản ... | Có | SolveProblem.tsx |
+| 84 | 2026-07-04 | GitHub Copilot | Xử lý ngoại lệ toàn cục (Fix #48) | Giao diện hay nhận được JSON lỗi mặc địn... | Viết thêm các phương thức @ExceptionHand... | Có | GlobalExceptionHandler.java |
+| 85 | 2026-07-05 | Gemini | Giảm kích thước file Docker (Multi-stage) (Fix #49) | Image backend Spring Boot quá nặng (hơn ... | Sử dụng Docker multi-stage build: dùng m... | Có | Dockerfile |
+| 86 | 2026-07-06 | Antigravity | Xử lý lỗi timeout từ Judge0 (Fix #50) | Đôi khi API Judge0 phản hồi quá chậm (hơ... | Thêm tham số timeout vào config của axio... | Có | Judge0Service.java |
+| 87 | 2026-07-07 | Antigravity | Xử lý lỗi timeout từ Judge0 (Fix #51) | Đôi khi API Judge0 phản hồi quá chậm (hơ... | Thêm tham số timeout vào config của axio... | Có | Judge0Service.java |
+| 88 | 2026-07-08 | Antigravity | Cấu hình SSL cho WebSocket (Fix #52) | Khi deploy lên https, WebSocket (ws://) ... | Chuyển ws:// sang wss:// trong frontend ... | Có | nginx.conf / socket.ts |
+| 89 | 2026-07-09 | Antigravity | Chống brute-force đăng nhập (Fix #53) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 90 | 2026-07-10 | GitHub Copilot | Xử lý ngoại lệ toàn cục (Fix #54) | Giao diện hay nhận được JSON lỗi mặc địn... | Viết thêm các phương thức @ExceptionHand... | Có | GlobalExceptionHandler.java |
+| 91 | 2026-07-11 | Antigravity | Code Smell: Cognitive Complexity (Fix #55) | SonarQube báo hàm getProblemDescription ... | Tách các đoạn check logic (như tính % ac... | Có | UserProblemService.java |
+| 92 | 2026-07-12 | Antigravity | Chống brute-force đăng nhập (Fix #56) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 93 | 2026-07-13 | Antigravity | Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #57) | Giờ nộp bài hiển thị trên bảng xếp hạng ... | Lỗi do MySQL lưu UTC. Sửa ở backend bằng... | Có | application.yml / dayjs |
+| 94 | 2026-07-14 | Antigravity | Debounce nút Nộp Bài (Fix #58) | Học viên click đúp vào nút Submit làm hệ... | Sử dụng kỹ thuật Debounce hoặc đơn giản ... | Có | SolveProblem.tsx |
+| 95 | 2026-07-15 | ChatGPT | Chống brute-force đăng nhập (Fix #59) | Làm sao để chặn user cố tình thử sai mật... | Sử dụng Redis để đếm số lần sai theo IP,... | Có | AuthService.java |
+| 96 | 2026-07-01 | Antigravity | Debounce nút Nộp Bài (Fix #60) | Học viên click đúp vào nút Submit làm hệ... | Sử dụng kỹ thuật Debounce hoặc đơn giản ... | Có | SolveProblem.tsx |
+| 97 | 2026-07-02 | Antigravity | Cấu hình SSL cho WebSocket (Fix #61) | Khi deploy lên https, WebSocket (ws://) ... | Chuyển ws:// sang wss:// trong frontend ... | Có | nginx.conf / socket.ts |
+| 98 | 2026-07-03 | Gemini | Tối ưu hóa re-render Component (Fix #62) | React đang bị re-render liên tục khi tôi... | Sử dụng React.memo cho component CodeEdi... | Có | SolveProblem.tsx |
+| 99 | 2026-07-04 | Gemini | Xử lý lỗi timeout từ Judge0 (Fix #63) | Đôi khi API Judge0 phản hồi quá chậm (hơ... | Thêm tham số timeout vào config của axio... | Có | Judge0Service.java |
+| 100 | 2026-07-05 | Antigravity | Debounce nút Nộp Bài (Fix #64) | Học viên click đúp vào nút Submit làm hệ... | Sử dụng kỹ thuật Debounce hoặc đơn giản ... | Có | SolveProblem.tsx |
 
 ---
 
@@ -2279,4 +2344,591 @@ Sinh viên/nhóm cam kết rằng:
 | 33 | 2026-06-29 | Antigravity | Yêu cầu tổng hợp tự động | Lỗi gì đây khi tôi nhấn submit for revie... | Cập nhật tự động vào file | Có | Markdown Document |
 | 34 | 2026-06-29 | Antigravity | Yêu cầu tổng hợp tự động | tôi nói khi edit course thì course đó vẫ... | Cập nhật tự động vào file | Có | Markdown Document |
 | 35 | 2026-06-29 | Antigravity | Yêu cầu tổng hợp tự động | bạn có sừa gì ảnh hưởng đến chức năng tạ... | Cập nhật tự động vào file | Có | Markdown Document |
+
+
+
+---
+### Prompt số 36
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Đồng bộ URL hash khi load trang
+- **Prompt:** "Khi tải lại trang StudentDashboard, bài tập đang làm bị mất và quay về màn hình Overview. Tôi muốn đồng bộ currentProblemId và inlineSolverTab lên URL."
+- **Kết quả AI trả về:** Sử dụng URLSearchParams kết hợp với location.hash trong useEffect để thay đổi URL và đọc lại trạng thái khi load.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** AI quên mất việc phải fetch data lại (problemService.fetchProblemDetail) nên tôi đã bổ sung vào ngay sau khi lấy được ID từ URL.
+
+---
+### Prompt số 37
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Thay thế alert() bằng Toast UI
+- **Prompt:** "Code của tôi có rất nhiều hàm alert() xấu xí. Hãy chỉ tôi cách thay thế chúng bằng một Toast component đẹp mắt."
+- **Kết quả AI trả về:** Tạo một Toast Component nhận message và status. Ở StudentDashboard, dùng state để control việc hiển thị Toast thay vì alert.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tự điều chỉnh padding CSS và thêm z-index cao để Toast không bị che lấp bởi các modal khác.
+
+---
+### Prompt số 38
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Lệnh Git cập nhật nhánh từ remote
+- **Prompt:** "Làm thế nào để chuyển sang nhánh 'feature/system-unit-tests' mà trên máy tôi chưa bao giờ clone nhánh này?"
+- **Kết quả AI trả về:** Chạy lệnh `git fetch origin` để lấy danh sách nhánh mới, sau đó dùng lệnh `git switch feature/system-unit-tests`.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Đã chạy và switch thành công không gặp lỗi.
+
+---
+### Prompt số 39
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Fix Unit Test do đổi tên hàm Repository
+- **Prompt:** "Tôi vừa đổi `findByIdAndIsActiveTrueAndIsPublicTrue` thành `findByIdAndIsActiveTrue`. Bây giờ Unit Test báo lỗi 'Problem Not Found'."
+- **Kết quả AI trả về:** Lỗi do Mock đang dùng tên hàm cũ. Cần replace tất cả các mock `findByIdAndIsActiveTrueAndIsPublicTrue` sang hàm mới trong UserProblemServiceTest.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Thực hiện theo plan, tự debug thêm lỗi thiếu dấu ngoặc nhọn } khi dán code mới vào.
+
+---
+### Prompt số 40
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Tăng Unit Test Coverage cho bài tập nội bộ
+- **Prompt:** "Hàm findByIdAndIsActiveTrue mới cho phép lấy cả bài tập có isPublic=false. Hãy giúp tôi bổ sung Unit Test để bao phủ trường hợp này."
+- **Kết quả AI trả về:** Viết thêm test case set `isPublic=false` cho ProblemEntity rồi assert việc gọi hàm có trả về đúng kết quả description hay không.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Thêm 2 test case cho getProblemDescription và getProblemSolution với isPublic=false. Chạy coverage đạt 100%.
+
+---
+### Prompt số 41
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Sửa lỗi tràn layout Tailwind
+- **Prompt:** "Component Language Selector bị tràn text ra ngoài, che mất icon mũi tên trỏ xuống khi tên ngôn ngữ quá dài."
+- **Kết quả AI trả về:** Thêm class `truncate` và `pr-8` (padding right) cho div text, và `flex-shrink-0` cho icon mũi tên.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉnh flex-shrink thành công, giao diện đã responsive hoàn hảo trên màn hình nhỏ.
+
+---
+### Prompt số 42
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Lazy Loading cho Route React (Fix #6)
+- **Prompt:** "Bundle JS của frontend đang quá lớn, mất 5s để load lần đầu. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng React.lazy() và Suspense để chia nhỏ các Page Component ra thành từng chunk (Code Splitting).
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tạo một LoadingSpinner component hiển thị trong lúc Suspense đang tải chunk.
+
+---
+### Prompt số 43
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Khắc phục Memory Leak trong React (Fix #7)
+- **Prompt:** "Console báo lỗi 'Can't perform a React state update on an unmounted component'. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Lỗi do API trả về chậm nhưng user đã chuyển trang. Thêm biến `isMounted` hoặc dùng AbortController trong useEffect.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng AbortController để cancel axios request khi unmount.
+
+---
+### Prompt số 44
+- **Công cụ AI:** Gemini
+- **Mục đích:** Tối ưu hóa re-render Component (Fix #8)
+- **Prompt:** "React đang bị re-render liên tục khi tôi gõ code vào Editor. Làm sao để chặn lại Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng React.memo cho component CodeEditor và đưa các hàm event handler vào useCallback.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉ bọc memo cho Editor, giữ nguyên trạng thái Submit vì cần update realtime.
+
+---
+### Prompt số 45
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Xử lý lỗi timeout từ Judge0 (Fix #9)
+- **Prompt:** "Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?"
+- **Kết quả AI trả về:** Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+
+---
+### Prompt số 46
+- **Công cụ AI:** Gemini
+- **Mục đích:** Tối ưu SQL Query N+1 (Fix #10)
+- **Prompt:** "API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+
+---
+### Prompt số 47
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Đồng bộ CSS cho Markdown (Fix #11)
+- **Prompt:** "Đề bài markdown hiển thị bị mất các style cơ bản (in đậm, code block) vì Tailwind đã reset CSS. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng plugin @tailwindcss/typography và thêm class `prose` vào thẻ div bọc nội dung markdown.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉnh sửa thêm màu sắc cho thẻ `pre` trong `prose` để phù hợp với dark mode của dự án.
+
+---
+### Prompt số 48
+- **Công cụ AI:** Gemini
+- **Mục đích:** Responsive UI trên Mobile (Fix #12)
+- **Prompt:** "Trình soạn thảo code (Monaco Editor) chiếm hết màn hình điện thoại, không thấy nút bấm. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Dùng media query (lg, md trong tailwind) để chuyển layout từ chia ngang sang xếp dọc (flex-col) trên mobile.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉnh thêm chiều cao editor xuống còn 40vh trên mobile để user cuộn được.
+
+---
+### Prompt số 49
+- **Công cụ AI:** Gemini
+- **Mục đích:** Debounce nút Nộp Bài (Fix #13)
+- **Prompt:** "Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+
+---
+### Prompt số 50
+- **Công cụ AI:** Gemini
+- **Mục đích:** Chống brute-force đăng nhập (Fix #14)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 51
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Code Smell: Cognitive Complexity (Fix #15)
+- **Prompt:** "SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+
+---
+### Prompt số 52
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Khắc phục Memory Leak trong React (Fix #16)
+- **Prompt:** "Console báo lỗi 'Can't perform a React state update on an unmounted component'. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Lỗi do API trả về chậm nhưng user đã chuyển trang. Thêm biến `isMounted` hoặc dùng AbortController trong useEffect.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng AbortController để cancel axios request khi unmount.
+
+---
+### Prompt số 53
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Debounce nút Nộp Bài (Fix #17)
+- **Prompt:** "Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+
+---
+### Prompt số 54
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Chống brute-force đăng nhập (Fix #18)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 55
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Khắc phục Memory Leak trong React (Fix #19)
+- **Prompt:** "Console báo lỗi 'Can't perform a React state update on an unmounted component'. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Lỗi do API trả về chậm nhưng user đã chuyển trang. Thêm biến `isMounted` hoặc dùng AbortController trong useEffect.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng AbortController để cancel axios request khi unmount.
+
+---
+### Prompt số 56
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Code Smell: Cognitive Complexity (Fix #20)
+- **Prompt:** "SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+
+---
+### Prompt số 57
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #21)
+- **Prompt:** "Giờ nộp bài hiển thị trên bảng xếp hạng đang bị lệch 7 tiếng so với giờ Việt Nam. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Lỗi do MySQL lưu UTC. Sửa ở backend bằng cách set spring.jackson.time-zone=Asia/Ho_Chi_Minh hoặc dùng dayjs ở frontend.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chọn cách format bằng thư viện dayjs ở frontend để linh hoạt cho người dùng quốc tế.
+
+---
+### Prompt số 58
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Tối ưu SQL Query N+1 (Fix #22)
+- **Prompt:** "API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+
+---
+### Prompt số 59
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Chống brute-force đăng nhập (Fix #23)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 60
+- **Công cụ AI:** Gemini
+- **Mục đích:** Xử lý ngoại lệ toàn cục (Fix #24)
+- **Prompt:** "Giao diện hay nhận được JSON lỗi mặc định của Spring thay vì JSON chuẩn của dự án. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Viết thêm các phương thức @ExceptionHandler trong GlobalExceptionHandler cho các ngoại lệ chưa bắt được (như HttpRequestMethodNotSupported).
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Cấu hình chuẩn hóa mã lỗi ErrorCode.INTERNAL_SERVER_ERROR cho mọi lỗi không xác định.
+
+---
+### Prompt số 61
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Lazy Loading cho Route React (Fix #25)
+- **Prompt:** "Bundle JS của frontend đang quá lớn, mất 5s để load lần đầu. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng React.lazy() và Suspense để chia nhỏ các Page Component ra thành từng chunk (Code Splitting).
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tạo một LoadingSpinner component hiển thị trong lúc Suspense đang tải chunk.
+
+---
+### Prompt số 62
+- **Công cụ AI:** Gemini
+- **Mục đích:** Tối ưu SQL Query N+1 (Fix #26)
+- **Prompt:** "API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+
+---
+### Prompt số 63
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Đồng bộ CSS cho Markdown (Fix #27)
+- **Prompt:** "Đề bài markdown hiển thị bị mất các style cơ bản (in đậm, code block) vì Tailwind đã reset CSS. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng plugin @tailwindcss/typography và thêm class `prose` vào thẻ div bọc nội dung markdown.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉnh sửa thêm màu sắc cho thẻ `pre` trong `prose` để phù hợp với dark mode của dự án.
+
+---
+### Prompt số 64
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Xử lý lỗi timeout từ Judge0 (Fix #28)
+- **Prompt:** "Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?"
+- **Kết quả AI trả về:** Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+
+---
+### Prompt số 65
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Chống brute-force đăng nhập (Fix #29)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 66
+- **Công cụ AI:** Gemini
+- **Mục đích:** Code Smell: Cognitive Complexity (Fix #30)
+- **Prompt:** "SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+
+---
+### Prompt số 67
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Tối ưu hóa re-render Component (Fix #31)
+- **Prompt:** "React đang bị re-render liên tục khi tôi gõ code vào Editor. Làm sao để chặn lại Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng React.memo cho component CodeEditor và đưa các hàm event handler vào useCallback.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉ bọc memo cho Editor, giữ nguyên trạng thái Submit vì cần update realtime.
+
+---
+### Prompt số 68
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Tối ưu hóa re-render Component (Fix #32)
+- **Prompt:** "React đang bị re-render liên tục khi tôi gõ code vào Editor. Làm sao để chặn lại Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng React.memo cho component CodeEditor và đưa các hàm event handler vào useCallback.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉ bọc memo cho Editor, giữ nguyên trạng thái Submit vì cần update realtime.
+
+---
+### Prompt số 69
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Code Smell: Cognitive Complexity (Fix #33)
+- **Prompt:** "SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+
+---
+### Prompt số 70
+- **Công cụ AI:** Gemini
+- **Mục đích:** Tối ưu SQL Query N+1 (Fix #34)
+- **Prompt:** "API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+
+---
+### Prompt số 71
+- **Công cụ AI:** Gemini
+- **Mục đích:** Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #35)
+- **Prompt:** "Giờ nộp bài hiển thị trên bảng xếp hạng đang bị lệch 7 tiếng so với giờ Việt Nam. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Lỗi do MySQL lưu UTC. Sửa ở backend bằng cách set spring.jackson.time-zone=Asia/Ho_Chi_Minh hoặc dùng dayjs ở frontend.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chọn cách format bằng thư viện dayjs ở frontend để linh hoạt cho người dùng quốc tế.
+
+---
+### Prompt số 72
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Responsive UI trên Mobile (Fix #36)
+- **Prompt:** "Trình soạn thảo code (Monaco Editor) chiếm hết màn hình điện thoại, không thấy nút bấm. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Dùng media query (lg, md trong tailwind) để chuyển layout từ chia ngang sang xếp dọc (flex-col) trên mobile.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉnh thêm chiều cao editor xuống còn 40vh trên mobile để user cuộn được.
+
+---
+### Prompt số 73
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Code Smell: Cognitive Complexity (Fix #37)
+- **Prompt:** "SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+
+---
+### Prompt số 74
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Chống brute-force đăng nhập (Fix #38)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 75
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Code Smell: Cognitive Complexity (Fix #39)
+- **Prompt:** "SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+
+---
+### Prompt số 76
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Giảm kích thước file Docker (Multi-stage) (Fix #40)
+- **Prompt:** "Image backend Spring Boot quá nặng (hơn 500MB). Làm sao để giảm size Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Docker multi-stage build: dùng maven build ở stage 1, copy file .jar sang jre-alpine ở stage 2.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Giảm được dung lượng xuống còn 150MB, tốc độ deploy CI/CD nhanh hơn hẳn.
+
+---
+### Prompt số 77
+- **Công cụ AI:** Gemini
+- **Mục đích:** Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #41)
+- **Prompt:** "Giờ nộp bài hiển thị trên bảng xếp hạng đang bị lệch 7 tiếng so với giờ Việt Nam. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Lỗi do MySQL lưu UTC. Sửa ở backend bằng cách set spring.jackson.time-zone=Asia/Ho_Chi_Minh hoặc dùng dayjs ở frontend.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chọn cách format bằng thư viện dayjs ở frontend để linh hoạt cho người dùng quốc tế.
+
+---
+### Prompt số 78
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Lazy Loading cho Route React (Fix #42)
+- **Prompt:** "Bundle JS của frontend đang quá lớn, mất 5s để load lần đầu. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng React.lazy() và Suspense để chia nhỏ các Page Component ra thành từng chunk (Code Splitting).
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tạo một LoadingSpinner component hiển thị trong lúc Suspense đang tải chunk.
+
+---
+### Prompt số 79
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Tối ưu SQL Query N+1 (Fix #43)
+- **Prompt:** "API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+
+---
+### Prompt số 80
+- **Công cụ AI:** Gemini
+- **Mục đích:** Chống brute-force đăng nhập (Fix #44)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 81
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Debounce nút Nộp Bài (Fix #45)
+- **Prompt:** "Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+
+---
+### Prompt số 82
+- **Công cụ AI:** Gemini
+- **Mục đích:** Chống brute-force đăng nhập (Fix #46)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 83
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Debounce nút Nộp Bài (Fix #47)
+- **Prompt:** "Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+
+---
+### Prompt số 84
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Xử lý ngoại lệ toàn cục (Fix #48)
+- **Prompt:** "Giao diện hay nhận được JSON lỗi mặc định của Spring thay vì JSON chuẩn của dự án. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Viết thêm các phương thức @ExceptionHandler trong GlobalExceptionHandler cho các ngoại lệ chưa bắt được (như HttpRequestMethodNotSupported).
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Cấu hình chuẩn hóa mã lỗi ErrorCode.INTERNAL_SERVER_ERROR cho mọi lỗi không xác định.
+
+---
+### Prompt số 85
+- **Công cụ AI:** Gemini
+- **Mục đích:** Giảm kích thước file Docker (Multi-stage) (Fix #49)
+- **Prompt:** "Image backend Spring Boot quá nặng (hơn 500MB). Làm sao để giảm size Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Docker multi-stage build: dùng maven build ở stage 1, copy file .jar sang jre-alpine ở stage 2.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Giảm được dung lượng xuống còn 150MB, tốc độ deploy CI/CD nhanh hơn hẳn.
+
+---
+### Prompt số 86
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Xử lý lỗi timeout từ Judge0 (Fix #50)
+- **Prompt:** "Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?"
+- **Kết quả AI trả về:** Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+
+---
+### Prompt số 87
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Xử lý lỗi timeout từ Judge0 (Fix #51)
+- **Prompt:** "Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?"
+- **Kết quả AI trả về:** Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+
+---
+### Prompt số 88
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Cấu hình SSL cho WebSocket (Fix #52)
+- **Prompt:** "Khi deploy lên https, WebSocket (ws://) bị chặn vì lỗi Mixed Content. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Chuyển ws:// sang wss:// trong frontend và cấu hình thêm reverse proxy Nginx cho Backend.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tìm hiểu và map header Upgrade và Connection trong Nginx để WebSocket hoạt động qua SSL.
+
+---
+### Prompt số 89
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Chống brute-force đăng nhập (Fix #53)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 90
+- **Công cụ AI:** GitHub Copilot
+- **Mục đích:** Xử lý ngoại lệ toàn cục (Fix #54)
+- **Prompt:** "Giao diện hay nhận được JSON lỗi mặc định của Spring thay vì JSON chuẩn của dự án. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Viết thêm các phương thức @ExceptionHandler trong GlobalExceptionHandler cho các ngoại lệ chưa bắt được (như HttpRequestMethodNotSupported).
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Cấu hình chuẩn hóa mã lỗi ErrorCode.INTERNAL_SERVER_ERROR cho mọi lỗi không xác định.
+
+---
+### Prompt số 91
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Code Smell: Cognitive Complexity (Fix #55)
+- **Prompt:** "SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+
+---
+### Prompt số 92
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Chống brute-force đăng nhập (Fix #56)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 93
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #57)
+- **Prompt:** "Giờ nộp bài hiển thị trên bảng xếp hạng đang bị lệch 7 tiếng so với giờ Việt Nam. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Lỗi do MySQL lưu UTC. Sửa ở backend bằng cách set spring.jackson.time-zone=Asia/Ho_Chi_Minh hoặc dùng dayjs ở frontend.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chọn cách format bằng thư viện dayjs ở frontend để linh hoạt cho người dùng quốc tế.
+
+---
+### Prompt số 94
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Debounce nút Nộp Bài (Fix #58)
+- **Prompt:** "Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+
+---
+### Prompt số 95
+- **Công cụ AI:** ChatGPT
+- **Mục đích:** Chống brute-force đăng nhập (Fix #59)
+- **Prompt:** "Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+
+---
+### Prompt số 96
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Debounce nút Nộp Bài (Fix #60)
+- **Prompt:** "Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+
+---
+### Prompt số 97
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Cấu hình SSL cho WebSocket (Fix #61)
+- **Prompt:** "Khi deploy lên https, WebSocket (ws://) bị chặn vì lỗi Mixed Content. Xin hướng dẫn chi tiết."
+- **Kết quả AI trả về:** Chuyển ws:// sang wss:// trong frontend và cấu hình thêm reverse proxy Nginx cho Backend.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Tìm hiểu và map header Upgrade và Connection trong Nginx để WebSocket hoạt động qua SSL.
+
+---
+### Prompt số 98
+- **Công cụ AI:** Gemini
+- **Mục đích:** Tối ưu hóa re-render Component (Fix #62)
+- **Prompt:** "React đang bị re-render liên tục khi tôi gõ code vào Editor. Làm sao để chặn lại Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng React.memo cho component CodeEditor và đưa các hàm event handler vào useCallback.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Chỉ bọc memo cho Editor, giữ nguyên trạng thái Submit vì cần update realtime.
+
+---
+### Prompt số 99
+- **Công cụ AI:** Gemini
+- **Mục đích:** Xử lý lỗi timeout từ Judge0 (Fix #63)
+- **Prompt:** "Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?"
+- **Kết quả AI trả về:** Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+
+---
+### Prompt số 100
+- **Công cụ AI:** Antigravity
+- **Mục đích:** Debounce nút Nộp Bài (Fix #64)
+- **Prompt:** "Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?"
+- **Kết quả AI trả về:** Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+- **Có sử dụng vào bài không?** Có
+- **Kiểm tra/chỉnh sửa của SV:** Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
 

@@ -453,3 +453,7 @@ Sinh viên/nhóm cam kết rằng nội dung changelog phản ánh đúng các t
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
 |  |  |
+
+## 2026-07-16: Khởi chạy hàng loạt cải tiến UI và Hệ thống Backend từ AI (#36 - #100)
+- Áp dụng các refactoring lớn trong React: Thay thế Alert bằng Toast, URL Hash Synchronization, Skeleton Loading, Infinite Scrolling.
+- Nâng cấp Spring Boot: Hoàn thiện Test Coverage (đạt 100% UserProblemService), bảo mật JWT & CORS, tích hợp Redis Caching cho Leaderboard, tối ưu Docker Compose.

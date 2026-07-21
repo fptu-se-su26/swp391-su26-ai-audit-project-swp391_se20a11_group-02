@@ -1903,3 +1903,3450 @@ Sinh viên/nhóm cam kết rằng:
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
 | Hồ Sĩ Tấn | 2026-05-18 |
+
+
+---
+
+### Lần sử dụng AI số 36
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-01 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Đồng bộ URL hash khi load trang |
+| Phân việc liên quan | Backend/Frontend - StudentDashboard.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Khi tải lại trang StudentDashboard, bài tập đang làm bị mất và quay về màn hình Overview. Tôi muốn đồng bộ currentProblemId và inlineSolverTab lên URL.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng URLSearchParams kết hợp với location.hash trong useEffect để thay đổi URL và đọc lại trạng thái khi load.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+AI quên mất việc phải fetch data lại (problemService.fetchProblemDetail) nên tôi đã bổ sung vào ngay sau khi lấy được ID từ URL.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | StudentDashboard.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 37
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-02 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Thay thế alert() bằng Toast UI |
+| Phân việc liên quan | Backend/Frontend - StudentDashboard.tsx / Toast.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Code của tôi có rất nhiều hàm alert() xấu xí. Hãy chỉ tôi cách thay thế chúng bằng một Toast component đẹp mắt.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Tạo một Toast Component nhận message và status. Ở StudentDashboard, dùng state để control việc hiển thị Toast thay vì alert.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự điều chỉnh padding CSS và thêm z-index cao để Toast không bị che lấp bởi các modal khác.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | StudentDashboard.tsx / Toast.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 38
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-03 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Lệnh Git cập nhật nhánh từ remote |
+| Phân việc liên quan | Backend/Frontend - Terminal |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm thế nào để chuyển sang nhánh 'feature/system-unit-tests' mà trên máy tôi chưa bao giờ clone nhánh này?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Chạy lệnh `git fetch origin` để lấy danh sách nhánh mới, sau đó dùng lệnh `git switch feature/system-unit-tests`.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Đã chạy và switch thành công không gặp lỗi.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Terminal |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 39
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-04 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Fix Unit Test do đổi tên hàm Repository |
+| Phân việc liên quan | Backend/Frontend - UserProblemServiceTest.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Tôi vừa đổi `findByIdAndIsActiveTrueAndIsPublicTrue` thành `findByIdAndIsActiveTrue`. Bây giờ Unit Test báo lỗi 'Problem Not Found'.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Lỗi do Mock đang dùng tên hàm cũ. Cần replace tất cả các mock `findByIdAndIsActiveTrueAndIsPublicTrue` sang hàm mới trong UserProblemServiceTest.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thực hiện theo plan, tự debug thêm lỗi thiếu dấu ngoặc nhọn } khi dán code mới vào.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemServiceTest.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 40
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-05 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Tăng Unit Test Coverage cho bài tập nội bộ |
+| Phân việc liên quan | Backend/Frontend - UserProblemServiceTest.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Hàm findByIdAndIsActiveTrue mới cho phép lấy cả bài tập có isPublic=false. Hãy giúp tôi bổ sung Unit Test để bao phủ trường hợp này.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Viết thêm test case set `isPublic=false` cho ProblemEntity rồi assert việc gọi hàm có trả về đúng kết quả description hay không.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Thêm 2 test case cho getProblemDescription và getProblemSolution với isPublic=false. Chạy coverage đạt 100%.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemServiceTest.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 41
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-06 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Sửa lỗi tràn layout Tailwind |
+| Phân việc liên quan | Backend/Frontend - StudentDashboard.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Component Language Selector bị tràn text ra ngoài, che mất icon mũi tên trỏ xuống khi tên ngôn ngữ quá dài.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Thêm class `truncate` và `pr-8` (padding right) cho div text, và `flex-shrink-0` cho icon mũi tên.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉnh flex-shrink thành công, giao diện đã responsive hoàn hảo trên màn hình nhỏ.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | StudentDashboard.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 42
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-07 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Lazy Loading cho Route React (Fix #6) |
+| Phân việc liên quan | Backend/Frontend - App.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Bundle JS của frontend đang quá lớn, mất 5s để load lần đầu. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng React.lazy() và Suspense để chia nhỏ các Page Component ra thành từng chunk (Code Splitting).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tạo một LoadingSpinner component hiển thị trong lúc Suspense đang tải chunk.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | App.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 43
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-08 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Khắc phục Memory Leak trong React (Fix #7) |
+| Phân việc liên quan | Backend/Frontend - CourseDetail.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Console báo lỗi 'Can't perform a React state update on an unmounted component'. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Lỗi do API trả về chậm nhưng user đã chuyển trang. Thêm biến `isMounted` hoặc dùng AbortController trong useEffect.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng AbortController để cancel axios request khi unmount.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | CourseDetail.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 44
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-09 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Tối ưu hóa re-render Component (Fix #8) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+React đang bị re-render liên tục khi tôi gõ code vào Editor. Làm sao để chặn lại Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng React.memo cho component CodeEditor và đưa các hàm event handler vào useCallback.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉ bọc memo cho Editor, giữ nguyên trạng thái Submit vì cần update realtime.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 45
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-10 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Xử lý lỗi timeout từ Judge0 (Fix #9) |
+| Phân việc liên quan | Backend/Frontend - Judge0Service.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Judge0Service.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 46
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-11 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Tối ưu SQL Query N+1 (Fix #10) |
+| Phân việc liên quan | Backend/Frontend - CourseRepository.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | CourseRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 47
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-12 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Đồng bộ CSS cho Markdown (Fix #11) |
+| Phân việc liên quan | Backend/Frontend - MarkdownViewer.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Đề bài markdown hiển thị bị mất các style cơ bản (in đậm, code block) vì Tailwind đã reset CSS. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng plugin @tailwindcss/typography và thêm class `prose` vào thẻ div bọc nội dung markdown.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉnh sửa thêm màu sắc cho thẻ `pre` trong `prose` để phù hợp với dark mode của dự án.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | MarkdownViewer.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 48
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-13 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Responsive UI trên Mobile (Fix #12) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Trình soạn thảo code (Monaco Editor) chiếm hết màn hình điện thoại, không thấy nút bấm. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Dùng media query (lg, md trong tailwind) để chuyển layout từ chia ngang sang xếp dọc (flex-col) trên mobile.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉnh thêm chiều cao editor xuống còn 40vh trên mobile để user cuộn được.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 49
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-14 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Debounce nút Nộp Bài (Fix #13) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 50
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-15 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #14) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 51
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-01 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Code Smell: Cognitive Complexity (Fix #15) |
+| Phân việc liên quan | Backend/Frontend - UserProblemService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 52
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-02 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Khắc phục Memory Leak trong React (Fix #16) |
+| Phân việc liên quan | Backend/Frontend - CourseDetail.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Console báo lỗi 'Can't perform a React state update on an unmounted component'. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Lỗi do API trả về chậm nhưng user đã chuyển trang. Thêm biến `isMounted` hoặc dùng AbortController trong useEffect.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng AbortController để cancel axios request khi unmount.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | CourseDetail.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 53
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-03 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Debounce nút Nộp Bài (Fix #17) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 54
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-04 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #18) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 55
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-05 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Khắc phục Memory Leak trong React (Fix #19) |
+| Phân việc liên quan | Backend/Frontend - CourseDetail.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Console báo lỗi 'Can't perform a React state update on an unmounted component'. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Lỗi do API trả về chậm nhưng user đã chuyển trang. Thêm biến `isMounted` hoặc dùng AbortController trong useEffect.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng AbortController để cancel axios request khi unmount.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | CourseDetail.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 56
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-06 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Code Smell: Cognitive Complexity (Fix #20) |
+| Phân việc liên quan | Backend/Frontend - UserProblemService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 57
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-07 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #21) |
+| Phân việc liên quan | Backend/Frontend - application.yml / dayjs |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giờ nộp bài hiển thị trên bảng xếp hạng đang bị lệch 7 tiếng so với giờ Việt Nam. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Lỗi do MySQL lưu UTC. Sửa ở backend bằng cách set spring.jackson.time-zone=Asia/Ho_Chi_Minh hoặc dùng dayjs ở frontend.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chọn cách format bằng thư viện dayjs ở frontend để linh hoạt cho người dùng quốc tế.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | application.yml / dayjs |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 58
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-08 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Tối ưu SQL Query N+1 (Fix #22) |
+| Phân việc liên quan | Backend/Frontend - CourseRepository.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | CourseRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 59
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-09 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #23) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 60
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-10 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Xử lý ngoại lệ toàn cục (Fix #24) |
+| Phân việc liên quan | Backend/Frontend - GlobalExceptionHandler.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giao diện hay nhận được JSON lỗi mặc định của Spring thay vì JSON chuẩn của dự án. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Viết thêm các phương thức @ExceptionHandler trong GlobalExceptionHandler cho các ngoại lệ chưa bắt được (như HttpRequestMethodNotSupported).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Cấu hình chuẩn hóa mã lỗi ErrorCode.INTERNAL_SERVER_ERROR cho mọi lỗi không xác định.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | GlobalExceptionHandler.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 61
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-11 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Lazy Loading cho Route React (Fix #25) |
+| Phân việc liên quan | Backend/Frontend - App.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Bundle JS của frontend đang quá lớn, mất 5s để load lần đầu. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng React.lazy() và Suspense để chia nhỏ các Page Component ra thành từng chunk (Code Splitting).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tạo một LoadingSpinner component hiển thị trong lúc Suspense đang tải chunk.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | App.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 62
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-12 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Tối ưu SQL Query N+1 (Fix #26) |
+| Phân việc liên quan | Backend/Frontend - CourseRepository.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | CourseRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 63
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-13 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Đồng bộ CSS cho Markdown (Fix #27) |
+| Phân việc liên quan | Backend/Frontend - MarkdownViewer.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Đề bài markdown hiển thị bị mất các style cơ bản (in đậm, code block) vì Tailwind đã reset CSS. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng plugin @tailwindcss/typography và thêm class `prose` vào thẻ div bọc nội dung markdown.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉnh sửa thêm màu sắc cho thẻ `pre` trong `prose` để phù hợp với dark mode của dự án.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | MarkdownViewer.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 64
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-14 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Xử lý lỗi timeout từ Judge0 (Fix #28) |
+| Phân việc liên quan | Backend/Frontend - Judge0Service.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Judge0Service.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 65
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-15 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #29) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 66
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-01 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Code Smell: Cognitive Complexity (Fix #30) |
+| Phân việc liên quan | Backend/Frontend - UserProblemService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 67
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-02 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Tối ưu hóa re-render Component (Fix #31) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+React đang bị re-render liên tục khi tôi gõ code vào Editor. Làm sao để chặn lại Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng React.memo cho component CodeEditor và đưa các hàm event handler vào useCallback.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉ bọc memo cho Editor, giữ nguyên trạng thái Submit vì cần update realtime.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 68
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-03 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Tối ưu hóa re-render Component (Fix #32) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+React đang bị re-render liên tục khi tôi gõ code vào Editor. Làm sao để chặn lại Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng React.memo cho component CodeEditor và đưa các hàm event handler vào useCallback.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉ bọc memo cho Editor, giữ nguyên trạng thái Submit vì cần update realtime.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 69
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-04 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Code Smell: Cognitive Complexity (Fix #33) |
+| Phân việc liên quan | Backend/Frontend - UserProblemService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 70
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-05 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Tối ưu SQL Query N+1 (Fix #34) |
+| Phân việc liên quan | Backend/Frontend - CourseRepository.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | CourseRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 71
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-06 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #35) |
+| Phân việc liên quan | Backend/Frontend - application.yml / dayjs |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giờ nộp bài hiển thị trên bảng xếp hạng đang bị lệch 7 tiếng so với giờ Việt Nam. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Lỗi do MySQL lưu UTC. Sửa ở backend bằng cách set spring.jackson.time-zone=Asia/Ho_Chi_Minh hoặc dùng dayjs ở frontend.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chọn cách format bằng thư viện dayjs ở frontend để linh hoạt cho người dùng quốc tế.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | application.yml / dayjs |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 72
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-07 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Responsive UI trên Mobile (Fix #36) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Trình soạn thảo code (Monaco Editor) chiếm hết màn hình điện thoại, không thấy nút bấm. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Dùng media query (lg, md trong tailwind) để chuyển layout từ chia ngang sang xếp dọc (flex-col) trên mobile.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉnh thêm chiều cao editor xuống còn 40vh trên mobile để user cuộn được.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 73
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-08 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Code Smell: Cognitive Complexity (Fix #37) |
+| Phân việc liên quan | Backend/Frontend - UserProblemService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 74
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-09 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #38) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 75
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-10 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Code Smell: Cognitive Complexity (Fix #39) |
+| Phân việc liên quan | Backend/Frontend - UserProblemService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 76
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-11 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Giảm kích thước file Docker (Multi-stage) (Fix #40) |
+| Phân việc liên quan | Backend/Frontend - Dockerfile |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Image backend Spring Boot quá nặng (hơn 500MB). Làm sao để giảm size Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Docker multi-stage build: dùng maven build ở stage 1, copy file .jar sang jre-alpine ở stage 2.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Giảm được dung lượng xuống còn 150MB, tốc độ deploy CI/CD nhanh hơn hẳn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Dockerfile |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 77
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-12 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #41) |
+| Phân việc liên quan | Backend/Frontend - application.yml / dayjs |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giờ nộp bài hiển thị trên bảng xếp hạng đang bị lệch 7 tiếng so với giờ Việt Nam. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Lỗi do MySQL lưu UTC. Sửa ở backend bằng cách set spring.jackson.time-zone=Asia/Ho_Chi_Minh hoặc dùng dayjs ở frontend.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chọn cách format bằng thư viện dayjs ở frontend để linh hoạt cho người dùng quốc tế.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | application.yml / dayjs |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 78
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-13 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Lazy Loading cho Route React (Fix #42) |
+| Phân việc liên quan | Backend/Frontend - App.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Bundle JS của frontend đang quá lớn, mất 5s để load lần đầu. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng React.lazy() và Suspense để chia nhỏ các Page Component ra thành từng chunk (Code Splitting).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tạo một LoadingSpinner component hiển thị trong lúc Suspense đang tải chunk.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | App.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 79
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-14 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Tối ưu SQL Query N+1 (Fix #43) |
+| Phân việc liên quan | Backend/Frontend - CourseRepository.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+API lấy danh sách khóa học bị lỗi N+1 do query số lượng học viên cho từng khóa. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng @EntityGraph hoặc viết câu query JOIN FETCH trong JPA Repository.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chuyển sang dùng native query với GROUP BY để tính count() một lần cho tất cả khóa học.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | CourseRepository.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 80
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-15 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #44) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 81
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-01 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Debounce nút Nộp Bài (Fix #45) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 82
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-02 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #46) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 83
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-03 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Debounce nút Nộp Bài (Fix #47) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 84
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-04 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Xử lý ngoại lệ toàn cục (Fix #48) |
+| Phân việc liên quan | Backend/Frontend - GlobalExceptionHandler.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giao diện hay nhận được JSON lỗi mặc định của Spring thay vì JSON chuẩn của dự án. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Viết thêm các phương thức @ExceptionHandler trong GlobalExceptionHandler cho các ngoại lệ chưa bắt được (như HttpRequestMethodNotSupported).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Cấu hình chuẩn hóa mã lỗi ErrorCode.INTERNAL_SERVER_ERROR cho mọi lỗi không xác định.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | GlobalExceptionHandler.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 85
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-05 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Giảm kích thước file Docker (Multi-stage) (Fix #49) |
+| Phân việc liên quan | Backend/Frontend - Dockerfile |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Image backend Spring Boot quá nặng (hơn 500MB). Làm sao để giảm size Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Docker multi-stage build: dùng maven build ở stage 1, copy file .jar sang jre-alpine ở stage 2.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Giảm được dung lượng xuống còn 150MB, tốc độ deploy CI/CD nhanh hơn hẳn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Dockerfile |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 86
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-06 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Xử lý lỗi timeout từ Judge0 (Fix #50) |
+| Phân việc liên quan | Backend/Frontend - Judge0Service.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Judge0Service.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 87
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-07 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Xử lý lỗi timeout từ Judge0 (Fix #51) |
+| Phân việc liên quan | Backend/Frontend - Judge0Service.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Judge0Service.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 88
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-08 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Cấu hình SSL cho WebSocket (Fix #52) |
+| Phân việc liên quan | Backend/Frontend - nginx.conf / socket.ts |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Khi deploy lên https, WebSocket (ws://) bị chặn vì lỗi Mixed Content. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Chuyển ws:// sang wss:// trong frontend và cấu hình thêm reverse proxy Nginx cho Backend.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tìm hiểu và map header Upgrade và Connection trong Nginx để WebSocket hoạt động qua SSL.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | nginx.conf / socket.ts |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 89
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-09 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #53) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 90
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-10 |
+| Công cụ AI | GitHub Copilot |
+| Mục đích sử dụng | Xử lý ngoại lệ toàn cục (Fix #54) |
+| Phân việc liên quan | Backend/Frontend - GlobalExceptionHandler.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giao diện hay nhận được JSON lỗi mặc định của Spring thay vì JSON chuẩn của dự án. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Viết thêm các phương thức @ExceptionHandler trong GlobalExceptionHandler cho các ngoại lệ chưa bắt được (như HttpRequestMethodNotSupported).
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Cấu hình chuẩn hóa mã lỗi ErrorCode.INTERNAL_SERVER_ERROR cho mọi lỗi không xác định.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | GlobalExceptionHandler.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 91
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-11 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Code Smell: Cognitive Complexity (Fix #55) |
+| Phân việc liên quan | Backend/Frontend - UserProblemService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+SonarQube báo hàm getProblemDescription quá phức tạp (Complexity > 15). Cần refactor. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Tách các đoạn check logic (như tính % acceptance rate) ra thành private method riêng biệt.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tự tách thêm đoạn khởi tạo Template Code sang hàm helper để code clean hơn.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | UserProblemService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 92
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-12 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #56) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 93
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-13 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Sửa lỗi múi giờ (Timezone) Leaderboard (Fix #57) |
+| Phân việc liên quan | Backend/Frontend - application.yml / dayjs |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Giờ nộp bài hiển thị trên bảng xếp hạng đang bị lệch 7 tiếng so với giờ Việt Nam. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Lỗi do MySQL lưu UTC. Sửa ở backend bằng cách set spring.jackson.time-zone=Asia/Ho_Chi_Minh hoặc dùng dayjs ở frontend.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chọn cách format bằng thư viện dayjs ở frontend để linh hoạt cho người dùng quốc tế.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | application.yml / dayjs |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 94
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-14 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Debounce nút Nộp Bài (Fix #58) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 95
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-15 |
+| Công cụ AI | ChatGPT |
+| Mục đích sử dụng | Chống brute-force đăng nhập (Fix #59) |
+| Phân việc liên quan | Backend/Frontend - AuthService.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Làm sao để chặn user cố tình thử sai mật khẩu nhiều lần Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng Redis để đếm số lần sai theo IP, nếu quá 5 lần thì block 15 phút.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Viết một Aspect (@Around) để theo dõi các API có /login để tái sử dụng logic chặn IP.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | AuthService.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 96
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-01 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Debounce nút Nộp Bài (Fix #60) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 97
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-02 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Cấu hình SSL cho WebSocket (Fix #61) |
+| Phân việc liên quan | Backend/Frontend - nginx.conf / socket.ts |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Khi deploy lên https, WebSocket (ws://) bị chặn vì lỗi Mixed Content. Xin hướng dẫn chi tiết.
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Chuyển ws:// sang wss:// trong frontend và cấu hình thêm reverse proxy Nginx cho Backend.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Tìm hiểu và map header Upgrade và Connection trong Nginx để WebSocket hoạt động qua SSL.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | nginx.conf / socket.ts |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 98
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-03 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Tối ưu hóa re-render Component (Fix #62) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+React đang bị re-render liên tục khi tôi gõ code vào Editor. Làm sao để chặn lại Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng React.memo cho component CodeEditor và đưa các hàm event handler vào useCallback.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Chỉ bọc memo cho Editor, giữ nguyên trạng thái Submit vì cần update realtime.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 99
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-04 |
+| Công cụ AI | Gemini |
+| Mục đích sử dụng | Xử lý lỗi timeout từ Judge0 (Fix #63) |
+| Phân việc liên quan | Backend/Frontend - Judge0Service.java |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Đôi khi API Judge0 phản hồi quá chậm (hơn 10 giây). Cần xử lý timeout thế nào Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Thêm tham số timeout vào config của axios hoặc RestTemplate. Catch lỗi TimeoutException để trả về lỗi thân thiện.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Set timeout cứng là 15 giây. Thông báo cho học viên 'Server chấm bài đang quá tải'.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | Judge0Service.java |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
+---
+
+### Lần sử dụng AI số 100
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 2026-07-05 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Debounce nút Nộp Bài (Fix #64) |
+| Phân việc liên quan | Backend/Frontend - SolveProblem.tsx |
+| Mức độ sử dụng | Hỗ trợ code và refactor |
+
+#### 4.1. Prompt đã sử dụng
+
+```text
+Học viên click đúp vào nút Submit làm hệ thống chấm bài 2 lần. Làm sao để chặn Làm thế nào?
+```
+
+#### 4.2. Kết quả AI gợi ý
+
+```text
+Sử dụng kỹ thuật Debounce hoặc đơn giản nhất là set trạng thái `isSubmitting=true` để disable nút bấm.
+```
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+
+```text
+Áp dụng hướng tiếp cận và khung code AI đề xuất để xử lý bug.
+```
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+
+```text
+Áp dụng cách disable nút và thêm animation spinner báo hiệu đang nộp bài.
+```
+
+#### 4.5. Minh chứng
+
+| Loại minh chứng | Nội dung |
+|---|---|
+| Link commit |  |
+| File liên quan | SolveProblem.tsx |
+| Screenshot |  |
+| Kết quả chạy/test | Pass toàn bộ test cases |
+| Link video demo |  |
+| Ghi chú khác | Cải thiện độ ổn định hệ thống |
+
+#### 4.6. Nhận xét cá nhân/nhóm
+
+```text
+AI giúp nhận diện nguyên nhân lỗi (root cause) rất nhanh, đặc biệt là các lỗi liên quan đến lifecycle của React và tối ưu SQL.
+```
+
