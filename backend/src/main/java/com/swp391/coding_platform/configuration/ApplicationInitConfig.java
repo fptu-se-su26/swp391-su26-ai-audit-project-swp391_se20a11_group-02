@@ -67,6 +67,23 @@ public class ApplicationInitConfig {
                 log.info("Giá trị CANCELLED đã tồn tại trong enum status_transaction hoặc enum chưa được tạo.");
             }
 
+            // Đồng bộ sạch sẽ bảng payment_transactions cho dev profile
+            try {
+                try {
+                    jdbcTemplate.execute("CREATE TYPE PaymentType AS ENUM ('DEPOSIT')");
+                    jdbcTemplate.execute("CREATE CAST (varchar AS PaymentType) WITH INOUT AS IMPLICIT");
+                    jdbcTemplate.execute("CREATE CAST (PaymentType AS varchar) WITH INOUT AS IMPLICIT");
+                } catch (Exception ignored) {
+                }
+
+                // Xóa toàn bộ dữ liệu rác/cũ bị NULL trong bảng payment_transactions
+                jdbcTemplate.execute("TRUNCATE TABLE public.payment_transactions CASCADE");
+                jdbcTemplate.execute("ALTER TABLE public.payment_transactions ADD COLUMN IF NOT EXISTS type PaymentType NOT NULL DEFAULT 'DEPOSIT'");
+                log.info("Đã dọn dẹp dữ liệu cũ và bổ sung cột type cho bảng payment_transactions thành công.");
+            } catch (Exception e) {
+                log.warn("Không thể tự động đồng bộ bảng payment_transactions: {}", e.getMessage());
+            }
+
             // Setup role ADMIN first
             RoleEntity adminRole = roleRepository.findByName(RoleName.ADMIN)
                     .orElseGet(() -> roleRepository.save(RoleEntity.builder().name(RoleName.ADMIN).build()));
