@@ -28,6 +28,12 @@ import org.springframework.web.bind.annotation.*;
 import java.text.ParseException;
 import java.time.Instant;
 
+import com.swp391.coding_platform.dto.request.ForgotPasswordRequest;
+import com.swp391.coding_platform.dto.request.ResetPasswordRequest;
+import com.swp391.coding_platform.dto.request.VerifyOtpRequest;
+import com.swp391.coding_platform.dto.response.VerifyOtpResponse;
+import com.swp391.coding_platform.service.auth.PasswordResetService;
+
 @Slf4j
 @RestController
 @RequestMapping("/auth")
@@ -36,6 +42,7 @@ import java.time.Instant;
 public class AuthenticationController {
 
     AuthenticationService authenticationService;
+    PasswordResetService passwordResetService;
 
     // ACCESS TOKEN
     @NonFinal
@@ -171,6 +178,41 @@ public class AuthenticationController {
                 .timestamp(Instant.now().toString())
                 .build());
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
+        passwordResetService.sendOtp(request);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("If the email exists, an OTP has been sent.")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<ApiResponse<VerifyOtpResponse>> verifyOtp(@RequestBody @Valid VerifyOtpRequest request) {
+        VerifyOtpResponse result = passwordResetService.verifyOtp(request);
+        return ResponseEntity.ok(ApiResponse.<VerifyOtpResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("OTP verified successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Password reset successfully")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
 
     // ==================== Private Helper Methods ====================
 

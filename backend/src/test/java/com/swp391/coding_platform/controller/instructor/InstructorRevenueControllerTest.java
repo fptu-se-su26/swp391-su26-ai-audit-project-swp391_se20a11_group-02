@@ -3,9 +3,11 @@ package com.swp391.coding_platform.controller.instructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swp391.coding_platform.dto.response.*;
 import com.swp391.coding_platform.service.instructor.InstructorService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = InstructorRevenueController.class)
-
+@Execution(ExecutionMode.SAME_THREAD)
 public class InstructorRevenueControllerTest {
 
     @Autowired
@@ -35,6 +37,11 @@ public class InstructorRevenueControllerTest {
 
     @MockBean
     private com.swp391.coding_platform.repository.user.UserDailyActivityRepository userDailyActivityRepository;
+
+    @BeforeEach
+    void setUp() {
+        org.mockito.Mockito.reset(instructorService);
+    }
 
     @Test
     void getRevenueSummary_ReturnsSummary() throws Exception {

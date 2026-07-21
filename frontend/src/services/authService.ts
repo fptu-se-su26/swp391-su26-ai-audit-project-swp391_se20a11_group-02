@@ -156,6 +156,52 @@ export const authService = {
 
     const data: LoginResponse = await response.json();
     return data.result;
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Yêu cầu gửi OTP thất bại');
+    }
+  },
+
+  async verifyOtp(email: string, otp: string): Promise<string> {
+    const response = await fetch(`${BASE_URL}/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, otp }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Xác thực OTP không thành công');
+    }
+
+    const data = await response.json();
+    return data.result.resetToken;
+  },
+
+  async resetPassword(resetToken: string, newPassword: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ resetToken, newPassword }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Đặt lại mật khẩu thất bại');
+    }
   }
 };
+
 

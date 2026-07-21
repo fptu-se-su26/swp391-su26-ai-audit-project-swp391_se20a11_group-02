@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 2. Các API xác thực (Auth)
-                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google", "/auth/forgot-password", "/auth/verify-otp", "/auth/reset-password").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
 
                         // 3. Các API Public để xem dữ liệu (Giới hạn HTTP GET)
@@ -93,7 +93,9 @@ public class SecurityConfig {
         return request -> {
             String path = request.getRequestURI();
             if (path.contains("/auth/login") || path.contains("/auth/register") || 
-                path.contains("/auth/refresh") || path.contains("/auth/google")) {
+                path.contains("/auth/refresh") || path.contains("/auth/google") ||
+                path.contains("/auth/forgot-password") || path.contains("/auth/verify-otp") ||
+                path.contains("/auth/reset-password")) {
                 return null;
             }
 

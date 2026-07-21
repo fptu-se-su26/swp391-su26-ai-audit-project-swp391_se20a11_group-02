@@ -42,6 +42,12 @@ public enum ErrorCode {
     EXPIRED_TOKEN(2021, "Token has expired", HttpStatus.UNAUTHORIZED),
     REFRESH_TOKEN_EXPIRED(2022, "Refresh token has expired", HttpStatus.UNAUTHORIZED),
 
+    OTP_INVALID(2030, "Invalid OTP code", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(2031, "OTP code has expired", HttpStatus.BAD_REQUEST),
+    OTP_LIMIT_EXCEEDED(2032, "Too many OTP requests. Please try again later", HttpStatus.TOO_MANY_REQUESTS),
+    RESET_TOKEN_INVALID(2033, "Invalid or expired reset token", HttpStatus.BAD_REQUEST),
+    TOO_MANY_OTP_ATTEMPTS(2034, "Too many failed OTP attempts. Please request a new OTP", HttpStatus.TOO_MANY_REQUESTS),
+
 
     COURSE_NOT_FOUND(3000, "Course not found", HttpStatus.NOT_FOUND),
     COURSE_INACTIVE(3001, "Course is not active", HttpStatus.BAD_REQUEST),
