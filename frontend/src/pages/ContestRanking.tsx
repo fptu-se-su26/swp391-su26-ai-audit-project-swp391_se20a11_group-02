@@ -153,8 +153,8 @@ export const ContestRanking: React.FC = () => {
       setErrorData(null);
       try {
         const [sbRes, probsRes] = await Promise.all([
-          fetch(`http://localhost:8080/nonstopcoding/api/v1/contests/${contest.id}/scoreboard`, { credentials: 'include' }),
-          fetch(`http://localhost:8080/nonstopcoding/contests/${contest.id}/problems`, { credentials: 'include' })
+          fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/api/v1/contests/${contest.id}/scoreboard`, { credentials: 'include' }),
+          fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contest.id}/problems`, { credentials: 'include' })
         ]);
 
         if (!sbRes.ok || !probsRes.ok) {
@@ -172,7 +172,7 @@ export const ContestRanking: React.FC = () => {
         }
 
         // Đăng ký lắng nghe realtime qua Server-Sent Events (SSE)
-        eventSource = new EventSource(`http://localhost:8080/nonstopcoding/api/v1/contests/${contest.id}/scoreboard/stream`, { withCredentials: true });
+        eventSource = new EventSource(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/api/v1/contests/${contest.id}/scoreboard/stream`, { withCredentials: true });
         
         eventSource.addEventListener('scoreboard-update', (event: any) => {
           try {

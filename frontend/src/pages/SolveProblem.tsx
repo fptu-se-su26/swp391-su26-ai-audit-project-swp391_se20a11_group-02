@@ -376,7 +376,7 @@ export const SolveProblem: React.FC = () => {
       .then(() => {
         setActiveTab('result');
         if (user && user.id) {
-          const socket = new SockJS('http://localhost:8080/nonstopcoding/ws');
+          const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/ws`);
           const stompClient = Stomp.over(socket);
           stompClient.debug = () => {};
           

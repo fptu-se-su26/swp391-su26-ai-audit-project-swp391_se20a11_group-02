@@ -32,7 +32,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> inValidInput(MethodArgumentNotValidException exception){
         String enumKey = exception.getBindingResult().getFieldError().getDefaultMessage();
-        ErrorCode errorCode = ErrorCode.valueOf(enumKey);
+        ErrorCode errorCode;
+        try {
+            errorCode = ErrorCode.valueOf(enumKey);
+        } catch (IllegalArgumentException e) {
+            errorCode = ErrorCode.INVALID_REQUEST;
+        }
         return ResponseEntity.status(errorCode.getHttpStatus())
                 .body(ApiResponse.builder()
                         .status(errorCode.getHttpStatus().value())
@@ -41,6 +46,17 @@ public class GlobalExceptionHandler {
                         .result(null)
                         .timestamp(Instant.now().toString())
                         .build());
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handlingAccessDeniedException(org.springframework.security.access.AccessDeniedException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.<Object>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .code(ErrorCode.ACCESS_DENIED.getCode())
+                .message(ErrorCode.ACCESS_DENIED.getMessage())
+                .result(null)
+                .timestamp(Instant.now().toString())
+                .build());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

@@ -5,6 +5,7 @@ import com.swp391.coding_platform.dto.request.AdminContestProblemRequest;
 import com.swp391.coding_platform.dto.response.AdminContestResponse;
 import com.swp391.coding_platform.dto.response.AdminContestProblemResponse;
 import com.swp391.coding_platform.dto.response.ApiResponse;
+import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.service.contest.ContestService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -29,9 +30,13 @@ public class AdminContestController {
     ContestService contestService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminContestResponse>>> getAdminContests() {
-        List<AdminContestResponse> result = contestService.getAdminContests();
-        return ResponseEntity.ok(ApiResponse.<List<AdminContestResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<AdminContestResponse>>> getAdminContests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "active") String tab,
+            @RequestParam(defaultValue = "ALL") String status) {
+        PageResponse<AdminContestResponse> result = contestService.getAdminContests(page, size, tab, status);
+        return ResponseEntity.ok(ApiResponse.<PageResponse<AdminContestResponse>>builder()
                 .status(200)
                 .code(1000)
                 .message("Fetched admin contests successfully")

@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +37,9 @@ public class SecurityConfig {
     final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
+    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
+    String allowedOrigins;
+
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -46,7 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 2. Các API xác thực (Auth)
-                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/google", "/auth/forgot-password", "/auth/verify-otp", "/auth/reset-password").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
 
                         // 3. Các API Public để xem dữ liệu (Giới hạn HTTP GET)
@@ -93,7 +97,9 @@ public class SecurityConfig {
         return request -> {
             String path = request.getRequestURI();
             if (path.contains("/auth/login") || path.contains("/auth/register") || 
-                path.contains("/auth/refresh") || path.contains("/auth/google")) {
+                path.contains("/auth/refresh") || path.contains("/auth/google") ||
+                path.contains("/auth/forgot-password") || path.contains("/auth/verify-otp") ||
+                path.contains("/auth/reset-password")) {
                 return null;
             }
 
@@ -131,8 +137,12 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Cấu hình các domain frontend được phép gọi API
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+        // Cấu hình các domain frontend được phép gọi API từ property config
+        if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+            configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        } else {
+            configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+        }
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);

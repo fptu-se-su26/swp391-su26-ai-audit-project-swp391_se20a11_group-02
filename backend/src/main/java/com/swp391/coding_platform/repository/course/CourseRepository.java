@@ -43,6 +43,10 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long>, Jpa
 
     boolean existsByIdAndInstructorId(Long id, Integer instructorId);
 
+    boolean existsByTitle(String title);
+
+    boolean existsByTitleAndIdNot(String title, Long id);
+
     @Query(value = "SELECT EXISTS (" +
            "SELECT 1 FROM courses c " +
            "JOIN chapters ch ON c.id = ch.course_id " +

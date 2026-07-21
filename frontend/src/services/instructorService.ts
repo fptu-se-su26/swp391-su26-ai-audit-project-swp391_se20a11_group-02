@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface Category {
   id: number;
@@ -274,7 +274,8 @@ export const instructorService = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update course');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to update course');
     }
 
     const data = await response.json();

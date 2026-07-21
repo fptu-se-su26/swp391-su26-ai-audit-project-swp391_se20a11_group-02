@@ -78,7 +78,7 @@ public class Judge0Service {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         user.validateStatus();
 
-        ProblemEntity ojProblem = problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(request.getProblemId())
+        ProblemEntity ojProblem = problemRepository.findByIdAndIsActiveTrue(request.getProblemId())
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         if (request.getContestId() == null && request.getLessonId() == null) {

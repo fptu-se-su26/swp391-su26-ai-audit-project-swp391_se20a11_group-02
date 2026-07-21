@@ -78,7 +78,7 @@ export const Layout: React.FC = () => {
   const fetchContest = React.useCallback(async () => {
     if (!contestId) return;
     try {
-      const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contestId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}`, {
         credentials: 'include',
       });
       const data = await response.json();
@@ -174,7 +174,7 @@ export const Layout: React.FC = () => {
 
     setRegistering(true);
     try {
-      const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contestId}/register`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -360,10 +360,10 @@ export const Layout: React.FC = () => {
                         <span className="material-symbols-outlined text-[18px]">school</span> Become Instructor
                       </Link>
                     )}
-                    <a href="#" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                    <Link to="/dashboard#my-profile" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
                       <span className="material-symbols-outlined text-[18px]">person</span> Edit Profile
-                    </a>
-                    <Link to="/wallet-transaction" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
+                    </Link>
+                    <Link to="/dashboard#wallet-transaction" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
                       <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span> Wallet
                     </Link>
                     <div className="h-px bg-gray-100 my-1 w-full"></div>

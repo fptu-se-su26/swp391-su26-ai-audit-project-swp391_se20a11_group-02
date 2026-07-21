@@ -237,7 +237,7 @@ Viết tại đây...
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
 | 1 | Tạo controller, request DTOs và response DTOs phục vụ tính năng CRUD Contest của Admin | Nguyễn Duy Phương | AdminContestController, request/response DTOs | Commit feature/DE190416-CRUD-Contest |
-| 2 | Loại bỏ cột status tĩnh trong database và thực thể ContestEntity, thay bằng flag is_cancelled để phục vụ tính toán trạng thái Contest động | Nguyễn Duy Phương | init.sql, contest_seed.sql, ContestEntity | Commit feature/DE190416-CRUD-Contest |
+| 2 | Loại bỏ cột status tĩnh trong database và thực thể ContestEntity, thay bằng flag is_cancelled để phục vụ tính toán trạng thái Contest động | Nguyễn Duy Phương | schema-only.sql, contest_seed.sql, ContestEntity | Commit feature/DE190416-CRUD-Contest |
 | 3 | Tái cấu trúc logic đếm active contest và CRUD Contest động dựa trên mốc thời gian so với Instant.now() ở tầng Service | Nguyễn Duy Phương | ContestService, AdminDashboardService | Commit feature/DE190416-CRUD-Contest |
 | 4 | Xây dựng API và các query JPA lấy danh sách bài nộp của Contest phân quyền theo vai trò (User chỉ thấy bài nộp của mình, Admin thấy toàn bộ) | Nguyễn Duy Phương | ContestRepository, ProblemSubmissionRepository, ContestController, ContestSubmissionResponse | Commit feature/DE190416-CRUD-Contest |
 | 5 | Tích hợp frontend: ẩn spotlight banner trống, khóa đăng ký contest đã kết thúc và hiển thị danh sách bài nộp thật từ backend | Nguyễn Duy Phương | Contests.tsx, Layout.tsx, ContestSubmissions.tsx | Commit feature/DE190416-CRUD-Contest |
@@ -305,7 +305,7 @@ Commit trên nhánh feature/DE190416-CRUD-Contest
 | 1 | Fix lỗi biên dịch và các import chưa sử dụng | Nguyễn Duy Phương | Layout.tsx | Commit feature/DE190416-CRUD-Contest |
 | 2 | Sửa logic đếm active contest và dynamic status check | Nguyễn Duy Phương | ContestService.java, ContestRepository.java | Commit feature/DE190416-CRUD-Contest |
 | 3 | Test phân quyền user và admin đối với Contest Submissions API | Nguyễn Duy Phương | ContestController.java | Commit feature/DE190416-CRUD-Contest |
-| 4 | Tái cấu trúc database: loại bỏ cột `is_deleted`, thay bằng cột `status` chứa enum `DRAFT`, `PUBLISHED`, `DELETED` | Nguyễn Duy Phương | `init.sql`, `ContestEntity.java`, `ContestStatus.java` | Commit feature/de190416-contest-status-refactoring |
+| 4 | Tái cấu trúc database: loại bỏ cột `is_deleted`, thay bằng cột `status` chứa enum `DRAFT`, `PUBLISHED`, `DELETED` | Nguyễn Duy Phương | `schema-only.sql`, `ContestEntity.java`, `ContestStatus.java` | Commit feature/de190416-contest-status-refactoring |
 | 5 | Triển khai logic tính toán trạng thái động (`UPCOMING`, `ONGOING`, `ENDED`) tại runtime | Nguyễn Duy Phương | `ContestService.java`, `ContestRepository.java` | Commit feature/de190416-contest-status-refactoring |
 | 6 | Bổ sung cơ chế soft delete, khôi phục và xóa cứng kỳ thi an toàn (chỉ khi số lượng bài nộp bằng 0) | Nguyễn Duy Phương | `ContestService.java`, `AdminDashboard.tsx` | Commit feature/de190416-contest-status-refactoring |
 | 7 | Đồng bộ đưa bài tập liên quan về scope `PRACTICE` và trạng thái `isPublic = false` (Draft) khi xóa kỳ thi hoặc rút bài khỏi kỳ thi | Nguyễn Duy Phương | `ContestService.java` | Commit feature/de190416-contest-status-refactoring |

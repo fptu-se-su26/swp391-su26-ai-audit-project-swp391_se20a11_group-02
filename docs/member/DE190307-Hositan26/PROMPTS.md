@@ -210,7 +210,7 @@ Thay vì sao chép nguyên xi, tôi tự đổi kiểu khóa chính thành UUID 
 | Loại minh chứng | Nội dung |
 |---|---|
 | Link commit |  |
-| File liên quan | database/init.sql |
+| File liên quan | database/schema-only.sql |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link tài liệu/báo cáo |  |

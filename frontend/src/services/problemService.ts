@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface ProblemListItem {
   id: number;
@@ -104,10 +104,13 @@ export const problemService = {
     return data.result;
   },
 
-  async submitSolution(problemId: number | string, languageId: number, sourceCode: string, contestId?: number | string): Promise<SubmitResponse> {
+  async submitSolution(problemId: number | string, languageId: number, sourceCode: string, contestId?: number | string, lessonId?: number | string): Promise<SubmitResponse> {
     const payload: any = { problemId: Number(problemId), languageId, sourceCode };
     if (contestId !== undefined && contestId !== null) {
       payload.contestId = Number(contestId);
+    }
+    if (lessonId !== undefined && lessonId !== null) {
+      payload.lessonId = Number(lessonId);
     }
     const response = await fetch(`${BASE_URL}/online-judge/submissions`, {
       method: 'POST',

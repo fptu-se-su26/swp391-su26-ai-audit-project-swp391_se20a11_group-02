@@ -47,7 +47,7 @@ public class UserProblemService {
 
     public List<ProblemListItemResponse> getProblems(Integer userId) {
         List<ProblemEntity> problems = problemRepository.findByProblemScopeInAndIsActiveTrueAndIsPublicTrue(
-                List.of(ProblemScope.PRACTICE, ProblemScope.SHARED)
+                List.of(ProblemScope.PRACTICE)
         );
 
         if (problems.isEmpty()) {
@@ -108,7 +108,7 @@ public class UserProblemService {
     }
 
     public ProblemDescriptionResponse getProblemDescription(Integer id, Integer userId) {
-        ProblemEntity problem = problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(id)
+        ProblemEntity problem = problemRepository.findByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         List<ProblemTagMappingEntity> mappings = problemTagMappingRepository.findByProblemId(id);
@@ -181,7 +181,7 @@ public class UserProblemService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        ProblemEntity problem = problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(id)
+        ProblemEntity problem = problemRepository.findByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         // Check if the user has solved this problem

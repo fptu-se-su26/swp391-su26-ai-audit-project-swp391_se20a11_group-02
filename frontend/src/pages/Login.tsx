@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useApp } from '../context/AppContext';
+import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 
 export const Login: React.FC = () => {
   const { login, googleLogin } = useApp();
@@ -10,6 +11,7 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,9 +125,13 @@ export const Login: React.FC = () => {
                 </label>
               </div>
               <div className="text-sm">
-                <a className="font-medium text-primary hover:text-primary-hover transition-colors" href="#">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPasswordOpen(true)}
+                  className="font-medium text-primary hover:text-primary-hover transition-colors"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
             </div>
 
@@ -197,7 +203,14 @@ export const Login: React.FC = () => {
           Don't have an account?{' '}
           <Link className="font-bold text-primary hover:text-primary-hover transition-colors underline decoration-2 underline-offset-4 decoration-primary/30 hover:decoration-primary" to="/register">Register now</Link>
         </p>
+
+        {/* Forgot Password Modal */}
+        <ForgotPasswordModal
+          isOpen={isForgotPasswordOpen}
+          onClose={() => setIsForgotPasswordOpen(false)}
+        />
       </main>
     </div>
   );
 };
+

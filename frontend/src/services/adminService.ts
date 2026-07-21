@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 // Helper: tự động refresh token khi gặp 401, rồi retry lại request (có queue để tránh race condition khi gọi nhiều API song song)
 let isRefreshing = false;
@@ -243,7 +243,7 @@ export interface AdminProblem {
   exampleInput: string;
   exampleOutput: string;
   hint: string;
-  problemScope: 'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE';
+  problemScope: 'LESSON' | 'CONTEST' | 'PRACTICE';
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   isActive: boolean;
   createdBy: number;
@@ -939,7 +939,7 @@ export const adminService = {
     return data.result;
   },
 
-  async updateProblemScope(problemId: number, problemScope: 'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE'): Promise<AdminProblem> {
+  async updateProblemScope(problemId: number, problemScope: 'LESSON' | 'CONTEST' | 'PRACTICE'): Promise<AdminProblem> {
     const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/scope`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1076,17 +1076,29 @@ export const adminService = {
   },
 
   // Contests
-  async getContests(): Promise<AdminContest[]> {
+  async getContests(page: number = 0, size: number = 10, tab: string = 'active', status: string = 'ALL'): Promise<PageResponse<AdminContest>> {
     try {
-      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(
+        `${BASE_URL}/admin/contests?page=${page}&size=${size}&tab=${tab}&status=${status}`,
+        { credentials: 'include' }
+      );
       if (response.ok) {
         const data = await response.json();
-        return data.result || [];
+        return data.result || { content: [], totalPages: 0, totalElements: 0, page: 0, size: 10, numberOfElements: 0, first: true, last: true };
       }
     } catch (err) {
       console.warn("Failed to get Contests from backend:", err);
     }
-    return [];
+    return { content: [], totalPages: 0, totalElements: 0, page: 0, size: 10, numberOfElements: 0, first: true, last: true };
+  },
+
+  async getContestById(contestId: number): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}`, { credentials: 'include' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch contest details');
+    }
+    const data = await response.json();
+    return data.result;
   },
 
   async createContest(contest: Omit<AdminContest, 'id' | 'status' | 'participantCount' | 'submissionCount' | 'averageScore'>): Promise<AdminContest> {

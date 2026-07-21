@@ -54,7 +54,7 @@ export const Contests: React.FC = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:8080/nonstopcoding/contests?search=${searchQuery}&status=${statusFilter}&access=${accessFilter}&page=${currentPage}&size=10`,
+          `${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests?search=${searchQuery}&status=${statusFilter}&access=${accessFilter}&page=${currentPage}&size=10`,
           {
             credentials: 'include',
           }
@@ -85,7 +85,7 @@ export const Contests: React.FC = () => {
 
   const fetchBannerAndStats = useCallback(async () => {
     try {
-      const bannerRes = await fetch('http://localhost:8080/nonstopcoding/contests/banner', {
+      const bannerRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/banner`, {
         credentials: 'include'
       });
       const bannerData = await bannerRes.json();
@@ -97,7 +97,7 @@ export const Contests: React.FC = () => {
       }
 
       if (user) {
-        const statsRes = await fetch('http://localhost:8080/nonstopcoding/contests/user-stats', {
+        const statsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/user-stats`, {
           credentials: 'include'
         });
         const statsData = await statsRes.json();

@@ -42,7 +42,7 @@ class ProblemSubmissionServiceTest {
 
     @Test
     void getSubmissions_ProblemNotFound_ThrowsAppException() {
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1))
+        when(problemRepository.findByIdAndIsActiveTrue(1))
                 .thenReturn(Optional.empty());
 
         AppException exception = assertThrows(AppException.class, 
@@ -53,7 +53,7 @@ class ProblemSubmissionServiceTest {
     @Test
     void getSubmissions_NoSubmissions_ReturnsEmptyList() {
         ProblemEntity problem = mock(ProblemEntity.class);
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(problem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(problem));
         when(problemSubmissionRepository.findByUserIdAndProblemId(1, 1)).thenReturn(Collections.emptyList());
 
         List<ProblemSubmissionResponse> result = problemSubmissionService.getSubmissions(1, 1);
@@ -64,7 +64,7 @@ class ProblemSubmissionServiceTest {
     @Test
     void getSubmissions_Success() {
         ProblemEntity problem = mock(ProblemEntity.class);
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(problem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(problem));
 
         ProblemSubmissionEntity submission = mock(ProblemSubmissionEntity.class);
         when(submission.getVerdict()).thenReturn(OjVerdict.ACCEPTED);

@@ -169,7 +169,7 @@ Việc gộp các Use Case giúp giảm công sức viết tài liệu đặc t�
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 | Thiết kế và chuẩn hóa 26 bảng dữ liệu (User, Wallet, Submission...) | Võ Ngọc Thanh | database/init.sql | Commit: design database schema 3NF |
+| 1 | Thiết kế và chuẩn hóa 26 bảng dữ liệu (User, Wallet, Submission...) | Võ Ngọc Thanh | database/schema-only.sql | Commit: design database schema 3NF |
 | 2 | Biên soạn danh mục 100 thông điệp báo lỗi và thành công bằng tiếng Anh | Võ Ngọc Thanh | application_messages.md | Commit: create application messages catalog |
 | 3 | Đặc tả quy chuẩn API phân trang và định dạng ngày giờ ISO 8601 | Võ Ngọc Thanh | common_requirements.md | Commit: add common requirements spec |
 
