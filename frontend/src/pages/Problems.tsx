@@ -114,7 +114,7 @@ export const Problems: React.FC = () => {
     return result;
   }, [problems, searchQuery, statusFilter, difficultyFilter, topicFilter, sortBy]);
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedProblems.length / itemsPerPage));
 
   useEffect(() => {
