@@ -1483,6 +1483,8 @@ CREATE TABLE public.problem_versions (
     solutions text,
     starter_templates text,
     title character varying(255) NOT NULL,
+    testcase_generator_code text,
+    testcase_generator_language character varying(50),
     CONSTRAINT problem_versions_difficulty_check CHECK (((difficulty)::text = ANY ((ARRAY['EASY'::character varying, 'MEDIUM'::character varying, 'HARD'::character varying])::text[]))),
     CONSTRAINT problem_versions_problem_scope_check CHECK (((problem_scope)::text = ANY ((ARRAY['LESSON'::character varying, 'CONTEST'::character varying, 'PRACTICE'::character varying])::text[])))
 );
@@ -1516,7 +1518,7 @@ CREATE TABLE public.problem_visualizer_cache (
     id character varying(36) NOT NULL,
     problem_id character varying(255) NOT NULL,
     time_complexity text,
-    user_id character varying(255) NOT NULL
+    admin_id character varying(255)
 );
 
 
@@ -10980,6 +10982,9 @@ ALTER TABLE ONLY public.problem_versions
 
 ALTER TABLE ONLY public.problem_visualizer_cache
     ADD CONSTRAINT problem_visualizer_cache_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.problem_visualizer_cache
+    ADD CONSTRAINT unique_problem_prompt_version UNIQUE (problem_id, prompt_version);
 
 
 --

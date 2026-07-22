@@ -285,7 +285,7 @@ export const AdminDashboard: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
   const [isEditContestOpen, setIsEditContestOpen] = useState(false);
-  const problemsPerPage = 10;
+  const problemsPerPage = 20;
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'DELETED'>('ALL');
   const [contestSubTab, setContestSubTab] = useState<'active' | 'trash'>('active');
   const [contestPage, setContestPage] = useState(1);
@@ -3992,7 +3992,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 )}
                 <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-visible ambient-shadow">
-                  <div className="overflow-x-auto min-h-[280px]">
+                  <div className="overflow-x-auto overflow-y-hidden min-h-[280px]">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,14 +25,15 @@ public class AiVisualizerController {
     private final AiVisualizerService aiVisualizerService;
 
     @PostMapping("/generate")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<AiVisualizerResponse>> generateVisualizer(@RequestBody AiVisualizerRequest request) {
         // Validate scope via Service
         aiVisualizerService.validateProblemScope(request.getProblemId());
 
-        String userId = aiVisualizerService.getCurrentUserId();
+        String adminUserId = aiVisualizerService.getCurrentUserId();
 
         // 1. Check cache synchronously first for fast return
-        Optional<AiVisualizerResponse> cached = aiVisualizerService.getCachedVisualizer(request.getProblemId(), userId, request.isForceRegenerate());
+        Optional<AiVisualizerResponse> cached = aiVisualizerService.getCachedVisualizer(request.getProblemId(), request.isForceRegenerate());
         if (cached.isPresent()) {
             return ResponseEntity.ok(ApiResponse.<AiVisualizerResponse>builder()
                     .status(HttpStatus.OK.value())
@@ -44,7 +46,7 @@ public class AiVisualizerController {
 
         // 2. No cache, create job
         String jobId = UUID.randomUUID().toString();
-        asyncService.processVisualizerJob(jobId, request, userId);
+        asyncService.processVisualizerJob(jobId, request, adminUserId);
 
         // 3. Return 202 Accepted with jobId
         AiVisualizerResponse response = AiVisualizerResponse.builder()
@@ -61,6 +63,7 @@ public class AiVisualizerController {
     }
 
     @GetMapping("/status/{jobId}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<JobStatusResponse>> getJobStatus(@PathVariable("jobId") String jobId) {
         return ResponseEntity.ok(ApiResponse.<JobStatusResponse>builder()
                 .status(HttpStatus.OK.value())
@@ -73,9 +76,7 @@ public class AiVisualizerController {
 
     @GetMapping("/{problemId}")
     public ResponseEntity<ApiResponse<AiVisualizerResponse>> getCachedVisualizer(@PathVariable("problemId") String problemId) {
-        String userId = aiVisualizerService.getCurrentUserId();
-
-        Optional<AiVisualizerResponse> cached = aiVisualizerService.getCachedVisualizer(problemId, userId, false);
+        Optional<AiVisualizerResponse> cached = aiVisualizerService.getCachedVisualizer(problemId, false);
         
         if (cached.isPresent()) {
             return ResponseEntity.ok(ApiResponse.<AiVisualizerResponse>builder()

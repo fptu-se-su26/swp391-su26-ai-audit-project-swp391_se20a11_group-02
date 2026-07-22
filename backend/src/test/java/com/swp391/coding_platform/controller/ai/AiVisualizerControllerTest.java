@@ -57,7 +57,7 @@ public class AiVisualizerControllerTest {
                 .build();
 
         when(aiVisualizerService.getCurrentUserId()).thenReturn("user1");
-        when(aiVisualizerService.getCachedVisualizer(eq("prob123"), eq("user1"), eq(false)))
+        when(aiVisualizerService.getCachedVisualizer(eq("prob123"), eq(false)))
                 .thenReturn(Optional.of(mockResponse));
 
         mockMvc.perform(post("/api/v1/ai/visualizer/generate")
@@ -75,7 +75,7 @@ public class AiVisualizerControllerTest {
         request.setForceRegenerate(false);
 
         when(aiVisualizerService.getCurrentUserId()).thenReturn("user1");
-        when(aiVisualizerService.getCachedVisualizer(eq("prob123"), eq("user1"), eq(false)))
+        when(aiVisualizerService.getCachedVisualizer(eq("prob123"), eq(false)))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(post("/api/v1/ai/visualizer/generate")
@@ -102,8 +102,7 @@ public class AiVisualizerControllerTest {
     void testGetCachedVisualizer_Found() throws Exception {
         AiVisualizerResponse mockResponse = AiVisualizerResponse.builder().build();
 
-        when(aiVisualizerService.getCurrentUserId()).thenReturn("user1");
-        when(aiVisualizerService.getCachedVisualizer("prob123", "user1", false))
+        when(aiVisualizerService.getCachedVisualizer("prob123", false))
                 .thenReturn(Optional.of(mockResponse));
 
         mockMvc.perform(get("/api/v1/ai/visualizer/prob123"))
@@ -114,8 +113,7 @@ public class AiVisualizerControllerTest {
 
     @Test
     void testGetCachedVisualizer_NotFound() throws Exception {
-        when(aiVisualizerService.getCurrentUserId()).thenReturn("user1");
-        when(aiVisualizerService.getCachedVisualizer("prob123", "user1", false))
+        when(aiVisualizerService.getCachedVisualizer("prob123", false))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v1/ai/visualizer/prob123"))

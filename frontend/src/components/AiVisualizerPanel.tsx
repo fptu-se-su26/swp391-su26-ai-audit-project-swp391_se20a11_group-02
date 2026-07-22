@@ -3,9 +3,10 @@ import { useAiVisualizer } from '../hooks/useAiVisualizer';
 
 interface AiVisualizerPanelProps {
     problemRequest: any;
+    isAdmin?: boolean;
 }
 
-const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest }) => {
+const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest, isAdmin = false }) => {
     const { isLoading, data, error, jobStatus, generate, regenerate, checkCache } = useAiVisualizer();
     const iframeRef = useRef(null);
     const [userInput, setUserInput] = useState<string>('');
@@ -36,42 +37,53 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
         <div className="p-4 bg-gray-800 rounded-xl shadow-lg text-white">
             {!isLoading && !data && (
                 <div className="flex flex-col items-center justify-center p-8 space-y-6">
-                    <div className="text-center max-w-md space-y-2">
-                        <p className="text-gray-300">
-                            Want to see how this algorithm works? AI can analyze and simulate it step-by-step for you.
-                        </p>
-                        <p className="text-sm text-gray-400">
-                            (Optional) You can provide your own input below for the AI to simulate, otherwise it will use the problem's default example input.
-                        </p>
-                    </div>
-                    
-                    <div className="w-full max-w-md">
-                        <label htmlFor="userInput" className="block text-sm font-medium text-gray-400 mb-1">
-                            Custom Input (Optional)
-                        </label>
-                        <textarea
-                            id="userInput"
-                            rows={3}
-                            className="w-full bg-gray-900 text-gray-200 border border-gray-600 rounded-lg p-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-600 transition"
-                            placeholder="Enter your custom input here..."
-                            value={userInput}
-                            onChange={(e) => setUserInput(e.target.value)}
-                        />
-                    </div>
+                    {isAdmin ? (
+                        <>
+                            <div className="text-center max-w-md space-y-2">
+                                <p className="text-gray-300">
+                                    Want to see how this algorithm works? AI can analyze and simulate it step-by-step for you.
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                    (Optional) You can provide your own input below for the AI to simulate, otherwise it will use the problem's default example input.
+                                </p>
+                            </div>
+                            
+                            <div className="w-full max-w-md">
+                                <label htmlFor="userInput" className="block text-sm font-medium text-gray-400 mb-1">
+                                    Custom Input (Optional)
+                                </label>
+                                <textarea
+                                    id="userInput"
+                                    rows={3}
+                                    className="w-full bg-gray-900 text-gray-200 border border-gray-600 rounded-lg p-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-600 transition"
+                                    placeholder="Enter your custom input here..."
+                                    value={userInput}
+                                    onChange={(e) => setUserInput(e.target.value)}
+                                />
+                            </div>
 
-                    {error && (
-                        <div className="w-full max-w-md p-4 border border-red-500 bg-red-900/20 rounded-lg text-red-400 text-sm text-center">
-                            {error}
+                            {error && (
+                                <div className="w-full max-w-md p-4 border border-red-500 bg-red-900/20 rounded-lg text-red-400 text-sm text-center">
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handleGenerate}
+                                disabled={isLoading}
+                                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-all shadow-md flex items-center space-x-2"
+                            >
+                                <span>{error ? '🔄 Try Again' : '🤖 Ask AI to Simulate Algorithm'}</span>
+                            </button>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center space-y-4 p-8">
+                            <span className="material-symbols-outlined text-4xl text-gray-500">smart_toy</span>
+                            <p className="text-gray-400 text-center font-medium">
+                                Bài tập này chưa được thiết lập mô phỏng AI bởi quản trị viên.
+                            </p>
                         </div>
                     )}
-
-                    <button
-                        onClick={handleGenerate}
-                        disabled={isLoading}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-all shadow-md flex items-center space-x-2"
-                    >
-                        <span>{error ? '🔄 Try Again' : '🤖 Ask AI to Simulate Algorithm'}</span>
-                    </button>
                 </div>
             )}
 
@@ -115,21 +127,23 @@ const AiVisualizerPanel: React.FC<AiVisualizerPanelProps> = ({ problemRequest })
                                     <option value="500">1x</option>
                                 </select>
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="text"
-                                    placeholder="New custom input (optional)..."
-                                    className="bg-gray-900 text-gray-200 border border-gray-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 w-48 transition-colors"
-                                    value={userInput}
-                                    onChange={(e) => setUserInput(e.target.value)}
-                                />
-                                <button
-                                    onClick={handleRegenerate}
-                                    className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-semibold transition whitespace-nowrap"
-                                >
-                                    🔄 Regenerate
-                                </button>
-                            </div>
+                             {isAdmin && (
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="New custom input (optional)..."
+                                        className="bg-gray-900 text-gray-200 border border-gray-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 w-48 transition-colors"
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                    />
+                                    <button
+                                        onClick={handleRegenerate}
+                                        className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-semibold transition whitespace-nowrap"
+                                    >
+                                        🔄 Regenerate
+                                    </button>
+                                </div>
+                             )}
                         </div>
                     </div>
 

@@ -34,4 +34,6 @@ public class AdminProblemResponse {
     Boolean isDeleted;
     java.util.List<String> tags;
     java.util.Map<String, String> starterTemplates;
+    String testcaseGeneratorCode;
+    String testcaseGeneratorLanguage;
 }

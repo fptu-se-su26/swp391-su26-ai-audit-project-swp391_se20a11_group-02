@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ProblemVisualizerCacheRepository extends JpaRepository<ProblemVisualizerCache, String> {
-    Optional<ProblemVisualizerCache> findByProblemIdAndUserIdAndPromptVersion(String problemId, String userId, Integer promptVersion);
+    Optional<ProblemVisualizerCache> findByProblemIdAndPromptVersion(String problemId, Integer promptVersion);
 }
