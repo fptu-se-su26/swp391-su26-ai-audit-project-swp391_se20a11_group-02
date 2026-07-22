@@ -259,6 +259,8 @@ export interface AdminProblem {
   isDeleted: boolean;
   tags?: string[];
   starterTemplates?: Record<string, string>;
+  testcaseGeneratorCode?: string;
+  testcaseGeneratorLanguage?: string;
 }
 
 export interface AdminProblemTestcase {

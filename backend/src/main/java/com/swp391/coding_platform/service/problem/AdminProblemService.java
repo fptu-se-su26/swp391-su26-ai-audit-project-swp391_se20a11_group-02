@@ -131,6 +131,8 @@ public class AdminProblemService {
                 .timeLimitMs(request.getTimeLimitMs() != null ? request.getTimeLimitMs() : 2000)
                 .memoryLimitKb(request.getMemoryLimitKb() != null ? request.getMemoryLimitKb() : 128000)
                 .starterTemplates(templatesJson)
+                .testcaseGeneratorCode(request.getTestcaseGeneratorCode())
+                .testcaseGeneratorLanguage(request.getTestcaseGeneratorLanguage())
                 .versionNumber(1)
                 .problemScope(scope)
                 .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
@@ -195,6 +197,8 @@ public class AdminProblemService {
                     .isPublic(problem.getCurrentVersion().getIsPublic())
                     .solutions(problem.getCurrentVersion().getSolutions())
                     .starterTemplates(problem.getCurrentVersion().getStarterTemplates())
+                    .testcaseGeneratorCode(problem.getCurrentVersion().getTestcaseGeneratorCode())
+                    .testcaseGeneratorLanguage(problem.getCurrentVersion().getTestcaseGeneratorLanguage())
                     .createdAt(Instant.now())
                     .versionNumber(problem.getVersions().stream().mapToInt(com.swp391.coding_platform.entity.problem.ProblemVersionEntity::getVersionNumber).max().orElse(0) + 1)
                     .build();
@@ -229,6 +233,8 @@ public class AdminProblemService {
         targetVersion.setExampleOutput(request.getExampleOutput());
         targetVersion.setHint(request.getHint());
         targetVersion.setSolutions(request.getSolutions());
+        targetVersion.setTestcaseGeneratorCode(request.getTestcaseGeneratorCode());
+        targetVersion.setTestcaseGeneratorLanguage(request.getTestcaseGeneratorLanguage());
 
         if (request.getProblemScope() != null) {
             try {
@@ -496,6 +502,8 @@ public class AdminProblemService {
                 .isDeleted(!entity.getIsActive() && entity.getTotalTestcase() != null && entity.getTotalTestcase() > 0)
                 .tags(tags)
                 .starterTemplates(templates)
+                .testcaseGeneratorCode(entity.getCurrentVersion().getTestcaseGeneratorCode())
+                .testcaseGeneratorLanguage(entity.getCurrentVersion().getTestcaseGeneratorLanguage())
                 .build();
     }
 
@@ -574,6 +582,8 @@ public class AdminProblemService {
                 .timeLimitMs(currentVersion.getTimeLimitMs())
                 .memoryLimitKb(currentVersion.getMemoryLimitKb())
                 .starterTemplates(currentVersion.getStarterTemplates())
+                .testcaseGeneratorCode(currentVersion.getTestcaseGeneratorCode())
+                .testcaseGeneratorLanguage(currentVersion.getTestcaseGeneratorLanguage())
                 .versionNumber(1)
                 .problemScope(sourceProblem.getProblemScope() != null ? sourceProblem.getProblemScope() : currentVersion.getProblemScope())
                 .isPublic(false) // Cloned version is always private by default

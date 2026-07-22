@@ -1391,10 +1391,6 @@ export const StudentDashboard: React.FC = () => {
           <span className="sidebar-text hidden md:inline">Contest History</span>
         </button>
 
-        <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-lg text-text-main hover:bg-surface-gray hover:text-primary transition-colors font-medium">
-          <span className="material-symbols-outlined">menu_book</span>
-          <span className="sidebar-text hidden md:inline">Learning Journal</span>
-        </a>
 
 
         {/* Collapsible My Wallet Menu */}

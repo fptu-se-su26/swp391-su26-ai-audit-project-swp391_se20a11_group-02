@@ -73,37 +73,34 @@ public class AiVisualizerService {
         return String.valueOf(user.getId());
     }
 
-    public Optional<AiVisualizerResponse> getCachedVisualizer(String problemId, String userId, boolean forceRegenerate) {
+    public Optional<AiVisualizerResponse> getCachedVisualizer(String problemId, boolean forceRegenerate) {
         if (!forceRegenerate) {
-            Optional<ProblemVisualizerCache> cached = cacheRepository.findByProblemIdAndUserIdAndPromptVersion(problemId, userId, CURRENT_PROMPT_VERSION);
+            Optional<ProblemVisualizerCache> cached = cacheRepository.findByProblemIdAndPromptVersion(problemId, CURRENT_PROMPT_VERSION);
             if (cached.isPresent()) {
-                log.info("Cache hit for problemId: {} and userId: {}", problemId, userId);
+                log.info("Cache hit for problemId: {}", problemId);
                 return Optional.of(buildResponseFromCache(cached.get()));
             }
         }
         return Optional.empty();
     }
 
-    public AiVisualizerResponse generateVisualizer(AiVisualizerRequest request, String userId) {
+    public AiVisualizerResponse generateVisualizer(AiVisualizerRequest request, String adminUserId) {
         String problemId = request.getProblemId();
         
         // 1. Check DB Cache first
-        Optional<AiVisualizerResponse> cached = getCachedVisualizer(problemId, userId, request.isForceRegenerate());
+        Optional<AiVisualizerResponse> cached = getCachedVisualizer(problemId, request.isForceRegenerate());
         if (cached.isPresent()) {
             return cached.get();
         }
 
-        // 2. Check Rate Limit
-        checkRateLimit(userId);
-
-        // 3. Validate user input and Prepare prompt
+        // 2. Validate user input and Prepare prompt
         String userPrompt = buildUserPrompt(request);
 
-        // 4. Call AI & Parse with Retry
+        // 3. Call AI & Parse with Retry
         AiVisualizerResponse response = callAiAndParse(userPrompt);
 
-        // 5. Save to DB Cache
-        saveToCache(problemId, userId, response);
+        // 4. Save to DB Cache
+        saveToCache(problemId, adminUserId, response);
 
         return response;
     }
@@ -213,14 +210,14 @@ public class AiVisualizerService {
     }
 
 
-    private void saveToCache(String problemId, String userId, AiVisualizerResponse response) {
+    private void saveToCache(String problemId, String adminUserId, AiVisualizerResponse response) {
         if (problemId == null || problemId.isEmpty()) return;
         
-        Optional<ProblemVisualizerCache> existing = cacheRepository.findByProblemIdAndUserIdAndPromptVersion(problemId, userId, CURRENT_PROMPT_VERSION);
+        Optional<ProblemVisualizerCache> existing = cacheRepository.findByProblemIdAndPromptVersion(problemId, CURRENT_PROMPT_VERSION);
         
         ProblemVisualizerCache cacheEntity = existing.orElseGet(() -> ProblemVisualizerCache.builder()
                 .problemId(problemId)
-                .userId(userId)
+                .adminId(adminUserId)
                 .promptVersion(CURRENT_PROMPT_VERSION)
                 .build());
                 
@@ -228,6 +225,7 @@ public class AiVisualizerService {
         cacheEntity.setTimeComplexity(response.getTimeComplexity());
         cacheEntity.setHtmlContent(response.getHtmlContent());
         cacheEntity.setGeneratedAt(Instant.now());
+        cacheEntity.setAdminId(adminUserId);
         
         cacheRepository.save(cacheEntity);
     }
