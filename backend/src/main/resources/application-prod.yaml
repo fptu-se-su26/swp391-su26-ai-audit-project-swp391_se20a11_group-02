@@ -79,7 +79,7 @@ auth:
       max-age: ${ACCESS_TOKEN_MAX_AGE:3600}
       secure: ${ACCESS_TOKEN_SECURE:true}
       http-only: ${ACCESS_TOKEN_HTTP_ONLY:true}
-      same-site: ${ACCESS_TOKEN_SAME_SITE:Lax}
+      same-site: ${ACCESS_TOKEN_SAME_SITE:None}
       path: ${ACCESS_TOKEN_PATH:/}
 
     refresh-token:
@@ -87,8 +87,8 @@ auth:
       max-age: ${REFRESH_TOKEN_MAX_AGE:604800}
       secure: ${REFRESH_TOKEN_SECURE:true}
       http-only: ${REFRESH_TOKEN_HTTP_ONLY:true}
-      same-site: ${REFRESH_TOKEN_SAME_SITE:Lax}
-      path: ${REFRESH_TOKEN_PATH:/nonstopcoding/auth}
+      same-site: ${REFRESH_TOKEN_SAME_SITE:None}
+      path: ${REFRESH_TOKEN_PATH:/}
 
 judge0:
   base-url: ${JUDGE0_URL:http://judge0-server:2358}
