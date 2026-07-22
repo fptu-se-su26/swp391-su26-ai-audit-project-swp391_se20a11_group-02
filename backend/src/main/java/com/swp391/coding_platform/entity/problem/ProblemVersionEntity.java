@@ -86,6 +86,12 @@ public class ProblemVersionEntity {
     @Column(name = "starter_templates", columnDefinition = "TEXT")
     String starterTemplates;
 
+    @Column(name = "testcase_generator_code", columnDefinition = "TEXT")
+    String testcaseGeneratorCode;
+
+    @Column(name = "testcase_generator_language", length = 50)
+    String testcaseGeneratorLanguage;
+
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
     Instant createdAt = Instant.now();
