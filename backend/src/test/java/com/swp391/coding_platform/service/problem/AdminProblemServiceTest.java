@@ -176,7 +176,7 @@ public class AdminProblemServiceTest {
             v.setId(101);
             return v;
         });
-        when(problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndexAsc(101)).thenReturn(List.of(oldTc));
+        when(problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndexAsc(100)).thenReturn(List.of(oldTc));
         when(problemRepository.save(any(ProblemEntity.class))).thenAnswer(i -> i.getArgument(0));
 
         AdminProblemResponse response = adminProblemService.updateAdminProblem(1, request);
