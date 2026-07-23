@@ -102,7 +102,6 @@ public class ProblemTestcaseService {
                     .build();
             targetVersion = problemVersionRepository.save(targetVersion);
             problem.setCurrentVersion(targetVersion);
-            problem.getVersions().add(targetVersion);
         } else {
             // Delete existing testcases since we are updating in place
             problemTestcaseRepository.deleteByProblemVersionId(problem.getCurrentVersion().getId());

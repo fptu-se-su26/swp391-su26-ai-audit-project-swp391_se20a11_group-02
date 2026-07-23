@@ -765,7 +765,7 @@ export const AdminDashboard: React.FC = () => {
   }, [stats]);
 
   // Financial Page state variables
-  const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '3months' | '9months' | '12months' | 'custom'>('12months');
+  const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '6months' | '12months' | 'custom'>('12months');
   const [financialStartDate, setFinancialStartDate] = useState<string>('');
   const [financialEndDate, setFinancialEndDate] = useState<string>('');
   const [hoveredMonthIndex, setHoveredMonthIndex] = useState<number | null>(null);
@@ -833,10 +833,8 @@ export const AdminDashboard: React.FC = () => {
     switch (financialTimeFilter) {
       case 'month':
         return financialMonthlyRecords.slice(11);
-      case '3months':
-        return financialMonthlyRecords.slice(9);
-      case '9months':
-        return financialMonthlyRecords.slice(3);
+      case '6months':
+        return financialMonthlyRecords.slice(6);
       case '12months':
       default:
         return financialMonthlyRecords;
@@ -4725,13 +4723,12 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Filter Controls Panel */}
-                  <div className="flex flex-wrap items-center gap-4 bg-white p-3.5 rounded-2xl border border-slate-200/50 shadow-sm w-full xl:w-auto">
+                  <div className="flex flex-wrap xl:flex-nowrap items-center gap-2 sm:gap-3 bg-white p-2 sm:p-3 rounded-2xl border border-slate-200/50 shadow-sm w-full xl:w-auto overflow-hidden">
                     {/* Preset buttons */}
                     <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5">
                       {[
                         { val: 'month', label: 'This Month' },
-                        { val: '3months', label: '3 Months' },
-                        { val: '9months', label: '9 Months' },
+                        { val: '6months', label: '6 Months' },
                         { val: '12months', label: '12 Months' }
                       ].map(p => (
                         <button
@@ -4741,7 +4738,7 @@ export const AdminDashboard: React.FC = () => {
                             setFinancialStartDate('');
                             setFinancialEndDate('');
                           }}
-                          className={`text-xs font-bold px-3.5 py-2 rounded-lg transition-all ${
+                          className={`text-xs font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap ${
                             financialTimeFilter === p.val
                               ? 'bg-white text-brand-blue shadow-sm'
                               : 'text-slate-500 hover:text-brand-blue'
@@ -4753,10 +4750,10 @@ export const AdminDashboard: React.FC = () => {
                     </div>
 
                     {/* Date pickers */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:inline">Custom:</span>
-                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                      <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5">
+                        <span className="material-symbols-outlined text-[14px] sm:text-[15px] text-slate-400">calendar_today</span>
                         <input
                           type="date"
                           value={financialStartDate}
@@ -4764,13 +4761,13 @@ export const AdminDashboard: React.FC = () => {
                             setFinancialStartDate(e.target.value);
                             setFinancialTimeFilter('custom');
                           }}
-                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
+                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-24 sm:w-28"
                           placeholder="Start date"
                         />
                       </div>
                       <span className="text-xs text-slate-400 font-bold">to</span>
-                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                      <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5">
+                        <span className="material-symbols-outlined text-[14px] sm:text-[15px] text-slate-400">calendar_today</span>
                         <input
                           type="date"
                           value={financialEndDate}
@@ -4778,7 +4775,7 @@ export const AdminDashboard: React.FC = () => {
                             setFinancialEndDate(e.target.value);
                             setFinancialTimeFilter('custom');
                           }}
-                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
+                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-24 sm:w-28"
                           placeholder="End date"
                         />
                       </div>
