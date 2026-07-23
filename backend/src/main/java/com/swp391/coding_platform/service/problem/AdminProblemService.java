@@ -137,8 +137,6 @@ public class AdminProblemService {
                 .build();
         
         problem.setCurrentVersion(version);
-        problem.getVersions().add(version);
-
 
         ProblemEntity saved = problemRepository.save(problem);
 
@@ -176,8 +174,9 @@ public class AdminProblemService {
 
         boolean hasSubmissions = problemSubmissionRepository.countByProblemVersionId(problem.getCurrentVersion().getId()) > 0;
         com.swp391.coding_platform.entity.problem.ProblemVersionEntity targetVersion = problem.getCurrentVersion();
-        
+
         if (hasSubmissions) {
+            Integer oldVersionId = problem.getCurrentVersion().getId();
             targetVersion = com.swp391.coding_platform.entity.problem.ProblemVersionEntity.builder()
                     .problem(problem)
                     .title(problem.getCurrentVersion().getTitle())
@@ -200,10 +199,9 @@ public class AdminProblemService {
                     .build();
             targetVersion = problemVersionRepository.save(targetVersion);
             problem.setCurrentVersion(targetVersion);
-            problem.getVersions().add(targetVersion);
-            
+
             // Copy testcases from old version to new version
-            java.util.List<com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity> oldTestcases = problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndexAsc(problem.getCurrentVersion().getId());
+            java.util.List<com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity> oldTestcases = problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndexAsc(oldVersionId);
             java.util.List<com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity> newTestcases = new java.util.ArrayList<>();
             for (com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity oldTc : oldTestcases) {
                 com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity newTc = com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity.builder()
@@ -580,10 +578,6 @@ public class AdminProblemService {
                 .build();
         
         clonedProblem.setCurrentVersion(clonedVersion);
-        if (clonedProblem.getVersions() == null) {
-            clonedProblem.setVersions(new java.util.ArrayList<>());
-        }
-        clonedProblem.getVersions().add(clonedVersion);
 
         // Save problem and version
         ProblemEntity savedClonedProblem = problemRepository.save(clonedProblem);
