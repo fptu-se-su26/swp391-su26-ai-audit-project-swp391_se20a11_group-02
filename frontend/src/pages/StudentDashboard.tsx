@@ -865,7 +865,7 @@ export const StudentDashboard: React.FC = () => {
 
   // Sync tab state and selected lesson to URL
   useEffect(() => {
-    if (activeTab === 'learning-view' && playerCourseId && selectedLessonId) {
+    if (activeTab === 'learning-view' && playerCourseId && selectedLessonId && location.hash.startsWith('#learning-view')) {
       let hash = `#learning-view?courseId=${playerCourseId}&lessonId=${selectedLessonId}&tab=${playerActiveTab}`;
       if (currentProblemId) {
         hash += `&problemId=${currentProblemId}`;
