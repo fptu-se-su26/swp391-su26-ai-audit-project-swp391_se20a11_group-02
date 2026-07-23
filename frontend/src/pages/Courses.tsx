@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchCourses, type CourseListItemResponse, type CourseSearchRequestParams } from '../services/courseService';
 import { useApp } from '../context/AppContext';
 
@@ -14,7 +14,18 @@ export const Courses: React.FC = () => {
   const [selectedRatings, setSelectedRatings] = useState<string[]>([]);
   const [instructorName, setInstructorName] = useState('');
   const [activeSorts, setActiveSorts] = useState<{ field: 'price' | 'rating' | 'enrolled' | 'date'; direction: 'asc' | 'desc' }[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get('page') || '1', 10) || 1;
+  const setCurrentPage = (page: number) => {
+    setSearchParams(prev => {
+      if (page <= 1) {
+        prev.delete('page');
+      } else {
+        prev.set('page', page.toString());
+      }
+      return prev;
+    }, { replace: true });
+  };
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // API Response states
@@ -24,10 +35,15 @@ export const Courses: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>('');
 
-  const coursesPerPage = 12; // Matches backend page size
+  const coursesPerPage = 6; // Matches backend page size
 
   // Reset page on search or filter change
+  const isInitialMount = useRef(true);
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, priceMin, priceMax, selectedRatings, instructorName]);
 
@@ -276,7 +292,8 @@ export const Courses: React.FC = () => {
     setCurrentPage(page);
     const gridContainer = document.getElementById('courses-grid-container');
     if (gridContainer) {
-      gridContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const y = gridContainer.getBoundingClientRect().top + window.scrollY - 100; // 100px offset for fixed navbar
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
