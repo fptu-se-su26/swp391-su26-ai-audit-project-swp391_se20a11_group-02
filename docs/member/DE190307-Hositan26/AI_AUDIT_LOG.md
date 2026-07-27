@@ -91,7 +91,7 @@ Tôi đã tự vẽ lại bằng công cụ dbdiagram.io và đổi kiểu dữ 
 | Loại minh chứng | Nội dung |
 |---|---|
 | Link commit |  |
-| File liên quan | database/schema-only.sql |
+| File liên quan | database/init.sql |
 | Screenshot |  |
 | Kết quả chạy/test |  |
 | Link video demo |  |

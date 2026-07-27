@@ -282,7 +282,7 @@ Tốt, hãy thực thi theo Cách 2: Sử dụng Nested Routes đi
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 ```text
-- Sử dụng thiết kế dynamic status filter ở cả tầng cơ sở dữ liệu (schema-only.sql, contest_seed.sql), Entity, Repository và Service.
+- Sử dụng thiết kế dynamic status filter ở cả tầng cơ sở dữ liệu (init.sql, contest_seed.sql), Entity, Repository và Service.
 - Áp dụng endpoint /contests/{contestId}/submissions ở controller để phục vụ việc tải danh sách bài nộp thực tế.
 - Tích hợp điều kiện render banner ở frontend Contests.tsx, hiển thị giao diện khóa đăng ký ở Layout.tsx và kết nối logic React hooks useEffect để fetch dữ liệu bài nộp thật trong ContestSubmissions.tsx.
 ```
@@ -299,7 +299,7 @@ Tốt, hãy thực thi theo Cách 2: Sử dụng Nested Routes đi
 | Loại minh chứng | Nội dung |
 |---|---|
 | Link commit | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-02/commit/feature/DE190416-CRUD-Contest |
-| File liên quan | schema-only.sql, contest_seed.sql, ContestEntity.java, ContestRepository.java, ContestService.java, ContestController.java, ContestSubmissions.tsx, Contests.tsx, Layout.tsx |
+| File liên quan | init.sql, contest_seed.sql, ContestEntity.java, ContestRepository.java, ContestService.java, ContestController.java, ContestSubmissions.tsx, Contests.tsx, Layout.tsx |
 | Screenshot | |
 | Kết quả chạy/test | Đã biên dịch backend thành công và build frontend production thành công. Chức năng chạy mượt mà, lọc contest chính xác, ẩn banner và hiện thông báo khóa đăng ký chuẩn xác. |
 | Link video demo | |
