@@ -1,4 +1,5 @@
 import type { ApiResponse } from './courseService';
+import { fetchWithAutoRefresh } from './apiClient';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
@@ -19,7 +20,7 @@ export interface UserRankStats {
 
 export const rankingService = {
   async fetchGlobalRankings(filter: 'all' | 'weekly' | 'monthly' = 'all'): Promise<RankingUser[]> {
-    const response = await fetch(`${BASE_URL}/rankings?filter=${filter}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/rankings?filter=${filter}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +38,7 @@ export const rankingService = {
   },
 
   async fetchUserRankStats(filter: 'all' | 'weekly' | 'monthly' = 'all'): Promise<UserRankStats | null> {
-    const response = await fetch(`${BASE_URL}/rankings/me?filter=${filter}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/rankings/me?filter=${filter}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

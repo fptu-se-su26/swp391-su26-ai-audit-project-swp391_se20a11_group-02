@@ -1,3 +1,5 @@
+import { fetchWithAutoRefresh } from './apiClient';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface LoginResponse {
@@ -77,7 +79,7 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    const response = await fetch(`${BASE_URL}/auth/logout`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/auth/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -91,7 +93,7 @@ export const authService = {
   },
 
   async changePassword(changePasswordData: any): Promise<void> {
-    const response = await fetch(`${BASE_URL}/me/change-password`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/change-password`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -107,7 +109,7 @@ export const authService = {
   },
 
   async getMyInfo(): Promise<any> {
-    const response = await fetch(`${BASE_URL}/me/my-info`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/my-info`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -125,7 +127,7 @@ export const authService = {
   },
 
   async submitAppeal(appealReason: string): Promise<void> {
-    const response = await fetch(`${BASE_URL}/me/appeal`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/appeal`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

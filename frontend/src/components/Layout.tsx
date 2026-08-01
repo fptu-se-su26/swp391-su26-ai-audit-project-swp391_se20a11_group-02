@@ -19,6 +19,8 @@ export interface ContestOverviewData {
   isUserRegistered: boolean;
 }
 
+import { fetchWithAutoRefresh } from '../services/apiClient';
+
 export const Layout: React.FC = () => {
   const { user, cart, logout } = useApp();
   const navigate = useNavigate();
@@ -78,7 +80,7 @@ export const Layout: React.FC = () => {
   const fetchContest = React.useCallback(async () => {
     if (!contestId) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}`, {
+      const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}`, {
         credentials: 'include',
       });
       const data = await response.json();
@@ -174,7 +176,7 @@ export const Layout: React.FC = () => {
 
     setRegistering(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}/register`, {
+      const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
