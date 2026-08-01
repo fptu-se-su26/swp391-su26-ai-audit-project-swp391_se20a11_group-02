@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useOutletContext } from 'react-router-dom';
 import type { ContestOverviewData } from '../components/Layout';
+import { fetchWithAutoRefresh } from '../services/apiClient';
 
 interface ContestProblem {
   problemId: number;
@@ -34,7 +35,7 @@ export const ContestProblems: React.FC = () => {
     const fetchProblems = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}/problems`, {
+        const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}/problems`, {
           credentials: 'include',
         });
         const data = await response.json();

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { fetchWithAutoRefresh } from "../services/apiClient";
 import Editor from '@monaco-editor/react';
 import { adminService } from '../services/adminService';
 import type { AdminProblem, AdminProblemTestcase } from '../services/adminService';
@@ -276,7 +277,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
     setGenerateError(null);
     setGenerateLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/instructor/testcases/generate`, {
+      const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/instructor/testcases/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

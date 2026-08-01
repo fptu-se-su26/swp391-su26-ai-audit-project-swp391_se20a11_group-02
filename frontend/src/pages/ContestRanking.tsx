@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ContestOverviewData } from '../components/Layout';
+import { fetchWithAutoRefresh } from '../services/apiClient';
 import { ContestSidebar } from '../components/ContestSidebar';
 
 interface SubmissionDetail {
@@ -153,8 +154,8 @@ export const ContestRanking: React.FC = () => {
       setErrorData(null);
       try {
         const [sbRes, probsRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/api/v1/contests/${contest.id}/scoreboard`, { credentials: 'include' }),
-          fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contest.id}/problems`, { credentials: 'include' })
+          fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/api/v1/contests/${contest.id}/scoreboard`, { credentials: 'include' }),
+          fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contest.id}/problems`, { credentials: 'include' })
         ]);
 
         if (!sbRes.ok || !probsRes.ok) {

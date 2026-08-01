@@ -1,3 +1,5 @@
+import { fetchWithAutoRefresh } from './apiClient';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface ProblemListItem {
@@ -75,7 +77,7 @@ interface ApiResponse<T> {
 
 export const problemService = {
   async fetchProblems(): Promise<ProblemListItem[]> {
-    const response = await fetch(`${BASE_URL}/api/problems`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/problems`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -90,7 +92,7 @@ export const problemService = {
   },
 
   async fetchProblemDetail(id: number | string): Promise<ProblemDetail> {
-    const response = await fetch(`${BASE_URL}/api/problems/${id}/description`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/problems/${id}/description`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -112,7 +114,7 @@ export const problemService = {
     if (lessonId !== undefined && lessonId !== null) {
       payload.lessonId = Number(lessonId);
     }
-    const response = await fetch(`${BASE_URL}/online-judge/submissions`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/online-judge/submissions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -129,7 +131,7 @@ export const problemService = {
   },
 
   async fetchProblemComments(problemId: number | string): Promise<ProblemComment[]> {
-    const response = await fetch(`${BASE_URL}/api/problems/${problemId}/discussion`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/problems/${problemId}/discussion`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -144,7 +146,7 @@ export const problemService = {
   },
 
   async postProblemComment(problemId: number | string, content: string, parentId?: number): Promise<ProblemComment> {
-    const response = await fetch(`${BASE_URL}/api/problems/${problemId}/discussion`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/problems/${problemId}/discussion`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -161,7 +163,7 @@ export const problemService = {
   },
 
   async fetchProblemSolution(id: number | string): Promise<ProblemSolution> {
-    const response = await fetch(`${BASE_URL}/api/problems/${id}/solution`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/problems/${id}/solution`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -177,7 +179,7 @@ export const problemService = {
   },
 
   async fetchProblemSubmissions(id: number | string): Promise<ProblemSubmission[]> {
-    const response = await fetch(`${BASE_URL}/api/problems/${id}/submissions`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/problems/${id}/submissions`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -192,7 +194,7 @@ export const problemService = {
   },
 
   async fetchContestProblemDetail(contestId: number | string, problemId: number | string): Promise<ProblemDetail> {
-    const response = await fetch(`${BASE_URL}/contests/${contestId}/problems/${problemId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/contests/${contestId}/problems/${problemId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -207,7 +209,7 @@ export const problemService = {
   },
 
   async fetchContestSubmissions(contestId: number | string): Promise<any[]> {
-    const response = await fetch(`${BASE_URL}/contests/${contestId}/submissions`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/contests/${contestId}/submissions`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
