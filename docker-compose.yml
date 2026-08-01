@@ -14,8 +14,6 @@ services:
     image: pgvector/pgvector:pg15
     container_name: nonstopcoding_db
     restart: always
-    ports:
-      - "5432:5432"
     env_file:
       - backend/.env
     volumes:
@@ -31,8 +29,8 @@ services:
     image: redis:7-alpine
     container_name: nonstopcoding_redis
     restart: always
-    ports:
-      - "6379:6379"
+    # ports đã bị xóa có chủ đích - KHÔNG expose Redis ra internet
+    # Backend kết nối qua Docker network nội bộ (hostname "redis")
     volumes:
       - redis_data:/data
     healthcheck:
@@ -48,9 +46,10 @@ services:
       dockerfile: Dockerfile.rabbitmq
     container_name: nonstopcoding_rabbitmq
     restart: always
+    # Port 5672 không expose — backend kết nối qua Docker network nội bộ
+    # Port 15672 (management UI) chỉ truy cập được từ VPS (127.0.0.1)
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "127.0.0.1:15672:15672"
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
       interval: 10s
@@ -62,8 +61,7 @@ services:
     container_name: judge0_server
     volumes:
       - ./judge0.conf:/judge0.conf:ro
-    ports:
-      - "2358:2358"
+    # Port 2358 không expose — backend gọi qua Docker network nội bộ (judge0-server:2358)
     privileged: true
     <<: *default-logging
     restart: always
@@ -104,8 +102,7 @@ services:
       dockerfile: Dockerfile
     container_name: nonstopcoding_ffmpeg
     restart: always
-    ports:
-      - "9000:9000"
+    # Port 9000 không expose — backend gọi qua Docker network nội bộ (ffmpeg-service:9000)
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/health"]
       interval: 10s
