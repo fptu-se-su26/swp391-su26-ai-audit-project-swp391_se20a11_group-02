@@ -1,3 +1,5 @@
+import { fetchWithAutoRefresh } from './apiClient';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface Category {
@@ -116,7 +118,7 @@ export const instructorService = {
     formData.append('file', file);
     formData.append('folderName', folderName);
 
-    const response = await fetch(`${BASE_URL}/instructor/upload`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/upload`, {
       method: 'POST',
       credentials: 'include',
       body: formData,
@@ -132,7 +134,7 @@ export const instructorService = {
   },
 
   async getCourses(): Promise<InstructorCourse[]> {
-    const response = await fetch(`${BASE_URL}/instructor/courses`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/courses`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -153,7 +155,7 @@ export const instructorService = {
   },
 
   async getCategories(): Promise<Category[]> {
-    const response = await fetch(`${BASE_URL}/categories`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/categories`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -167,7 +169,7 @@ export const instructorService = {
   },
 
   async submitCourseForReview(courseId: string): Promise<void> {
-    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}/submit-review`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/courses/${courseId}/submit-review`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -181,7 +183,7 @@ export const instructorService = {
   },
 
   async createCourse(courseData: CreateCoursePayload): Promise<InstructorCourse> {
-    const response = await fetch(`${BASE_URL}/instructor/courses`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/courses`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -203,7 +205,7 @@ export const instructorService = {
   },
 
   async getCourseDetail(courseId: string): Promise<any> {
-    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/courses/${courseId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -264,7 +266,7 @@ export const instructorService = {
       }[];
     }[];
   }): Promise<InstructorCourse> {
-    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/courses/${courseId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -299,7 +301,7 @@ export const instructorService = {
       url += `?${queryString}`;
     }
 
-    const response = await fetch(url, {
+    const response = await fetchWithAutoRefresh(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -328,7 +330,7 @@ export const instructorService = {
       url += `?${queryString}`;
     }
 
-    const response = await fetch(url, {
+    const response = await fetchWithAutoRefresh(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -346,7 +348,7 @@ export const instructorService = {
   },
 
   async getRecentRegistrations(): Promise<RecentRegistration[]> {
-    const response = await fetch(`${BASE_URL}/instructor/revenue/recent-registrations`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/revenue/recent-registrations`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -364,7 +366,7 @@ export const instructorService = {
   },
 
   async getPayoutHistory(): Promise<PayoutHistoryItem[]> {
-    const response = await fetch(`${BASE_URL}/instructor/revenue/payout-history`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/revenue/payout-history`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -393,7 +395,7 @@ export const instructorService = {
       url += `?${queryString}`;
     }
 
-    const response = await fetch(url, {
+    const response = await fetchWithAutoRefresh(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -411,7 +413,7 @@ export const instructorService = {
   },
 
   async getMonthlyChartData(): Promise<MonthlyChartItem[]> {
-    const response = await fetch(`${BASE_URL}/instructor/revenue/chart-data`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/revenue/chart-data`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -438,7 +440,7 @@ export const instructorService = {
       url += `?${queryString}`;
     }
 
-    const response = await fetch(url, {
+    const response = await fetchWithAutoRefresh(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -456,7 +458,7 @@ export const instructorService = {
   },
 
   async getCourseStatistics(courseId: string): Promise<any> {
-    const response = await fetch(`${BASE_URL}/instructor/courses/${courseId}/statistics`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/courses/${courseId}/statistics`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -473,7 +475,7 @@ export const instructorService = {
   },
 
   async getCourseModerationReport(courseId: string | number): Promise<any> {
-    const response = await fetch(`${BASE_URL}/api/moderation/report/${courseId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/moderation/report/${courseId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

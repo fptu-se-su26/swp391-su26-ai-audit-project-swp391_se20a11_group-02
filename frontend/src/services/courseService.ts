@@ -1,3 +1,5 @@
+import { fetchWithAutoRefresh } from './apiClient';
+
 export interface CourseChapter {
   id: string;
   title: string;
@@ -661,7 +663,7 @@ export const fetchCourses = async (params: CourseSearchRequestParams): Promise<P
     params.order.forEach(ord => queryParams.append('order', ord));
   }
 
-  const response = await fetch(`${BASE_URL}/courses?${queryParams.toString()}`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses?${queryParams.toString()}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -708,7 +710,7 @@ export interface CourseDetailResponse {
 }
 
 export const fetchCourseDetail = async (id: number | string): Promise<CourseDetailResponse> => {
-  const response = await fetch(`${BASE_URL}/courses/${id}`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -742,7 +744,7 @@ export interface CurriculumChapterResponse {
 }
 
 export const fetchCourseCurriculum = async (id: number | string): Promise<CurriculumChapterResponse[]> => {
-  const response = await fetch(`${BASE_URL}/courses/${id}/curriculum`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${id}/curriculum`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -781,7 +783,7 @@ export const fetchCourseReviews = async (id: number | string, page: number = 0, 
   queryParams.append('page', page.toString());
   queryParams.append('size', size.toString());
 
-  const response = await fetch(`${BASE_URL}/courses/${id}/reviews?${queryParams.toString()}`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${id}/reviews?${queryParams.toString()}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -799,7 +801,7 @@ export const fetchCourseReviews = async (id: number | string, page: number = 0, 
 };
 
 export const submitCourseReview = async (id: number | string, star: number, content: string): Promise<void> => {
-  const response = await fetch(`${BASE_URL}/courses/${id}/reviews`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${id}/reviews`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -855,7 +857,7 @@ export interface LearningLessonResponse {
 }
 
 export const fetchCourseLearningDetail = async (id: number | string): Promise<LearningDetailResponse> => {
-  const response = await fetch(`${BASE_URL}/courses/${id}/learning-detail`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${id}/learning-detail`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -873,7 +875,7 @@ export const fetchCourseLearningDetail = async (id: number | string): Promise<Le
 };
 
 export const fetchCourseLearningCurriculum = async (id: number | string): Promise<LearningCurriculumChapterResponse[]> => {
-  const response = await fetch(`${BASE_URL}/courses/${id}/learning-curriculum`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${id}/learning-curriculum`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -891,7 +893,7 @@ export const fetchCourseLearningCurriculum = async (id: number | string): Promis
 };
 
 export const fetchLearningLessonDetail = async (courseId: number | string, lessonId: number | string): Promise<LearningLessonResponse> => {
-  const response = await fetch(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -924,7 +926,7 @@ export interface CreateCommentRequest {
 }
 
 export const fetchLessonComments = async (lessonId: number | string): Promise<LessonComment[]> => {
-  const response = await fetch(`${BASE_URL}/courses/lessons/${lessonId}/comments`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/lessons/${lessonId}/comments`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -942,7 +944,7 @@ export const fetchLessonComments = async (lessonId: number | string): Promise<Le
 };
 
 export const postLessonComment = async (lessonId: number | string, data: CreateCommentRequest): Promise<LessonComment> => {
-  const response = await fetch(`${BASE_URL}/courses/lessons/${lessonId}/comments`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/lessons/${lessonId}/comments`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1023,7 +1025,7 @@ export interface QuizSubmitResult {
 }
 
 export const fetchQuizByLesson = async (courseId: number | string, lessonId: number | string): Promise<QuizDetail> => {
-  const response = await fetch(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}/quiz`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}/quiz`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -1041,7 +1043,7 @@ export const fetchQuizByLesson = async (courseId: number | string, lessonId: num
 };
 
 export const submitQuiz = async (courseId: number | string, quizId: number | string, data: QuizSubmitRequest): Promise<QuizSubmitResult> => {
-  const response = await fetch(`${BASE_URL}/courses/${courseId}/quizzes/${quizId}/submit`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${courseId}/quizzes/${quizId}/submit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1060,7 +1062,7 @@ export const submitQuiz = async (courseId: number | string, quizId: number | str
 };
 
 export const completeLesson = async (courseId: number | string, lessonId: number | string): Promise<void> => {
-  const response = await fetch(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}/complete`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/courses/${courseId}/lessons/${lessonId}/complete`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

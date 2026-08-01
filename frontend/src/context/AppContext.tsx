@@ -117,6 +117,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   ]);
   const [registeredContests, setRegisteredContests] = useState<string[]>([]);
 
+  // Listen for unauthorized event dispatched by apiClient when refresh token fails
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, []);
+
   // Fetch cart from backend when user logs in or app loads
   useEffect(() => {
     if (user && user.role !== 'admin') {
