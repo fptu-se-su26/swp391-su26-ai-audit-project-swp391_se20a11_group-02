@@ -543,10 +543,8 @@ public class ContestService {
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-        Instant now = Instant.now();
-        String currentStatus = calculateStatus(contest, now);
-        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED") || currentStatus.equals("DELETED")) {
-            throw new AppException(ErrorCode.INVALID_REQUEST);
+        if (contest.getStatus() != ContestStatus.DRAFT) {
+            throw new AppException(ErrorCode.CONTEST_ALREADY_PUBLISHED);
         }
 
         var problem = problemRepository.findById(request.getProblemId())
@@ -572,10 +570,8 @@ public class ContestService {
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-        Instant now = Instant.now();
-        String currentStatus = calculateStatus(contest, now);
-        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED") || currentStatus.equals("DELETED")) {
-            throw new AppException(ErrorCode.INVALID_REQUEST);
+        if (contest.getStatus() != ContestStatus.DRAFT) {
+            throw new AppException(ErrorCode.CONTEST_ALREADY_PUBLISHED);
         }
 
         ContestProblemEntity cp = contestProblemRepository.findByContestIdAndProblemId(contestId, problemId)

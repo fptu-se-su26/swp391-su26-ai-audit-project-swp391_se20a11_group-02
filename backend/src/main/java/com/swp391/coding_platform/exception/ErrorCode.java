@@ -107,6 +107,7 @@ public enum ErrorCode {
     CONTEST_ALREADY_ENDED(9004, "Contest has already ended", HttpStatus.BAD_REQUEST),
     CONTEST_NOT_STARTED(9005, "Contest has not started yet", HttpStatus.FORBIDDEN),
     CONTEST_SUBMISSION_NOT_ALLOWED(9006, "Submission not allowed: contest is not ongoing", HttpStatus.FORBIDDEN),
+    CONTEST_ALREADY_PUBLISHED(9007, "Cannot modify problems of a published contest", HttpStatus.BAD_REQUEST),
 
     INSUFFICIENT_BALANCE(10001, "Insufficient wallet balance", HttpStatus.BAD_REQUEST),
     COURSE_ALREADY_IN_CART(10002, "Course already in cart", HttpStatus.CONFLICT),

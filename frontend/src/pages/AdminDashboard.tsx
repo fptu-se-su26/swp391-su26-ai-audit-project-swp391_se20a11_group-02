@@ -2582,19 +2582,21 @@ export const AdminDashboard: React.FC = () => {
                                 <th className="p-4 w-44 text-center">Success Rate</th>
                                 <th className="p-4 w-44 text-center">Total Submissions</th>
                                 <th className="p-4 w-44 text-center">Accepted Teams</th>
-                                <th className="p-4 w-28 text-center">Action</th>
+                                {reviewingContest?.status === 'DRAFT' && (
+                                  <th className="p-4 w-28 text-center">Action</th>
+                                )}
                               </tr>
                             </thead>
                             <tbody className="text-xs font-semibold divide-y divide-gray-200">
                               {loadingContestProblems ? (
                                 <tr>
-                                  <td colSpan={6} className="p-8 text-center text-text-muted">
+                                  <td colSpan={reviewingContest?.status === 'DRAFT' ? 6 : 5} className="p-8 text-center text-text-muted">
                                     <span className="animate-pulse">Loading contest problems...</span>
                                   </td>
                                 </tr>
                               ) : contestProblems.length === 0 ? (
                                 <tr>
-                                  <td colSpan={6} className="p-8 text-center text-text-muted">
+                                  <td colSpan={reviewingContest?.status === 'DRAFT' ? 6 : 5} className="p-8 text-center text-text-muted">
                                     No problems added to this contest yet.
                                   </td>
                                 </tr>
@@ -2636,15 +2638,17 @@ export const AdminDashboard: React.FC = () => {
                                       <td className="p-4 text-center font-mono text-slate-600">
                                         {acTeams}/{totalTeams}
                                       </td>
-                                      <td className="p-4 text-center">
-                                        <button
-                                          onClick={() => handleRemoveProblemFromContest(cp.problemId)}
-                                          className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 p-1.5 rounded-lg transition-all cursor-pointer"
-                                          title="Delete problem"
-                                        >
-                                          <span className="material-symbols-outlined text-[16px]">delete</span>
-                                        </button>
-                                      </td>
+                                      {reviewingContest?.status === 'DRAFT' && (
+                                        <td className="p-4 text-center">
+                                          <button
+                                            onClick={() => handleRemoveProblemFromContest(cp.problemId)}
+                                            className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 p-1.5 rounded-lg transition-all cursor-pointer"
+                                            title="Delete problem"
+                                          >
+                                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                                          </button>
+                                        </td>
+                                      )}
                                     </tr>
                                   );
                                 })
@@ -2658,13 +2662,20 @@ export const AdminDashboard: React.FC = () => {
                               {contestProblems.length}
                             </span> problems
                           </p>
-                          <button
-                            onClick={() => setIsAddContestProblemOpen(true)}
-                            className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white border-none px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
-                          >
-                            <span className="material-symbols-outlined text-[16px]">add</span>
-                            Add Problems
-                          </button>
+                          {reviewingContest?.status === 'DRAFT' ? (
+                            <button
+                              onClick={() => setIsAddContestProblemOpen(true)}
+                              className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white border-none px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">add</span>
+                              Add Problems
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-1.5 bg-amber-50 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold border border-amber-200/80 shadow-xs">
+                              <span className="material-symbols-outlined text-[16px] text-amber-600">lock</span>
+                              <span>Problem set is locked (Contest Published)</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
