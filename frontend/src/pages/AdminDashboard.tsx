@@ -33,6 +33,14 @@ const GENERATOR_TEMPLATES: Record<string, string> = {
   csharp: `using System;\n\npublic class Solution {\n    public static void Main() {\n        // Number of test cases\n        int numberOfTests = 3;\n        \n        for (int i = 0; i < numberOfTests; i++) {\n            // Write your logic here\n            \n            // DO NOT REMOVE\n            Console.WriteLine("---TESTCASE---");\n            Console.WriteLine("INPUT:");\n            \n            // Print your input here\n            \n            // DO NOT REMOVE\n            Console.WriteLine("OUTPUT:");\n            \n            // Print your output here\n        }\n    }\n}`
 };
 
+const CONTEST_SUPPORTED_LANGUAGES = [
+  { id: 50, name: 'C (GCC 9.2.0)' },
+  { id: 54, name: 'C++ (GCC 9.2.0)' },
+  { id: 62, name: 'Java (OpenJDK 13.0.1)' },
+  { id: 71, name: 'Python (3.8.1)' },
+  { id: 51, name: 'C# (Mono 6.6.0.161)' }
+];
+
 
 const tabHeaderDetails: Record<string, { badge: string; icon: string; title: string; desc: string }> = {
   dashboard: {
@@ -292,11 +300,16 @@ export const AdminDashboard: React.FC = () => {
   const [contestSize, setContestSize] = useState(10);
   const [totalContestPages, setTotalContestPages] = useState(0);
   const [totalContestsCount, setTotalContestsCount] = useState(0);
+  const [contestSearchQuery, setContestSearchQuery] = useState('');
 
   useEffect(() => {
     setProblemPage(1);
     setSelectedProblems([]);
   }, [problemSearch, problemDifficultyFilter, problemScopeFilter, problemSubTab]);
+
+  useEffect(() => {
+    setContestPage(1);
+  }, [contestSearchQuery]);
 
 
 
@@ -1590,7 +1603,17 @@ export const AdminDashboard: React.FC = () => {
     });
   }, [problems, problemSearch, problemDifficultyFilter, problemScopeFilter, problemSubTab]);
 
-  const filteredContests = contests;
+  const filteredContests = useMemo(() => {
+    return contests.filter((c) => {
+      if (contestSearchQuery.trim() !== '') {
+        const q = contestSearchQuery.toLowerCase().trim();
+        const titleMatch = c.title?.toLowerCase().includes(q);
+        const idMatch = c.id?.toString().includes(q);
+        return titleMatch || idMatch;
+      }
+      return true;
+    });
+  }, [contests, contestSearchQuery]);
 
   const totalProblemPages = Math.ceil(filteredProblems.length / problemsPerPage);
   const safeProblemPage = Math.min(problemPage, Math.max(1, totalProblemPages));
@@ -2475,11 +2498,70 @@ export const AdminDashboard: React.FC = () => {
                       <p className="text-xs text-text-muted italic">—</p>
                     </section>
 
+                    {((reviewingContest.reward1st || 0) > 0 || (reviewingContest.reward2nd || 0) > 0 || (reviewingContest.reward3rd || 0) > 0) && (
+                      <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
+                        <h2 className="text-lg font-bold text-text-main mb-4 pb-4 border-b border-gray-200 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-amber-500">emoji_events</span> Contest Prize Pool & Rewards
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          {(reviewingContest.reward1st || 0) > 0 && (
+                            <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-transparent border border-amber-300/60 shadow-xs flex items-center gap-3.5">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center font-black text-lg shadow-sm">
+                                🥇
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">1st Place Prize</p>
+                                <p className="text-base font-black text-slate-900 mt-0.5">
+                                  {reviewingContest.reward1st?.toLocaleString()} <span className="text-xs font-bold text-slate-500">VND</span>
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {(reviewingContest.reward2nd || 0) > 0 && (
+                            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-200/40 via-slate-100/20 to-transparent border border-slate-300/70 shadow-xs flex items-center gap-3.5">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500 text-white flex items-center justify-center font-black text-lg shadow-sm">
+                                🥈
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">2nd Place Prize</p>
+                                <p className="text-base font-black text-slate-900 mt-0.5">
+                                  {reviewingContest.reward2nd?.toLocaleString()} <span className="text-xs font-bold text-slate-500">VND</span>
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {(reviewingContest.reward3rd || 0) > 0 && (
+                            <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-700/10 via-amber-600/5 to-transparent border border-amber-700/30 shadow-xs flex items-center gap-3.5">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 text-white flex items-center justify-center font-black text-lg shadow-sm">
+                                🥉
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">3rd Place Prize</p>
+                                <p className="text-base font-black text-slate-900 mt-0.5">
+                                  {reviewingContest.reward3rd?.toLocaleString()} <span className="text-xs font-bold text-slate-500">VND</span>
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </section>
+                    )}
+
                     <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
-                      <h2 className="text-lg font-bold text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-text-muted">translate</span> Supported Languages
+                      <h2 className="text-lg font-bold text-text-main mb-4 pb-4 border-b border-gray-200 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">translate</span> Supported Languages
                       </h2>
-                      <p className="text-xs text-text-muted italic">—</p>
+                      <div className="flex flex-wrap gap-2.5">
+                        {CONTEST_SUPPORTED_LANGUAGES.map((lang) => (
+                          <div
+                            key={lang.id}
+                            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200/70 text-slate-700 text-xs font-bold shadow-xs hover:border-primary/50 transition-all"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            {lang.name}
+                          </div>
+                        ))}
+                      </div>
                     </section>
                   </div>
                 )}
@@ -4381,6 +4463,21 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                   
                   <div className="flex gap-3 w-full sm:w-auto items-center">
+                    {contestSubTab === 'active' && (
+                      <div className="relative flex-grow sm:flex-grow-0 min-w-[220px]">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                        <input
+                          type="text"
+                          placeholder="Search contest title..."
+                          value={contestSearchQuery}
+                          onChange={(e) => {
+                            setContestSearchQuery(e.target.value);
+                            setContestPage(1);
+                          }}
+                          className="text-xs bg-surface border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 w-full focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                        />
+                      </div>
+                    )}
                     {contestSubTab === 'active' && (
                       <select
                         value={contestStatusFilter}
