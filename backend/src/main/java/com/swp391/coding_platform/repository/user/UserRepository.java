@@ -30,11 +30,28 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
         @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.wallet WHERE u.username = :username")
         Optional<UserEntity> findByUsernameWithWallet(@Param("username") String username);
 
-        @Query(value = "WITH RankedUsers AS (" +
-                        "    SELECT id, RANK() OVER (ORDER BY score DESC, created_at ASC) as current_rank " +
-                        "    FROM users" +
+        @Query(value = "WITH UserScores AS (" +
+                        "    SELECT " +
+                        "        u.id AS user_id, " +
+                        "        COALESCE(us.total_score, 0) AS total_score, " +
+                        "        u.created_at " +
+                        "    FROM public.users u " +
+                        "    LEFT JOIN (" +
+                        "        SELECT ps.user_id, SUM(p.score) AS total_score " +
+                        "        FROM ( " +
+                        "            SELECT DISTINCT user_id, problem_id " +
+                        "            FROM public.problem_submissions " +
+                        "            WHERE verdict = 'ACCEPTED' " +
+                        "        ) ps " +
+                        "        JOIN public.problems p ON p.id = ps.problem_id AND p.problem_scope = 'PRACTICE' " +
+                        "        GROUP BY ps.user_id " +
+                        "    ) us ON us.user_id = u.id " +
+                        "), " +
+                        "RankedUsers AS (" +
+                        "    SELECT user_id, RANK() OVER (ORDER BY total_score DESC, created_at ASC) as current_rank " +
+                        "    FROM UserScores " +
                         ") " +
-                        "SELECT current_rank FROM RankedUsers WHERE id = :userId", nativeQuery = true)
+                        "SELECT current_rank FROM RankedUsers WHERE user_id = :userId", nativeQuery = true)
         Integer getUserRanking(@Param("userId") Integer userId);
 
         @Query(value = "SELECT COUNT(DISTINCT ps.problem_id) FROM problem_submissions ps " +
@@ -53,8 +70,18 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
                         "  u.id as userId, " +
                         "  u.displayname as displayname, " +
                         "  u.avatarurl as avatarurl, " +
-                        "  u.score as points " +
+                        "  COALESCE(us.total_score, 0) as points " +
                         "FROM public.users u " +
-                        "ORDER BY u.score DESC, u.id ASC", nativeQuery = true)
+                        "LEFT JOIN (" +
+                        "    SELECT ps.user_id, SUM(p.score) AS total_score " +
+                        "    FROM ( " +
+                        "        SELECT DISTINCT user_id, problem_id " +
+                        "        FROM public.problem_submissions " +
+                        "        WHERE verdict = 'ACCEPTED' " +
+                        "    ) ps " +
+                        "    JOIN public.problems p ON p.id = ps.problem_id AND p.problem_scope = 'PRACTICE' " +
+                        "    GROUP BY ps.user_id " +
+                        ") us ON us.user_id = u.id " +
+                        "ORDER BY points DESC, u.id ASC", nativeQuery = true)
         List<RankingUserProjection> getGlobalRankingList();
 }

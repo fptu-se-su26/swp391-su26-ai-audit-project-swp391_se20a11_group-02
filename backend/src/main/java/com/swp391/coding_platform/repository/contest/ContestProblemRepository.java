@@ -12,6 +12,8 @@ import java.util.List;
 public interface ContestProblemRepository extends JpaRepository<ContestProblemEntity, Integer> {
     boolean existsByContestIdAndProblemId(Integer contestId, Integer problemId);
 
+    boolean existsByProblemId(Integer problemId);
+
     java.util.Optional<ContestProblemEntity> findByContestIdAndProblemId(Integer contestId, Integer problemId);
 
     @Query("SELECT cp FROM ContestProblemEntity cp JOIN FETCH cp.problem WHERE cp.contest.id = :contestId ORDER BY cp.orderIndex ASC")

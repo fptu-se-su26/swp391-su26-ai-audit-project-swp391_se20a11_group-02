@@ -28,6 +28,9 @@ import com.swp391.coding_platform.entity.problem.ProblemTagEntity;
 import com.swp391.coding_platform.dto.response.ProblemTagResponse;
 import com.swp391.coding_platform.repository.user.UserRepository;
 import com.swp391.coding_platform.repository.problem.ProblemTestcaseRepository;
+import com.swp391.coding_platform.repository.contest.ContestProblemRepository;
+import com.swp391.coding_platform.repository.contest.ContestProblemAttemptRepository;
+import com.swp391.coding_platform.repository.course.LessonProblemRepository;
 import com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity;
 import com.swp391.coding_platform.dto.request.AdminTestcaseRequest;
 import com.swp391.coding_platform.dto.response.AdminTestcaseResponse;
@@ -56,6 +59,9 @@ public class AdminProblemService {
     ProblemTestcaseRepository problemTestcaseRepository;
     ProblemTagRepository problemTagRepository;
     com.swp391.coding_platform.repository.problem.ProblemVersionRepository problemVersionRepository;
+    ContestProblemRepository contestProblemRepository;
+    ContestProblemAttemptRepository contestProblemAttemptRepository;
+    LessonProblemRepository lessonProblemRepository;
 
     @lombok.experimental.NonFinal
     com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -100,7 +106,7 @@ public class AdminProblemService {
             } catch (Exception e) {
                 log.warn("Failed to serialize starter templates: {}", e.getMessage());
             }
-        }
+        }   
 
         
         boolean finalIsPublic = request.getIsPublic() != null ? request.getIsPublic() : false;
@@ -377,6 +383,14 @@ public class AdminProblemService {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
+        // Block deletion while the problem is still referenced by a contest or a lesson.
+        // Checked before both branches: a soft delete would leave the contest/lesson pointing
+        // at a problem that can no longer be fetched, so entrants would see the statement but
+        // fail to submit.
+        if (contestProblemRepository.existsByProblemId(id) || lessonProblemRepository.existsByProblemId(id)) {
+            throw new AppException(ErrorCode.OJ_PROBLEM_IN_USE);
+        }
+
         // If the problem has submissions, perform a soft delete to preserve historical data
         long submissionCount = problemSubmissionRepository.countByProblemId(id);
         if (submissionCount > 0) {
@@ -387,11 +401,14 @@ public class AdminProblemService {
             return;
         }
 
-        // Hard delete for problems with no submissions
-        // Delete comments first due to lack of ON DELETE CASCADE
-        problemCommentRepository.deleteByProblemId(problem.getId());
+        // Hard delete for problems with no submissions.
+        // The schema has no ON DELETE CASCADE and ProblemEntity only maps `versions`, so every
+        // other child row has to be removed by hand or the FK constraints reject the delete.
+        problemCommentRepository.deleteByProblemId(id);
+        problemTagMappingRepository.deleteByProblemId(id);
+        contestProblemAttemptRepository.deleteByProblemId(id);
 
-        // Now we can delete the problem itself, other related records (submissions, testcases, tag mappings, etc.) will cascade delete
+        // Versions (and their testcases) are covered by CascadeType.ALL on ProblemEntity.versions
         problemRepository.delete(problem);
     }
 

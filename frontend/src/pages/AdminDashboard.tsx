@@ -1144,7 +1144,9 @@ export const AdminDashboard: React.FC = () => {
       async () => {
         try {
           await adminService.deleteProblem(problemId);
-          setProblems(prev => prev.filter(p => p.id !== problemId));
+          // Reload instead of dropping the row locally: a problem with submissions is only
+          // soft deleted, so it stays in the list and has to move to the Deleted tab.
+          await loadData();
           showGlobalToast("Problem deleted successfully.", "success");
         } catch (error) {
           showGlobalToast("Failed to delete problem.", "error");
@@ -3350,6 +3352,15 @@ export const AdminDashboard: React.FC = () => {
                 </h1>
                 <p className="text-text-muted mt-1">{tabHeaderDetails[activeTab]?.desc || 'Manage courses, instructors, users, program problems, contests, and view statistics.'}</p>
               </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <Link
+                  to="/instructor"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">school</span>
+                  Instructor Panel 🎓
+                </Link>
+              </div>
             </div>
 
             {loading ? (
@@ -4113,6 +4124,11 @@ export const AdminDashboard: React.FC = () => {
                           const acceptedSubs = p.acceptedSubmissions || 0;
                           const calculatedRate = totalSubs > 0 ? (acceptedSubs / totalSubs * 100) : 0;
                           const acceptedRate = Math.min(calculatedRate, 100).toFixed(1);
+                          // The table wrapper clips vertically (overflow-y-hidden), so a menu
+                          // opening downward on the last rows gets cut off. Flip it upward there,
+                          // but only when enough rows sit above to hold it.
+                          const openMenuUpward = paginatedProblems.length > 3
+                            && index >= paginatedProblems.length - 2;
 
                           return (
                             <tr key={p.id} className={`hover:bg-slate-50/50 transition-colors ${selectedProblems.includes(p.id) ? 'bg-blue-50/30' : ''}`}>
@@ -4238,7 +4254,7 @@ export const AdminDashboard: React.FC = () => {
                                       </button>
                                       
                                       {/* Dropdown Menu */}
-                                      <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-xl shadow-lg border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col overflow-hidden">
+                                      <div className={`absolute right-0 ${openMenuUpward ? 'bottom-full mb-1' : 'top-full mt-1'} w-32 bg-white rounded-xl shadow-lg border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col overflow-hidden`}>
                                         <button
                                           onClick={() => handleViewProblemHistory(p.id)}
                                           className="flex items-center gap-2 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 hover:text-indigo-600 font-bold text-left transition-colors w-full border-none cursor-pointer"
