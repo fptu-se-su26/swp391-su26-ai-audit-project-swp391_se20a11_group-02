@@ -258,10 +258,12 @@ export const InstructorDashboard: React.FC = () => {
 
   // Modals Visibility
   const [isCreateCourseOpen, setIsCreateCourseOpen] = useState(false);
+  const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
+  const [deactivateCourseId, setDeactivateCourseId] = useState<string | null>(null);
+  const [reactivateCourseId, setReactivateCourseId] = useState<string | null>(null);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   // AI Moderation Report
-  const [isAiReportModalOpen, setIsAiReportModalOpen] = useState(false);
   const [reviewModerationReport, setReviewModerationReport] = useState<any | null>(null);
   const [loadingModerationReport, setLoadingModerationReport] = useState(false);
 
@@ -1120,6 +1122,30 @@ export const InstructorDashboard: React.FC = () => {
   const [courseRegPage, setCourseRegPage] = useState<number>(1);
   const [breakdownPage, setBreakdownPage] = useState<number>(1);
 
+  const handleDeactivateCourse = async (courseId: string) => {
+    try {
+      await instructorService.deactivateCourse(courseId);
+      showToast('Course deactivated successfully', 'success');
+      const updatedCourses = await instructorService.getCourses();
+      setInstructorCourses(updatedCourses);
+      setDeactivateCourseId(null);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to deactivate course', 'error');
+    }
+  };
+
+  const handleReactivateCourse = async (courseId: string) => {
+    try {
+      await instructorService.reactivateCourse(courseId);
+      showToast('Course reactivated successfully', 'success');
+      const updatedCourses = await instructorService.getCourses();
+      setInstructorCourses(updatedCourses);
+      setReactivateCourseId(null);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to reactivate course', 'error');
+    }
+  };
+
   const [revenueFilter, setRevenueFilter] = useState<string>('all');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
@@ -1128,7 +1154,7 @@ export const InstructorDashboard: React.FC = () => {
   const [trendTimeframe, setTrendTimeframe] = useState<'1m' | '3m' | '9m' | '12m'>('12m');
 
   const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
-  const [courseSubTab, setCourseSubTab] = useState<'published' | 'review' | 'draft' | 'rejected'>('published');
+  const [courseSubTab, setCourseSubTab] = useState<'published' | 'review' | 'draft' | 'rejected' | 'inactive'>('published');
 
   // Tab-specific loading states
   const [loadingCourses, setLoadingCourses] = useState(false);
@@ -3128,6 +3154,21 @@ export const InstructorDashboard: React.FC = () => {
                       courseSubTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-600'
                     }`}>{instructorCourses.filter(c => c.status === 'rejected').length}</span>
                   </button>
+
+                  <button
+                    onClick={() => setCourseSubTab('inactive')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-bold rounded-xl transition-all select-none border border-slate-200/60 shadow-sm ${
+                      courseSubTab === 'inactive'
+                        ? 'bg-slate-400 text-white border-slate-400 shadow-md shadow-slate-400/10'
+                        : 'bg-white hover:bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px] icon-fill">block</span>
+                    <span>Inactive</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                      courseSubTab === 'inactive' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}>{instructorCourses.filter(c => c.status === 'inactive').length}</span>
+                  </button>
                 </div>
 
                 {/* Filter & Search Row */}
@@ -3155,6 +3196,7 @@ export const InstructorDashboard: React.FC = () => {
                       <option value="review">Pending</option>
                       <option value="draft">Draft (Creating)</option>
                       <option value="rejected">Rejected</option>
+                      <option value="inactive">Inactive</option>
                     </select>
                     <select
                       value={courseSortFilter}
@@ -3242,6 +3284,12 @@ export const InstructorDashboard: React.FC = () => {
                                   Rejected
                                 </span>
                               )}
+                              {course.status === 'inactive' && (
+                                <span className="px-2.5 py-0.5 text-xs rounded-full bg-slate-200 text-slate-700 font-bold flex items-center gap-1 select-none">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                  Inactive
+                                </span>
+                              )}
                               <span className="text-sm font-bold text-primary">{course.price}</span>
                             </div>
                             <p className="text-xs text-text-muted line-clamp-2">{course.description}</p>
@@ -3277,7 +3325,22 @@ export const InstructorDashboard: React.FC = () => {
                               >
                                 <span className="material-symbols-outlined text-[16px]">analytics</span> Statistics
                               </button>
+                              <button
+                                onClick={() => setDeactivateCourseId(course.id)}
+                                className="col-span-2 flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold transition-all border border-rose-200"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">block</span> Deactivate Course
+                              </button>
                             </>
+                          )}
+
+                          {course.status === 'inactive' && (
+                            <button
+                              onClick={() => setReactivateCourseId(course.id)}
+                              className="col-span-2 flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl bg-brand-green/10 hover:bg-brand-green/20 text-brand-green font-bold transition-all border border-brand-green/30"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">publish</span> Reactivate Course
+                            </button>
                           )}
 
                           {course.status === 'review' && (
@@ -6887,6 +6950,66 @@ export const InstructorDashboard: React.FC = () => {
                 className="w-full py-3 text-slate-500 hover:text-slate-800 font-bold transition-all"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deactivate Course Modal */}
+      {deactivateCourseId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setDeactivateCourseId(null)}></div>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative z-10 animate-fade-in border border-slate-200">
+            <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4 text-rose-600">
+              <span className="material-symbols-outlined text-[24px]">warning</span>
+            </div>
+            <h3 className="text-xl font-black text-center text-slate-800 mb-2 tracking-tight">Deactivate Course</h3>
+            <p className="text-sm text-center text-slate-600 mb-6 font-medium">
+              Are you sure you want to deactivate this course? It will be removed from the shop and users' carts. This action cannot be undone here.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeactivateCourseId(null)}
+                className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeactivateCourse(deactivateCourseId)}
+                className="flex-1 py-3 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 transition-all shadow-md shadow-rose-600/20"
+              >
+                Deactivate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reactivate Course Modal */}
+      {reactivateCourseId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setReactivateCourseId(null)}></div>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative z-10 animate-fade-in border border-slate-200">
+            <div className="w-12 h-12 rounded-full bg-brand-green-light flex items-center justify-center mx-auto mb-4 text-brand-green">
+              <span className="material-symbols-outlined text-[24px]">publish</span>
+            </div>
+            <h3 className="text-xl font-black text-center text-slate-800 mb-2 tracking-tight">Reactivate Course</h3>
+            <p className="text-sm text-center text-slate-600 mb-6 font-medium">
+              Are you sure you want to reactivate this course? It will immediately become active and available for purchase in the shop again.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setReactivateCourseId(null)}
+                className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleReactivateCourse(reactivateCourseId)}
+                className="flex-1 py-3 rounded-xl bg-brand-green text-white font-bold hover:bg-brand-green-hover transition-all shadow-md shadow-brand-green/20"
+              >
+                Reactivate
               </button>
             </div>
           </div>
