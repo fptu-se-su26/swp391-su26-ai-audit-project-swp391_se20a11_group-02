@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { fetchWithAutoRefresh } from "../services/apiClient";
 import Editor from '@monaco-editor/react';
 import { adminService } from '../services/adminService';
 import type { AdminProblem, AdminProblemTestcase } from '../services/adminService';
 import { useApp } from '../context/AppContext';
+import AiVisualizerPanel from '../components/AiVisualizerPanel';
 
 const GENERATOR_TEMPLATES: Record<string, string> = {
   java: `import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        // Number of test cases\n        int numberOfTests = 3;\n        \n        for (int i = 0; i < numberOfTests; i++) {\n            // Write your logic here\n            \n            // DO NOT REMOVE\n            System.out.println("---TESTCASE---");\n            System.out.println("INPUT:");\n            \n            // Print your input here\n            \n            // DO NOT REMOVE\n            System.out.println("OUTPUT:");\n            \n            // Print your output here\n        }\n    }\n}`,
@@ -30,6 +32,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
   // Create a local popup state for errors and success messages
   const [alertData, setAlertData] = useState<{ msg: string; type: string } | null>(null);
   const showGlobalToast = useCallback((msg: string, type: string) => setAlertData({ msg, type }), []);
+  const [activeSection, setActiveSection] = useState<'details' | 'simulator'>('details');
 
   const [editingProblemId, setEditingProblemId] = useState<number | null>(mode === 'edit' && id ? parseInt(id, 10) : null);
   const [newProbTitle, setNewProbTitle] = useState('');
@@ -40,7 +43,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
   const [newProbExampleInput, setNewProbExampleInput] = useState('');
   const [newProbExampleOutput, setNewProbExampleOutput] = useState('');
   const [newProbHints, setNewProbHints] = useState<string[]>(['']);
-  const [newProbScope, setNewProbScope] = useState<'LESSON' | 'CONTEST' | 'SHARED' | 'PRACTICE'>('PRACTICE');
+  const [newProbScope, setNewProbScope] = useState<'LESSON' | 'CONTEST' | 'PRACTICE'>('PRACTICE');
   const [newProbDifficulty, setNewProbDifficulty] = useState<'EASY' | 'MEDIUM' | 'HARD'>('MEDIUM');
   const [newProbScore, setNewProbScore] = useState(100);
   const [newProbTimeLimit, setNewProbTimeLimit] = useState(2000);
@@ -57,9 +60,10 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
   const [allTags, setAllTags] = useState<{ id: number; name: string; slug: string }[]>([]);
   
   const [testcasesList, setTestcasesList] = useState<Omit<AdminProblemTestcase, 'id'>[]>([]);
+  const [testcasePage, setTestcasePage] = useState(1);
   const [testCaseGenerationMode, setTestCaseGenerationMode] = useState<'manual' | 'generate'>('manual');
-  const [generatorLanguage, setGeneratorLanguage] = useState('java');
-  const [generatorCode, setGeneratorCode] = useState(GENERATOR_TEMPLATES['java']);
+  const [generatorLanguage, setGeneratorLanguage] = useState('python');
+  const [generatorCode, setGeneratorCode] = useState(GENERATOR_TEMPLATES['python']);
   const [generateLoading, setGenerateLoading] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
@@ -94,6 +98,12 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
             setNewProbStarterJava(problem.starterTemplates?.['Java'] || '');
             setNewProbStarterPython(problem.starterTemplates?.['Python 3'] || '');
             setNewProbStarterCsharp(problem.starterTemplates?.['C#'] || '');
+            if (problem.testcaseGeneratorLanguage) {
+              setGeneratorLanguage(problem.testcaseGeneratorLanguage);
+            }
+            if (problem.testcaseGeneratorCode) {
+              setGeneratorCode(problem.testcaseGeneratorCode);
+            }
             
             // fetch testcases
             const tcRes = await adminService.getProblemTestcases(problem.id);
@@ -164,7 +174,9 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
         solutions: newProbSolutions.trim(),
         tags: newProbTags,
         starterTemplates,
-        isDeleted: false
+        isDeleted: false,
+        testcaseGeneratorCode: generatorCode,
+        testcaseGeneratorLanguage: generatorLanguage
       });
 
       if (testcasesList.length > 0) {
@@ -235,7 +247,9 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
         solutions: newProbSolutions.trim(),
         tags: newProbTags,
         starterTemplates,
-        isDeleted: false
+        isDeleted: false,
+        testcaseGeneratorCode: generatorCode,
+        testcaseGeneratorLanguage: generatorLanguage
       });
 
       try {
@@ -263,7 +277,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
     setGenerateError(null);
     setGenerateLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/nonstopcoding/instructor/testcases/generate', {
+      const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/instructor/testcases/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -326,6 +340,36 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
           </div>
         </div>
 
+        {mode === 'edit' && (
+          <div className="flex border-b border-slate-200 bg-slate-50 px-6 py-1 gap-6">
+            <button
+              type="button"
+              onClick={() => setActiveSection('details')}
+              className={`px-4 py-3 text-sm font-black transition-all flex items-center gap-2 border-b-2 bg-transparent cursor-pointer outline-none ${
+                activeSection === 'details'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">edit_note</span>
+              Problem Detail
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection('simulator')}
+              className={`px-4 py-3 text-sm font-black transition-all flex items-center gap-2 border-b-2 bg-transparent cursor-pointer outline-none ${
+                activeSection === 'simulator'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">smart_toy</span>
+              AI Simulator
+            </button>
+          </div>
+        )}
+
+        {activeSection === 'details' ? (
             <form onSubmit={mode === 'edit' ? handleEditProblemSubmit : handleCreateProblemSubmit} className="p-6 flex flex-col gap-6">
               
               <div className="flex flex-col gap-1.5">
@@ -357,7 +401,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-brand-blue uppercase tracking-wider">Scope</label>
                   <div className="flex p-1 bg-slate-100/80 rounded-xl border border-slate-200/50 shadow-inner">
-                    {['PRACTICE', 'CONTEST', 'SHARED'].map(sc => {
+                    {['PRACTICE', 'CONTEST'].map(sc => {
                       const isSelected = newProbScope === sc;
                       return (
                         <label key={sc} className={`flex-1 flex items-center justify-center py-2 rounded-lg cursor-pointer transition-all duration-300 text-[13px] font-bold tracking-wide ${isSelected ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
@@ -500,7 +544,14 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
                     </div>
                   </div>
                   {testCaseGenerationMode === 'manual' && (
-                    <button type="button" onClick={() => setTestcasesList(prev => [...prev, { problemId: editingProblemId || 0, inputData: '', expectedOutput: '', orderIndex: prev.length + 1 }])} className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTestcasesList(prev => [...prev, { problemId: editingProblemId || 0, inputData: '', expectedOutput: '', orderIndex: prev.length + 1 }]);
+                        setTestcasePage(Math.ceil((testcasesList.length + 1) / 10));
+                      }}
+                      className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                    >
                       <span className="material-symbols-outlined text-sm">add</span> Add Test Case
                     </button>
                   )}
@@ -534,7 +585,7 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
                         </select>
                       </div>
                     </div>
-                    <div className="w-full h-[320px] border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-white relative group">
+                    <div className="w-full h-[640px] border border-slate-200 rounded-xl overflow-hidden shadow-inner bg-white relative group">
                       <Editor
                         height="100%"
                         defaultLanguage={generatorLanguage === 'c' || generatorLanguage === 'cpp' ? 'cpp' : generatorLanguage === 'csharp' ? 'csharp' : generatorLanguage}
@@ -594,32 +645,121 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
                 ) : (
 
                   <div className="flex flex-col gap-4">
-                    {testcasesList.map((tc, idx) => (
-                      <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
-                        <div className="flex items-start justify-between">
-                          <span className="font-display font-black text-brand-blue text-xs uppercase">Test Case {idx + 1}</span>
-                          <div className="flex items-center gap-3">
-                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
-                              <input type="checkbox" checked={tc.isHidden} onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === idx ? { ...item, isHidden: e.target.checked } : item))} className="rounded text-primary focus:ring-primary" />
-                              Hidden
-                            </label>
-                            <button type="button" onClick={() => setTestcasesList(prev => prev.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-red-500 transition-colors">
-                              <span className="material-symbols-outlined text-sm">delete</span>
-                            </button>
+                    {(() => {
+                      const startIndex = (testcasePage - 1) * 10;
+                      const endIndex = testcasePage * 10;
+                      const paginatedList = testcasesList.slice(startIndex, endIndex);
+                      const totalPages = Math.max(1, Math.ceil(testcasesList.length / 10));
+                      
+                      return (
+                        <>
+                          <div className="flex flex-col gap-4">
+                            {paginatedList.map((tc, localIdx) => {
+                              const globalIdx = startIndex + localIdx;
+                              return (
+                                <div key={globalIdx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+                                  <div className="flex items-start justify-between">
+                                    <span className="font-display font-black text-brand-blue text-xs uppercase">Test Case {globalIdx + 1}</span>
+                                    <div className="flex items-center gap-3">
+                                      <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
+                                        <input 
+                                          type="checkbox" 
+                                          checked={tc.isHidden} 
+                                          onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === globalIdx ? { ...item, isHidden: e.target.checked } : item))} 
+                                          className="rounded text-primary focus:ring-primary" 
+                                        />
+                                        Hidden
+                                      </label>
+                                      <button 
+                                        type="button" 
+                                        onClick={() => {
+                                          setTestcasesList(prev => prev.filter((_, i) => i !== globalIdx));
+                                          const nextLength = testcasesList.length - 1;
+                                          const maxPage = Math.max(1, Math.ceil(nextLength / 10));
+                                          if (testcasePage > maxPage) {
+                                            setTestcasePage(maxPage);
+                                          }
+                                        }} 
+                                        className="text-slate-400 hover:text-red-500 transition-colors border-none bg-transparent cursor-pointer"
+                                      >
+                                        <span className="material-symbols-outlined text-sm">delete</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Input</label>
+                                      <textarea 
+                                        value={tc.inputData} 
+                                        onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === globalIdx ? { ...item, inputData: e.target.value } : item))} 
+                                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16" 
+                                        placeholder="e.g. [1, 2, 3]" 
+                                      />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Expected Output</label>
+                                      <textarea 
+                                        value={tc.expectedOutput || ''} 
+                                        onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === globalIdx ? { ...item, expectedOutput: e.target.value } : item))} 
+                                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16" 
+                                        placeholder="e.g. [3, 2, 1]" 
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Input</label>
-                            <textarea value={tc.inputData} onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === idx ? { ...item, inputData: e.target.value } : item))} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16" placeholder="e.g. [1, 2, 3]" />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Expected Output</label>
-                            <textarea value={tc.expectedOutput || ''} onChange={(e) => setTestcasesList(prev => prev.map((item, i) => i === idx ? { ...item, expectedOutput: e.target.value } : item))} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:ring-primary focus:border-primary text-brand-blue resize-none h-16" placeholder="e.g. [3, 2, 1]" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                          
+                          {/* Pagination controls */}
+                          {totalPages > 1 && (
+                            <div className="flex items-center justify-between bg-slate-50 px-4 py-3 border border-slate-200 rounded-xl mt-2 select-none">
+                              <span className="text-xs font-bold text-slate-500">
+                                Showing {startIndex + 1} - {Math.min(endIndex, testcasesList.length)} of {testcasesList.length} testcases
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  disabled={testcasePage === 1}
+                                  onClick={() => setTestcasePage(prev => Math.max(1, prev - 1))}
+                                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                                </button>
+                                
+                                {Array.from({ length: totalPages }).map((_, pageIdx) => {
+                                  const p = pageIdx + 1;
+                                  const isCurrent = testcasePage === p;
+                                  return (
+                                    <button
+                                      key={p}
+                                      type="button"
+                                      onClick={() => setTestcasePage(p)}
+                                      className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-black transition-all border cursor-pointer ${
+                                        isCurrent 
+                                          ? 'bg-primary border-primary text-white shadow-sm' 
+                                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100'
+                                      }`}
+                                    >
+                                      {p}
+                                    </button>
+                                  );
+                                })}
+                                
+                                <button
+                                  type="button"
+                                  disabled={testcasePage === totalPages}
+                                  onClick={() => setTestcasePage(prev => Math.min(totalPages, prev + 1))}
+                                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-white cursor-pointer disabled:cursor-not-allowed"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -660,6 +800,21 @@ export const AdminCreateProblemPage: React.FC<AdminCreateProblemPageProps> = ({ 
               </div>
 
             </form>
+        ) : (
+            <div className="p-6 bg-slate-900">
+              <AiVisualizerPanel problemRequest={{
+                problemId: editingProblemId?.toString() || '',
+                title: newProbTitle,
+                description: newProbDesc,
+                constraints: newProbConstraints,
+                inputDescription: newProbInputDesc,
+                outputDescription: newProbOutputDesc,
+                exampleInput: newProbExampleInput,
+                exampleOutput: newProbExampleOutput,
+                hint: newProbHints.filter(h => h.trim() !== '').join('\n')
+              }} isAdmin={true} />
+            </div>
+        )}
 
       {alertData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-blue/40 backdrop-blur-sm p-4 animate-fade-in">

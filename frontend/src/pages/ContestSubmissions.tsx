@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { ContestOverviewData } from '../components/Layout';
+import { fetchWithAutoRefresh } from '../services/apiClient';
 
 interface Submission {
   id: number;
@@ -34,7 +35,7 @@ export const ContestSubmissions: React.FC = () => {
       setLoadingSubmissions(true);
       setErrorSubmissions(null);
       try {
-        const response = await fetch(`http://localhost:8080/nonstopcoding/contests/${contest.id}/submissions`, {
+        const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contest.id}/submissions`, {
           credentials: 'include',
         });
         const data = await response.json();

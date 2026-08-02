@@ -1,4 +1,6 @@
-export const BASE_URL = 'http://localhost:8080/nonstopcoding';
+import { fetchWithAutoRefresh } from './apiClient';
+
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface ApiResponse<T> {
   code: number;
@@ -14,7 +16,7 @@ const getHeaders = () => {
 
 export const fetchCart = async (): Promise<number[]> => {
   try {
-    const response = await fetch(`${BASE_URL}/cart`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/cart`, {
       method: 'GET',
       headers: getHeaders(),
       credentials: 'include',
@@ -34,7 +36,7 @@ export const fetchCart = async (): Promise<number[]> => {
 
 export const addToCartApi = async (courseId: number | string): Promise<boolean> => {
   try {
-    const response = await fetch(`${BASE_URL}/cart/${courseId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/cart/${courseId}`, {
       method: 'POST',
       headers: getHeaders(),
       credentials: 'include',
@@ -48,7 +50,7 @@ export const addToCartApi = async (courseId: number | string): Promise<boolean> 
 
 export const removeFromCartApi = async (courseId: number | string): Promise<boolean> => {
   try {
-    const response = await fetch(`${BASE_URL}/cart/${courseId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/cart/${courseId}`, {
       method: 'DELETE',
       headers: getHeaders(),
       credentials: 'include',
@@ -62,7 +64,7 @@ export const removeFromCartApi = async (courseId: number | string): Promise<bool
 
 export const clearCartApi = async (): Promise<boolean> => {
   try {
-    const response = await fetch(`${BASE_URL}/cart/clear`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/cart/clear`, {
       method: 'DELETE',
       headers: getHeaders(),
       credentials: 'include',
@@ -73,3 +75,4 @@ export const clearCartApi = async (): Promise<boolean> => {
     return false;
   }
 };
+

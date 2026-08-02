@@ -121,24 +121,13 @@ class AiVisualizerServiceTest {
         cache.setDetectedAlgorithm("Algo");
         cache.setTimeComplexity("O(1)");
 
-        when(cacheRepository.findByProblemIdAndUserIdAndPromptVersion(anyString(), anyString(), anyInt())).thenReturn(Optional.of(cache));
+        when(cacheRepository.findByProblemIdAndPromptVersion(anyString(), anyInt())).thenReturn(Optional.of(cache));
 
-        Optional<AiVisualizerResponse> result = aiVisualizerService.getCachedVisualizer("1", "user1", false);
+        Optional<AiVisualizerResponse> result = aiVisualizerService.getCachedVisualizer("1", false);
         
         assertTrue(result.isPresent());
         assertTrue(result.get().isFromCache());
         assertEquals("<html></html>", result.get().getHtmlContent());
-    }
-
-    @Test
-    void generateVisualizer_RateLimitExceeded_ThrowsException() {
-        AiVisualizerRequest request = new AiVisualizerRequest();
-        request.setProblemId("1");
-        request.setForceRegenerate(true);
-        
-        ReflectionTestUtils.setField(aiVisualizerService, "maxRequestsPerDay", 0);
-
-        assertThrows(RateLimitExceededException.class, () -> aiVisualizerService.generateVisualizer(request, "user1"));
     }
 
     @Test

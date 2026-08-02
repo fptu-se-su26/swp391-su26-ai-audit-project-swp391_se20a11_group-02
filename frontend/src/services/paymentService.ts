@@ -1,3 +1,5 @@
+import { fetchWithAutoRefresh } from './apiClient';
+
 export interface TransactionStatisticResponse {
   date: string;
   type: string;
@@ -24,11 +26,11 @@ export interface PageResponse<T> {
   content: T[];
 }
 
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export const paymentService = {
   createDepositLink: async (amount: number) => {
-    const response = await fetch(`${BASE_URL}/payment/deposit`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/payment/deposit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -46,7 +48,7 @@ export const paymentService = {
   },
 
   getBalance: async (): Promise<number> => {
-    const response = await fetch(`${BASE_URL}/payment/balance`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/payment/balance`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -64,7 +66,7 @@ export const paymentService = {
 
   getWalletTransactions: async (page: number = 0, size: number = 10, type: string = ''): Promise<PageResponse<TransactionStatisticResponse>> => {
     const typeQuery = type ? `&type=${type}` : '';
-    const response = await fetch(`${BASE_URL}/wallet/transactions?page=${page}&size=${size}${typeQuery}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/wallet/transactions?page=${page}&size=${size}${typeQuery}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -82,7 +84,7 @@ export const paymentService = {
 
   getPaymentTransactions: async (page: number = 0, size: number = 10, type: string = ''): Promise<PageResponse<PaymentTransactionStatisticResponse>> => {
     const typeQuery = type ? `&type=${type}` : '';
-    const response = await fetch(`${BASE_URL}/payment/transactions?page=${page}&size=${size}${typeQuery}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/payment/transactions?page=${page}&size=${size}${typeQuery}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -99,7 +101,7 @@ export const paymentService = {
   },
 
   cancelPayment: async (transactionCode: string): Promise<void> => {
-    const response = await fetch(`${BASE_URL}/payment/cancel/${transactionCode}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/payment/cancel/${transactionCode}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

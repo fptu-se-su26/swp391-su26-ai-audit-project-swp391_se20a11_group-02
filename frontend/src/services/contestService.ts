@@ -46,7 +46,9 @@ export const getPastContests = async (): Promise<Contest[]> => {
   return mockContests.filter(c => c.status === 'past');
 };
 
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+import { fetchWithAutoRefresh } from './apiClient';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface MyContestStats {
   totalContests: number;
@@ -68,7 +70,7 @@ export interface MyContestHistory {
 }
 
 export const getMyContestStats = async (): Promise<MyContestStats> => {
-  const response = await fetch(`${BASE_URL}/contests/my-stats`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/contests/my-stats`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -83,7 +85,7 @@ export const getMyContestStats = async (): Promise<MyContestStats> => {
 };
 
 export const getMyContestHistory = async (): Promise<MyContestHistory[]> => {
-  const response = await fetch(`${BASE_URL}/contests/my-history`, {
+  const response = await fetchWithAutoRefresh(`${BASE_URL}/contests/my-history`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

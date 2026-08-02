@@ -27,14 +27,19 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+
 @WebMvcTest(controllers = ContestController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Execution(ExecutionMode.SAME_THREAD)
 class ContestControllerTest {
 
     @MockBean
@@ -79,7 +84,7 @@ class ContestControllerTest {
         PageResponse<ContestResponse> pageResponse = new PageResponse<>();
         pageResponse.setContent(Collections.singletonList(response));
 
-        when(contestService.getContests(any(ContestSearchRequest.class), any())).thenReturn(pageResponse);
+        when(contestService.getContests(any(ContestSearchRequest.class), nullable(Integer.class))).thenReturn(pageResponse);
 
         mockMvc.perform(get("/contests"))
                 .andExpect(status().isOk())
@@ -242,12 +247,12 @@ class ContestControllerTest {
         Authentication auth = setupSecurityContext("adminPrincipal", "ROLE_ADMIN");
         ContestProblemDetailResponse detail = ContestProblemDetailResponse.builder().id(100).build();
         
-        when(contestService.getContestProblemDetail(eq(10), eq(100), any(), eq(true))).thenReturn(detail);
+        when(contestService.getContestProblemDetail(eq(10), eq(100), nullable(Integer.class), eq(true))).thenReturn(detail);
 
         mockMvc.perform(get("/contests/10/problems/100").principal(auth))
                 .andExpect(status().isOk());
 
-        verify(contestService).getContestProblemDetail(eq(10), eq(100), any(), eq(true));
+        verify(contestService).getContestProblemDetail(eq(10), eq(100), nullable(Integer.class), eq(true));
     }
 
     @Test
@@ -255,11 +260,11 @@ class ContestControllerTest {
         Authentication auth = setupSecurityContext("adminPrincipal", "ROLE_ADMIN");
         ContestSubmissionResponse sub = ContestSubmissionResponse.builder().id(500).build();
         
-        when(contestService.getContestSubmissions(eq(10), any(), eq(true))).thenReturn(List.of(sub));
+        when(contestService.getContestSubmissions(eq(10), nullable(Integer.class), eq(true))).thenReturn(List.of(sub));
 
         mockMvc.perform(get("/contests/10/submissions").principal(auth))
                 .andExpect(status().isOk());
 
-        verify(contestService).getContestSubmissions(eq(10), any(), eq(true));
+        verify(contestService).getContestSubmissions(eq(10), nullable(Integer.class), eq(true));
     }
 }

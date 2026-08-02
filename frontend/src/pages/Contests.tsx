@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { fetchWithAutoRefresh } from '../services/apiClient';
 
 interface Contest {
   id: number;
@@ -53,8 +54,8 @@ export const Contests: React.FC = () => {
     const fetchContests = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `http://localhost:8080/nonstopcoding/contests?search=${searchQuery}&status=${statusFilter}&access=${accessFilter}&page=${currentPage}&size=10`,
+        const response = await fetchWithAutoRefresh(
+          `${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests?search=${searchQuery}&status=${statusFilter}&access=${accessFilter}&page=${currentPage}&size=10`,
           {
             credentials: 'include',
           }
@@ -85,7 +86,7 @@ export const Contests: React.FC = () => {
 
   const fetchBannerAndStats = useCallback(async () => {
     try {
-      const bannerRes = await fetch('http://localhost:8080/nonstopcoding/contests/banner', {
+      const bannerRes = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/banner`, {
         credentials: 'include'
       });
       const bannerData = await bannerRes.json();
@@ -97,7 +98,7 @@ export const Contests: React.FC = () => {
       }
 
       if (user) {
-        const statsRes = await fetch('http://localhost:8080/nonstopcoding/contests/user-stats', {
+        const statsRes = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/user-stats`, {
           credentials: 'include'
         });
         const statsData = await statsRes.json();

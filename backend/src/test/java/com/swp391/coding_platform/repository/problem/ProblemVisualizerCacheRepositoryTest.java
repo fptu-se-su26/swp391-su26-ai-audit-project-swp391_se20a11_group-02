@@ -26,27 +26,27 @@ public class ProblemVisualizerCacheRepositoryTest {
     private ProblemVisualizerCacheRepository problemVisualizerCacheRepository;
 
     @Test
-    public void testFindByProblemIdAndUserIdAndPromptVersion() {
+    public void testFindByProblemIdAndPromptVersion() {
         ProblemVisualizerCache cache = ProblemVisualizerCache.builder()
-                .problemId("prob-123")
-                .userId("user-456")
-                .promptVersion(1)
-                .detectedAlgorithm("DFS")
-                .timeComplexity("O(N)")
-                .htmlContent("<html></html>")
-                .generatedAt(Instant.now())
-                .build();
+            .problemId("prob-123")
+            .adminId("admin-456")
+            .promptVersion(1)
+            .detectedAlgorithm("DFS")
+            .timeComplexity("O(N)")
+            .htmlContent("<html></html>")
+            .generatedAt(Instant.now())
+            .build();
         
         entityManager.persist(cache);
         entityManager.flush();
 
-        Optional<ProblemVisualizerCache> result = problemVisualizerCacheRepository.findByProblemIdAndUserIdAndPromptVersion("prob-123", "user-456", 1);
+        Optional<ProblemVisualizerCache> result = problemVisualizerCacheRepository.findByProblemIdAndPromptVersion("prob-123", 1);
         
         assertThat(result).isPresent();
         assertThat(result.get().getDetectedAlgorithm()).isEqualTo("DFS");
         assertThat(result.get().getTimeComplexity()).isEqualTo("O(N)");
 
-        Optional<ProblemVisualizerCache> emptyResult = problemVisualizerCacheRepository.findByProblemIdAndUserIdAndPromptVersion("prob-999", "user-456", 1);
+        Optional<ProblemVisualizerCache> emptyResult = problemVisualizerCacheRepository.findByProblemIdAndPromptVersion("prob-999", 1);
         assertThat(emptyResult).isEmpty();
     }
 }

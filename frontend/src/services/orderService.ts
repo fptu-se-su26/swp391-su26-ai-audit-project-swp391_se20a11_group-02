@@ -1,4 +1,6 @@
-export const BASE_URL = 'http://localhost:8080/nonstopcoding';
+import { fetchWithAutoRefresh } from './apiClient';
+
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface ApiResponse<T> {
   code: number;
@@ -40,7 +42,7 @@ const getHeaders = () => {
 
 export const checkoutApi = async (courseIds: number[]): Promise<boolean> => {
   try {
-    const response = await fetch(`${BASE_URL}/orders/checkout`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/orders/checkout`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ courseIds }),
@@ -63,7 +65,7 @@ export const checkoutApi = async (courseIds: number[]): Promise<boolean> => {
 
 export const getPurchaseHistory = async (page: number = 0, size: number = 10): Promise<PageResponse<PurchaseHistoryResponse>> => {
   try {
-    const response = await fetch(`${BASE_URL}/orders/purchase-history?page=${page}&size=${size}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/orders/purchase-history?page=${page}&size=${size}`, {
       method: 'GET',
       headers: getHeaders(),
       credentials: 'include',

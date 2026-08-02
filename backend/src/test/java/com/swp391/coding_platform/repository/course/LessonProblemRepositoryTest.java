@@ -79,7 +79,7 @@ class LessonProblemRepositoryTest {
 
         problem = ProblemEntity.builder()
                 .createdBy(user)
-                .problemScope(ProblemScope.SHARED)
+                .problemScope(ProblemScope.LESSON)
                 .build();
         problem = entityManager.persist(problem);
 
@@ -88,7 +88,7 @@ class LessonProblemRepositoryTest {
                 .versionNumber(1)
                 .title("Problem Title")
                 .description("Problem Desc")
-                .problemScope(ProblemScope.SHARED)
+                .problemScope(ProblemScope.LESSON)
                 .build();
         version = entityManager.persist(version);
 
@@ -102,7 +102,7 @@ class LessonProblemRepositoryTest {
         
         problem2 = ProblemEntity.builder()
                 .createdBy(user)
-                .problemScope(ProblemScope.SHARED)
+                .problemScope(ProblemScope.LESSON)
                 .build();
         problem2 = entityManager.persist(problem2);
         
@@ -111,7 +111,7 @@ class LessonProblemRepositoryTest {
                 .versionNumber(1)
                 .title("Problem Title 2")
                 .description("Problem Desc 2")
-                .problemScope(ProblemScope.SHARED)
+                .problemScope(ProblemScope.LESSON)
                 .build();
         version2 = entityManager.persist(version2);
 
@@ -133,7 +133,7 @@ class LessonProblemRepositoryTest {
 
         ProblemEntity problem3 = ProblemEntity.builder()
                 .createdBy(lesson.getChapter().getCourse().getInstructor().getUser())
-                .problemScope(ProblemScope.SHARED)
+                .problemScope(ProblemScope.LESSON)
                 .build();
         problem3 = entityManager.persistAndFlush(problem3);
 

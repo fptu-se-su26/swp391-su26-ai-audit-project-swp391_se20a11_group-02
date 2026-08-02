@@ -15,7 +15,6 @@ import com.swp391.coding_platform.dto.request.CreateCommentRequest;
 import com.swp391.coding_platform.dto.response.LessonCommentResponse;
 import com.swp391.coding_platform.service.course.CourseService;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.data.domain.PageRequest;
 import java.util.List;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;

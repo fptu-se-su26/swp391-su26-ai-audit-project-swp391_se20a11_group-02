@@ -273,8 +273,8 @@ export const AdminDashboard: React.FC = () => {
   const [instStatusFilter, setInstStatusFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED'>('ALL');
   const [problemSearch, setProblemSearch] = useState('');
   const [problemDifficultyFilter, setProblemDifficultyFilter] = useState<'ALL' | 'EASY' | 'MEDIUM' | 'HARD'>('ALL');
-  const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST' | 'SHARED'>('ALL');
-  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'shared' | 'draft' | 'deleted'>('repository');
+  const [problemScopeFilter, setProblemScopeFilter] = useState<'ALL' | 'PRACTICE' | 'CONTEST'>('ALL');
+  const [problemSubTab, setProblemSubTab] = useState<'repository' | 'practice' | 'contest' | 'draft' | 'deleted'>('repository');
   const [problemPage, setProblemPage] = useState(1);
   const [selectedProblems, setSelectedProblems] = useState<number[]>([]);
   const [testcasesList, setTestcasesList] = useState<Omit<AdminProblemTestcase, 'id'>[]>([]);
@@ -285,7 +285,7 @@ export const AdminDashboard: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [isCreateContestOpen, setIsCreateContestOpen] = useState(false);
   const [isEditContestOpen, setIsEditContestOpen] = useState(false);
-  const problemsPerPage = 10;
+  const problemsPerPage = 20;
   const [contestStatusFilter, setContestStatusFilter] = useState<'ALL' | 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'ENDED' | 'DELETED'>('ALL');
   const [contestSubTab, setContestSubTab] = useState<'active' | 'trash'>('active');
   const [contestPage, setContestPage] = useState(1);
@@ -529,7 +529,7 @@ export const AdminDashboard: React.FC = () => {
         fetchContestRanking(reviewingContest.id);
         
         // Add SSE for realtime scoreboard updates
-        eventSource = new EventSource(`http://localhost:8080/nonstopcoding/api/v1/contests/${reviewingContest.id}/scoreboard/stream`, { withCredentials: true });
+        eventSource = new EventSource(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/api/v1/contests/${reviewingContest.id}/scoreboard/stream`, { withCredentials: true });
         
         eventSource.addEventListener('scoreboard-update', (event: any) => {
           try {
@@ -765,7 +765,7 @@ export const AdminDashboard: React.FC = () => {
   }, [stats]);
 
   // Financial Page state variables
-  const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '3months' | '9months' | '12months' | 'custom'>('12months');
+  const [financialTimeFilter, setFinancialTimeFilter] = useState<'month' | '6months' | '12months' | 'custom'>('12months');
   const [financialStartDate, setFinancialStartDate] = useState<string>('');
   const [financialEndDate, setFinancialEndDate] = useState<string>('');
   const [hoveredMonthIndex, setHoveredMonthIndex] = useState<number | null>(null);
@@ -833,10 +833,8 @@ export const AdminDashboard: React.FC = () => {
     switch (financialTimeFilter) {
       case 'month':
         return financialMonthlyRecords.slice(11);
-      case '3months':
-        return financialMonthlyRecords.slice(9);
-      case '9months':
-        return financialMonthlyRecords.slice(3);
+      case '6months':
+        return financialMonthlyRecords.slice(6);
       case '12months':
       default:
         return financialMonthlyRecords;
@@ -1211,8 +1209,6 @@ export const AdminDashboard: React.FC = () => {
         setProblemSubTab('practice');
       } else if (scope === 'CONTEST') {
         setProblemSubTab('contest');
-      } else if (scope === 'SHARED') {
-        setProblemSubTab('shared');
       }
 
       setIsTestcaseModalOpen(false);
@@ -1519,8 +1515,6 @@ export const AdminDashboard: React.FC = () => {
         matchesSubTab = p.problemScope === 'PRACTICE' && p.isPublic && !p.isDeleted;
       } else if (problemSubTab === 'contest') {
         matchesSubTab = p.problemScope === 'CONTEST' && p.isPublic && !p.isDeleted;
-      } else if (problemSubTab === 'shared') {
-        matchesSubTab = p.problemScope === 'SHARED' && p.isPublic && !p.isDeleted;
       }
 
       return matchesSearch && matchesDifficulty && matchesScope && matchesSubTab;
@@ -3885,7 +3879,6 @@ export const AdminDashboard: React.FC = () => {
                       <option value="ALL">All Scopes</option>
                       <option value="PRACTICE">Practice</option>
                       <option value="CONTEST">Contest</option>
-                      <option value="SHARED">Share</option>
                     </select>
                     <button
                       onClick={handleCreateProblemClick}
@@ -3928,16 +3921,7 @@ export const AdminDashboard: React.FC = () => {
                     <span className="material-symbols-outlined text-[16px]">emoji_events</span>
                     Contest Problems ({problems.filter(p => p.problemScope === 'CONTEST' && p.isPublic && !p.isDeleted).length})
                   </button>
-                  <button
-                    onClick={() => setProblemSubTab('shared')}
-                    className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'shared'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-slate-500 hover:text-primary'
-                      }`}
-                  >
-                    <span className="material-symbols-outlined text-[16px]">share</span>
-                    Shared Problems ({problems.filter(p => p.problemScope === 'SHARED' && p.isPublic && !p.isDeleted).length})
-                  </button>
+
                   <button
                     onClick={() => setProblemSubTab('draft')}
                     className={`pb-2.5 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${problemSubTab === 'draft'
@@ -4006,7 +3990,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 )}
                 <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-visible ambient-shadow">
-                  <div className="overflow-x-auto min-h-[280px]">
+                  <div className="overflow-x-auto overflow-y-hidden min-h-[280px]">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
@@ -4104,12 +4088,11 @@ export const AdminDashboard: React.FC = () => {
                                     ? 'bg-green-50 text-green-600 border-green-200'
                                     : p.problemScope === 'CONTEST'
                                       ? 'bg-blue-50 text-blue-600 border-blue-200'
-                                      : 'bg-orange-50 text-orange-600 border-orange-200'
+                                      : 'bg-slate-50 text-slate-600 border-slate-200'
                                     }`}
                                 >
                                   <option value="PRACTICE" className="bg-white text-green-600 font-bold">Practice</option>
                                   <option value="CONTEST" className="bg-white text-blue-600 font-bold">Contest</option>
-                                  <option value="SHARED" className="bg-white text-orange-600 font-bold">Share</option>
                                 </select>
                               </td>
                               <td className="py-4 px-3 text-center">
@@ -4740,13 +4723,12 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Filter Controls Panel */}
-                  <div className="flex flex-wrap items-center gap-4 bg-white p-3.5 rounded-2xl border border-slate-200/50 shadow-sm w-full xl:w-auto">
+                  <div className="flex flex-wrap xl:flex-nowrap items-center gap-2 sm:gap-3 bg-white p-2 sm:p-3 rounded-2xl border border-slate-200/50 shadow-sm w-full xl:w-auto overflow-hidden">
                     {/* Preset buttons */}
                     <div className="flex bg-slate-100 p-1 rounded-xl gap-0.5">
                       {[
                         { val: 'month', label: 'This Month' },
-                        { val: '3months', label: '3 Months' },
-                        { val: '9months', label: '9 Months' },
+                        { val: '6months', label: '6 Months' },
                         { val: '12months', label: '12 Months' }
                       ].map(p => (
                         <button
@@ -4756,7 +4738,7 @@ export const AdminDashboard: React.FC = () => {
                             setFinancialStartDate('');
                             setFinancialEndDate('');
                           }}
-                          className={`text-xs font-bold px-3.5 py-2 rounded-lg transition-all ${
+                          className={`text-xs font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap ${
                             financialTimeFilter === p.val
                               ? 'bg-white text-brand-blue shadow-sm'
                               : 'text-slate-500 hover:text-brand-blue'
@@ -4768,10 +4750,10 @@ export const AdminDashboard: React.FC = () => {
                     </div>
 
                     {/* Date pickers */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider hidden sm:inline">Custom:</span>
-                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                      <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5">
+                        <span className="material-symbols-outlined text-[14px] sm:text-[15px] text-slate-400">calendar_today</span>
                         <input
                           type="date"
                           value={financialStartDate}
@@ -4779,13 +4761,13 @@ export const AdminDashboard: React.FC = () => {
                             setFinancialStartDate(e.target.value);
                             setFinancialTimeFilter('custom');
                           }}
-                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
+                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-24 sm:w-28"
                           placeholder="Start date"
                         />
                       </div>
                       <span className="text-xs text-slate-400 font-bold">to</span>
-                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                      <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5">
+                        <span className="material-symbols-outlined text-[14px] sm:text-[15px] text-slate-400">calendar_today</span>
                         <input
                           type="date"
                           value={financialEndDate}
@@ -4793,7 +4775,7 @@ export const AdminDashboard: React.FC = () => {
                             setFinancialEndDate(e.target.value);
                             setFinancialTimeFilter('custom');
                           }}
-                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-28"
+                          className="bg-transparent text-xs font-bold text-slate-700 outline-none border-none p-0 focus:ring-0 w-24 sm:w-28"
                           placeholder="End date"
                         />
                       </div>

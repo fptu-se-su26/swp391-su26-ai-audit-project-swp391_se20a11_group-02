@@ -1,8 +1,10 @@
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+import { fetchWithAutoRefresh } from './apiClient';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export const aiService = {
   async generateVisualizer(request: any, signal?: AbortSignal) {
-    const response = await fetch(`${BASE_URL}/api/v1/ai/visualizer/generate`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/v1/ai/visualizer/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -15,7 +17,7 @@ export const aiService = {
   },
 
   async pollJobStatus(jobId: string, signal?: AbortSignal) {
-    const response = await fetch(`${BASE_URL}/api/v1/ai/visualizer/status/${jobId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/v1/ai/visualizer/status/${jobId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -27,7 +29,7 @@ export const aiService = {
   },
 
   async checkCache(problemId: string, signal?: AbortSignal) {
-    const response = await fetch(`${BASE_URL}/api/v1/ai/visualizer/${problemId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/api/v1/ai/visualizer/${problemId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'

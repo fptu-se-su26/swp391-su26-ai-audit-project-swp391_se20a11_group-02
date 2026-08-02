@@ -42,7 +42,7 @@ public class ProblemSubmissionService {
             return Collections.emptyList();
         }
 
-        ProblemEntity problem = problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(problemId)
+        ProblemEntity problem = problemRepository.findByIdAndIsActiveTrue(problemId)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         List<ProblemSubmissionEntity> subs = problemSubmissionRepository.findByUserIdAndProblemId(userId.intValue(),

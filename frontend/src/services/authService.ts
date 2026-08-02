@@ -1,4 +1,6 @@
-const BASE_URL = 'http://localhost:8080/nonstopcoding';
+import { fetchWithAutoRefresh } from './apiClient';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface LoginResponse {
   status: number;
@@ -77,7 +79,7 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    const response = await fetch(`${BASE_URL}/auth/logout`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/auth/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -91,7 +93,7 @@ export const authService = {
   },
 
   async changePassword(changePasswordData: any): Promise<void> {
-    const response = await fetch(`${BASE_URL}/me/change-password`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/change-password`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -107,7 +109,7 @@ export const authService = {
   },
 
   async getMyInfo(): Promise<any> {
-    const response = await fetch(`${BASE_URL}/me/my-info`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/my-info`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -125,7 +127,7 @@ export const authService = {
   },
 
   async submitAppeal(appealReason: string): Promise<void> {
-    const response = await fetch(`${BASE_URL}/me/appeal`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/appeal`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -156,6 +158,52 @@ export const authService = {
 
     const data: LoginResponse = await response.json();
     return data.result;
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Yêu cầu gửi OTP thất bại');
+    }
+  },
+
+  async verifyOtp(email: string, otp: string): Promise<string> {
+    const response = await fetch(`${BASE_URL}/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, otp }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Xác thực OTP không thành công');
+    }
+
+    const data = await response.json();
+    return data.result.resetToken;
+  },
+
+  async resetPassword(resetToken: string, newPassword: string): Promise<void> {
+    const response = await fetch(`${BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ resetToken, newPassword }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Đặt lại mật khẩu thất bại');
+    }
   }
 };
+
 

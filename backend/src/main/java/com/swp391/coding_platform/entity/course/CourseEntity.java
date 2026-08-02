@@ -113,7 +113,7 @@ public class CourseEntity {
     )
     Set<CategoryEntity> categories;
 
-    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     java.util.List<ChapterEntity> chapters;
 }

@@ -122,7 +122,7 @@ class Judge0ServiceTest {
         request.setSourceCode("print(sum(map(int, input().split())))");
 
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndex(1)).thenReturn(List.of(mockTestcase));
 
         Judge0TokenResponse tokenResponse = new Judge0TokenResponse();
@@ -154,7 +154,7 @@ class Judge0ServiceTest {
         OjSubmissionRequest request = new OjSubmissionRequest();
         request.setProblemId(1);
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.empty());
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.empty());
 
         AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
         assertEquals(ErrorCode.OJ_PROBLEM_NOT_FOUND, ex.getErrorCode());
@@ -168,7 +168,7 @@ class Judge0ServiceTest {
         request.setSourceCode("print(sum(map(int, input().split())))");
 
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndex(1)).thenReturn(List.of(mockTestcase));
         when(judge0ClientService.sendBatchSubmission(any(Judge0BatchRequest.class))).thenReturn(Collections.emptyList());
 
@@ -183,7 +183,7 @@ class Judge0ServiceTest {
         request.setContestId(99);
 
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(contestRepository.findById(99)).thenReturn(Optional.empty());
 
         AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
@@ -204,7 +204,7 @@ class Judge0ServiceTest {
                 .build();
 
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(contestRepository.findById(99)).thenReturn(Optional.of(contest));
 
         AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
@@ -225,7 +225,7 @@ class Judge0ServiceTest {
                 .build();
 
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(contestRepository.findById(99)).thenReturn(Optional.of(contest));
         when(contestRepository.isUserRegistered(99, 1)).thenReturn(false);
 
@@ -247,7 +247,7 @@ class Judge0ServiceTest {
                 .build();
 
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(contestRepository.findById(99)).thenReturn(Optional.of(contest));
         when(contestRepository.isUserRegistered(99, 1)).thenReturn(true);
         when(contestProblemRepository.existsByContestIdAndProblemId(99, 1)).thenReturn(false);
@@ -263,7 +263,7 @@ class Judge0ServiceTest {
         request.setLessonId(55);
 
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(lessonProblemRepository.existsByLessonIdAndProblemId(55, 1)).thenReturn(false);
 
         AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));
@@ -278,7 +278,7 @@ class Judge0ServiceTest {
         request.setSourceCode("code");
 
         when(userRepository.findById(1)).thenReturn(Optional.of(mockUser));
-        when(problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(1)).thenReturn(Optional.of(mockProblem));
+        when(problemRepository.findByIdAndIsActiveTrue(1)).thenReturn(Optional.of(mockProblem));
         when(problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndex(1)).thenReturn(Collections.emptyList());
 
         AppException ex = assertThrows(AppException.class, () -> judge0Service.submitCode(request, 1));

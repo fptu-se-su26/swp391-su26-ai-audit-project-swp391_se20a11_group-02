@@ -43,7 +43,7 @@ public class ProblemCommentService {
     com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
     public List<ProblemCommentResponse> getComments(Integer problemId) {
-        problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(problemId)
+        problemRepository.findByIdAndIsActiveTrue(problemId)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
         List<ProblemCommentEntity> topComments =
                 problemCommentRepository.findByProblemIdAndParentIsNullOrderByCreatedAtDesc(problemId);
@@ -56,7 +56,7 @@ public class ProblemCommentService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        ProblemEntity problem = problemRepository.findByIdAndIsActiveTrueAndIsPublicTrue(problemId)
+        ProblemEntity problem = problemRepository.findByIdAndIsActiveTrue(problemId)
                 .orElseThrow(() -> new AppException(ErrorCode.OJ_PROBLEM_NOT_FOUND));
 
         UserEntity user = userRepository.findById(userId.intValue())

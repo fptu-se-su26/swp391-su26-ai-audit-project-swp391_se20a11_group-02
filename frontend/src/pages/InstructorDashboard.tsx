@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { fetchWithAutoRefresh } from '../services/apiClient';
 import { instructorService, type InstructorCourse } from '../services/instructorService';
 import { fetchCourseReviews, type CourseReviewStatsResponse } from '../services/courseService';
 import Editor from '@monaco-editor/react';
@@ -486,7 +487,7 @@ export const InstructorDashboard: React.FC = () => {
     setGenerateError(null);
     setGenerateLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/nonstopcoding/instructor/testcases/generate', {
+      const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/instructor/testcases/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

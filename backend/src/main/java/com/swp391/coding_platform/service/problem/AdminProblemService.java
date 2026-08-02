@@ -64,7 +64,7 @@ public class AdminProblemService {
 
     public List<AdminProblemResponse> getAdminProblems() {
         return problemRepository.findByProblemScopeIn(
-                List.of(ProblemScope.CONTEST, ProblemScope.PRACTICE, ProblemScope.SHARED)
+                List.of(ProblemScope.CONTEST, ProblemScope.PRACTICE)
         ).stream()
                 .map(this::mapToAdminResponse)
                 .toList();
@@ -131,14 +131,14 @@ public class AdminProblemService {
                 .timeLimitMs(request.getTimeLimitMs() != null ? request.getTimeLimitMs() : 2000)
                 .memoryLimitKb(request.getMemoryLimitKb() != null ? request.getMemoryLimitKb() : 128000)
                 .starterTemplates(templatesJson)
+                .testcaseGeneratorCode(request.getTestcaseGeneratorCode())
+                .testcaseGeneratorLanguage(request.getTestcaseGeneratorLanguage())
                 .versionNumber(1)
                 .problemScope(scope)
                 .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
                 .build();
         
         problem.setCurrentVersion(version);
-        problem.getVersions().add(version);
-
 
         ProblemEntity saved = problemRepository.save(problem);
 
@@ -176,8 +176,9 @@ public class AdminProblemService {
 
         boolean hasSubmissions = problemSubmissionRepository.countByProblemVersionId(problem.getCurrentVersion().getId()) > 0;
         com.swp391.coding_platform.entity.problem.ProblemVersionEntity targetVersion = problem.getCurrentVersion();
-        
+
         if (hasSubmissions) {
+            Integer oldVersionId = problem.getCurrentVersion().getId();
             targetVersion = com.swp391.coding_platform.entity.problem.ProblemVersionEntity.builder()
                     .problem(problem)
                     .title(problem.getCurrentVersion().getTitle())
@@ -195,15 +196,16 @@ public class AdminProblemService {
                     .isPublic(problem.getCurrentVersion().getIsPublic())
                     .solutions(problem.getCurrentVersion().getSolutions())
                     .starterTemplates(problem.getCurrentVersion().getStarterTemplates())
+                    .testcaseGeneratorCode(problem.getCurrentVersion().getTestcaseGeneratorCode())
+                    .testcaseGeneratorLanguage(problem.getCurrentVersion().getTestcaseGeneratorLanguage())
                     .createdAt(Instant.now())
                     .versionNumber(problem.getVersions().stream().mapToInt(com.swp391.coding_platform.entity.problem.ProblemVersionEntity::getVersionNumber).max().orElse(0) + 1)
                     .build();
             targetVersion = problemVersionRepository.save(targetVersion);
             problem.setCurrentVersion(targetVersion);
-            problem.getVersions().add(targetVersion);
-            
+
             // Copy testcases from old version to new version
-            java.util.List<com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity> oldTestcases = problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndexAsc(problem.getCurrentVersion().getId());
+            java.util.List<com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity> oldTestcases = problemTestcaseRepository.findByProblemVersionIdOrderByOrderIndexAsc(oldVersionId);
             java.util.List<com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity> newTestcases = new java.util.ArrayList<>();
             for (com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity oldTc : oldTestcases) {
                 com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity newTc = com.swp391.coding_platform.entity.problem.ProblemTestcaseEntity.builder()
@@ -229,6 +231,8 @@ public class AdminProblemService {
         targetVersion.setExampleOutput(request.getExampleOutput());
         targetVersion.setHint(request.getHint());
         targetVersion.setSolutions(request.getSolutions());
+        targetVersion.setTestcaseGeneratorCode(request.getTestcaseGeneratorCode());
+        targetVersion.setTestcaseGeneratorLanguage(request.getTestcaseGeneratorLanguage());
 
         if (request.getProblemScope() != null) {
             try {
@@ -496,6 +500,8 @@ public class AdminProblemService {
                 .isDeleted(!entity.getIsActive() && entity.getTotalTestcase() != null && entity.getTotalTestcase() > 0)
                 .tags(tags)
                 .starterTemplates(templates)
+                .testcaseGeneratorCode(entity.getCurrentVersion().getTestcaseGeneratorCode())
+                .testcaseGeneratorLanguage(entity.getCurrentVersion().getTestcaseGeneratorLanguage())
                 .build();
     }
 
@@ -574,16 +580,14 @@ public class AdminProblemService {
                 .timeLimitMs(currentVersion.getTimeLimitMs())
                 .memoryLimitKb(currentVersion.getMemoryLimitKb())
                 .starterTemplates(currentVersion.getStarterTemplates())
+                .testcaseGeneratorCode(currentVersion.getTestcaseGeneratorCode())
+                .testcaseGeneratorLanguage(currentVersion.getTestcaseGeneratorLanguage())
                 .versionNumber(1)
                 .problemScope(sourceProblem.getProblemScope() != null ? sourceProblem.getProblemScope() : currentVersion.getProblemScope())
                 .isPublic(false) // Cloned version is always private by default
                 .build();
         
         clonedProblem.setCurrentVersion(clonedVersion);
-        if (clonedProblem.getVersions() == null) {
-            clonedProblem.setVersions(new java.util.ArrayList<>());
-        }
-        clonedProblem.getVersions().add(clonedVersion);
 
         // Save problem and version
         ProblemEntity savedClonedProblem = problemRepository.save(clonedProblem);
