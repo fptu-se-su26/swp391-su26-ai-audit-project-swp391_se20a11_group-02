@@ -250,6 +250,10 @@ export interface AdminContest {
   password?: string;
   isDeleted?: boolean;
   databaseStatus?: string;
+  reward1st?: number;
+  reward2nd?: number;
+  reward3rd?: number;
+  problemCount?: number;
 }
 
 export interface ActivityLog {
@@ -1134,6 +1138,19 @@ export const adminService = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
       throw new Error(errorData?.message || 'Failed to publish contest');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
+  async unpublishContest(contestId: number): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/unpublish`, {
+      method: 'PUT',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to unpublish contest');
     }
     const data = await response.json();
     return data.result;

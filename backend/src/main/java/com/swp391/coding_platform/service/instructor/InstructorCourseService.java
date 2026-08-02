@@ -31,6 +31,9 @@ import com.swp391.coding_platform.dto.request.InstructorCourseUpdateRequest.Test
 
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
+import java.util.concurrent.TimeUnit;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -49,6 +52,7 @@ public class InstructorCourseService {
     private final com.swp391.coding_platform.repository.category.CategoryRepository categoryRepository;
     private final Judge0ClientService judge0ClientService;
     private final CourseModerationListener courseModerationListener;
+    private final StringRedisTemplate redisTemplate;
     private final com.swp391.coding_platform.service.cart.CartService cartService;
 
     @Transactional
@@ -59,7 +63,7 @@ public class InstructorCourseService {
 
         course.setStatus(CourseStatus.INACTIVE);
         courseRepository.save(course);
-        
+
         cartService.removeCourseFromAllCarts(courseId);
     }
 

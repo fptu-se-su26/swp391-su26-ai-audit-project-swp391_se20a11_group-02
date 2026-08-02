@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 interface ContestSidebarProps {
   contestId: string;
@@ -14,11 +14,14 @@ interface ContestSidebarProps {
 
 
 export const ContestSidebar: React.FC<ContestSidebarProps> = ({ contestId, activeTab, timeLeft, timerLabel, isRegistered, contestStatus, children, className }) => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   // Chỉ hiển thị Problems/Submissions/Ranking khi contest đã bắt đầu (ONGOING hoặc ENDED)
   const canAccessContestContent = isRegistered && contestStatus !== 'UPCOMING';
 
   return (
-    <aside className={className || "w-full md:w-[12%] min-w-[190px] bg-white border-l border-gray-200 flex flex-col relative sticky top-16 h-[calc(100vh-64px)] z-20 shrink-0 shadow-lg"}>
+    <aside className={className || `w-full md:w-[12%] min-w-[190px] bg-white border-l border-gray-200 flex flex-col relative ${isAdminRoute ? 'top-0 h-full' : 'sticky top-16 h-[calc(100vh-64px)]'} z-10 shrink-0 shadow-lg`}>
       <div className="flex-grow py-5 px-3 flex flex-col overflow-y-auto">
         {/* Contest Header / Timer */}
         <div className="mb-6 text-center">

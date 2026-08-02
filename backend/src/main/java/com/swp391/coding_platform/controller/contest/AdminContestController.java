@@ -117,6 +117,18 @@ public class AdminContestController {
                 .build());
     }
 
+    @PutMapping("/{id}/unpublish")
+    public ResponseEntity<ApiResponse<AdminContestResponse>> unpublishContest(@PathVariable Integer id) {
+        AdminContestResponse result = contestService.unpublishAdminContest(id);
+        return ResponseEntity.ok(ApiResponse.<AdminContestResponse>builder()
+                .status(200)
+                .code(1000)
+                .message("Unpublished contest successfully")
+                .result(result)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
     @PutMapping("/{id}/restore")
     public ResponseEntity<ApiResponse<AdminContestResponse>> restoreContest(@PathVariable Integer id) {
         AdminContestResponse result = contestService.restoreAdminContest(id);

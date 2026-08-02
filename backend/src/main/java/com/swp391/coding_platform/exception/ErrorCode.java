@@ -16,6 +16,7 @@ public enum ErrorCode {
     ACCESS_DENIED(1004, "Access denied", HttpStatus.FORBIDDEN),
     UNAUTHENTICATED(1005, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     INVALID_REQUEST_BODY(1006, "Request body is missing or invalid format", HttpStatus.BAD_REQUEST),
+    RESOURCE_IN_USE(1007, "This record is still referenced elsewhere and cannot be modified", HttpStatus.CONFLICT),
 
     USERNAME_ALREADY_EXISTS(2000, "Username already exists", HttpStatus.CONFLICT),
     EMAIL_ALREADY_EXISTS(2001, "Email already exists", HttpStatus.CONFLICT),
@@ -53,6 +54,7 @@ public enum ErrorCode {
     COURSE_INACTIVE(3001, "Course is not active", HttpStatus.BAD_REQUEST),
     COURSE_IS_NOT_FREE(3002, "Course is not free", HttpStatus.BAD_REQUEST),
     COURSE_TITLE_ALREADY_EXISTS(3003, "Course title already exists", HttpStatus.CONFLICT),
+    AI_MODERATION_LIMIT_EXCEEDED(3004, "Mỗi giảng viên chỉ được gửi kiểm duyệt AI tối đa 5 lần/ngày. Vui lòng thử lại vào ngày mai.", HttpStatus.TOO_MANY_REQUESTS),
     LESSON_NOT_FOUND(3200, "Lesson not found", HttpStatus.NOT_FOUND),
     LESSON_INACTIVE(3201, "Lesson is inactive and cannot be edited", HttpStatus.FORBIDDEN),
     ACCESS_DENIED_COURSE(3300, "Cannot access course", HttpStatus.CONFLICT),
@@ -83,6 +85,7 @@ public enum ErrorCode {
     SUBMISSION_NOT_FOUND(6002, "Submission not found", HttpStatus.NOT_FOUND),
     OJ_SOLUTION_LOCKED(6003, "Solution is locked. You must solve the problem first.", HttpStatus.FORBIDDEN),
     OJ_PROBLEM_MISSING_TESTCASE(6004, "Problem must have at least one testcase to be public", HttpStatus.BAD_REQUEST),
+    OJ_PROBLEM_IN_USE(6005, "Cannot delete: this problem is being used in a contest or lesson", HttpStatus.CONFLICT),
     OJ_SUBMISSION_FAILED(6304, "Online judge submission failed", HttpStatus.BAD_GATEWAY),
     JUDGE0_SUBMISSION_FAILED(6308, "Judge0 submission failed", HttpStatus.BAD_GATEWAY),
     OJ_PROBLEM_ID_REQUIRED(6305, "Problem ID is required", HttpStatus.BAD_REQUEST),

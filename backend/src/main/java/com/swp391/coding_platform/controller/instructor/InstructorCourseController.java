@@ -32,7 +32,7 @@ public class InstructorCourseController {
     CloudinaryService cloudinaryService;
 
     @GetMapping("/courses")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<List<InstructorCourseResponse>>> getCourses(@AuthenticationPrincipal Jwt jwt) {
         Integer userId = null;
         if (jwt != null) {
@@ -60,7 +60,7 @@ public class InstructorCourseController {
     }
 
     @PostMapping("/courses")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<InstructorCourseResponse>> createCourse(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody InstructorCourseCreateRequest request) {
@@ -88,7 +88,7 @@ public class InstructorCourseController {
     }
 
     @PostMapping("/upload")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<CloudinaryResponse>> uploadMedia(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam("file") MultipartFile file,
@@ -127,7 +127,7 @@ public class InstructorCourseController {
     }
 
     @GetMapping("/courses/{id}")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.InstructorCourseDetailResponse>> getCourseDetail(
             @AuthenticationPrincipal Jwt jwt,
             @org.springframework.web.bind.annotation.PathVariable("id") Long id) {
@@ -156,7 +156,7 @@ public class InstructorCourseController {
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/courses/{id}")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<InstructorCourseResponse>> updateCourse(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long id,
@@ -209,7 +209,7 @@ public class InstructorCourseController {
     }
 
     @PutMapping("/courses/{courseId}/submit-review")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> submitCourseForReview(@AuthenticationPrincipal Jwt jwt,
                                                                    @PathVariable("courseId") Long courseId) {
         Integer userId = null;
@@ -234,7 +234,7 @@ public class InstructorCourseController {
     }
 
     @GetMapping("/courses/{id}/statistics")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<com.swp391.coding_platform.dto.response.CourseStatisticResponse>> getCourseStatistics(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long id) {
