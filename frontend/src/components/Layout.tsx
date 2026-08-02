@@ -297,13 +297,6 @@ export const Layout: React.FC = () => {
               <NavLink className={({ isActive }) => `font-body text-body-md transition-colors font-medium px-2 py-1 ${isActive ? 'text-primary' : 'text-text-main hover:text-primary'}`} to="/rankings">Rankings</NavLink>
             </nav>
             <div className="flex items-center gap-4">
-              {/* Instructor Capsule Link */}
-              {user && (user.role === 'instructor' || user.role === 'admin') && (
-                <Link to="/instructor" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
-                  <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">school</span>
-                  <span>Instructor</span>
-                </Link>
-              )}
               {/* Admin Capsule Link */}
               {user && user.role === 'admin' && (
                 <Link to="/admin" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
