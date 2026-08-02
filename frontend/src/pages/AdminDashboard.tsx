@@ -471,6 +471,18 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleOpenAddContestProblemModal = async () => {
+    setIsAddContestProblemOpen(true);
+    if (problems.length === 0) {
+      try {
+        const probsRes = await adminService.getProblems();
+        setProblems(probsRes || []);
+      } catch (err) {
+        console.error("Failed to load problems:", err);
+      }
+    }
+  };
+
   const handleAddProblemToContest = async (problemId: number) => {
     if (!reviewingContest) return;
     try {
@@ -2664,7 +2676,7 @@ export const AdminDashboard: React.FC = () => {
                           </p>
                           {reviewingContest?.status === 'DRAFT' ? (
                             <button
-                              onClick={() => setIsAddContestProblemOpen(true)}
+                              onClick={handleOpenAddContestProblemModal}
                               className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white border-none px-4 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
                             >
                               <span className="material-symbols-outlined text-[16px]">add</span>
@@ -2764,9 +2776,9 @@ export const AdminDashboard: React.FC = () => {
                             </p>
                             <button
                               onClick={() => setIsAddContestProblemOpen(false)}
-                              className="bg-primary hover:bg-primary-hover text-white border-none px-6 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer shadow-sm"
+                              className="bg-slate-200 hover:bg-slate-300 text-slate-700 border-none px-6 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer shadow-sm"
                             >
-                              Done
+                              Close
                             </button>
                           </div>
                         </div>
