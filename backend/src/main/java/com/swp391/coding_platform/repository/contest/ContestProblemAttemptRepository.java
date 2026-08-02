@@ -17,4 +17,7 @@ public interface ContestProblemAttemptRepository extends JpaRepository<ContestPr
 
     @Query("SELECT a FROM ContestProblemAttemptEntity a WHERE a.contest.id = :contestId AND a.user.id = :userId AND a.problem.id = :problemId")
     Optional<ContestProblemAttemptEntity> findByContestIdAndUserIdAndProblemId(@Param("contestId") Integer contestId, @Param("userId") Integer userId, @Param("problemId") Integer problemId);
+
+    @Query("SELECT a FROM ContestProblemAttemptEntity a WHERE a.contest.id = :contestId AND a.isSolved = true")
+    List<ContestProblemAttemptEntity> findSolvedAttemptsByContestId(@Param("contestId") Integer contestId);
 }

@@ -3,6 +3,7 @@ package com.swp391.coding_platform.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Data
@@ -27,4 +28,10 @@ public class AdminContestResponse {
     Double averageScore;
     Boolean isDeleted;
     String databaseStatus;
+    BigDecimal reward1st;
+    BigDecimal reward2nd;
+    BigDecimal reward3rd;
+    String finalizationStatus;
+    Instant finalizedAt;
 }
+

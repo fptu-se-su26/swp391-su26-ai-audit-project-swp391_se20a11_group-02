@@ -758,6 +758,9 @@ export const AdminDashboard: React.FC = () => {
   const [newContestScoringRule, setNewContestScoringRule] = useState<'ICPC' | 'IOI' | 'CUSTOM'>('ICPC');
   const [newContestStartTime, setNewContestStartTime] = useState('');
   const [newContestEndTime, setNewContestEndTime] = useState('');
+  const [newContestReward1st, setNewContestReward1st] = useState<number | ''>('');
+  const [newContestReward2nd, setNewContestReward2nd] = useState<number | ''>('');
+  const [newContestReward3rd, setNewContestReward3rd] = useState<number | ''>('');
 
   // SVG Chart Computations
   const financialChartData = useMemo(() => {
@@ -1297,6 +1300,20 @@ export const AdminDashboard: React.FC = () => {
       return;
     }
 
+    const r1 = typeof newContestReward1st === 'number' ? newContestReward1st : 0;
+    const r2 = typeof newContestReward2nd === 'number' ? newContestReward2nd : 0;
+    const r3 = typeof newContestReward3rd === 'number' ? newContestReward3rd : 0;
+
+    if (r1 < 0 || r2 < 0 || r3 < 0) {
+      showGlobalToast("Reward amounts cannot be negative!", "error");
+      return;
+    }
+
+    if (r1 < r2 || r2 < r3) {
+      showGlobalToast("Reward order must be: Top 1 ≥ Top 2 ≥ Top 3!", "error");
+      return;
+    }
+
     const computedDuration = Math.round((end - start) / 60000);
 
     try {
@@ -1307,7 +1324,10 @@ export const AdminDashboard: React.FC = () => {
         startTime: newContestStartTime,
         endTime: newContestEndTime,
         durations: computedDuration,
-        password: newContestPassword.trim() || undefined
+        password: newContestPassword.trim() || undefined,
+        reward1st: r1,
+        reward2nd: r2,
+        reward3rd: r3
       });
 
       await loadData();
@@ -1321,6 +1341,9 @@ export const AdminDashboard: React.FC = () => {
       setNewContestEndTime('');
       setNewContestPassword('');
       setNewContestConfirmPassword('');
+      setNewContestReward1st('');
+      setNewContestReward2nd('');
+      setNewContestReward3rd('');
 
       // update stats
       const newStats = await adminService.getDashboardStats();
@@ -1333,6 +1356,10 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleEditContestClick = (c: AdminContest) => {
+    if (c.status !== 'DRAFT') {
+      showGlobalToast("Only DRAFT contests can be edited. Unpublish the contest first!", "error");
+      return;
+    }
     setNewContestTitle(c.title);
     setNewContestDesc(c.description || '');
     setNewContestScoringRule(c.scoringRule);
@@ -1347,6 +1374,9 @@ export const AdminDashboard: React.FC = () => {
     setNewContestEndTime(formatDateForInput(c.endTime));
     setNewContestPassword('');
     setNewContestConfirmPassword('');
+    setNewContestReward1st(c.reward1st ?? '');
+    setNewContestReward2nd(c.reward2nd ?? '');
+    setNewContestReward3rd(c.reward3rd ?? '');
     
     setEditingContestId(c.id);
     setEditingContestStatus(c.status);
@@ -1354,11 +1384,55 @@ export const AdminDashboard: React.FC = () => {
     setIsCreateContestOpen(true);
   };
 
+  const handlePublishContest = async (c: AdminContest) => {
+    if ((c.problemCount || 0) <= 0) {
+      showGlobalToast("Cannot publish a contest without any problems. Please add at least 1 problem first.", "error");
+      return;
+    }
+    try {
+      const updated = await adminService.publishContest(c.id);
+      setContests(prev => prev.map(item => item.id === c.id ? updated : item));
+      if (reviewingContest && reviewingContest.id === c.id) {
+        setReviewingContest(updated);
+      }
+      showGlobalToast(`Contest "${updated.title}" published successfully!`, "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to publish contest", "error");
+    }
+  };
+
+  const handleUnpublishContest = async (id: number) => {
+    try {
+      const updated = await adminService.unpublishContest(id);
+      setContests(prev => prev.map(c => c.id === id ? updated : c));
+      if (reviewingContest && reviewingContest.id === id) {
+        setReviewingContest(updated);
+      }
+      showGlobalToast(`Contest "${updated.title}" unpublished back to DRAFT!`, "success");
+    } catch (error: any) {
+      showGlobalToast(error.message || "Failed to unpublish contest", "error");
+    }
+  };
+
   const handleEditContestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingContestId === null) return;
     if (!newContestTitle.trim()) {
       showGlobalToast("Please fill in the title.", "error");
+      return;
+    }
+
+    const r1 = typeof newContestReward1st === 'number' ? newContestReward1st : 0;
+    const r2 = typeof newContestReward2nd === 'number' ? newContestReward2nd : 0;
+    const r3 = typeof newContestReward3rd === 'number' ? newContestReward3rd : 0;
+
+    if (r1 < 0 || r2 < 0 || r3 < 0) {
+      showGlobalToast("Reward amounts cannot be negative!", "error");
+      return;
+    }
+
+    if (r1 < r2 || r2 < r3) {
+      showGlobalToast("Reward order must be: Top 1 ≥ Top 2 ≥ Top 3!", "error");
       return;
     }
 
@@ -1385,7 +1459,10 @@ export const AdminDashboard: React.FC = () => {
         startTime: newContestStartTime,
         endTime: newContestEndTime,
         durations: computedDuration,
-        password: newContestPassword.trim() || undefined
+        password: newContestPassword.trim() || undefined,
+        reward1st: r1,
+        reward2nd: r2,
+        reward3rd: r3
       };
     }
 
@@ -1405,23 +1482,13 @@ export const AdminDashboard: React.FC = () => {
       setNewContestEndTime('');
       setNewContestPassword('');
       setNewContestConfirmPassword('');
+      setNewContestReward1st('');
+      setNewContestReward2nd('');
+      setNewContestReward3rd('');
 
       showGlobalToast(`Contest "${updatedContest.title}" updated successfully!`, "success");
     } catch (error: any) {
       showGlobalToast(error.message || "Failed to update contest", "error");
-    }
-  };
-
-  const handlePublishContest = async (id: number) => {
-    try {
-      const updated = await adminService.publishContest(id);
-      setContests(prev => prev.map(c => c.id === id ? updated : c));
-      if (reviewingContest && reviewingContest.id === id) {
-        setReviewingContest(updated);
-      }
-      showGlobalToast(`Contest "${updated.title}" published successfully!`, "success");
-    } catch (error: any) {
-      showGlobalToast(error.message || "Failed to publish contest", "error");
     }
   };
 
@@ -2223,7 +2290,7 @@ export const AdminDashboard: React.FC = () => {
             )}
 
             {/* Banner/Header */}
-            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm sticky top-0 z-20">
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm sticky top-0 z-40">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => {
@@ -2250,7 +2317,7 @@ export const AdminDashboard: React.FC = () => {
                 {/* Publish Button (Only for DRAFT status) */}
                 {reviewingContest.status === 'DRAFT' && (
                   <button
-                    onClick={() => handlePublishContest(reviewingContest.id)}
+                    onClick={() => handlePublishContest(reviewingContest)}
                     className="flex items-center gap-1.5 text-xs text-white font-bold bg-primary hover:bg-primary-hover border-none px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">publish</span>
@@ -2258,11 +2325,31 @@ export const AdminDashboard: React.FC = () => {
                   </button>
                 )}
 
-                {/* Edit Button */}
-                {reviewingContest.status !== 'DELETED' && (
+                {/* Unpublish Button (Only for UPCOMING status) */}
+                {reviewingContest.status === 'UPCOMING' && (
+                  <button
+                    onClick={() => handleUnpublishContest(reviewingContest.id)}
+                    className="flex items-center gap-1.5 text-xs text-amber-800 font-bold bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">unpublished</span>
+                    Unpublish
+                  </button>
+                )}
+
+                {/* Edit Button (Only allowed when DRAFT) */}
+                {reviewingContest.status === 'DRAFT' ? (
                   <button
                     onClick={() => handleEditContestClick(reviewingContest)}
                     className="flex items-center gap-1.5 text-xs text-slate-700 font-bold bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg cursor-pointer shadow-sm transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    Edit
+                  </button>
+                ) : reviewingContest.status !== 'DELETED' && (
+                  <button
+                    disabled
+                    title="Only DRAFT contests can be edited. Unpublish the contest first!"
+                    className="flex items-center gap-1.5 text-xs text-slate-400 font-bold bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg cursor-not-allowed transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">edit</span>
                     Edit
@@ -2329,8 +2416,8 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Split Flex Layout */}
             <div className="flex-grow flex flex-col md:flex-row min-h-0 w-full">
-              {/* Left Main Content Block - with right margin for fixed sidebar */}
-              <div className="flex-grow p-6 overflow-y-auto max-w-[1400px] mr-[max(12%,210px)]">
+              {/* Left Main Content Block */}
+              <div className="flex-grow p-6 overflow-y-auto max-w-[1400px]">
                 {reviewContestTab === 'overview' && (
                   <div className="space-y-6 animate-fade-in">
                     <section className="bg-surface rounded-xl border border-slate-200/50 p-6 bg-white shadow-sm">
@@ -3198,8 +3285,8 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Right Sidebar Block (12%) - Fixed to right edge, below header */}
-              <aside className="fixed right-0 top-[60px] h-[calc(100vh-64px)] w-[12%] min-w-[190px] bg-white border-l border-gray-200 flex flex-col z-30 shadow-lg">
+              {/* Right Sidebar Block (12%) - Sticky right panel below header */}
+              <aside className="sticky top-[57px] h-[calc(100vh-57px)] w-[12%] min-w-[190px] bg-white border-l border-gray-200 flex flex-col z-20 shrink-0 shadow-lg">
                 <div className="flex-grow py-5 px-3 flex flex-col">
                   {/* Contest Header / Timer */}
                   <div className="mb-6 text-center">
@@ -4372,6 +4459,22 @@ export const AdminDashboard: React.FC = () => {
                                     >
                                       Detail
                                     </button>
+                                    {c.status === 'DRAFT' && (
+                                      <button
+                                        onClick={() => handlePublishContest(c)}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                      >
+                                        Publish
+                                      </button>
+                                    )}
+                                    {c.status === 'UPCOMING' && (
+                                      <button
+                                        onClick={() => handleUnpublishContest(c.id)}
+                                        className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
+                                      >
+                                        Unpublish
+                                      </button>
+                                    )}
                                     {(c.status === 'UPCOMING' || c.status === 'DRAFT') && (
                                       <button
                                         onClick={() => {
@@ -5476,6 +5579,76 @@ export const AdminDashboard: React.FC = () => {
                     placeholder="Confirm contest password"
                   />
                 </div>
+              </div>
+
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-700 flex items-center gap-1.5 text-xs">
+                    <span className="material-symbols-outlined text-amber-500 text-[18px]">emoji_events</span>
+                    Prize Pool Rewards (VND)
+                  </span>
+                  <span className="text-[11px] font-extrabold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                    Total: {((typeof newContestReward1st === 'number' ? newContestReward1st : 0) + 
+                             (typeof newContestReward2nd === 'number' ? newContestReward2nd : 0) + 
+                             (typeof newContestReward3rd === 'number' ? newContestReward3rd : 0)).toLocaleString('vi-VN')} ₫
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-text-muted text-[11px] font-semibold flex items-center gap-1">
+                      🥇 Top 1 (1st Place)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                      value={newContestReward1st}
+                      onChange={e => setNewContestReward1st(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                      className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-100 disabled:cursor-not-allowed"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-text-muted text-[11px] font-semibold flex items-center gap-1">
+                      🥈 Top 2 (2nd Place)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                      value={newContestReward2nd}
+                      onChange={e => setNewContestReward2nd(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                      className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-100 disabled:cursor-not-allowed"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-text-muted text-[11px] font-semibold flex items-center gap-1">
+                      🥉 Top 3 (3rd Place)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      disabled={isEditContestMode && (editingContestStatus === 'ONGOING' || editingContestStatus === 'ENDED')}
+                      value={newContestReward3rd}
+                      onChange={e => setNewContestReward3rd(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                      className="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary disabled:bg-slate-100 disabled:cursor-not-allowed"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                {((typeof newContestReward1st === 'number' && typeof newContestReward2nd === 'number' && newContestReward2nd > newContestReward1st) ||
+                  (typeof newContestReward2nd === 'number' && typeof newContestReward3rd === 'number' && newContestReward3rd > newContestReward2nd)) && (
+                  <p className="text-[11px] font-bold text-red-500 flex items-center gap-1 mt-1">
+                    <span className="material-symbols-outlined text-[14px]">warning</span>
+                    Warning: Rewards should be in order: Top 1 ≥ Top 2 ≥ Top 3.
+                  </p>
+                )}
               </div>
 
               <button
