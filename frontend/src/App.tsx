@@ -51,8 +51,8 @@ function App() {
                 <Route path="apply-instructor" element={<ApplyInstructor />} />
               </Route>
 
-              {/* Instructor area (only for instructors) */}
-              <Route element={<ProtectedRoute allowedRoles={['instructor']} />}>
+              {/* Instructor area (accessible to instructors and admin) */}
+              <Route element={<ProtectedRoute allowedRoles={['instructor', 'admin']} />}>
                 <Route path="instructor" element={<InstructorDashboard />} />
               </Route>
 
