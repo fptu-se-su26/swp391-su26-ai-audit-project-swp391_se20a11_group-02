@@ -263,5 +263,61 @@ public class InstructorCourseController {
 
     }
 
+    @PatchMapping("/courses/{id}/deactivate")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<Void>> deactivateCourse(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id) {
+        
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        instructorCourseService.deactivateCourse(userId, id);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Course deactivated successfully")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
+    @PatchMapping("/courses/{id}/reactivate")
+    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<Void>> reactivateCourse(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long id) {
+        
+        Integer userId = null;
+        if (jwt != null) {
+            Number idClaim = jwt.getClaim("userId");
+            if (idClaim != null) {
+                userId = idClaim.intValue();
+            }
+        }
+
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        instructorCourseService.reactivateCourse(userId, id);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(200)
+                .code(1000)
+                .message("Course reactivated successfully")
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
 }
 

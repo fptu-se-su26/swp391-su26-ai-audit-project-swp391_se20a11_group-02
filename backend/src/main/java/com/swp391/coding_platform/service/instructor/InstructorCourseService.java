@@ -49,6 +49,29 @@ public class InstructorCourseService {
     private final com.swp391.coding_platform.repository.category.CategoryRepository categoryRepository;
     private final Judge0ClientService judge0ClientService;
     private final CourseModerationListener courseModerationListener;
+    private final com.swp391.coding_platform.service.cart.CartService cartService;
+
+    @Transactional
+    public void deactivateCourse(Integer userId, Long courseId) {
+        InstructorEntity instructor = getInstructorByUserId(userId);
+        CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        course.setStatus(CourseStatus.INACTIVE);
+        courseRepository.save(course);
+        
+        cartService.removeCourseFromAllCarts(courseId);
+    }
+
+    @Transactional
+    public void reactivateCourse(Integer userId, Long courseId) {
+        InstructorEntity instructor = getInstructorByUserId(userId);
+        CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+        course.setStatus(CourseStatus.APPROVED);
+        courseRepository.save(course);
+    }
 
     public InstructorCourseDetailResponse getCourseDetail(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
@@ -147,6 +170,8 @@ public class InstructorCourseService {
                 status = "review";
             } else if ("REJECTED".equalsIgnoreCase(course.getStatus().name())) {
                 status = "rejected";
+            } else if ("INACTIVE".equalsIgnoreCase(course.getStatus().name())) {
+                status = "inactive";
             }
 
             // Map gradient & icon based on topic/id
@@ -639,6 +664,8 @@ public class InstructorCourseService {
             status = "review";
         } else if ("REJECTED".equalsIgnoreCase(saved.getStatus().name())) {
             status = "rejected";
+        } else if ("INACTIVE".equalsIgnoreCase(saved.getStatus().name())) {
+            status = "inactive";
         }
         String gradient = "from-orange-400 to-primary";
         if (saved.getId() % 3 == 0) gradient = "from-blue-500 to-indigo-600";
