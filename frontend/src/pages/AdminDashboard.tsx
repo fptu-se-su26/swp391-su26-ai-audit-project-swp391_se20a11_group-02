@@ -4359,7 +4359,7 @@ export const AdminDashboard: React.FC = () => {
                           contestSubTab === 'trash' ? 'border-primary text-primary font-black' : 'border-transparent text-slate-400 hover:text-slate-600'
                         }`}
                       >
-                        Trash
+                        Inactive Contests
                       </button>
                     </div>
                   </div>
@@ -4405,8 +4405,8 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Contests Table */}
-                <div className="bg-surface rounded-2xl border border-slate-200/50 overflow-hidden ambient-shadow">
-                  <div className="overflow-x-auto">
+                <div className="bg-surface rounded-2xl border border-slate-200/50 ambient-shadow">
+                  <div className="overflow-x-auto min-h-[280px] rounded-2xl">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-xs font-black text-text-muted border-b border-slate-100 uppercase tracking-wider">
@@ -4437,82 +4437,97 @@ export const AdminDashboard: React.FC = () => {
                               }`}>{c.status}</span>
                             </td>
                             <td className="py-4 px-6 text-center">
-                              <div className="flex justify-center gap-2">
-                                {contestSubTab === 'active' ? (
-                                  <>
-                                    <button
-                                      onClick={() => {
-                                        setReviewingContest(c);
-                                        setReviewContestTab('overview');
-                                        setReviewContestProblemId(null);
-                                      }}
-                                      className="bg-primary hover:bg-primary-hover text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
-                                    >
-                                      Detail
-                                    </button>
-                                    {c.status === 'DRAFT' && (
-                                      <button
-                                        onClick={() => handlePublishContest(c)}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
-                                      >
-                                        Publish
-                                      </button>
-                                    )}
-                                    {c.status === 'UPCOMING' && (
-                                      <button
-                                        onClick={() => handleUnpublishContest(c.id)}
-                                        className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
-                                      >
-                                        Unpublish
-                                      </button>
-                                    )}
-                                    {(c.status === 'UPCOMING' || c.status === 'DRAFT') && (
-                                      <button
-                                        onClick={() => {
-                                          triggerConfirm(
-                                            "Move Contest to Trash",
-                                            "Are you sure you want to move this contest to trash?",
-                                            () => handleDeleteContest(c.id)
-                                          );
-                                        }}
-                                        className="bg-red-500 hover:bg-red-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
-                                      >
-                                        Delete
-                                      </button>
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    <button
-                                      onClick={() => handleRestoreContest(c.id)}
-                                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
-                                    >
-                                      Restore
-                                    </button>
-                                    {c.submissionCount === 0 ? (
-                                      <button
-                                        onClick={() => {
-                                          triggerConfirm(
-                                            "Permanently Delete Contest",
-                                            "Are you sure you want to permanently delete this contest? This action is irreversible.",
-                                            () => handleHardDeleteContest(c.id)
-                                          );
-                                        }}
-                                        className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all shadow-sm border-none cursor-pointer"
-                                      >
-                                        Hard Delete
-                                      </button>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    setReviewingContest(c);
+                                    setReviewContestTab('overview');
+                                    setReviewContestProblemId(null);
+                                  }}
+                                  className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-sm border-none cursor-pointer"
+                                  title="View Contest Details"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">visibility</span> View
+                                </button>
+
+                                <div className="relative group">
+                                  <button className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold p-1 rounded-lg transition-all flex items-center shadow-sm border-none cursor-pointer">
+                                    <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                                  </button>
+
+                                  {/* Dropdown Menu */}
+                                  <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-xl shadow-lg border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 flex flex-col overflow-hidden">
+                                    {contestSubTab === 'active' ? (
+                                      <>
+                                        {c.status === 'DRAFT' && (
+                                          <button
+                                            onClick={() => handlePublishContest(c)}
+                                            className="flex items-center gap-2 px-3 py-2 text-xs text-emerald-600 hover:bg-emerald-50 font-bold text-left transition-colors w-full border-none cursor-pointer"
+                                          >
+                                            <span className="material-symbols-outlined text-[14px]">publish</span> Publish
+                                          </button>
+                                        )}
+                                        {c.status === 'UPCOMING' && (
+                                          <button
+                                            onClick={() => handleUnpublishContest(c.id)}
+                                            className="flex items-center gap-2 px-3 py-2 text-xs text-amber-600 hover:bg-amber-50 font-bold text-left transition-colors w-full border-none cursor-pointer"
+                                          >
+                                            <span className="material-symbols-outlined text-[14px]">unpublished</span> Unpublish
+                                          </button>
+                                        )}
+                                        {(c.status === 'UPCOMING' || c.status === 'DRAFT') && (
+                                          <>
+                                            <div className="h-px bg-slate-100 w-full m-0"></div>
+                                            <button
+                                              onClick={() => {
+                                                triggerConfirm(
+                                                  "Move Contest to Inactive",
+                                                  "Are you sure you want to move this contest to inactive?",
+                                                  () => handleDeleteContest(c.id)
+                                                );
+                                              }}
+                                              className="flex items-center gap-2 px-3 py-2 text-xs text-rose-500 hover:bg-rose-50 font-bold text-left transition-colors w-full border-none cursor-pointer"
+                                            >
+                                              <span className="material-symbols-outlined text-[14px]">delete</span> Delete
+                                            </button>
+                                          </>
+                                        )}
+                                      </>
                                     ) : (
-                                      <button
-                                        disabled
-                                        title="Only contests with 0 submissions can be permanently deleted"
-                                        className="bg-slate-200 text-slate-400 font-bold text-[10px] px-3 py-1.5 rounded-xl border-none cursor-not-allowed"
-                                      >
-                                        Hard Delete
-                                      </button>
+                                      <>
+                                        <button
+                                          onClick={() => handleRestoreContest(c.id)}
+                                          className="flex items-center gap-2 px-3 py-2 text-xs text-emerald-600 hover:bg-emerald-50 font-bold text-left transition-colors w-full border-none cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-[14px]">restore</span> Restore
+                                        </button>
+                                        <div className="h-px bg-slate-100 w-full m-0"></div>
+                                        {c.submissionCount === 0 ? (
+                                          <button
+                                            onClick={() => {
+                                              triggerConfirm(
+                                                "Permanently Delete Contest",
+                                                "Are you sure you want to permanently delete this contest? This action is irreversible.",
+                                                () => handleHardDeleteContest(c.id)
+                                              );
+                                            }}
+                                            className="flex items-center gap-2 px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 font-bold text-left transition-colors w-full border-none cursor-pointer"
+                                          >
+                                            <span className="material-symbols-outlined text-[14px]">delete_forever</span> Hard Delete
+                                          </button>
+                                        ) : (
+                                          <button
+                                            disabled
+                                            title="Only contests with 0 submissions can be permanently deleted"
+                                            className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 font-bold text-left cursor-not-allowed w-full border-none"
+                                          >
+                                            <span className="material-symbols-outlined text-[14px]">delete_forever</span> Hard Delete
+                                          </button>
+                                        )}
+                                      </>
                                     )}
-                                  </>
-                                )}
+                                  </div>
+                                </div>
                               </div>
                             </td>
                           </tr>
