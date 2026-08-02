@@ -11,4 +11,6 @@ public interface ContestWinnerRepository extends JpaRepository<ContestWinnerEnti
     List<ContestWinnerEntity> findByContestId(Integer contestId);
 
     List<ContestWinnerEntity> findByUserId(Integer userId);
+
+    boolean existsByContestIdAndUserId(Integer contestId, Integer userId);
 }
