@@ -54,6 +54,7 @@ public enum ErrorCode {
     COURSE_INACTIVE(3001, "Course is not active", HttpStatus.BAD_REQUEST),
     COURSE_IS_NOT_FREE(3002, "Course is not free", HttpStatus.BAD_REQUEST),
     COURSE_TITLE_ALREADY_EXISTS(3003, "Course title already exists", HttpStatus.CONFLICT),
+    AI_MODERATION_LIMIT_EXCEEDED(3004, "Mỗi giảng viên chỉ được gửi kiểm duyệt AI tối đa 5 lần/ngày. Vui lòng thử lại vào ngày mai.", HttpStatus.TOO_MANY_REQUESTS),
     LESSON_NOT_FOUND(3200, "Lesson not found", HttpStatus.NOT_FOUND),
     LESSON_INACTIVE(3201, "Lesson is inactive and cannot be edited", HttpStatus.FORBIDDEN),
     ACCESS_DENIED_COURSE(3300, "Cannot access course", HttpStatus.CONFLICT),

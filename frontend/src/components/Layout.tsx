@@ -19,6 +19,8 @@ export interface ContestOverviewData {
   isUserRegistered: boolean;
 }
 
+import { fetchWithAutoRefresh } from '../services/apiClient';
+
 export const Layout: React.FC = () => {
   const { user, cart, logout } = useApp();
   const navigate = useNavigate();
@@ -78,7 +80,7 @@ export const Layout: React.FC = () => {
   const fetchContest = React.useCallback(async () => {
     if (!contestId) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}`, {
+      const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}`, {
         credentials: 'include',
       });
       const data = await response.json();
@@ -174,7 +176,7 @@ export const Layout: React.FC = () => {
 
     setRegistering(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}/register`, {
+      const response = await fetchWithAutoRefresh(`${import.meta.env.VITE_API_BASE_URL || '/nonstopcoding'}/contests/${contestId}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -296,7 +298,7 @@ export const Layout: React.FC = () => {
             </nav>
             <div className="flex items-center gap-4">
               {/* Instructor Capsule Link */}
-              {user && user.role === 'instructor' && (
+              {user && (user.role === 'instructor' || user.role === 'admin') && (
                 <Link to="/instructor" className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-light/40 text-primary hover:bg-primary hover:text-white font-semibold text-xs md:text-sm transition-all select-none border border-primary/20 shrink-0">
                   <span className="material-symbols-outlined text-[16px] md:text-[18px] icon-fill">school</span>
                   <span>Instructor</span>
@@ -350,7 +352,7 @@ export const Layout: React.FC = () => {
                         <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Panel
                       </Link>
                     )}
-                    {user && user.role === 'instructor' && (
+                    {user && (user.role === 'instructor' || user.role === 'admin') && (
                       <Link to="/instructor" className="px-4 py-2 text-sm text-text-main hover:bg-surface-gray hover:text-primary transition-colors flex items-center gap-2">
                         <span className="material-symbols-outlined text-[18px]">school</span> Instructor Panel
                       </Link>
@@ -389,7 +391,7 @@ export const Layout: React.FC = () => {
       {/* Main content body with Outlet */}
       <main className={`relative z-10 flex-grow w-full min-w-0 ${(isInstructorRoute || isAdminRoute) ? '' : 'pt-16'}`}>
         {isContestPage ? (
-          <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10 h-[calc(100vh-64px)] overflow-hidden">
+          <div className={`flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10 ${isAdminRoute ? 'h-full' : 'h-[calc(100vh-64px)]'} overflow-hidden`}>
             {/* Main content column on the left (88%) */}
             <div className="w-full md:w-[88%] flex flex-col bg-surface-gray min-w-0 overflow-y-auto">
               <Outlet context={{ contest: effectiveContest, loading, error, fetchContest, timeLeft, timerLabel }} />

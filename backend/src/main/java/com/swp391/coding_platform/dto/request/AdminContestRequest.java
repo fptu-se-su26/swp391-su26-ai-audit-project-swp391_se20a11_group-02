@@ -1,6 +1,7 @@
 package com.swp391.coding_platform.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import jakarta.validation.constraints.PositiveOrZero;
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Data
@@ -35,4 +38,17 @@ public class AdminContestRequest {
     @NotNull(message = "End time cannot be null")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     Instant endTime;
+
+    @PositiveOrZero(message = "Reward for 1st place must be positive or zero")
+    @Digits(integer = 13, fraction = 2, message = "Reward for 1st place exceeds maximum limit")
+    BigDecimal reward1st;
+
+    @PositiveOrZero(message = "Reward for 2nd place must be positive or zero")
+    @Digits(integer = 13, fraction = 2, message = "Reward for 2nd place exceeds maximum limit")
+    BigDecimal reward2nd;
+
+    @PositiveOrZero(message = "Reward for 3rd place must be positive or zero")
+    @Digits(integer = 13, fraction = 2, message = "Reward for 3rd place exceeds maximum limit")
+    BigDecimal reward3rd;
 }
+

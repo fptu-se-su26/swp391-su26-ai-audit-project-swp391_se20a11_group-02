@@ -1,3 +1,5 @@
+import { fetchWithAutoRefresh } from './apiClient';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
 
 export interface DashboardStatsResponse {
@@ -42,7 +44,7 @@ export interface SubmissionStatisticResponse {
 
 export const dashboardService = {
   async getDashboardStats(): Promise<DashboardStatsResponse> {
-    const response = await fetch(`${BASE_URL}/me/dashboard-stats`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/dashboard-stats`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -60,7 +62,7 @@ export const dashboardService = {
   
   async getUserActivities(year?: number): Promise<UserActivityResponse> {
     const url = year ? `${BASE_URL}/me/activities?year=${year}` : `${BASE_URL}/me/activities`;
-    const response = await fetch(url, {
+    const response = await fetchWithAutoRefresh(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -77,7 +79,7 @@ export const dashboardService = {
   },
 
   async getEnrolledCourses(): Promise<CourseListItemResponse[]> {
-    const response = await fetch(`${BASE_URL}/me/enrolled-courses`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/enrolled-courses`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -94,7 +96,7 @@ export const dashboardService = {
   },
 
   async getSubmissionStatistics(): Promise<SubmissionStatisticResponse> {
-    const response = await fetch(`${BASE_URL}/me/submission-statistics`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/me/submission-statistics`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

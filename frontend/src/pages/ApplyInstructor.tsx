@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { fetchWithAutoRefresh } from '../services/apiClient';
 
 interface ApplicationStatusResponse {
   id: number;
@@ -39,7 +40,7 @@ export const ApplyInstructor: React.FC = () => {
 
   const fetchApplicationStatus = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/instructor-applications/my-status`, {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor-applications/my-status`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +88,7 @@ export const ApplyInstructor: React.FC = () => {
     setSuccessMsg('');
 
     try {
-      const response = await fetch(`${BASE_URL}/instructor-applications/apply`, {
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor-applications/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

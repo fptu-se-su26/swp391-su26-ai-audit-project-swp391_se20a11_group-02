@@ -133,4 +133,11 @@ backend/uploads/
 # ------------------------------------------
 # AI Memory Storage
 # ------------------------------------------
-backend/src/main/resources/storage/memories/
+backend/src/main/resources/storage/memories/
+
+# ------------------------------------------
+# Personal Local Scripts
+# ------------------------------------------
+/package.json
+
+

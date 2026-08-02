@@ -311,7 +311,7 @@ public class ContestServiceTest {
     }
 
     @Test
-    void testUpdateAdminContest_Ongoing_AllowedFieldsOnly() {
+    void testUpdateAdminContest_NonDraft_ShouldThrow() {
         Integer contestId = 1;
         Instant startTime = Instant.now().minus(1, ChronoUnit.HOURS);
         Instant endTime = Instant.now().plus(2, ChronoUnit.HOURS);
@@ -327,8 +327,6 @@ public class ContestServiceTest {
                 .build();
 
         when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
-        when(contestMapper.toAdminContestResponse(any(ContestEntity.class)))
-                .thenReturn(AdminContestResponse.builder().id(contestId).title("Updated Title").build());
 
         AdminContestRequest request = new AdminContestRequest();
         request.setTitle("Updated Title");
@@ -337,32 +335,8 @@ public class ContestServiceTest {
         request.setStartTime(startTime);
         request.setEndTime(endTime);
 
-        AdminContestResponse response = contestService.updateAdminContest(contestId, request);
-
-        assertNotNull(response);
-        assertEquals("Updated Title", response.getTitle());
-        assertEquals("Updated Title", contest.getTitle());
-        assertEquals("Updated Description", contest.getDescription());
-        verify(contestRepository, times(1)).save(contest);
-    }
-
-    @Test
-    void testDeleteAdminContest_Ongoing_ShouldThrow() {
-        Integer contestId = 1;
-        Instant startTime = Instant.now().minus(1, ChronoUnit.HOURS);
-        Instant endTime = Instant.now().plus(2, ChronoUnit.HOURS);
-
-        ContestEntity contest = ContestEntity.builder()
-                .id(contestId)
-                .startTime(startTime)
-                .endTime(endTime)
-                .status(ContestStatus.PUBLISHED)
-                .build();
-
-        when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
-
         AppException exception = assertThrows(AppException.class, () ->
-            contestService.deleteAdminContest(contestId)
+            contestService.updateAdminContest(contestId, request)
         );
 
         assertEquals(ErrorCode.INVALID_REQUEST, exception.getErrorCode());
@@ -370,28 +344,7 @@ public class ContestServiceTest {
     }
 
     @Test
-    void testDeleteAdminContest_Draft_ShouldSucceed() {
-        Integer contestId = 1;
-        Instant startTime = Instant.now().plus(1, ChronoUnit.HOURS);
-        Instant endTime = Instant.now().plus(2, ChronoUnit.HOURS);
-
-        ContestEntity contest = ContestEntity.builder()
-                .id(contestId)
-                .startTime(startTime)
-                .endTime(endTime)
-                .status(ContestStatus.DRAFT)
-                .build();
-
-        when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
-
-        contestService.deleteAdminContest(contestId);
-
-        assertEquals(ContestStatus.DELETED, contest.getStatus());
-        verify(contestRepository, times(1)).save(contest);
-    }
-
-    @Test
-    void testPublishAdminContest_Draft_ShouldSucceed() {
+    void testPublishAdminContest_DraftWithProblems_ShouldSucceed() {
         Integer contestId = 1;
         ContestEntity contest = ContestEntity.builder()
                 .id(contestId)
@@ -401,6 +354,7 @@ public class ContestServiceTest {
                 .build();
 
         when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
+        when(contestRepository.countProblems(contestId)).thenReturn(1L);
         when(contestMapper.toAdminContestResponse(any(ContestEntity.class)))
                 .thenReturn(AdminContestResponse.builder().id(contestId).databaseStatus("PUBLISHED").build());
 
@@ -408,6 +362,42 @@ public class ContestServiceTest {
 
         assertNotNull(response);
         assertEquals(ContestStatus.PUBLISHED, contest.getStatus());
+        verify(contestRepository, times(1)).save(contest);
+    }
+
+    @Test
+    void testPublishAdminContest_NoProblems_ShouldThrow() {
+        Integer contestId = 1;
+        ContestEntity contest = ContestEntity.builder()
+                .id(contestId)
+                .status(ContestStatus.DRAFT)
+                .build();
+
+        when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
+        when(contestRepository.countProblems(contestId)).thenReturn(0L);
+
+        AppException ex = assertThrows(AppException.class, () -> contestService.publishAdminContest(contestId));
+        assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
+    void testUnpublishAdminContest_Upcoming_ShouldSucceed() {
+        Integer contestId = 1;
+        ContestEntity contest = ContestEntity.builder()
+                .id(contestId)
+                .status(ContestStatus.PUBLISHED)
+                .startTime(Instant.now().plus(1, ChronoUnit.HOURS))
+                .endTime(Instant.now().plus(2, ChronoUnit.HOURS))
+                .build();
+
+        when(contestRepository.findById(contestId)).thenReturn(Optional.of(contest));
+        when(contestMapper.toAdminContestResponse(any(ContestEntity.class)))
+                .thenReturn(AdminContestResponse.builder().id(contestId).databaseStatus("DRAFT").build());
+
+        AdminContestResponse response = contestService.unpublishAdminContest(contestId);
+
+        assertNotNull(response);
+        assertEquals(ContestStatus.DRAFT, contest.getStatus());
         verify(contestRepository, times(1)).save(contest);
     }
 
@@ -574,4 +564,90 @@ public class ContestServiceTest {
         );
         assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
     }
+
+    // ======================== Contest Award & Time Validation Tests ========================
+
+    @Test
+    void createAdminContest_Success_WithRewards() {
+        Integer adminUserId = 1;
+        UserEntity creator = UserEntity.builder().id(adminUserId).displayname("Admin").build();
+        Instant startTime = Instant.now().plus(1, ChronoUnit.HOURS);
+        Instant endTime = Instant.now().plus(3, ChronoUnit.HOURS);
+
+        AdminContestRequest request = new AdminContestRequest();
+        request.setTitle("Contest with Awards");
+        request.setDescription("Description");
+        request.setScoringRule("ICPC");
+        request.setStartTime(startTime);
+        request.setEndTime(endTime);
+        request.setReward1st(java.math.BigDecimal.valueOf(1000));
+        request.setReward2nd(java.math.BigDecimal.valueOf(500));
+        request.setReward3rd(java.math.BigDecimal.valueOf(200));
+
+        ContestEntity savedContest = ContestEntity.builder()
+                .id(10)
+                .title("Contest with Awards")
+                .reward1st(java.math.BigDecimal.valueOf(1000))
+                .reward2nd(java.math.BigDecimal.valueOf(500))
+                .reward3rd(java.math.BigDecimal.valueOf(200))
+                .build();
+
+        when(userRepository.findById(adminUserId)).thenReturn(Optional.of(creator));
+        when(contestRepository.save(any(ContestEntity.class))).thenReturn(savedContest);
+        when(contestRepository.findById(10)).thenReturn(Optional.of(savedContest));
+        when(contestMapper.toAdminContestResponse(savedContest)).thenReturn(
+                AdminContestResponse.builder()
+                        .id(10)
+                        .title("Contest with Awards")
+                        .reward1st(java.math.BigDecimal.valueOf(1000))
+                        .reward2nd(java.math.BigDecimal.valueOf(500))
+                        .reward3rd(java.math.BigDecimal.valueOf(200))
+                        .build()
+        );
+
+        AdminContestResponse res = contestService.createAdminContest(request, adminUserId);
+
+        assertNotNull(res);
+        assertEquals(java.math.BigDecimal.valueOf(1000), res.getReward1st());
+        assertEquals(java.math.BigDecimal.valueOf(500), res.getReward2nd());
+        assertEquals(java.math.BigDecimal.valueOf(200), res.getReward3rd());
+    }
+
+    @Test
+    void createAdminContest_StartTimeAfterEndTime_ShouldThrow() {
+        Integer adminUserId = 1;
+        Instant startTime = Instant.now().plus(3, ChronoUnit.HOURS);
+        Instant endTime = Instant.now().plus(1, ChronoUnit.HOURS);
+
+        AdminContestRequest request = new AdminContestRequest();
+        request.setTitle("Invalid Time Contest");
+        request.setStartTime(startTime);
+        request.setEndTime(endTime);
+
+        AppException ex = assertThrows(AppException.class, () ->
+            contestService.createAdminContest(request, adminUserId)
+        );
+
+        assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+        verify(contestRepository, never()).save(any());
+    }
+
+    @Test
+    void updateAdminContest_StartTimeAfterEndTime_ShouldThrow() {
+        Integer contestId = 1;
+        Instant startTime = Instant.now().plus(3, ChronoUnit.HOURS);
+        Instant endTime = Instant.now().plus(1, ChronoUnit.HOURS);
+
+        AdminContestRequest request = new AdminContestRequest();
+        request.setStartTime(startTime);
+        request.setEndTime(endTime);
+
+        AppException ex = assertThrows(AppException.class, () ->
+            contestService.updateAdminContest(contestId, request)
+        );
+
+        assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+        verify(contestRepository, never()).save(any());
+    }
 }
+

@@ -1,67 +1,6 @@
+import { fetchWithAutoRefresh } from './apiClient';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/nonstopcoding';
-
-// Helper: tự động refresh token khi gặp 401, rồi retry lại request (có queue để tránh race condition khi gọi nhiều API song song)
-let isRefreshing = false;
-let refreshSubscribers: (() => void)[] = [];
-
-function subscribeTokenRefresh(cb: () => void) {
-  refreshSubscribers.push(cb);
-}
-
-function onRefreshed() {
-  refreshSubscribers.forEach(cb => cb());
-  refreshSubscribers = [];
-}
-
-function onRefreshFailed() {
-  refreshSubscribers.forEach(cb => cb());
-  refreshSubscribers = [];
-}
-
-async function fetchWithAutoRefresh(input: RequestInfo, init?: RequestInit): Promise<Response> {
-  let response = await fetch(input, init);
-
-  if (response.status === 401) {
-    // Không refresh nếu đây chính là request refresh token
-    const urlString = typeof input === 'string' ? input : (input as Request).url;
-    if (urlString.includes('/auth/refresh')) {
-      return response;
-    }
-
-    if (!isRefreshing) {
-      isRefreshing = true;
-      try {
-        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
-          method: 'POST',
-          credentials: 'include',
-        });
-        if (refreshRes.ok) {
-          isRefreshing = false;
-          onRefreshed();
-          return fetch(input, init);
-        } else {
-          isRefreshing = false;
-          onRefreshFailed();
-          console.warn('[Auth] Refresh token hết hạn, cần đăng nhập lại.');
-          localStorage.removeItem('user_info');
-          window.location.href = '/login';
-        }
-      } catch (err) {
-        isRefreshing = false;
-        onRefreshFailed();
-        console.warn('[Auth] Không thể refresh token:', err);
-      }
-    } else {
-      return new Promise<Response>((resolve) => {
-        subscribeTokenRefresh(() => {
-          resolve(fetch(input, init));
-        });
-      });
-    }
-  }
-
-  return response;
-}
 
 
 export interface AdminDashboardStats {
@@ -311,6 +250,10 @@ export interface AdminContest {
   password?: string;
   isDeleted?: boolean;
   databaseStatus?: string;
+  reward1st?: number;
+  reward2nd?: number;
+  reward3rd?: number;
+  problemCount?: number;
 }
 
 export interface ActivityLog {
@@ -998,7 +941,7 @@ export const adminService = {
   },
 
   async deleteProblem(problemId: number): Promise<void> {
-    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}`, {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}`, {
       method: 'DELETE',
       credentials: 'include'
     });
@@ -1032,7 +975,7 @@ export const adminService = {
   },
 
   async getTags(): Promise<{ id: number; name: string; slug: string }[]> {
-    const response = await fetch(`${BASE_URL}/admin/problems/tags`, { credentials: 'include' });
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/tags`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch problem tags');
     }
@@ -1200,6 +1143,19 @@ export const adminService = {
     return data.result;
   },
 
+  async unpublishContest(contestId: number): Promise<AdminContest> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/unpublish`, {
+      method: 'PUT',
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Failed to unpublish contest');
+    }
+    const data = await response.json();
+    return data.result;
+  },
+
   async restoreContest(contestId: number): Promise<AdminContest> {
     const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/contests/${contestId}/restore`, {
       method: 'PUT',
@@ -1272,7 +1228,7 @@ export const adminService = {
 
   async getFinancialTopCourses(): Promise<TopRevenueCourse[]> {
     try {
-      const response = await fetch(`${BASE_URL}/admin/financial/top-courses`, { credentials: 'include' });
+      const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/financial/top-courses`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         return data.result;
@@ -1290,7 +1246,7 @@ export const adminService = {
   },
 
   async getFinancialDetails(): Promise<AdminFinancialDetails> {
-    const response = await fetch(`${BASE_URL}/admin/financial/details`, { credentials: 'include' });
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/financial/details`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch financial audit details');
     }
@@ -1302,7 +1258,7 @@ export const adminService = {
     let url = `${BASE_URL}/admin/financial/orders?page=${page}&limit=${limit}`;
     if (startDate) url += `&startDate=${startDate}`;
     if (endDate) url += `&endDate=${endDate}`;
-    const response = await fetch(url, { credentials: 'include' });
+    const response = await fetchWithAutoRefresh(url, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch financial orders');
     }
@@ -1314,7 +1270,7 @@ export const adminService = {
     let url = `${BASE_URL}/admin/financial/awards?page=${page}&limit=${limit}`;
     if (startDate) url += `&startDate=${startDate}`;
     if (endDate) url += `&endDate=${endDate}`;
-    const response = await fetch(url, { credentials: 'include' });
+    const response = await fetchWithAutoRefresh(url, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch financial awards');
     }
@@ -1326,7 +1282,7 @@ export const adminService = {
     let url = `${BASE_URL}/admin/financial/sales?page=${page}&limit=${limit}`;
     if (startDate) url += `&startDate=${startDate}`;
     if (endDate) url += `&endDate=${endDate}`;
-    const response = await fetch(url, { credentials: 'include' });
+    const response = await fetchWithAutoRefresh(url, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch financial sales');
     }
@@ -1338,7 +1294,7 @@ export const adminService = {
     let url = `${BASE_URL}/admin/financial/payouts?page=${page}&limit=${size}`;
     if (startDate) url += `&startDate=${startDate}`;
     if (endDate) url += `&endDate=${endDate}`;
-    const response = await fetch(url, { credentials: 'include' });
+    const response = await fetchWithAutoRefresh(url, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to fetch financial payouts');
     }
@@ -1347,7 +1303,7 @@ export const adminService = {
   },
 
   async getProblemTestcases(problemId: number): Promise<AdminProblemTestcase[]> {
-    const response = await fetch(`${BASE_URL}/admin/problems/${problemId}/testcases`, { credentials: 'include' });
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/admin/problems/${problemId}/testcases`, { credentials: 'include' });
     if (!response.ok) {
       throw new Error('Failed to load test cases from database');
     }

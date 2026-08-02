@@ -18,7 +18,13 @@ import java.time.Instant;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "wallet_transactions", schema = "public")
+@Table(
+    name = "wallet_transactions",
+    schema = "public",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"type", "reference_id"})
+    }
+)
 public class WalletTransactionEntity {
 
     @Id
