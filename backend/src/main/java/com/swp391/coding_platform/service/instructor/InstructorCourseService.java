@@ -222,6 +222,23 @@ public class InstructorCourseService {
     public void submitCourseForReview(Integer userId, Long courseId) {
         InstructorEntity instructor = getInstructorByUserId(userId);
 
+        // 0. Rate limit: tối đa 5 lần submit AI/ngày cho mỗi Instructor
+        String todayStr = java.time.LocalDate.now().toString();
+        String redisKey = "ai_moderation_limit:instructor:" + userId + ":" + todayStr;
+
+        try {
+            String currentCountStr = redisTemplate.opsForValue().get(redisKey);
+            int currentCount = currentCountStr != null ? Integer.parseInt(currentCountStr) : 0;
+            if (currentCount >= 5) {
+                log.warn("Instructor {} đã vượt quá giới hạn submit AI kiểm duyệt 5 lần/ngày ({})", userId, todayStr);
+                throw new AppException(ErrorCode.AI_MODERATION_LIMIT_EXCEEDED);
+            }
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Lỗi khi kết nối Redis kiểm tra rate limit AI moderation: {}", e.getMessage());
+        }
+
         // 1. Kiểm tra khóa học tồn tại và thuộc về instructor này
         CourseEntity course = courseRepository.findByIdAndInstructorId(courseId, instructor.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
@@ -230,6 +247,16 @@ public class InstructorCourseService {
         if (course.getStatus() != CourseStatus.DRAFTS && course.getStatus() != CourseStatus.REJECTED) {
             log.warn("Không thể submit khóa học {} với trạng thái hiện tại: {}", courseId, course.getStatus());
             throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        // Tăng đếm số lần submit trong ngày trong Redis
+        try {
+            Long count = redisTemplate.opsForValue().increment(redisKey);
+            if (count != null && count == 1) {
+                redisTemplate.expire(redisKey, 24, java.util.concurrent.TimeUnit.HOURS);
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi cập nhật đếm Redis rate limit: {}", e.getMessage());
         }
 
         // 3. Đổi status sang PENDING_AI và lưu
