@@ -36,8 +36,7 @@ public class ContestRewardExecutor {
         log.info("[REWARD] Distributing {} to User {} for Rank {} (ref: {})", prize, userId, rank, referenceId);
 
         // 1. Kiểm tra Check-then-Act tránh throw exception trùng lặp
-        boolean winnerExists = contestWinnerRepository.findByContestId(contestId).stream()
-                .anyMatch(w -> w.getRank() == rank && w.getUser().getId().equals(userId));
+        boolean winnerExists = contestWinnerRepository.existsByContestIdAndUserId(contestId, userId);
 
         if (winnerExists) {
             log.info("[REWARD-IDEMPOTENT] Winner record already exists for contest {} rank {}. Skipping.", contestId, rank);

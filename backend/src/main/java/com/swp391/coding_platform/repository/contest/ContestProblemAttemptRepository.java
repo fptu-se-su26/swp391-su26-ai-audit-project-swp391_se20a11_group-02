@@ -19,10 +19,10 @@ public interface ContestProblemAttemptRepository extends JpaRepository<ContestPr
     @Query("SELECT a FROM ContestProblemAttemptEntity a WHERE a.contest.id = :contestId AND a.user.id = :userId AND a.problem.id = :problemId")
     Optional<ContestProblemAttemptEntity> findByContestIdAndUserIdAndProblemId(@Param("contestId") Integer contestId, @Param("userId") Integer userId, @Param("problemId") Integer problemId);
 
+    @Query("SELECT a FROM ContestProblemAttemptEntity a WHERE a.contest.id = :contestId AND a.isSolved = true AND a.solvedAtSeconds IS NOT NULL ORDER BY a.solvedAtSeconds ASC")
+    List<ContestProblemAttemptEntity> findSolvedAttemptsByContestId(@Param("contestId") Integer contestId);
+
     @Modifying
     @Query("DELETE FROM ContestProblemAttemptEntity a WHERE a.problem.id = :problemId")
     void deleteByProblemId(@Param("problemId") Integer problemId);
-
-    @Query("SELECT a FROM ContestProblemAttemptEntity a WHERE a.contest.id = :contestId AND a.isSolved = true")
-    List<ContestProblemAttemptEntity> findSolvedAttemptsByContestId(@Param("contestId") Integer contestId);
 }

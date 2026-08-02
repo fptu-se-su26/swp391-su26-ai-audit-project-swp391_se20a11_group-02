@@ -4072,7 +4072,7 @@ export const StudentDashboard: React.FC = () => {
                           </div>
 
                           {/* Middle Section: Performance stats box */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border border-slate-100/70 bg-slate-50/60 rounded-2xl p-4.5 mt-1 relative overflow-hidden">
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 border border-slate-100/70 bg-slate-50/60 rounded-2xl p-4.5 mt-1 relative overflow-hidden">
                             <div className="flex items-center gap-3 relative z-10">
                               <div className="w-9 h-9 rounded-xl bg-blue-50/80 flex items-center justify-center text-brand-blue shrink-0">
                                 <span className="material-symbols-outlined text-lg opacity-90">leaderboard</span>
@@ -4084,10 +4084,10 @@ export const StudentDashboard: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-3 relative z-10 sm:border-l sm:border-slate-200/50 sm:pl-4">
                               <div className="w-9 h-9 rounded-xl bg-orange-50/80 flex items-center justify-center text-primary shrink-0">
-                                <span className="material-symbols-outlined text-lg opacity-90">stars</span>
+                                <span className="material-symbols-outlined text-lg opacity-90">timer</span>
                               </div>
                               <div>
-                                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Contest Score</p>
+                                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Total Penalty</p>
                                 <p className="text-sm font-black text-brand-blue mt-0.5">{contest.score} mins penalty</p>
                               </div>
                             </div>
@@ -4098,6 +4098,23 @@ export const StudentDashboard: React.FC = () => {
                               <div>
                                 <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Problems Solved</p>
                                 <p className="text-sm font-black text-brand-blue mt-0.5">{contest.problemsSolved}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 relative z-10 sm:border-l sm:border-slate-200/50 sm:pl-4">
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                (contest.rewardWon || 0) > 0 ? 'bg-amber-100/90 text-amber-600 font-bold' : 'bg-slate-100/80 text-slate-400'
+                              }`}>
+                                <span className="material-symbols-outlined text-lg opacity-90">
+                                  {(contest.rewardWon || 0) > 0 ? 'emoji_events' : 'money_off'}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Prize Won</p>
+                                <p className={`text-sm mt-0.5 ${
+                                  (contest.rewardWon || 0) > 0 ? 'text-amber-600 font-black' : 'text-slate-400 font-bold'
+                                }`}>
+                                  {(contest.rewardWon || 0) > 0 ? `+${contest.rewardWon?.toLocaleString()} VND` : 'None'}
+                                </p>
                               </div>
                             </div>
                           </div>

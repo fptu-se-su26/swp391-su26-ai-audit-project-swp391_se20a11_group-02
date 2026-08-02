@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface ContestWinnerRepository extends JpaRepository<ContestWinnerEntity, Integer> {
     List<ContestWinnerEntity> findByContestId(Integer contestId);
+
+    List<ContestWinnerEntity> findByUserId(Integer userId);
+
+    boolean existsByContestIdAndUserId(Integer contestId, Integer userId);
 }

@@ -17,6 +17,9 @@ export interface ContestOverviewData {
   participantCount: number;
   problemCount: number;
   isUserRegistered: boolean;
+  reward1st?: number;
+  reward2nd?: number;
+  reward3rd?: number;
 }
 
 import { fetchWithAutoRefresh } from '../services/apiClient';

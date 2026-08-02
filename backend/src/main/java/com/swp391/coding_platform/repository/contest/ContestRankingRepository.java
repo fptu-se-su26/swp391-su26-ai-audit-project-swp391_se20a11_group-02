@@ -28,7 +28,7 @@ public interface ContestRankingRepository extends JpaRepository<ContestRankingEn
             @Param("userId") Integer userId,
             @Param("contestIds") java.util.List<Integer> contestIds);
 
-    @Query("SELECT r FROM ContestRankingEntity r WHERE r.contest.id = :contestId ORDER BY r.problemsSolved DESC, r.totalPenalty ASC, r.updatedAt ASC")
+    @Query("SELECT r FROM ContestRankingEntity r JOIN FETCH r.user WHERE r.contest.id = :contestId ORDER BY r.problemsSolved DESC, r.totalPenalty ASC, r.updatedAt ASC")
     java.util.List<ContestRankingEntity> findByContestIdOrderByProblemsSolvedDescTotalPenaltyAscUpdatedAtAsc(
             @Param("contestId") Integer contestId);
 }

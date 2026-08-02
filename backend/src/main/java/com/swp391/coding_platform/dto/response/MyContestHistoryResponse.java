@@ -18,4 +18,5 @@ public class MyContestHistoryResponse {
     Long totalParticipants;
     Integer problemsSolved;
     Integer score; // Total penalty in minutes
+    java.math.BigDecimal rewardWon;
 }

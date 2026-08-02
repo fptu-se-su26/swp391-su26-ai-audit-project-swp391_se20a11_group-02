@@ -112,8 +112,7 @@ public class ContestFinalizationService {
     }
 
     private void distributeRewards(ContestEntity contest, List<ContestScoreboardResponse.TeamRow> scoreboard) {
-        int maxWinners = Math.min(scoreboard.size(), 3);
-        if (maxWinners == 0) return;
+        if (scoreboard.isEmpty()) return;
 
         BigDecimal[] baseRewards = new BigDecimal[3];
         baseRewards[0] = contest.getReward1st() != null ? contest.getReward1st() : BigDecimal.ZERO;
@@ -121,17 +120,21 @@ public class ContestFinalizationService {
         baseRewards[2] = contest.getReward3rd() != null ? contest.getReward3rd() : BigDecimal.ZERO;
 
         int i = 0;
-        while (i < maxWinners) {
+        while (i < scoreboard.size()) {
             int currentRank = scoreboard.get(i).getRank();
+            
+            if (currentRank > 3) {
+                break;
+            }
 
             int j = i;
-            while (j < maxWinners && scoreboard.get(j).getRank() == currentRank) {
+            while (j < scoreboard.size() && scoreboard.get(j).getRank() == currentRank) {
                 j++;
             }
             int tiedCount = j - i;
 
             BigDecimal totalPool = BigDecimal.ZERO;
-            for (int pos = i; pos < j; pos++) {
+            for (int pos = i; pos < Math.min(j, 3); pos++) {
                 totalPool = totalPool.add(baseRewards[pos]);
             }
 

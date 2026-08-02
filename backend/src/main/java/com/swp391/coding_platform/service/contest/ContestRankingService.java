@@ -383,6 +383,7 @@ public class ContestRankingService {
         return String.format("%d:%02d:%02d", hrs, mins, secs);
     }
 
+    @Transactional(readOnly = true)
     public ContestScoreboardResponse getScoreboardFromDb(Integer contestId) {
         log.info("[FALLBACK] Rebuilding scoreboard from DB for contest {}", contestId);
         List<ContestRankingEntity> rankings = contestRankingRepository
