@@ -67,6 +67,7 @@ public class ContestService {
     ProblemTagMappingRepository problemTagMappingRepository;
     PasswordEncoder passwordEncoder;
     com.swp391.coding_platform.repository.contest.ContestRankingRepository contestRankingRepository;
+    com.swp391.coding_platform.repository.contest.ContestWinnerRepository contestWinnerRepository;
     org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
 
@@ -860,6 +861,14 @@ public class ContestService {
                         r -> r
                 ));
 
+        List<com.swp391.coding_platform.entity.contest.ContestWinnerEntity> userWinners = contestWinnerRepository.findByUserId(userId);
+        Map<Integer, java.math.BigDecimal> winnerMap = userWinners.stream()
+                .collect(Collectors.toMap(
+                        w -> w.getContest().getId(),
+                        w -> w.getRewardAmount() != null ? w.getRewardAmount() : java.math.BigDecimal.ZERO,
+                        (existing, replacement) -> existing
+                ));
+
         Instant now = Instant.now();
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                 .ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -877,6 +886,7 @@ public class ContestService {
             int rank = calculateUserRank(contestId, userId, rankingEntity, totalParticipants);
             int solved = rankingEntity != null ? rankingEntity.getProblemsSolved() : 0;
             int penalty = rankingEntity != null ? rankingEntity.getTotalPenalty() : 0;
+            java.math.BigDecimal rewardWon = winnerMap.getOrDefault(contestId, java.math.BigDecimal.ZERO);
 
             String status = calculateStatus(contest, now);
 
@@ -890,6 +900,7 @@ public class ContestService {
                     .totalParticipants(totalParticipants)
                     .problemsSolved(solved)
                     .score(penalty)
+                    .rewardWon(rewardWon)
                     .build());
         }
 
