@@ -3263,6 +3263,15 @@ export const AdminDashboard: React.FC = () => {
                 </h1>
                 <p className="text-text-muted mt-1">{tabHeaderDetails[activeTab]?.desc || 'Manage courses, instructors, users, program problems, contests, and view statistics.'}</p>
               </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <Link
+                  to="/instructor"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">school</span>
+                  Instructor Panel 🎓
+                </Link>
+              </div>
             </div>
 
             {loading ? (
