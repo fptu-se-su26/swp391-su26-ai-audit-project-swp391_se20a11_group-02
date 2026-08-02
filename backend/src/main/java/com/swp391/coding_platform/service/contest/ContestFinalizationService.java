@@ -34,6 +34,7 @@ public class ContestFinalizationService {
     UserRepository userRepository;
     WalletService walletService;
     ContestRankingService contestRankingService;
+    ContestRewardExecutor contestRewardExecutor;
     ObjectMapper objectMapper;
 
     /**
@@ -79,11 +80,12 @@ public class ContestFinalizationService {
         Instant now = Instant.now();
 
         // Điều kiện Lock: PENDING, FAILED hoặc đang FINALIZING nhưng đã bị treo quá 10 phút
-        boolean isEligible = currentStatus == FinalizationStatus.PENDING 
+        boolean isEligible = contest.getStatus() == com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED
+                && (currentStatus == FinalizationStatus.PENDING 
                 || currentStatus == FinalizationStatus.FAILED
                 || (currentStatus == FinalizationStatus.FINALIZING 
                     && contest.getFinalizationStartedAt() != null 
-                    && contest.getFinalizationStartedAt().isBefore(now.minusSeconds(600)));
+                    && contest.getFinalizationStartedAt().isBefore(now.minusSeconds(600))));
 
         if (!isEligible) {
             return false;
@@ -111,63 +113,51 @@ public class ContestFinalizationService {
 
     private void distributeRewards(ContestEntity contest, List<ContestScoreboardResponse.TeamRow> scoreboard) {
         int maxWinners = Math.min(scoreboard.size(), 3);
-        for (int i = 0; i < maxWinners; i++) {
-            ContestScoreboardResponse.TeamRow row = scoreboard.get(i);
-            int rank = row.getRank();
-            
-            BigDecimal prize = BigDecimal.ZERO;
-            if (rank == 1) prize = contest.getReward1st();
-            else if (rank == 2) prize = contest.getReward2nd();
-            else if (rank == 3) prize = contest.getReward3rd();
+        if (maxWinners == 0) return;
 
-            if (prize == null || prize.compareTo(BigDecimal.ZERO) <= 0) {
-                log.info("[FINALIZER] Reward for Rank {} is 0 or null. Skipping reward logic.", rank);
-                continue;
+        BigDecimal[] baseRewards = new BigDecimal[3];
+        baseRewards[0] = contest.getReward1st() != null ? contest.getReward1st() : BigDecimal.ZERO;
+        baseRewards[1] = contest.getReward2nd() != null ? contest.getReward2nd() : BigDecimal.ZERO;
+        baseRewards[2] = contest.getReward3rd() != null ? contest.getReward3rd() : BigDecimal.ZERO;
+
+        int i = 0;
+        while (i < maxWinners) {
+            int currentRank = scoreboard.get(i).getRank();
+
+            int j = i;
+            while (j < maxWinners && scoreboard.get(j).getRank() == currentRank) {
+                j++;
+            }
+            int tiedCount = j - i;
+
+            BigDecimal totalPool = BigDecimal.ZERO;
+            for (int pos = i; pos < j; pos++) {
+                totalPool = totalPool.add(baseRewards[pos]);
             }
 
-            try {
-                // Phân phối thưởng độc lập trong một transaction mới (propagation = REQUIRES_NEW)
-                distributeRewardForWinner(contest.getId(), row.getUserId(), rank, prize);
-            } catch (Exception e) {
-                log.error("[FINALIZER] Failed to distribute reward for User {} at Rank {} in contest {}: {}",
-                        row.getUserId(), rank, contest.getId(), e.getMessage());
-                throw new RuntimeException("Error processing reward for rank " + rank + ": " + e.getMessage(), e);
+            BigDecimal prize = tiedCount > 0 
+                ? totalPool.divide(BigDecimal.valueOf(tiedCount), 2, java.math.RoundingMode.HALF_UP) 
+                : BigDecimal.ZERO;
+
+            for (int pos = i; pos < j; pos++) {
+                ContestScoreboardResponse.TeamRow row = scoreboard.get(pos);
+                if (prize.compareTo(BigDecimal.ZERO) <= 0) {
+                    log.info("[FINALIZER] Reward for Rank {} is 0 or null. Skipping reward logic.", row.getRank());
+                    continue;
+                }
+
+                try {
+                    // Phân phối thưởng qua ContestRewardExecutor (Spring AOP Proxy -> REQUIRES_NEW)
+                    contestRewardExecutor.distributeRewardForWinner(contest.getId(), row.getUserId(), row.getRank(), prize);
+                } catch (Exception e) {
+                    log.error("[FINALIZER] Failed to distribute reward for User {} at Rank {} in contest {}: {}",
+                            row.getUserId(), row.getRank(), contest.getId(), e.getMessage());
+                    throw new RuntimeException("Error processing reward for rank " + row.getRank() + ": " + e.getMessage(), e);
+                }
             }
+
+            i = j;
         }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void distributeRewardForWinner(Integer contestId, Integer userId, int rank, BigDecimal prize) {
-        String referenceId = "contest:" + contestId + ":rank:" + rank + ":user:" + userId;
-        log.info("[REWARD] Distributing {} to User {} for Rank {} (ref: {})", prize, userId, rank, referenceId);
-
-        // 1. Kiểm tra Check-then-Act tránh throw exception trùng lặp
-        boolean winnerExists = contestWinnerRepository.findByContestId(contestId).stream()
-                .anyMatch(w -> w.getRank() == rank && w.getUser().getId().equals(userId));
-
-        if (winnerExists) {
-            log.info("[REWARD-IDEMPOTENT] Winner record already exists for contest {} rank {}. Skipping.", contestId, rank);
-            return;
-        }
-
-        // 2. Thực hiện cộng ví an toàn (Idempotent)
-        WalletTransactionEntity walletTx = walletService.addContestReward(userId, prize, referenceId);
-
-        // 3. Ghi chép vào Contest_Winner
-        ContestEntity contestRef = contestRepository.getReferenceById(contestId);
-        UserEntity userRef = userRepository.getReferenceById(userId);
-
-        ContestWinnerEntity winner = ContestWinnerEntity.builder()
-                .contest(contestRef)
-                .user(userRef)
-                .rank(rank)
-                .rewardAmount(prize)
-                .walletTransaction(walletTx)
-                .createdAt(Instant.now())
-                .build();
-
-        contestWinnerRepository.save(winner);
-        log.info("[REWARD] Completed distribution for Rank {} to User {}", rank, userId);
     }
 
     @Transactional

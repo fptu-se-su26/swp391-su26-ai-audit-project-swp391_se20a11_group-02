@@ -83,7 +83,7 @@ public interface ContestRepository extends JpaRepository<ContestEntity, Integer>
             @Param("now") java.time.Instant now,
             Pageable pageable);
 
-    @Query("SELECT c FROM ContestEntity c WHERE c.endTime <= :now AND " +
+    @Query("SELECT c FROM ContestEntity c WHERE c.status = com.swp391.coding_platform.entity.enums.ContestStatus.PUBLISHED AND c.endTime <= :now AND " +
            "(c.finalizationStatus = com.swp391.coding_platform.entity.enums.FinalizationStatus.PENDING OR " +
            " c.finalizationStatus = com.swp391.coding_platform.entity.enums.FinalizationStatus.FAILED OR " +
            " (c.finalizationStatus = com.swp391.coding_platform.entity.enums.FinalizationStatus.FINALIZING AND c.finalizationStartedAt < :timeoutLimit))")

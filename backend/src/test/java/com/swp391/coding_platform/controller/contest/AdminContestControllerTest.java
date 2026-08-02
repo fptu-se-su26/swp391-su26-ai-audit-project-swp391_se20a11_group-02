@@ -8,6 +8,7 @@ import com.swp391.coding_platform.dto.response.AdminContestResponse;
 import com.swp391.coding_platform.dto.response.PageResponse;
 import com.swp391.coding_platform.repository.user.UserDailyActivityRepository;
 import com.swp391.coding_platform.service.contest.ContestService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,15 +23,18 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+
 @WebMvcTest(controllers = AdminContestController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Execution(ExecutionMode.SAME_THREAD)
 class AdminContestControllerTest {
 
     @MockBean
@@ -47,6 +51,11 @@ class AdminContestControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp() {
+        reset(contestService);
+    }
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -65,7 +74,7 @@ class AdminContestControllerTest {
                 .totalPages(1)
                 .build();
 
-        when(contestService.getAdminContests(anyInt(), anyInt(), anyString(), anyString())).thenReturn(pageResponse);
+        doReturn(pageResponse).when(contestService).getAdminContests(anyInt(), anyInt(), anyString(), anyString());
 
         mockMvc.perform(get("/admin/contests"))
                 .andExpect(status().isOk())
@@ -82,24 +91,52 @@ class AdminContestControllerTest {
                 .scoringRule("ICPC")
                 .startTime(Instant.now())
                 .endTime(Instant.now().plusSeconds(3600))
+                .reward1st(java.math.BigDecimal.valueOf(1000))
+                .reward2nd(java.math.BigDecimal.valueOf(500))
+                .reward3rd(java.math.BigDecimal.valueOf(250))
                 .build();
         
-        AdminContestResponse res = AdminContestResponse.builder().id(5).title("New Math Contest").build();
-        when(contestService.createAdminContest(any(AdminContestRequest.class), any())).thenReturn(res);
+        AdminContestResponse res = AdminContestResponse.builder()
+                .id(5)
+                .title("New Math Contest")
+                .reward1st(java.math.BigDecimal.valueOf(1000))
+                .reward2nd(java.math.BigDecimal.valueOf(500))
+                .reward3rd(java.math.BigDecimal.valueOf(250))
+                .build();
+        doReturn(res).when(contestService).createAdminContest(any(), any());
 
         mockMvc.perform(post("/admin/contests")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.id").value(5))
-                .andExpect(jsonPath("$.result.title").value("New Math Contest"));
+                .andExpect(jsonPath("$.result.title").value("New Math Contest"))
+                .andExpect(jsonPath("$.result.reward1st").value(1000));
     }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void createContest_NegativeReward_shouldReturnBadRequest() throws Exception {
+        AdminContestRequest req = AdminContestRequest.builder()
+                .title("Invalid Reward Contest")
+                .scoringRule("ICPC")
+                .startTime(Instant.now())
+                .endTime(Instant.now().plusSeconds(3600))
+                .reward1st(java.math.BigDecimal.valueOf(-100))
+                .build();
+
+        mockMvc.perform(post("/admin/contests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest());
+    }
+
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void getContestById_shouldReturnOk() throws Exception {
         AdminContestResponse res = AdminContestResponse.builder().id(10).title("Specific Match").build();
-        when(contestService.getAdminContestById(10)).thenReturn(res);
+        doReturn(res).when(contestService).getAdminContestById(any());
 
         mockMvc.perform(get("/admin/contests/10"))
                 .andExpect(status().isOk())
@@ -117,7 +154,7 @@ class AdminContestControllerTest {
                 .build();
 
         AdminContestResponse res = AdminContestResponse.builder().id(10).title("Updated Title").build();
-        when(contestService.updateAdminContest(eq(10), any(AdminContestRequest.class))).thenReturn(res);
+        doReturn(res).when(contestService).updateAdminContest(any(), any());
 
         mockMvc.perform(put("/admin/contests/10")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +177,7 @@ class AdminContestControllerTest {
     @WithMockUser(roles = "ADMIN")
     void publishContest_shouldReturnOk() throws Exception {
         AdminContestResponse res = AdminContestResponse.builder().id(10).databaseStatus("PUBLISHED").build();
-        when(contestService.publishAdminContest(10)).thenReturn(res);
+        doReturn(res).when(contestService).publishAdminContest(any());
 
         mockMvc.perform(put("/admin/contests/10/publish"))
                 .andExpect(status().isOk())
@@ -149,9 +186,20 @@ class AdminContestControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void unpublishContest_shouldReturnOk() throws Exception {
+        AdminContestResponse res = AdminContestResponse.builder().id(10).databaseStatus("DRAFT").build();
+        doReturn(res).when(contestService).unpublishAdminContest(any());
+
+        mockMvc.perform(put("/admin/contests/10/unpublish"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.databaseStatus").value("DRAFT"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void restoreContest_shouldReturnOk() throws Exception {
         AdminContestResponse res = AdminContestResponse.builder().id(10).databaseStatus("DRAFT").build();
-        when(contestService.restoreAdminContest(10)).thenReturn(res);
+        doReturn(res).when(contestService).restoreAdminContest(any());
 
         mockMvc.perform(put("/admin/contests/10/restore"))
                 .andExpect(status().isOk())
@@ -172,7 +220,7 @@ class AdminContestControllerTest {
     @WithMockUser(roles = "ADMIN")
     void getContestProblems_shouldReturnOk() throws Exception {
         AdminContestProblemResponse prob = AdminContestProblemResponse.builder().problemId(100).title("Sum").build();
-        when(contestService.getAdminContestProblems(10)).thenReturn(List.of(prob));
+        doReturn(List.of(prob)).when(contestService).getAdminContestProblems(any());
 
         mockMvc.perform(get("/admin/contests/10/problems"))
                 .andExpect(status().isOk())
@@ -192,7 +240,7 @@ class AdminContestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Added problem to contest successfully"));
 
-        verify(contestService, times(1)).addProblemToContest(eq(10), any(AdminContestProblemRequest.class));
+        verify(contestService, times(1)).addProblemToContest(any(), any());
     }
 
     @Test

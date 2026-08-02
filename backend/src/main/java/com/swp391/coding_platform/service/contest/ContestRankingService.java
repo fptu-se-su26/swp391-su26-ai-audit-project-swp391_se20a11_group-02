@@ -43,10 +43,19 @@ public class ContestRankingService {
     ContestRepository contestRepository;
     ContestProblemRepository contestProblemRepository;
     UserRepository userRepository;
-    RabbitTemplate rabbitTemplate;
     ContestRankingRepository contestRankingRepository;
     ContestProblemAttemptRepository contestProblemAttemptRepository;
     ObjectMapper objectMapper;
+    RabbitTemplate rabbitTemplate;
+
+    org.springframework.data.redis.core.script.RedisScript<String> updateRankingScript = createUpdateRankingScript();
+
+    private static org.springframework.data.redis.core.script.RedisScript<String> createUpdateRankingScript() {
+        org.springframework.data.redis.core.script.DefaultRedisScript<String> script = new org.springframework.data.redis.core.script.DefaultRedisScript<>();
+        script.setLocation(new org.springframework.core.io.ClassPathResource("scripts/update_ranking.lua"));
+        script.setResultType(String.class);
+        return script;
+    }
 
     @Transactional
     public ContestScoreboardResponse updateContestRanking(SubmissionJudgedEvent event) {
@@ -67,15 +76,39 @@ public class ContestRankingService {
         String publicHashKey = "contest:participant:" + contestId + ":" + userId + ":public";
         String field = "problem_" + problemId;
 
-        // format: is_ac:wrong_attempts_before_ac:first_ac_time_seconds
-        String currentStatus = (String) stringRedisTemplate.opsForHash().get(liveHashKey, field);
-        
+        boolean verdictIsAc = "ACCEPTED".equalsIgnoreCase(verdict);
+        boolean isCompilationError = "COMPILATION_ERROR".equalsIgnoreCase(verdict);
+
+        if (isCompilationError) {
+            // Compilation error is not penalized
+            return getScoreboard(contestId, false);
+        }
+
+        int isAcNew = verdictIsAc ? 1 : 0;
+        long diffSeconds = Duration.between(contest.getStartTime(), submitTime).getSeconds();
+        if (diffSeconds < 0) diffSeconds = 0;
+
+        // Thực thi Redis Lua Script để cập nhật trạng thái bài nộp một cách NGUYÊN TỬ (Atomic Execution)
+        String luaResult = stringRedisTemplate.execute(
+                updateRankingScript,
+                Collections.singletonList(liveHashKey),
+                field,
+                String.valueOf(isAcNew),
+                String.valueOf(diffSeconds)
+        );
+
+        if (luaResult != null && luaResult.startsWith("ALREADY_SOLVED")) {
+            log.info("User {} already solved problem {} in contest {}. Ignoring current submission.", userId, problemId, contestId);
+            return getScoreboard(contestId, false);
+        }
+
+        String newStatus = luaResult;
         int isAc = 0;
         int wrongAttempts = 0;
         long firstAcTimeSeconds = 0;
 
-        if (currentStatus != null && !currentStatus.trim().isEmpty()) {
-            String[] parts = currentStatus.split(":");
+        if (newStatus != null && !newStatus.trim().isEmpty()) {
+            String[] parts = newStatus.split(":");
             if (parts.length >= 3) {
                 isAc = Integer.parseInt(parts[0]);
                 wrongAttempts = Integer.parseInt(parts[1]);
@@ -83,34 +116,12 @@ public class ContestRankingService {
             }
         }
 
-        // Nếu đã AC bài này trước đó, bỏ qua toàn bộ logic
-        if (isAc == 1) {
-            log.info("User {} already solved problem {} in contest {}. Ignoring current submission.", userId, problemId, contestId);
-            return getScoreboard(contestId, false); // Trả về public scoreboard để stream
-        }
-
-        boolean verdictIsAc = "ACCEPTED".equalsIgnoreCase(verdict);
-        
         if (verdictIsAc) {
-            isAc = 1;
-            // Tính toán khoảng thời gian từ lúc bắt đầu contest đến lúc submit
-            long diffSeconds = Duration.between(contest.getStartTime(), submitTime).getSeconds();
-            if (diffSeconds < 0) {
-                diffSeconds = 0;
-            }
-            firstAcTimeSeconds = diffSeconds;
-            
             // Lưu người đầu tiên giải được (first solver) bài này
             String firstSolveKey = "contest:first_solve:" + contestId + ":" + problemId;
             stringRedisTemplate.opsForValue().setIfAbsent(firstSolveKey, String.valueOf(userId));
-        } else if (!"COMPILATION_ERROR".equalsIgnoreCase(verdict)) {
-            // Lỗi compile thường không tính là attempt bị phạt
-            wrongAttempts += 1;
         }
 
-        // Lưu trạng thái mới vào Redis Hash (Live)
-        String newStatus = isAc + ":" + wrongAttempts + ":" + firstAcTimeSeconds;
-        stringRedisTemplate.opsForHash().put(liveHashKey, field, newStatus);
         log.info("Updated live status for user {} on problem {} to {}", userId, problemId, newStatus);
 
         // Duyệt qua tất cả các bài toán của user đó trong Contest để tính điểm tổng hợp (dựa trên Live Hash)
@@ -151,6 +162,9 @@ public class ContestRankingService {
         stringRedisTemplate.opsForZSet().add(publicScoreboardKey, String.valueOf(userId), zsetScore);
         stringRedisTemplate.opsForHash().put(publicHashKey, field, newStatus);
         log.info("Updated public status and scoreboard for user {} on problem {}", userId, problemId);
+
+        // Đặt thời hạn tự động dọn dẹp RAM Redis (7 ngày sau khi cuộc thi kết thúc)
+        applyRedisTtlIfEnded(contest, liveScoreboardKey, publicScoreboardKey, liveHashKey, publicHashKey);
 
         // ==========================================
         // PERSIST RANKING TO DATABASE (Lưu xuống DB để không mất khi Redis restart)
@@ -210,7 +224,7 @@ public class ContestRankingService {
             return getScoreboardFromDb(contestId);
         }
 
-        List<ContestProblemEntity> contestProblems = contestProblemRepository.findByContestIdWithProblem(contestId);
+        List<ContestProblemEntity> contestProblems = new ArrayList<>(contestProblemRepository.findByContestIdWithProblem(contestId));
         contestProblems.sort(Comparator.comparing(ContestProblemEntity::getOrderIndex));
 
         List<Integer> userIds = rankedMembers.stream()
@@ -221,15 +235,43 @@ public class ContestRankingService {
         Map<Integer, UserEntity> userMap = users.stream()
                 .collect(Collectors.toMap(UserEntity::getId, u -> u));
 
+        // Pipelined Hash Reads cho toàn bộ (rankedMembers x contestProblems) tránh N+1 Redis network calls
+        final String suffix = finalLive ? ":live" : ":public";
+        List<Object> rawResults = null;
+        try {
+            final Set<ZSetOperations.TypedTuple<String>> membersToFetch = rankedMembers;
+            rawResults = stringRedisTemplate.executePipelined(
+                    (org.springframework.data.redis.core.RedisCallback<Object>) connection -> {
+                        for (ZSetOperations.TypedTuple<String> tuple : membersToFetch) {
+                            String userIdStr = tuple.getValue();
+                            String participantHashKey = "contest:participant:" + contestId + ":" + userIdStr + suffix;
+                            byte[] keyBytes = participantHashKey.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                            for (ContestProblemEntity cp : contestProblems) {
+                                byte[] fieldBytes = ("problem_" + cp.getProblem().getId()).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                                connection.hashCommands().hGet(keyBytes, fieldBytes);
+                            }
+                        }
+                        return null;
+                    }
+            );
+        } catch (Exception e) {
+            log.warn("Pipelined Redis read failed for contest {}. Proceeding with fallback.", contestId, e);
+        }
+
         List<TeamRow> rows = new ArrayList<>();
         int rank = 1;
+        int resultIdx = 0;
 
         for (ZSetOperations.TypedTuple<String> tuple : rankedMembers) {
             Integer userId = Integer.parseInt(tuple.getValue());
             Double scoreVal = tuple.getScore();
-            if (scoreVal == null) continue;
+            if (scoreVal == null) {
+                resultIdx += contestProblems.size();
+                continue;
+            }
 
-            long scoreLong = scoreVal.longValue();
+            // Sử dụng Math.round để tránh sai số nốt thập phân IEEE 754 của số thực double
+            long scoreLong = Math.round(scoreVal);
             int solved = (int) (scoreLong / 10_000_000_000L);
             long penaltySeconds = 1_000_000_000L - (scoreLong % 10_000_000_000L);
             int penaltyMinutes = (int) (penaltySeconds / 60);
@@ -242,12 +284,23 @@ public class ContestRankingService {
             Map<String, ProblemSummary> submissionsMap = new HashMap<>();
             int totalAttempts = 0;
 
-            String participantHashKey = "contest:participant:" + contestId + ":" + userId + (finalLive ? ":live" : ":public");
+            String participantHashKey = "contest:participant:" + contestId + ":" + userId + suffix;
 
             for (ContestProblemEntity cp : contestProblems) {
                 String label = String.valueOf((char) ('A' + cp.getOrderIndex()));
                 String f = "problem_" + cp.getProblem().getId();
-                String statusStr = (String) stringRedisTemplate.opsForHash().get(participantHashKey, f);
+
+                String statusStr = null;
+                if (rawResults != null && resultIdx < rawResults.size()) {
+                    Object rawVal = rawResults.get(resultIdx++);
+                    if (rawVal instanceof String) {
+                        statusStr = (String) rawVal;
+                    } else if (rawVal instanceof byte[]) {
+                        statusStr = new String((byte[]) rawVal, java.nio.charset.StandardCharsets.UTF_8);
+                    }
+                } else {
+                    statusStr = (String) stringRedisTemplate.opsForHash().get(participantHashKey, f);
+                }
 
                 int isAc = 0;
                 int wrongAttempts = 0;
@@ -303,6 +356,23 @@ public class ContestRankingService {
                 .contestId(contestId)
                 .rows(rows)
                 .build();
+    }
+
+    private void applyRedisTtlIfEnded(ContestEntity contest, String liveScoreboardKey, String publicScoreboardKey, String liveHashKey, String publicHashKey) {
+        if (contest != null && contest.getEndTime() != null) {
+            try {
+                Instant expireAt = contest.getEndTime().plus(7, java.time.temporal.ChronoUnit.DAYS);
+                long ttlSeconds = java.time.Duration.between(Instant.now(), expireAt).getSeconds();
+                if (ttlSeconds > 0) {
+                    stringRedisTemplate.expire(liveScoreboardKey, java.time.Duration.ofSeconds(ttlSeconds));
+                    stringRedisTemplate.expire(publicScoreboardKey, java.time.Duration.ofSeconds(ttlSeconds));
+                    stringRedisTemplate.expire(liveHashKey, java.time.Duration.ofSeconds(ttlSeconds));
+                    stringRedisTemplate.expire(publicHashKey, java.time.Duration.ofSeconds(ttlSeconds));
+                }
+            } catch (Exception e) {
+                log.warn("Failed to set TTL for contest Redis keys", e);
+            }
+        }
     }
 
     private String formatElapsed(long elapsedMs) {

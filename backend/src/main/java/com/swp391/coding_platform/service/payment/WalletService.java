@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.swp391.coding_platform.repository.user.UserRepository;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class WalletService {
     WalletRepository walletRepository;
     WalletTransactionRepository walletTransactionRepository;
+    UserRepository userRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleUserRegisteredEvent(UserRegisteredEvent event) {
@@ -44,9 +47,18 @@ public class WalletService {
 
     @Transactional
     public WalletTransactionEntity addContestReward(Integer userId, BigDecimal amount, String referenceId) {
-        // Fetch wallet with lock (findByUserIdWithLock is already available in WalletRepository)
+        // Fetch wallet with lock (or auto-create if missing for legacy users)
         WalletEntity wallet = walletRepository.findByUserIdWithLock(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Wallet not found for user: " + userId));
+                .orElseGet(() -> {
+                    UserEntity user = userRepository.findById(userId)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                    WalletEntity newWallet = WalletEntity.builder()
+                            .user(user)
+                            .balance(BigDecimal.ZERO)
+                            .status(UserStatus.ACTIVE)
+                            .build();
+                    return walletRepository.save(newWallet);
+                });
 
         // Check if transaction with this referenceId already exists to ensure idempotency
         Optional<WalletTransactionEntity> existingTx = walletTransactionRepository

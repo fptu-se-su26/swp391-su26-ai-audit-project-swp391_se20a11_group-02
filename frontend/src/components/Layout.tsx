@@ -391,7 +391,7 @@ export const Layout: React.FC = () => {
       {/* Main content body with Outlet */}
       <main className={`relative z-10 flex-grow w-full min-w-0 ${(isInstructorRoute || isAdminRoute) ? '' : 'pt-16'}`}>
         {isContestPage ? (
-          <div className="flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10 h-[calc(100vh-64px)] overflow-hidden">
+          <div className={`flex-grow flex flex-col md:flex-row w-full max-w-[1920px] mx-auto text-left relative z-10 ${isAdminRoute ? 'h-full' : 'h-[calc(100vh-64px)]'} overflow-hidden`}>
             {/* Main content column on the left (88%) */}
             <div className="w-full md:w-[88%] flex flex-col bg-surface-gray min-w-0 overflow-y-auto">
               <Outlet context={{ contest: effectiveContest, loading, error, fetchContest, timeLeft, timerLabel }} />

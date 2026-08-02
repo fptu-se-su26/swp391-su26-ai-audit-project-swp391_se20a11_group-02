@@ -20,7 +20,6 @@ import java.time.Instant;
     name = "contest_winners",
     schema = "public",
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"contest_id", "rank"}),
         @UniqueConstraint(columnNames = {"contest_id", "user_id"})
     }
 )
