@@ -25,4 +25,7 @@ public interface ContestProblemAttemptRepository extends JpaRepository<ContestPr
     @Modifying
     @Query("DELETE FROM ContestProblemAttemptEntity a WHERE a.problem.id = :problemId")
     void deleteByProblemId(@Param("problemId") Integer problemId);
+
+    @Query("SELECT a FROM ContestProblemAttemptEntity a WHERE a.contest.id = :contestId AND a.isSolved = true")
+    List<ContestProblemAttemptEntity> findSolvedAttemptsByContestId(@Param("contestId") Integer contestId);
 }

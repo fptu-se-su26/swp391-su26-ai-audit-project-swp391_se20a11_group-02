@@ -16,7 +16,7 @@ export interface InstructorCourse {
   studentsCount: number;
   rating: number;
   reviewsCount: number;
-  status: 'published' | 'review' | 'draft' | 'rejected';
+  status: 'published' | 'review' | 'draft' | 'rejected' | 'inactive';
   icon: string;
   gradient: string;
   description: string;
@@ -109,6 +109,7 @@ function mapBackendStatusToFrontend(status: string): 'published' | 'review' | 'd
   if (s === 'PENDING' || s === 'REVIEW') return 'review';
   if (s === 'REJECTED') return 'rejected';
   if (s === 'DRAFTS' || s === 'DRAFT') return 'draft';
+  if (s === 'INACTIVE') return 'inactive' as any;
   return 'draft';
 }
 
@@ -179,6 +180,36 @@ export const instructorService = {
 
     if (!response.ok) {
       throw new Error('Failed to submit course for review');
+    }
+  },
+
+  async deactivateCourse(courseId: string): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/courses/${courseId}/deactivate`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to deactivate course');
+    }
+  },
+
+  async reactivateCourse(courseId: string): Promise<void> {
+    const response = await fetchWithAutoRefresh(`${BASE_URL}/instructor/courses/${courseId}/reactivate`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to reactivate course');
     }
   },
 

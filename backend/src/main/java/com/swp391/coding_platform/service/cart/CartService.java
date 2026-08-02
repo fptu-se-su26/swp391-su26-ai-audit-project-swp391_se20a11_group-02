@@ -59,8 +59,17 @@ public class CartService {
         CourseEntity course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
+        if (course.getStatus() != com.swp391.coding_platform.entity.enums.CourseStatus.APPROVED) {
+            throw new RuntimeException("Cannot add inactive or unapproved course to cart");
+        }
+
         CartItemEntity cartItem = new CartItemEntity(cart, course);
         cartItemRepository.save(cartItem);
+    }
+
+    @Transactional
+    public void removeCourseFromAllCarts(Long courseId) {
+        cartItemRepository.deleteByCourseId(courseId);
     }
 
     @Transactional
