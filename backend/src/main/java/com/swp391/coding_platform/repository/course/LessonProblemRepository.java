@@ -8,6 +8,8 @@ import java.util.List;
 @Repository
 public interface LessonProblemRepository extends JpaRepository<LessonProblemEntity, Integer> {
     boolean existsByLessonIdAndProblemId(Integer lessonId, Integer problemId);
+
+    boolean existsByProblemId(Integer problemId);
     List<LessonProblemEntity> findByLessonIdOrderByOrderIndexAsc(Integer lessonId);
 }
 

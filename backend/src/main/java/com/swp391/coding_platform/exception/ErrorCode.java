@@ -16,6 +16,7 @@ public enum ErrorCode {
     ACCESS_DENIED(1004, "Access denied", HttpStatus.FORBIDDEN),
     UNAUTHENTICATED(1005, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     INVALID_REQUEST_BODY(1006, "Request body is missing or invalid format", HttpStatus.BAD_REQUEST),
+    RESOURCE_IN_USE(1007, "This record is still referenced elsewhere and cannot be modified", HttpStatus.CONFLICT),
 
     USERNAME_ALREADY_EXISTS(2000, "Username already exists", HttpStatus.CONFLICT),
     EMAIL_ALREADY_EXISTS(2001, "Email already exists", HttpStatus.CONFLICT),
@@ -84,6 +85,7 @@ public enum ErrorCode {
     SUBMISSION_NOT_FOUND(6002, "Submission not found", HttpStatus.NOT_FOUND),
     OJ_SOLUTION_LOCKED(6003, "Solution is locked. You must solve the problem first.", HttpStatus.FORBIDDEN),
     OJ_PROBLEM_MISSING_TESTCASE(6004, "Problem must have at least one testcase to be public", HttpStatus.BAD_REQUEST),
+    OJ_PROBLEM_IN_USE(6005, "Cannot delete: this problem is being used in a contest or lesson", HttpStatus.CONFLICT),
     OJ_SUBMISSION_FAILED(6304, "Online judge submission failed", HttpStatus.BAD_GATEWAY),
     JUDGE0_SUBMISSION_FAILED(6308, "Judge0 submission failed", HttpStatus.BAD_GATEWAY),
     OJ_PROBLEM_ID_REQUIRED(6305, "Problem ID is required", HttpStatus.BAD_REQUEST),
