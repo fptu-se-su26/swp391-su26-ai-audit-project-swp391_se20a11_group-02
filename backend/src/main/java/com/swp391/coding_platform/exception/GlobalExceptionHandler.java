@@ -87,6 +87,20 @@ public class GlobalExceptionHandler {
                 .build());
     }
 
+    @ExceptionHandler(value = org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> handlingDataIntegrityViolationException(
+            org.springframework.dao.DataIntegrityViolationException exception) {
+        // Details stay in the log: the raw message carries table, column and constraint names
+        log.error("Vi phạm ràng buộc toàn vẹn dữ liệu: ", exception);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.<Object>builder()
+                .status(HttpStatus.CONFLICT.value())
+                .code(ErrorCode.RESOURCE_IN_USE.getCode())
+                .message(ErrorCode.RESOURCE_IN_USE.getMessage())
+                .result(null)
+                .timestamp(Instant.now().toString())
+                .build());
+    }
+
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ApiResponse<Object>> handlingException(Exception exception) {
         log.error("Lỗi hệ thống: ", exception);
