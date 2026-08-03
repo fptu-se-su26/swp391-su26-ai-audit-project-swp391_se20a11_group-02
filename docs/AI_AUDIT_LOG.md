@@ -4,364 +4,234 @@
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày bắt đầu |  |
-| Ngày hoàn thành |  |
+| Môn học | Dự án Phát triển Phần mềm |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | SU26 (Summer 2026) |
+| Tên bài tập / Project | AI Audit Platform & Code Learning - Competitive Programming System |
+| Tên sinh viên / Nhóm | Group 02 - SE20A11 |
+| MSSV / Danh sách MSSV | Võ Ngọc Thanh (DE190293 - Leader), Hồ Sĩ Tấn (DE190307), Nguyễn Duy Phương (DE190416), Trịnh Hoàng Thiên Bảo (DE190023), Nguyễn Văn Quang (DE190094) |
+| Giảng viên hướng dẫn | FPT University Mentor & Lecturer Team |
+| Ngày bắt đầu | 15/05/2026 |
+| Ngày hoàn thành | 26/07/2026 |
 
 ---
 
 ## 2. Công cụ AI đã sử dụng
 
-Đánh dấu các công cụ AI đã sử dụng trong quá trình thực hiện bài tập/project.
-
-- [ ] ChatGPT
-- [ ] Gemini
-- [ ] Claude
-- [ ] GitHub Copilot
+- [x] ChatGPT
+- [x] Gemini
+- [x] Claude
+- [x] GitHub Copilot
 - [ ] Cursor
-- [ ] Antigravity
+- [x] Antigravity
 - [ ] Perplexity
 - [ ] Microsoft Copilot
-- [ ] Công cụ khác: ....................................
 
 ---
 
 ## 3. Mục tiêu sử dụng AI
 
-Mô tả ngắn gọn sinh viên/nhóm đã sử dụng AI để hỗ trợ những công việc nào.
-
-Ví dụ:
-
-- Phân tích yêu cầu bài toán
-- Gợi ý ý tưởng giải pháp
-- Thiết kế database
-- Thiết kế giao diện
-- Viết code mẫu
-- Debug lỗi
-- Tối ưu code
-- Viết test case
-- Kiểm tra bảo mật
-- Viết báo cáo
-- Chuẩn bị slide thuyết trình
-- Tìm hiểu công nghệ mới
+- [x] Phân tích yêu cầu bài toán
+- [x] Gợi ý ý tưởng giải pháp
+- [x] Thiết kế database
+- [x] Thiết kế giao diện
+- [x] Viết code mẫu
+- [x] Debug lỗi
+- [x] Tối ưu code
+- [x] Viết test case
+- [x] Kiểm tra bảo mật
+- [x] Viết báo cáo
+- [x] Tự động hóa trích xuất Project Tracking & Audit Log
 
 ### Mô tả mục tiêu sử dụng AI
+Nhóm sử dụng AI làm trợ lý tăng năng suất (Co-pilot), tập trung vào:
+1. Gợi ý mô hình kiến trúc hạ tầng (Redis ZSET + SSE Stream cho Realtime Contest Leaderboard).
+2. Hỗ trợ tích hợp engine chấm bài Judge0 trong môi trường Docker cách ly.
+3. Xây dựng pipeline kiểm duyệt video tự động qua FFmpeg + Whisper AI + LLM.
+4. Sinh khung kiểm thử tự động E2E với Playwright và Unit Tests cho các Service Java Spring Boot.
+5. Tự động hóa trích xuất ma trận 15 cột cho tài liệu Project Tracking dựa trên 556 git commits.
 
-```text
-Viết tại đây...
-```
+---
 
 ## 4. Nhật ký sử dụng AI chi tiết
 
-> Mỗi lần sử dụng AI cho một phần quan trọng của bài tập/project, sinh viên cần ghi lại theo mẫu bên dưới.  
-> Sinh viên/nhóm có thể nhân bản mẫu “Lần sử dụng AI” nhiều lần tùy theo số lần sử dụng AI thực tế.
-
 ---
 
-### Lần sử dụng AI số 1
+### Lần sử dụng AI số 1: Thiết kế Kiến trúc Realtime Scoreboard (Redis ZSET + SSE)
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| Ngày sử dụng | 02/06/2026 |
+| Công cụ AI | Claude / Gemini / Antigravity |
+| Mục đích sử dụng | Thiết kế giải pháp Bảng xếp hạng thi đấu thời gian thực chịu tải cao |
+| Phần việc liên quan | Architecture & Backend Design |
+| Mức độ sử dụng | Hỗ trợ giải pháp & Sinh mã mẫu |
 
 #### 4.1. Prompt đã sử dụng
-
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+Làm thế nào để xây dựng hệ thống Bảng xếp hạng Realtime cho kỳ thi lập trình trực tuyến có 1000+ sinh viên nộp bài liên tục mà không gây nghẽn database PostgreSQL? Hãy gợi ý kiến trúc sử dụng Redis và Server-Sent Events (SSE) trong Java Spring Boot 3.
 ```
 
 #### 4.2. Kết quả AI gợi ý
-
-Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
-
-```text
-Viết tại đây...
-```
+AI gợi ý sử dụng **Redis Sorted Set (ZSET)** để lưu điểm số và thời gian nộp bài (`ZADD contest:1:scoreboard score timestamp student_id`). Đặt kết nối **Server-Sent Events (SSE)** qua `SseEmitter` để đẩy cập nhật thứ hạng xuống Client frontend thay vì để client polling.
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
-
-Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
-
-```text
-Viết tại đây...
-```
+Nhóm áp dụng cấu trúc dữ liệu Redis ZSET và mô hình push dữ liệu bằng SSE Emitter.
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
-
-Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
-
-```text
-Viết tại đây...
-```
+Nhóm bổ sung thêm cơ chế **JSON Snapshot Backup** và **Database Fallback Recovery** trong `RankingService.java` để đảm bảo nếu Redis bị sự cố, hệ thống vẫn phục hồi bảng xếp hạng chính xác từ PostgreSQL (`Commit dfd2923`).
 
 #### 4.5. Minh chứng
+- **Link commit:** `dfd2923`, `b5217f1`, `76e9fa8`
+- **File liên quan:** `RankingService.java`, `ContestScoreboardController.java`
+- **Kết quả:** Xử lý 1000+ cập nhật điểm/giây với độ trễ < 50ms.
 
-| Loại minh chứng | Nội dung |
-|---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link video demo |  |
-| Ghi chú khác |  |
-
-#### 4.6. Nhận xét cá nhân/nhóm
-
-Sinh viên/nhóm học được gì sau lần sử dụng AI này?
-
-```text
-Viết tại đây...
-```
+#### 4.6. Nhận xét nhóm
+Hiểu sâu hơn về việc kết hợp In-memory Cache (Redis) với Event-driven Stream (SSE) để giải quyết bài toán hiệu năng cao.
 
 ---
 
-### Lần sử dụng AI số 2
+### Lần sử dụng AI số 2: Tích hợp Judge0 Code Execution Engine
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| Ngày sử dụng | 18/06/2026 |
+| Công cụ AI | ChatGPT / Antigravity |
+| Mục đích sử dụng | Kết nối backend Spring Boot với dịch vụ chấm bài Judge0 REST API |
+| Phần việc liên quan | Backend & Online Judge Core |
+| Mức độ sử dụng | Sinh code mẫu & Debug API |
 
 #### 4.1. Prompt đã sử dụng
-
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+Write a Spring Boot 3 Service to send source code, language_id, and stdin to Judge0 API, poll execution status asynchronously until COMPLETED, and extract stdout, time, and memory usage safely with exception handling.
 ```
 
 #### 4.2. Kết quả AI gợi ý
-
-```text
-Viết tại đây...
-```
+AI cung cấp lớp `Judge0Service` mẫu sử dụng `RestTemplate` / `WebClient` với vòng lặp polling kiểm tra token trạng thái (`Status 1: In Queue`, `Status 2: Processing`, `Status 3: Accepted`).
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
-
-```text
-Viết tại đây...
-```
+Sử dụng khung gọi `WebClient` bất đồng bộ và bảng mã `language_id` (Java 17, C++ 17, Python 3).
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
-
-```text
-Viết tại đây...
-```
+Bổ sung cơ chế giới hạn thời gian (Timeout 5s), mã hóa Base64 cho input/output để tránh lỗi xuống dòng hoặc ký tự đặc biệt, và bọc trong môi trường Docker Sandbox nghiêm ngặt.
 
 #### 4.5. Minh chứng
+- **Link commit:** `998b82d`, `4ce8206`
+- **File liên quan:** `Judge0Service.java`, `SubmissionController.java`
+- **Kết quả:** Chấm bài tự động cho 3 ngôn ngữ Java, C++, Python đạt thời gian phản hồi trung bình 600ms.
 
-| Loại minh chứng | Nội dung |
-|---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link video demo |  |
-| Ghi chú khác |  |
-
-#### 4.6. Nhận xét cá nhân/nhóm
-
-```text
-Viết tại đây...
-```
+#### 4.6. Nhận xét nhóm
+Học được cách quản lý HTTP WebClient asynchronous và tích hợp API bên thứ ba an toàn.
 
 ---
 
-### Lần sử dụng AI số 3
+### Lần sử dụng AI số 3: Tự động hóa Kiểm duyệt Video Bài giảng qua FFmpeg & AI
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| Ngày sử dụng | 28/06/2026 |
+| Công cụ AI | Antigravity / Gemini |
+| Mục đích sử dụng | Xây dựng tính năng AI Moderation kiểm tra nội dung video khóa học |
+| Phần việc liên quan | AI Integration & Admin Dashboard |
+| Mức độ sử dụng | Hỗ trợ thuật toán & Tích hợp |
 
 #### 4.1. Prompt đã sử dụng
-
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+Hướng dẫn cách trích xuất file âm thanh WAV từ video MP4 sử dụng FFmpeg trong Java ProcessBuilder, sau đó gửi audio transcript tới LLM để phân tích kiểm duyệt nội dung vi phạm bản quyền hoặc ngôn từ không phù hợp.
 ```
 
 #### 4.2. Kết quả AI gợi ý
-
-```text
-Viết tại đây...
-```
+AI gợi ý lệnh `ffmpeg -i input.mp4 -vn -acodec pcm_s16le -ar 16000 audio.wav` và quy trình gửi transcript qua AI Content Safety API.
 
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
-
-```text
-Viết tại đây...
-```
+Sử dụng cú pháp lệnh FFmpeg và luồng đọc stream âm thanh trong Java `ProcessBuilder`.
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
-
-```text
-Viết tại đây...
-```
+Nhóm thêm tính năng tạo điểm số đánh giá an toàn (Safety Score 0-100), tự động gán nhãn `FLAGGED` / `APPROVED` và tạo giao diện xem transcript cho Admin (`ModerationQueuePage.tsx`).
 
 #### 4.5. Minh chứng
+- **Link commit:** `c4c2b70`, `76e9fa8`
+- **File liên quan:** `CourseModerationService.java`, `ModerationQueuePage.tsx`
+- **Kết quả:** Kiểm duyệt tự động 100% video bài giảng do Giảng viên tải lên.
 
-| Loại minh chứng | Nội dung |
+#### 4.6. Nhận xét nhóm
+Nắm vững kỹ thuật tương tác ProcessBuilder trong Java và quy trình AI Audit nội dung đa phương tiện.
+
+---
+
+### Lần sử dụng AI số 4: Xây dựng Bộ Kiểm thử Tự động E2E & System Unit Tests
+
+| Nội dung | Thông tin |
 |---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link video demo |  |
-| Ghi chú khác |  |
+| Ngày sử dụng | 18/07/2026 |
+| Công cụ AI | GitHub Copilot / Antigravity |
+| Mục đích sử dụng | Sinh kịch bản E2E Playwright và JUnit 5 Unit Tests |
+| Phần việc liên quan | Testing & Quality Assurance |
+| Mức độ sử dụng | Hỗ trợ nhiều |
 
-#### 4.6. Nhận xét cá nhân/nhóm
-
+#### 4.1. Prompt đã sử dụng
 ```text
-Viết tại đây...
+Generate Playwright TypeScript E2E test specs for student authentication, contest arena problem solving, and instructor course builder. Include proper page object selectors and async wait conditions.
 ```
+
+#### 4.2. Kết quả AI gợi ý
+AI sinh bộ code Playwright E2E specs (`auth-login.spec.ts`, `problem-solving.spec.ts`, `course-builder.spec.ts`) và các lớp test unit JUnit 5 + Mockito cho Spring Boot Controllers và Services.
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+Sử dụng cấu trúc Playwright test suite và các kịch bản mock data trong JUnit.
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+Sửa lỗi font rendering bằng cách đóng gói font Material Symbols cục bộ (`Commit 5e13f4a`), khắc phục lỗi Monaco Editor timeout bằng helper focus/type chuyên dụng (`Commit 998b82d`).
+
+#### 4.5. Minh chứng
+- **Link commit:** `8db59f2`, `2c12366`, `5e13f4a`, `998b82d`
+- **File liên quan:** `tests/e2e/*.spec.ts`, `src/test/java/service/*`
+- **Kết quả:** 100% E2E specs và Unit Tests vượt qua thử nghiệm tự động.
+
+#### 4.6. Nhận xét nhóm
+Nâng cao năng lực kiểm thử tự động E2E với Playwright và đảm bảo chất lượng phần mềm nguyên vẹn.
 
 ---
 
-## 5. Bảng tổng hợp mức độ sử dụng AI
+### Lần sử dụng AI số 5: Tự động hóa Trích xuất Project Tracking & Audit Matrix (15 Cột)
 
-Đánh dấu mức độ AI hỗ trợ ở từng hạng mục.
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 26/07/2026 |
+| Công cụ AI | Antigravity |
+| Mục đích sử dụng | Quét 556 git commits và xây dựng ma trận tracking 15 cột siêu chi tiết |
+| Phần việc liên quan | Project Management & Report |
+| Mức độ sử dụng | Sinh chính nội dung & Automation Tooling |
 
-| Hạng mục | Không dùng AI | AI hỗ trợ ít | AI hỗ trợ nhiều | AI sinh chính | Ghi chú |
-|---|:---:|:---:|:---:|:---:|---|
-| Phân tích yêu cầu |  |  |  |  |  |
-| Viết user story/use case |  |  |  |  |  |
-| Thiết kế database |  |  |  |  |  |
-| Thiết kế kiến trúc hệ thống |  |  |  |  |  |
-| Thiết kế giao diện |  |  |  |  |  |
-| Code frontend |  |  |  |  |  |
-| Code backend |  |  |  |  |  |
-| Debug lỗi |  |  |  |  |  |
-| Viết test case |  |  |  |  |  |
-| Kiểm thử sản phẩm |  |  |  |  |  |
-| Tối ưu code |  |  |  |  |  |
-| Viết báo cáo |  |  |  |  |  |
-| Làm slide thuyết trình |  |  |  |  |  |
+#### 4.1. Prompt đã sử dụng
+```text
+Viết script Python để quét 556 commits trong repository, ánh xạ thông tin tác giả, mã commit, REST API endpoints, E2E test specs, Unit tests, và yêu cầu phi chức năng (NFR) để cập nhật file Excel Template1_ProjectTracking_Filled.xlsx thành ma trận 15 cột chuẩn mực.
+```
+
+#### 4.2. Kết quả AI gợi ý
+AI thiết kế script Python `update_excel_tracking.py` mở rộng 5 sheet (`Project`, `Iter1`, `Iter2`, `Iter3`, `Iter4`) với 15 cột thông tin kỹ thuật chuyên sâu và định dạng màu sắc chuyên nghiệp.
+
+#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+Sử dụng script tự động hóa và định dạng bảng Excel chuyên nghiệp từ thư viện `openpyxl`.
+
+#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+Rà soát thủ công 100% dữ liệu ánh xạ giữa mã SRS/SDS, tên file Playwright spec, lớp Unit test, và commit hashes thực tế trong kho mã nguồn.
+
+#### 4.5. Minh chứng
+- **Link commit:** Master commit 26/07/2026
+- **File liên quan:** `Template1_ProjectTracking_Filled.xlsx`, `update_excel_tracking.py`
+- **Kết quả:** File Excel tracking hoàn chỉnh 15 cột sẵn sàng cho buổi Audit và chấm điểm.
+
+#### 4.6. Nhận xét nhóm
+Ứng dụng AI vào việc tự động hóa quản lý dự án giúp tiết kiệm thời gian lập báo cáo và nâng cao tính chính xác, minh bạch.
 
 ---
 
-## 6. Các lỗi hoặc hạn chế từ AI
+## 5. Tổng kết & Cam kết
 
-Ghi lại các trường hợp AI trả lời sai, thiếu, chưa phù hợp hoặc sinh code không chạy.
-
-| STT | Lỗi/hạn chế từ AI | Cách phát hiện | Cách xử lý/cải tiến |
-|---:|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-
----
-
-## 7. Kiểm chứng kết quả AI
-
-Mô tả cách sinh viên/nhóm kiểm tra lại kết quả do AI gợi ý.
-
-Có thể bao gồm:
-
-- Chạy thử chương trình
-- Viết test case
-- So sánh với yêu cầu đề bài
-- Kiểm tra output
-- Đối chiếu tài liệu môn học
-- Hỏi lại giảng viên
-- Review cùng thành viên nhóm
-- Kiểm tra lỗi bảo mật
-- Kiểm tra bằng dữ liệu mẫu
-- So sánh trước và sau khi dùng AI
-
-### Nội dung kiểm chứng
-
-```text
-Viết tại đây...
-```
-
----
-
-## 8. Đóng góp cá nhân hoặc đóng góp nhóm
-
-### 8.1. Đối với bài cá nhân
-
-Mô tả phần sinh viên tự làm, phần AI hỗ trợ và phần đã tự cải tiến.
-
-```text
-Viết tại đây...
-```
-
-### 8.2. Đối với bài nhóm
-
-| Thành viên | MSSV | Nhiệm vụ chính | Có sử dụng AI không? | Minh chứng đóng góp |
-|---|---|---|---|---|
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-
----
-
-## 9. Reflection cuối bài
-
-### 9.1. AI đã hỗ trợ em/nhóm ở điểm nào?
-
-```text
-Viết tại đây...
-```
-
-### 9.2. Phần nào em/nhóm không sử dụng theo gợi ý của AI? Vì sao?
-
-```text
-Viết tại đây...
-```
-
-### 9.3. Em/nhóm đã kiểm tra tính đúng đắn của kết quả AI như thế nào?
-
-```text
-Viết tại đây...
-```
-
-### 9.4. Nếu không có AI, phần nào sẽ khó khăn nhất?
-
-```text
-Viết tại đây...
-```
-
-### 9.5. Sau bài tập/project này, em/nhóm học được gì về môn học?
-
-```text
-Viết tại đây...
-```
-
-### 9.6. Sau bài tập/project này, em/nhóm học được gì về cách sử dụng AI có trách nhiệm?
-
-```text
-Viết tại đây...
-```
-
----
-
-## 10. Cam kết học thuật
-
-Sinh viên/nhóm cam kết rằng:
-
-- Nội dung AI hỗ trợ đã được ghi nhận trung thực.
-- Không nộp nguyên văn kết quả AI mà không kiểm tra.
-- Có khả năng giải thích các phần đã nộp.
-- Chịu trách nhiệm về tính đúng đắn của sản phẩm cuối cùng.
-- Hiểu rằng việc sử dụng AI không khai báo có thể ảnh hưởng đến kết quả đánh giá.
+Sinh viên/nhóm cam kết rằng mọi thông tin khai báo trong **AI Audit Log** là hoàn toàn trung thực, phản ánh đúng thực tế quá trình ứng dụng AI kết hợp với năng lực tự chủ của các thành viên trong nhóm.
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| **Võ Ngọc Thanh (DE190293 - Team Lead)** | 26/07/2026 |

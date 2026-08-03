@@ -67,6 +67,7 @@ public class ContestService {
     ProblemTagMappingRepository problemTagMappingRepository;
     PasswordEncoder passwordEncoder;
     com.swp391.coding_platform.repository.contest.ContestRankingRepository contestRankingRepository;
+    com.swp391.coding_platform.repository.contest.ContestWinnerRepository contestWinnerRepository;
     org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
 
@@ -356,6 +357,11 @@ public class ContestService {
 
     @Transactional
     public AdminContestResponse createAdminContest(AdminContestRequest request, Integer adminUserId) {
+        if (request.getStartTime() != null && request.getEndTime() != null &&
+                (request.getStartTime().isAfter(request.getEndTime()) || request.getStartTime().equals(request.getEndTime()))) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
         var creator = userRepository.findById(adminUserId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -363,6 +369,8 @@ public class ContestService {
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
             passwordHash = passwordEncoder.encode(request.getPassword().trim());
         }
+
+        validateRewardOrder(request.getReward1st(), request.getReward2nd(), request.getReward3rd());
 
         long durationMinutes = java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
 
@@ -374,6 +382,9 @@ public class ContestService {
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .durations((int) durationMinutes)
+                .reward1st(request.getReward1st() != null ? request.getReward1st() : java.math.BigDecimal.ZERO)
+                .reward2nd(request.getReward2nd() != null ? request.getReward2nd() : java.math.BigDecimal.ZERO)
+                .reward3rd(request.getReward3rd() != null ? request.getReward3rd() : java.math.BigDecimal.ZERO)
                 .status(ContestStatus.DRAFT)
                 .createdBy(creator)
                 .build();
@@ -384,47 +395,54 @@ public class ContestService {
 
     @Transactional
     public AdminContestResponse updateAdminContest(Integer id, AdminContestRequest request) {
-        ContestEntity contest = contestRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
-
-        Instant now = Instant.now();
-        String currentStatus = calculateStatus(contest, now);
-
-        if (currentStatus.equals("DELETED")) {
+        if (request.getStartTime() != null && request.getEndTime() != null &&
+                (request.getStartTime().isAfter(request.getEndTime()) || request.getStartTime().equals(request.getEndTime()))) {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED")) {
-            boolean timesChanged = !contest.getStartTime().equals(request.getStartTime()) ||
-                                   !contest.getEndTime().equals(request.getEndTime());
-            boolean scoringRuleChanged = contest.getScoringRule() != ScoringRule.valueOf(request.getScoringRule());
-            if (timesChanged || scoringRuleChanged) {
-                throw new AppException(ErrorCode.INVALID_REQUEST);
-            }
-            contest.setTitle(request.getTitle());
-            contest.setDescription(request.getDescription());
-        } else {
-            contest.setTitle(request.getTitle());
-            contest.setDescription(request.getDescription());
-            contest.setScoringRule(ScoringRule.valueOf(request.getScoringRule()));
-            contest.setStartTime(request.getStartTime());
-            contest.setEndTime(request.getEndTime());
+        validateRewardOrder(request.getReward1st(), request.getReward2nd(), request.getReward3rd());
 
-            long durationMinutes = java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
-            contest.setDurations((int) durationMinutes);
+        ContestEntity contest = contestRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-            if (request.getPassword() != null) {
-                if (request.getPassword().trim().isEmpty()) {
-                    contest.setPasswordHash(null);
-                } else {
-                    contest.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
-                }
+        if (contest.getStatus() != ContestStatus.DRAFT) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        contest.setTitle(request.getTitle());
+        contest.setDescription(request.getDescription());
+        contest.setScoringRule(ScoringRule.valueOf(request.getScoringRule()));
+        contest.setStartTime(request.getStartTime());
+        contest.setEndTime(request.getEndTime());
+
+        long durationMinutes = java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
+        contest.setDurations((int) durationMinutes);
+
+        if (request.getPassword() != null) {
+            if (request.getPassword().trim().isEmpty()) {
+                contest.setPasswordHash(null);
+            } else {
+                contest.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
             }
         }
+
+        if (request.getReward1st() != null) contest.setReward1st(request.getReward1st());
+        if (request.getReward2nd() != null) contest.setReward2nd(request.getReward2nd());
+        if (request.getReward3rd() != null) contest.setReward3rd(request.getReward3rd());
 
         contestRepository.save(contest);
         return getAdminContestById(id);
     }
+
+    private void validateRewardOrder(java.math.BigDecimal r1, java.math.BigDecimal r2, java.math.BigDecimal r3) {
+        java.math.BigDecimal reward1 = r1 != null ? r1 : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal reward2 = r2 != null ? r2 : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal reward3 = r3 != null ? r3 : java.math.BigDecimal.ZERO;
+        if (reward1.compareTo(reward2) < 0 || reward2.compareTo(reward3) < 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+    }
+
 
     @Transactional
     public void deleteAdminContest(Integer id) {
@@ -450,7 +468,31 @@ public class ContestService {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
+        // Chặn không cho phép Publish cuộc thi rỗng (0 bài tập)
+        long probCount = contestRepository.countProblems(id);
+        if (probCount <= 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
         contest.setStatus(ContestStatus.PUBLISHED);
+        contestRepository.save(contest);
+        return getAdminContestById(id);
+    }
+
+    @Transactional
+    public AdminContestResponse unpublishAdminContest(Integer id) {
+        ContestEntity contest = contestRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
+
+        Instant now = Instant.now();
+        String currentStatus = calculateStatus(contest, now);
+
+        // Chỉ cho phép Unpublish khi cuộc thi ở trạng thái PUBLISHED và đang UPCOMING (chưa bắt đầu)
+        if (contest.getStatus() != ContestStatus.PUBLISHED || !currentStatus.equals("UPCOMING")) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        contest.setStatus(ContestStatus.DRAFT);
         contestRepository.save(contest);
         return getAdminContestById(id);
     }
@@ -501,10 +543,8 @@ public class ContestService {
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-        Instant now = Instant.now();
-        String currentStatus = calculateStatus(contest, now);
-        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED") || currentStatus.equals("DELETED")) {
-            throw new AppException(ErrorCode.INVALID_REQUEST);
+        if (contest.getStatus() != ContestStatus.DRAFT) {
+            throw new AppException(ErrorCode.CONTEST_ALREADY_PUBLISHED);
         }
 
         var problem = problemRepository.findById(request.getProblemId())
@@ -530,10 +570,8 @@ public class ContestService {
         var contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONTEST_NOT_FOUND));
 
-        Instant now = Instant.now();
-        String currentStatus = calculateStatus(contest, now);
-        if (currentStatus.equals("ONGOING") || currentStatus.equals("ENDED") || currentStatus.equals("DELETED")) {
-            throw new AppException(ErrorCode.INVALID_REQUEST);
+        if (contest.getStatus() != ContestStatus.DRAFT) {
+            throw new AppException(ErrorCode.CONTEST_ALREADY_PUBLISHED);
         }
 
         ContestProblemEntity cp = contestProblemRepository.findByContestIdAndProblemId(contestId, problemId)
@@ -819,6 +857,14 @@ public class ContestService {
                         r -> r
                 ));
 
+        List<com.swp391.coding_platform.entity.contest.ContestWinnerEntity> userWinners = contestWinnerRepository.findByUserId(userId);
+        Map<Integer, java.math.BigDecimal> winnerMap = userWinners.stream()
+                .collect(Collectors.toMap(
+                        w -> w.getContest().getId(),
+                        w -> w.getRewardAmount() != null ? w.getRewardAmount() : java.math.BigDecimal.ZERO,
+                        (existing, replacement) -> existing
+                ));
+
         Instant now = Instant.now();
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                 .ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -836,6 +882,7 @@ public class ContestService {
             int rank = calculateUserRank(contestId, userId, rankingEntity, totalParticipants);
             int solved = rankingEntity != null ? rankingEntity.getProblemsSolved() : 0;
             int penalty = rankingEntity != null ? rankingEntity.getTotalPenalty() : 0;
+            java.math.BigDecimal rewardWon = winnerMap.getOrDefault(contestId, java.math.BigDecimal.ZERO);
 
             String status = calculateStatus(contest, now);
 
@@ -849,6 +896,7 @@ public class ContestService {
                     .totalParticipants(totalParticipants)
                     .problemsSolved(solved)
                     .score(penalty)
+                    .rewardWon(rewardWon)
                     .build());
         }
 

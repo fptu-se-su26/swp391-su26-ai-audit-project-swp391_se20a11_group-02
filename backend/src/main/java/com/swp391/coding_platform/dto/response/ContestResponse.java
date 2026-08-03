@@ -23,4 +23,7 @@ public class ContestResponse {
     Integer participantCount;
     Integer problemCount;
     Boolean isUserRegistered;
+    java.math.BigDecimal reward1st;
+    java.math.BigDecimal reward2nd;
+    java.math.BigDecimal reward3rd;
 }

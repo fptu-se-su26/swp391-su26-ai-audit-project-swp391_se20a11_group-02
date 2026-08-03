@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface WalletTransactionRepository extends JpaRepository<WalletTransactionEntity, Integer> {
@@ -39,4 +40,8 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
             @Param("walletId") Integer walletId,
             @Param("type") TransactionType type,
             @Param("status") StatusTransaction status);
+
+    boolean existsByTypeAndReferenceId(TransactionType type, String referenceId);
+
+    Optional<WalletTransactionEntity> findByTypeAndReferenceId(TransactionType type, String referenceId);
 }

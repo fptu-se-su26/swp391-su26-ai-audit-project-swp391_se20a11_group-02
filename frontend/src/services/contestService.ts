@@ -67,6 +67,7 @@ export interface MyContestHistory {
   totalParticipants: number;
   problemsSolved: number;
   score: number;
+  rewardWon?: number;
 }
 
 export const getMyContestStats = async (): Promise<MyContestStats> => {

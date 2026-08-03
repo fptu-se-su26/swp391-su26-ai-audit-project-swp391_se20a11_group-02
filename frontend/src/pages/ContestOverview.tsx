@@ -117,15 +117,77 @@ export const ContestOverview: React.FC = () => {
           </div>
         </section>
 
+        {/* Contest Prizes Card */}
+        {((contest.reward1st || 0) > 0 || (contest.reward2nd || 0) > 0 || (contest.reward3rd || 0) > 0) && (
+          <section className="bg-surface rounded-xl ambient-shadow p-8">
+            <h2 className="text-headline-md font-headline-md text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
+              <span className="material-symbols-outlined text-amber-500">emoji_events</span> Contest Prizes & Rewards
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              {(contest.reward1st || 0) > 0 && (
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-transparent border border-amber-300/60 shadow-xs flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center font-black text-lg shadow-sm">
+                    🥇
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">1st Place Prize</p>
+                    <p className="text-base font-black text-slate-900 mt-0.5">
+                      {contest.reward1st?.toLocaleString()} <span className="text-xs font-bold text-slate-500">VND</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+              {(contest.reward2nd || 0) > 0 && (
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-200/40 via-slate-100/20 to-transparent border border-slate-300/70 shadow-xs flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500 text-white flex items-center justify-center font-black text-lg shadow-sm">
+                    🥈
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">2nd Place Prize</p>
+                    <p className="text-base font-black text-slate-900 mt-0.5">
+                      {contest.reward2nd?.toLocaleString()} <span className="text-xs font-bold text-slate-500">VND</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+              {(contest.reward3rd || 0) > 0 && (
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-700/10 via-amber-600/5 to-transparent border border-amber-700/30 shadow-xs flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 text-white flex items-center justify-center font-black text-lg shadow-sm">
+                    🥉
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">3rd Place Prize</p>
+                    <p className="text-base font-black text-slate-900 mt-0.5">
+                      {contest.reward3rd?.toLocaleString()} <span className="text-xs font-bold text-slate-500">VND</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* Supported Languages Card */}
         <section className="bg-surface rounded-xl ambient-shadow p-8">
           <h2 className="text-headline-md font-headline-md text-text-main mb-6 pb-4 border-b border-gray-200 flex items-center gap-2">
-            <span className="material-symbols-outlined text-text-muted">translate</span>Supported Languages
+            <span className="material-symbols-outlined text-primary">translate</span> Supported Languages
           </h2>
-          <div className="mt-6">
-            <p className="text-body-md font-body-md text-text-main text-text-muted italic">
-              —
-            </p>
+          <div className="flex flex-wrap gap-2.5 mt-6">
+            {[
+              { id: 50, name: 'C (GCC 9.2.0)' },
+              { id: 54, name: 'C++ (GCC 9.2.0)' },
+              { id: 62, name: 'Java (OpenJDK 13.0.1)' },
+              { id: 71, name: 'Python (3.8.1)' },
+              { id: 51, name: 'C# (Mono 6.6.0.161)' }
+            ].map((lang) => (
+              <div
+                key={lang.id}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200/70 text-slate-700 text-xs font-bold shadow-xs hover:border-primary/50 transition-all"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                {lang.name}
+              </div>
+            ))}
           </div>
         </section>
       </div>

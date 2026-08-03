@@ -41,6 +41,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+
 @ExtendWith(MockitoExtension.class)
 class InstructorCourseServiceTest {
 
@@ -77,8 +80,19 @@ class InstructorCourseServiceTest {
     @Mock
     private CourseModerationListener courseModerationListener;
 
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private ValueOperations<String, String> valueOperations;
+
     @InjectMocks
     private InstructorCourseService instructorCourseService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    }
 
     @Test
     void getInstructor_NotFound_ThrowsException() {
@@ -350,6 +364,18 @@ class InstructorCourseServiceTest {
 
         AppException ex = assertThrows(AppException.class, () -> instructorCourseService.submitCourseForReview(1, 10L));
         assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
+    void submitCourseForReview_RateLimitExceeded_ThrowsException() {
+        InstructorEntity instructor = InstructorEntity.builder().id(1).status(InstructorStatus.ACTIVE).build();
+        when(instructorRepository.findByUserId(1)).thenReturn(Optional.of(instructor));
+
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(anyString())).thenReturn("5"); // Already reached limit 5
+
+        AppException ex = assertThrows(AppException.class, () -> instructorCourseService.submitCourseForReview(1, 10L));
+        assertEquals(ErrorCode.AI_MODERATION_LIMIT_EXCEEDED, ex.getErrorCode());
     }
 
     @Test

@@ -54,8 +54,8 @@ public class AuthenticationController {
     boolean isCookieAccessTokenSecure;
 
     @NonFinal
-    @Value("${auth.cookie.access-token.max-age}")
-    long accessTokenMaxAge;
+    @Value("${auth.cookie.access-token.max-age:86400}")
+    String accessTokenMaxAge;
 
     @NonFinal
     @Value("${auth.cookie.access-token.http-only}")
@@ -79,8 +79,8 @@ public class AuthenticationController {
     boolean isCookieRefreshTokenSecure;
 
     @NonFinal
-    @Value("${auth.cookie.refresh-token.max-age}")
-    long refreshTokenMaxAge;
+    @Value("${auth.cookie.refresh-token.max-age:604800}")
+    String refreshTokenMaxAge;
 
     @NonFinal
     @Value("${auth.cookie.refresh-token.http-only}")
@@ -220,16 +220,41 @@ public class AuthenticationController {
      * Sets access token and refresh token as HttpOnly cookies on the response,
      * then clears the token values from the response body for security.
      */
+    private long parseMaxAge(String raw, long defaultValue) {
+        if (raw == null || raw.isBlank()) {
+            return defaultValue;
+        }
+        String trimmed = raw.trim();
+        if (trimmed.toLowerCase().endsWith("s")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1);
+        }
+        try {
+            return Long.parseLong(trimmed);
+        } catch (NumberFormatException e) {
+            try {
+                return java.time.Duration.parse(raw).getSeconds();
+            } catch (Exception ex) {
+                return defaultValue;
+            }
+        }
+    }
+
     private void addAuthCookies(HttpServletResponse response, AuthenticationResponse result) {
+        if (result == null) {
+            return;
+        }
+        long accMaxAge = parseMaxAge(accessTokenMaxAge, 86400L);
+        long refMaxAge = parseMaxAge(refreshTokenMaxAge, 604800L);
+
         ResponseCookie accessTokenCookie = buildCookie(
                 accessTokenName, result.getAccessToken(),
                 accessTokenHttpOnly, isCookieAccessTokenSecure,
-                accessTokenPath, accessTokenMaxAge, accessTokenSameSite);
+                accessTokenPath, accMaxAge, accessTokenSameSite);
 
         ResponseCookie refreshTokenCookie = buildCookie(
                 refreshTokenName, result.getRefreshToken(),
                 refreshTokenHttpOnly, isCookieRefreshTokenSecure,
-                refreshTokenPath, refreshTokenMaxAge, refreshTokenSameSite);
+                refreshTokenPath, refMaxAge, refreshTokenSameSite);
 
         response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());

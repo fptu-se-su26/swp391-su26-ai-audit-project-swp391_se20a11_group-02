@@ -26,7 +26,7 @@ public class InstructorRevenueController {
     InstructorService instructorService;
 
     @GetMapping("/summary")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<InstructorRevenueSummary>> getRevenueSummary(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "filter", defaultValue = "this-month") String filter,
@@ -48,7 +48,7 @@ public class InstructorRevenueController {
     }
 
     @GetMapping("/sales-history")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<List<SalesHistoryItem>>> getSalesHistory(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "filter", defaultValue = "this-month") String filter,
@@ -70,7 +70,7 @@ public class InstructorRevenueController {
     }
 
     @GetMapping("/recent-registrations")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<List<RecentRegistration>>> getRecentRegistrations(
             @AuthenticationPrincipal Jwt jwt) {
         Integer userId = getUserIdFromJwt(jwt);
@@ -89,7 +89,7 @@ public class InstructorRevenueController {
     }
 
     @GetMapping("/payout-history")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<List<PayoutHistoryItem>>> getPayoutHistory(
             @AuthenticationPrincipal Jwt jwt) {
         Integer userId = getUserIdFromJwt(jwt);
@@ -108,7 +108,7 @@ public class InstructorRevenueController {
     }
 
     @GetMapping("/course-breakdown")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<List<CourseBreakdownItem>>> getCourseBreakdown(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "filter", defaultValue = "this-month") String filter,
@@ -130,7 +130,7 @@ public class InstructorRevenueController {
     }
 
     @GetMapping("/chart-data")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<List<MonthlyChartItem>>> getMonthlyChartData(
             @AuthenticationPrincipal Jwt jwt) {
         Integer userId = getUserIdFromJwt(jwt);
@@ -149,7 +149,7 @@ public class InstructorRevenueController {
     }
 
     @GetMapping("/course-registrations")
-    @PreAuthorize("hasAuthority('ROLE_INSTRUCTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_INSTRUCTOR', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<InstructorCourseRegistrationsResponse>> getCourseRegistrations(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "trendTimeframe", defaultValue = "12m") String trendTimeframe) {

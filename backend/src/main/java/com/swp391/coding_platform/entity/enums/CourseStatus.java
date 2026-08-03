@@ -5,5 +5,6 @@ public enum CourseStatus {
     PENDING_ADMIN,
     APPROVED,
     REJECTED,
-    DRAFTS
+    DRAFTS,
+    INACTIVE
 }
